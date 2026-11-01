@@ -1,0 +1,39 @@
+{
+  "combat": {
+    "maxRounds": 30,
+    "baseHp": 60, "hpPerTou": 5, "hpPerStr": 1,
+    "baseSta": 50, "staPerEnd": 5, "manaPerMag": 6,
+    "staRegenPerEnd": 0.4,
+    "baseHit": 0.70, "hitPerAttrDiff": 0.03, "hitMin": 0.05, "hitMax": 0.95,
+    "blockPerBlk": 0.02, "blockReduction": 0.70,
+    "critPerAcc": 0.005, "critMult": 1.75,
+    "profBase": 0.6, "profPer": 0.025,
+    "counterHit": 0.10, "counterEvade": 0.05,
+    "basicAttackSta": 6, "moveSta": 3,
+    "exhaustedPenalty": 0.30, "armorScale": 15, "heavyArmorHit": 0.04,
+    "surrenderMomentum": 20, "surrenderPerGrit": 0.012, "surrenderHpRatio": 0.5,
+    "crowdStart": 30
+  },
+  "death": {
+    "trainingKo": 0.01, "trainingCritKo": 0.03,
+    "missioBase": 0.40, "missioPerPopularity": 0.002, "missioPerCrowd": 0.002,
+    "missioCrowdHand": 0.15, "missioMin": 0.05, "missioMax": 0.40,
+    "suddenBase": 0.95, "suddenPerMedical": 0.02, "suddenMin": 0.85
+  },
+  "rules": {
+    "training": { "name": "훈련전", "purseMult": 1, "rpMult": 1.0 },
+    "missio": { "name": "미시오", "purseMult": 3, "rpMult": 1.5 },
+    "sudden": { "name": "사투", "purseMult": 6, "rpMult": 2.0 }
+  },
+  "league": {
+    "teamsPerTier": 10,
+    "rpTier1": 1500, "rpTier2": 1200,
+    "eloK": 32
+  },
+  "economy": {
+    "startTreasury": 4000,
+    "startRoster": 6,
+    "aiRoster": 8,
+    "wage": { "slaveMin": 5, "slaveMax": 20, "perCa": 0.9 }
+  }
+}

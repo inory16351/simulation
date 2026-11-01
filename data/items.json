@@ -1,0 +1,38 @@
+{
+  "weapons": [
+    { "id": "gladius", "name": "글라디우스", "class": "sword", "damage": 10, "speed": 2, "pierce": 0.15, "range": 0, "reqStr": 8, "crit": 0 },
+    { "id": "sica", "name": "곡검", "class": "sword", "damage": 9, "speed": 2, "pierce": 0.10, "range": 0, "reqStr": 7, "crit": 0, "blockBypass": 0.15 },
+    { "id": "longsword", "name": "롱소드", "class": "sword", "damage": 12, "speed": 3, "pierce": 0.15, "range": 0, "reqStr": 10, "crit": 0 },
+    { "id": "greatsword", "name": "대검", "class": "greatsword", "damage": 20, "speed": 4, "pierce": 0.20, "range": 0, "reqStr": 14, "crit": 0, "twoHanded": true },
+    { "id": "greataxe", "name": "양손도끼", "class": "axe", "damage": 22, "speed": 4, "pierce": 0.25, "range": 0, "reqStr": 15, "crit": 0, "twoHanded": true },
+    { "id": "battleaxe", "name": "전투도끼", "class": "axe", "damage": 13, "speed": 3, "pierce": 0.20, "range": 0, "reqStr": 11, "crit": 0 },
+    { "id": "mace", "name": "철퇴", "class": "mace", "damage": 12, "speed": 3, "pierce": 0.30, "range": 0, "reqStr": 11, "crit": 0, "stun": 0.10 },
+    { "id": "warhammer", "name": "전쟁망치", "class": "mace", "damage": 21, "speed": 5, "pierce": 0.40, "range": 0, "reqStr": 16, "crit": 0, "stun": 0.20, "twoHanded": true },
+    { "id": "hasta", "name": "하스타", "class": "spear", "damage": 11, "speed": 3, "pierce": 0.25, "range": 1, "reqStr": 9, "crit": 0 },
+    { "id": "hunting_spear", "name": "사냥창", "class": "spear", "damage": 13, "speed": 3, "pierce": 0.30, "range": 1, "reqStr": 10, "crit": 0 },
+    { "id": "trident", "name": "삼지창", "class": "trident_net", "damage": 12, "speed": 3, "pierce": 0.20, "range": 1, "reqStr": 9, "crit": 0, "boundBonus": 0.3 },
+    { "id": "net", "name": "그물", "class": "trident_net", "damage": 0, "speed": 2, "pierce": 0, "range": 1, "reqStr": 6, "crit": 0, "offhandOnly": true },
+    { "id": "pugio", "name": "푸기오", "class": "dagger", "damage": 6, "speed": 1, "pierce": 0.10, "range": 0, "reqStr": 5, "crit": 0.10 },
+    { "id": "javelin", "name": "투창", "class": "throwing", "damage": 12, "speed": 3, "pierce": 0.30, "range": 2, "reqStr": 9, "crit": 0, "ammo": 2, "offhandOnly": true },
+    { "id": "cestus", "name": "가죽 주먹띠", "class": "unarmed", "damage": 7, "speed": 1, "pierce": 0, "range": 0, "reqStr": 0, "crit": 0 },
+    { "id": "knuckles", "name": "강철 너클", "class": "unarmed", "damage": 10, "speed": 1, "pierce": 0.10, "range": 0, "reqStr": 8, "crit": 0 },
+    { "id": "rune_charm", "name": "룬 부적", "class": "focus", "damage": 0, "speed": 2, "pierce": 0, "range": 0, "reqStr": 0, "crit": 0, "magicBonus": 0.10, "offhandOnly": true },
+    { "id": "staff", "name": "주술 지팡이", "class": "focus", "damage": 6, "speed": 3, "pierce": 0, "range": 1, "reqStr": 6, "crit": 0, "magicBonus": 0.25, "twoHanded": true }
+  ],
+  "armors": [
+    { "id": "loincloth", "name": "천 허리감개", "slot": "armor", "weight": "light", "defense": 0, "agiPenalty": 0, "staCost": 0, "crowd": 0.10 },
+    { "id": "leather", "name": "가죽 갑옷", "slot": "armor", "weight": "light", "defense": 3, "agiPenalty": 0, "staCost": 0.05, "crowd": 0.05 },
+    { "id": "manica", "name": "마니카", "slot": "armor", "weight": "light", "defense": 1, "agiPenalty": 0, "staCost": 0, "crowd": 0.05 },
+    { "id": "chainmail", "name": "사슬 갑옷", "slot": "armor", "weight": "medium", "defense": 6, "agiPenalty": 1, "staCost": 0.15, "crowd": 0 },
+    { "id": "scale", "name": "비늘 갑옷", "slot": "armor", "weight": "medium", "defense": 7, "agiPenalty": 1, "staCost": 0.15, "crowd": 0 },
+    { "id": "muscle_cuirass", "name": "근육갑", "slot": "armor", "weight": "heavy", "defense": 9, "agiPenalty": 2, "staCost": 0.25, "crowd": -0.05 },
+    { "id": "plate", "name": "판금 갑옷", "slot": "armor", "weight": "heavy", "defense": 12, "agiPenalty": 3, "staCost": 0.35, "crowd": -0.10 },
+    { "id": "open_helm", "name": "개방형 투구", "slot": "helmet", "defense": 1 },
+    { "id": "brimmed_helm", "name": "챙 투구", "slot": "helmet", "defense": 2 },
+    { "id": "sealed_helm", "name": "밀폐 투구", "slot": "helmet", "defense": 4, "accPenalty": 1, "netResist": 0.3 },
+    { "id": "crested_helm", "name": "볏 투구", "slot": "helmet", "defense": 2, "showBonus": 2 },
+    { "id": "parmula", "name": "소방패", "slot": "shield", "block": 0.10, "weight": "light" },
+    { "id": "aspis", "name": "원형방패", "slot": "shield", "block": 0.20, "weight": "medium" },
+    { "id": "scutum", "name": "대방패", "slot": "shield", "block": 0.35, "weight": "heavy" }
+  ]
+}

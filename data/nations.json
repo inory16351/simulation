@@ -1,0 +1,38 @@
+[
+  {
+    "id": "aurelia", "name": "아우렐리아 제국", "short": "아우렐리아", "color": "#5B2A4E",
+    "races": { "human": 6, "orc": 1, "elf": 1, "dwarf": 1, "lizardfolk": 1, "beastkin": 1, "minotaur": 0.5 },
+    "culture": "쇼맨십 중시. 관중 수입 +20%, 세금 +10%",
+    "relations": { "grommar": -60, "sylvaren": 20, "dolgar": 30, "karsea": -30, "kemer": 10 }
+  },
+  {
+    "id": "grommar", "name": "그롬마르 부족연합", "short": "그롬마르", "color": "#4E5D66",
+    "races": { "orc": 6, "minotaur": 3, "human": 1 },
+    "culture": "사투가 명예. 사투 상금 +30%",
+    "relations": { "aurelia": -60, "sylvaren": -10, "dolgar": 10, "karsea": 0, "kemer": -20 }
+  },
+  {
+    "id": "sylvaren", "name": "실바렌 왕국", "short": "실바렌", "color": "#3F5A3A",
+    "races": { "elf": 8, "human": 1, "beastkin": 1 },
+    "culture": "기술과 마법. 국내 리그 사투 불가, 마법 검투사 인기 +50%",
+    "relations": { "aurelia": 20, "grommar": -10, "dolgar": -40, "karsea": 0, "kemer": 20 }
+  },
+  {
+    "id": "dolgar", "name": "돌가르 산악공화국", "short": "돌가르", "color": "#A0522D",
+    "races": { "dwarf": 8, "human": 1, "orc": 1 },
+    "culture": "방어와 인내. 장비 가격 -30%",
+    "relations": { "aurelia": 30, "grommar": 10, "sylvaren": -40, "karsea": 30, "kemer": 0 }
+  },
+  {
+    "id": "karsea", "name": "카르세아 해상연맹", "short": "카르세아", "color": "#2F5F63",
+    "races": { "lizardfolk": 5, "human": 4, "orc": 1, "beastkin": 1 },
+    "culture": "도박. 이적 수수료 -50%, 판돈 상한 2배",
+    "relations": { "aurelia": -30, "grommar": 0, "sylvaren": 0, "dolgar": 30, "kemer": -40 }
+  },
+  {
+    "id": "kemer", "name": "케메르 태양신정국", "short": "케메르", "color": "#B8913A",
+    "races": { "beastkin": 7, "human": 2, "lizardfolk": 1 },
+    "culture": "야수전과 신앙. 야수전 상금 +50%",
+    "relations": { "aurelia": 10, "grommar": -20, "sylvaren": 20, "dolgar": 0, "karsea": -40 }
+  }
+]

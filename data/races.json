@@ -1,0 +1,58 @@
+[
+  {
+    "id": "human", "name": "인간", "color": "#9c7a5b",
+    "attrMods": {},
+    "age": { "debut": 16, "growthEnd": 23, "primeEnd": 30, "retire": 36 },
+    "growthMult": 1.1, "wageMult": 1.0, "upkeepMult": 1.0,
+    "racialTrait": { "name": "적응력", "desc": "훈련 효율 +10%, 모든 무기군 숙련 성장 페널티 없음" },
+    "raceSkill": "skill.adapt"
+  },
+  {
+    "id": "orc", "name": "오크", "color": "#5f7344",
+    "attrMods": { "str": 3, "end": 1, "tou": 2, "mag": -2, "comp": -2, "disc": -2 },
+    "age": { "debut": 14, "growthEnd": 19, "primeEnd": 26, "retire": 32 },
+    "growthMult": 1.0, "wageMult": 0.9, "upkeepMult": 1.0,
+    "racialTrait": { "name": "피의 격노", "desc": "HP 30% 이하일 때 피해 +25%, 받는 피해 +10%" },
+    "raceSkill": "skill.war_cry"
+  },
+  {
+    "id": "minotaur", "name": "미노타우로스", "color": "#6e4632",
+    "attrMods": { "str": 4, "agi": -3, "end": 1, "tou": 3, "rea": -1, "mag": -3, "dec": -2 },
+    "age": { "debut": 16, "growthEnd": 22, "primeEnd": 31, "retire": 38 },
+    "growthMult": 1.0, "wageMult": 2.0, "upkeepMult": 2.0,
+    "racialTrait": { "name": "거구", "desc": "그물·속박 지속시간 절반, 경량 방어구 착용 불가, 주급·유지비 2배" },
+    "raceSkill": "skill.horn_charge"
+  },
+  {
+    "id": "elf", "name": "엘프", "color": "#6f8a78",
+    "attrMods": { "str": -2, "agi": 3, "tou": -2, "rea": 2, "mag": 3, "acc": 2 },
+    "age": { "debut": 40, "growthEnd": 79, "primeEnd": 180, "retire": 230 },
+    "growthMult": 0.7, "wageMult": 1.3, "upkeepMult": 1.0,
+    "racialTrait": { "name": "천년의 눈", "desc": "회피 +10%, 마법 스킬 습득 속도 +50%" },
+    "raceSkill": "skill.wind_step"
+  },
+  {
+    "id": "dwarf", "name": "드워프", "color": "#8a5a3c",
+    "attrMods": { "str": 1, "agi": -2, "end": 2, "tou": 3, "rea": -1, "rec": 1, "mag": -1 },
+    "age": { "debut": 30, "growthEnd": 49, "primeEnd": 90, "retire": 120 },
+    "growthMult": 1.0, "wageMult": 1.0, "upkeepMult": 1.0,
+    "racialTrait": { "name": "강철 뼈", "desc": "중상·영구 손상 확률 -40%, 중장갑 민첩 페널티 무시" },
+    "raceSkill": "skill.earth_stance"
+  },
+  {
+    "id": "lizardfolk", "name": "리자드폴크", "color": "#4d6b5e",
+    "attrMods": { "str": 1, "agi": 1, "tou": 1, "rec": 3, "mag": -2, "show": -2 },
+    "age": { "debut": 12, "growthEnd": 17, "primeEnd": 28, "retire": 34 },
+    "growthMult": 1.0, "wageMult": 0.9, "upkeepMult": 1.0,
+    "racialTrait": { "name": "냉혈", "desc": "사기 변동폭 절반, 부상 회복 속도 2배" },
+    "raceSkill": "skill.venom_bite"
+  },
+  {
+    "id": "beastkin", "name": "수인", "color": "#a07a3a",
+    "attrMods": { "agi": 2, "end": -1, "rea": 2, "show": 2 },
+    "age": { "debut": 15, "growthEnd": 21, "primeEnd": 28, "retire": 33 },
+    "growthMult": 1.0, "wageMult": 1.0, "upkeepMult": 1.0,
+    "racialTrait": { "name": "야성의 감각", "desc": "야수전 피해 +30%, 첫 턴 선공 확률 +30%" },
+    "raceSkill": "skill.pounce"
+  }
+]
