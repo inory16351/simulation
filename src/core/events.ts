@@ -2,7 +2,7 @@
 import eventsJson from "../../data/events.json";
 import { absDay } from "./calendar";
 import { BALANCE } from "./data";
-import { addMoney, refreshMarket } from "./economy";
+import { addMoney, refreshFreeAgents } from "./economy";
 import { ageStage } from "./gladiator";
 import { josa } from "./josa";
 import { logCareer } from "./career";
@@ -237,7 +237,7 @@ function applyEffects(state: GameState, rng: Rng, effects: Effect[], self?: Glad
         state.modifiers.push({ kind: e.kind!, mult: e.mult!, until: now + e.days! });
         break;
       case "refreshMarket":
-        refreshMarket(state, rng);
+        refreshFreeAgents(state, rng);
         break;
     }
   }

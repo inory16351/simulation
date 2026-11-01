@@ -4,11 +4,13 @@ import { closeSeason, logCareer, seasonRecord } from "./career";
 import { dailyChallenges, inRegularPeriod, playAiScheduled, todaysPlayerMatches } from "./challenge";
 import { dailyCondition } from "./condition";
 import { BALANCE } from "./data";
-import { payday, payDividend, refreshMarket, tierRanking } from "./economy";
+import { payday, payDividend, refreshFreeAgents, tierRanking, weeklyFreeAgents } from "./economy";
 import { rollDailyEvents } from "./events";
 import { dailyConstruction } from "./facilities";
 import { onHealed } from "./injuries";
 import { dailyWar } from "./war";
+import { dailyTransfers } from "./transfers";
+import { dailyScouting } from "./scouting";
 import { apprenticeBouts, dailyYouth, intake, isApprenticeDay, seasonEndYouth } from "./youth";
 import { coachMult, healMult, ratingOf, refreshStaffMarket } from "./staff";
 import { rulesOfNation } from "./nationRules";
@@ -45,16 +47,19 @@ export function advanceDay(state: GameState): string[] {
   rollDailyEvents(state, rng);
   // 학당을 처음 지으면 바로 첫 입학생을 받는다
   for (const d of dailyConstruction(state)) if (d.facility === "academy" && d.level === 1) intake(state, rng, d.ludus);
-  if ((BALANCE.economy.marketRefreshDays as number[]).includes(state.day)) {
-    refreshMarket(state, rng);
+  if (state.day === 78) {
+    refreshFreeAgents(state, rng);
     refreshStaffMarket(state, rng);
     replenishAi(state, rng);
-    pushMessage(state, { kind: "info", title: "노예 경매장에 새 매물", body: "경매장에 새 노예들이 들어왔다. 노예 경매 화면에서 볼 수 있다." });
+    pushMessage(state, { kind: "info", title: "이적 시장이 열렸다", body: "앞으로 14일 동안 다른 루두스와 검투사를 사고팔 수 있다. 무소속 검투사 명단도 새로 바뀌었다." });
   }
   if (state.day === 15) pushMessage(state, { kind: "info", title: "정규 기간 시작", body: "오늘부터 도전장을 주고받을 수 있다. 시즌 동안 최소 8경기는 치러야 한다." });
 
-  // 2. 급료일
-  if (isPayday(state.day)) for (const l of Object.values(state.ludi)) payday(state, l);
+  // 2. 급료일 (무소속 명단도 이때 조금씩 바뀐다)
+  if (isPayday(state.day)) {
+    for (const l of Object.values(state.ludi)) payday(state, l);
+    weeklyFreeAgents(state, rng);
+  }
 
   // 3. 훈련과 회복 (모든 루두스)
   for (const l of Object.values(state.ludi)) {
@@ -90,6 +95,8 @@ export function advanceDay(state: GameState): string[] {
   // 4. 도전과 경기
   dailyChallenges(state, rng);
   dailyWar(state, rng);
+  dailyTransfers(state, rng);
+  dailyScouting(state);
   playAiScheduled(state, rng);
 
   // 5. 급료일 다음 날: 탈주와 반란
@@ -248,6 +255,23 @@ function endSeason(state: GameState, rng: Rng): void {
     g.age++;
     seasonRecord(state, g);
   }
+  // 자유민 계약 만료: 사기가 괜찮으면 주급을 올려 1시즌 재계약, 아니면 떠난다
+  {
+    const me = state.ludi[state.playerLudusId];
+    for (const id of [...me.gladiators]) {
+      const g = state.gladiators[id];
+      if (!g?.contract || g.contract.untilSeason >= state.season) continue;
+      if (g.morale >= 50) {
+        g.wage = Math.round(g.wage * 1.1);
+        g.contract.untilSeason = state.season;
+        pushMessage(state, { kind: "info", title: `${g.name} 재계약`, body: `계약이 끝났지만 남기로 했다. 주급이 ${g.wage} D로 올랐다 (1시즌).` });
+      } else {
+        me.gladiators = me.gladiators.filter((x) => x !== id);
+        logCareer(state, g, `계약이 끝나 ${me.name}을(를) 떠났다`, "other");
+        pushMessage(state, { kind: "warning", title: `${g.name} 떠남`, body: "계약이 끝났고, 사기가 낮아 재계약을 거부했다." });
+      }
+    }
+  }
   // 유소년: 졸업 안내, 새 입학생
   for (const l of Object.values(state.ludi)) {
     if (!l.youth) l.youth = [];
@@ -257,7 +281,7 @@ function endSeason(state: GameState, rng: Rng): void {
   state.challenges = state.challenges.filter((c) => c.status === "pending" || c.status === "scheduled");
   for (const c of state.challenges) c.status = "cancelled";
   state.challenges = [];
-  refreshMarket(state, rng);
+  refreshFreeAgents(state, rng);
   replenishAi(state, rng);
 }
 

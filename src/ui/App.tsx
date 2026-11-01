@@ -54,7 +54,7 @@ const MENU: { id: ScreenId; label: string; ready: boolean }[] = [
   { id: "challenge", label: "도전장", ready: true },
   { id: "match", label: "모래 마당", ready: true },
   { id: "league", label: "서열표", ready: true },
-  { id: "market", label: "노예 경매", ready: true },
+  { id: "market", label: "이적 시장", ready: true },
   { id: "youth", label: "유소년 학당", ready: true },
   { id: "staff", label: "식솔", ready: true },
   { id: "facilities", label: "증축", ready: true },
@@ -218,7 +218,7 @@ function Game({ state, setState, onRestart }: { state: GameState; setState: (s: 
           {screen === "inbox" && <InboxScreen {...ctx} />}
           {screen === "overview" && <OverviewScreen state={state} nav={nav} />}
           {screen === "roster" && <RosterScreen state={state} nav={nav} />}
-          {screen === "gladiator" && selected && <GladiatorScreen state={state} id={selected} nav={nav} update={update} />}
+          {screen === "gladiator" && selected && <GladiatorScreen ctx={ctx} id={selected} />}
           {screen === "training" && <TrainingScreen {...ctx} />}
           {screen === "challenge" && <ChallengeScreen {...ctx} />}
           {screen === "league" && <LeagueScreen state={state} />}

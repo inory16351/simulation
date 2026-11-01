@@ -427,3 +427,10 @@ body {
 .pick.on { border-color: var(--torch); background: rgba(227, 154, 59, 0.1); }
 .pick.off { opacity: 0.4; cursor: not-allowed; }
 .pick input { display: none; }
+
+/* ── 검색·협상 ── */
+.search-filters { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center; }
+.search-filters label { display: inline-flex; align-items: center; gap: 6px; color: var(--text-dim); font-size: 12px; }
+.search-filters input[type="number"] { width: 70px; background: var(--bg-2); color: var(--parchment); border: 1px solid var(--line); padding: 4px 6px; border-radius: 3px; }
+.negotiate { display: inline-flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.negotiate input[type="number"] { width: 80px; background: var(--bg-2); color: var(--parchment); border: 1px solid var(--line); padding: 4px 6px; border-radius: 3px; }

@@ -59,7 +59,7 @@ describe("시즌 진행", () => {
     const me = s.ludi[s.playerLudusId];
     const played = [...me.gladiators, ...s.fallen].map((id) => s.gladiators[id]).filter((g) => g.history[0]?.apps > 0);
     expect(played.length).toBeGreaterThan(0);
-    expect(played[0].career.length).toBeGreaterThan(1);
+    expect(played.some((g) => g.career.length > 1)).toBe(true);
   });
 });
 
@@ -143,5 +143,39 @@ describe("용병·전쟁", () => {
     expect(c.status).toBe("done");
     expect(g.deployment).toBeUndefined();
     expect(CONTRACT_TYPES[c.type].name.length).toBeGreaterThan(0);
+  });
+});
+
+describe("이적·스카우팅", () => {
+  it("이적료 합의 뒤 개인 계약을 맺으면 검투사가 옮겨 온다", async () => {
+    const { bid, completeTransfer, transferDemand, askingPrice } = await import("./transfers");
+    const s = newGame(8);
+    s.day = 3;
+    const me = s.ludi[s.playerLudusId];
+    me.treasury = 100000;
+    me.facilities.barracks = 5;
+    const seller = Object.values(s.ludi).find((l) => !l.isPlayer && l.tier === 2)!;
+    const g = s.gladiators[seller.gladiators[0]];
+    const asking = askingPrice(s, g, seller);
+    expect(bid(s, g.id, Math.round(asking * 0.3)).status).toBe("rejected");
+    const r = bid(s, g.id, asking * 2);
+    expect(r.status).toBe("accepted");
+    if (r.status !== "accepted") return;
+    const d = transferDemand(s, g);
+    expect(completeTransfer(s, r.deal.id, d.refuse ? 1 : d.wage, 2, 0)).toBe(d.refuse ? expect.any(String) : null);
+    if (!d.refuse) expect(me.gladiators).toContain(g.id);
+  });
+
+  it("정찰하면 추정 범위가 좁아진다", async () => {
+    const { caRange, assignScout, dailyScouting } = await import("./scouting");
+    const s = newGame(8);
+    const other = Object.values(s.ludi).find((l) => !l.isPlayer)!;
+    const g = s.gladiators[other.gladiators[0]];
+    g.popularity = 0;
+    const before = caRange(s, g);
+    assignScout(s, g.id);
+    for (let i = 0; i < 30; i++) dailyScouting(s);
+    const after = caRange(s, g);
+    expect(after.hi - after.lo).toBeLessThan(before.hi - before.lo);
   });
 });

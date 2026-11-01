@@ -1,5 +1,6 @@
 // 식솔: 독토레(교관), 메디쿠스(의원), 정찰꾼, 중개인
 import { NAMES, getNation } from "./data";
+import { acceptsOffer, demandFor, ludusReputation, staffStanding, type Demand } from "./reputation";
 import type { Rng } from "./rng";
 import type { GameState, Gladiator, Ludus, RaceId, Staff, StaffRole } from "./types";
 
@@ -67,8 +68,8 @@ export function refreshStaffMarket(state: GameState, rng: Rng): void {
   for (const id of state.staffMarket) delete state.staff[id];
   state.staffMarket = [];
   for (const role of ROLES) {
-    for (let i = 0; i < 2; i++) {
-      const rating = Math.max(1, Math.min(20, Math.round(rng.normal(9, 4))));
+    for (let i = 0; i < 9; i++) {
+      const rating = Math.max(1, Math.min(20, Math.round(rng.range(2, 20))));
       state.staffMarket.push(makeStaff(state, rng, role, rating).id);
     }
   }
@@ -79,12 +80,24 @@ export function startingStaff(state: GameState, rng: Rng, ludus: Ludus): void {
   ludus.staff.push(makeStaff(state, rng, "doctore", 6).id);
 }
 
-export function hireStaff(state: GameState, id: string): string | null {
+/** 우리 명성에서 이 사람이 원하는 조건 */
+export function staffDemand(state: GameState, s: Staff): Demand {
+  return demandFor(staffStanding(s), s.wage, ludusReputation(state, state.ludi[state.playerLudusId]));
+}
+
+/** 협상해서 고용한다. 제안 주급이 모자라면 거절당하고, 거절하면 이번 시즌엔 다시 안 만난다 */
+export function hireStaff(state: GameState, id: string, offer: number, roll: number): string | null {
   const player = state.ludi[state.playerLudusId];
   const s = state.staff[id];
   if (!state.staffMarket.includes(id)) return "이미 떠난 사람이다";
-  const current = staffOf(state, player, s.role);
-  if (current) return `${ROLE_NAMES[s.role]} 자리가 이미 차 있다. 먼저 내보내라`;
+  if (staffOf(state, player, s.role)) return `${ROLE_NAMES[s.role]} 자리가 이미 차 있다. 먼저 내보내라`;
+  const d = staffDemand(state, s);
+  if (d.refuse) return `${s.name}: ${d.reason}`;
+  if (!acceptsOffer(offer, d, roll)) {
+    state.staffMarket = state.staffMarket.filter((x) => x !== id);
+    return `${s.name}이(가) 제안을 거절하고 떠났다 (원한 주급 ${d.wage} D)`;
+  }
+  s.wage = offer;
   state.staffMarket = state.staffMarket.filter((x) => x !== id);
   player.staff.push(id);
   return null;

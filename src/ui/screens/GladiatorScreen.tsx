@@ -2,19 +2,22 @@ import { getArmor, getNation, getRace, getSkill, getStyle, getTrait, getWeapon }
 import { AGE_STAGE_NAMES, ageStage, computeCA, effectiveAttr } from "../../core/gladiator";
 import {
   MENTAL, PHYSICAL, TECHNICAL, ATTR_NAMES, WEAPON_CLASS_NAMES, WEAPON_CLASSES,
-  type AttrId, type GameState,
+  type AttrId,
 } from "../../core/types";
 import { dateLabel } from "../../core/calendar";
-import type { Nav } from "../App";
+import type { Ctx } from "../App";
+import { AcquirePanel } from "../components/AcquirePanel";
+import { RangeStars } from "./MarketScreen";
+import { attrRange, caRange, paRange } from "../../core/scouting";
 import { CareerPanel } from "../components/CareerPanel";
-import { paSpread } from "../../core/staff";
 import { DoctrinePanel } from "../components/DoctrinePanel";
 import { performance } from "../../core/condition";
 import { Bar, InjuryTag, Portrait, RaceTag, Stars, StyleTag, attrClass } from "../components/common";
 
 const STATUS_NAMES = { slave: "노예", free: "자유민", freedman: "해방민" };
 
-export function GladiatorScreen({ state, id, nav, update }: { state: GameState; id: string; nav: Nav; update: (fn: (d: GameState) => void) => void }) {
+export function GladiatorScreen({ ctx, id }: { ctx: Ctx; id: string }) {
+  const { state, nav, update } = ctx;
   const g = state.gladiators[id];
   const race = getRace(g.race);
   const style = getStyle(g.style);
@@ -27,12 +30,14 @@ export function GladiatorScreen({ state, id, nav, update }: { state: GameState; 
       <h3>{title}</h3>
       <table className="t attr-table">
         <tbody>
-          {ids.map((a) => {
+          {ids.map((a, i) => {
             const v = effectiveAttr(g, a);
+            // 남의 검투사는 정찰한 만큼만 보인다
+            const r = attrRange(state, g, v, i + 3);
             return (
               <tr key={a}>
                 <td>{ATTR_NAMES[a]}</td>
-                <td className={`v ${attrClass(v)}`}>{v}</td>
+                <td className={`v ${attrClass(r.mid)}`}>{r.lo === r.hi ? v : `${r.lo}~${r.hi}`}</td>
               </tr>
             );
           })}
@@ -62,12 +67,10 @@ export function GladiatorScreen({ state, id, nav, update }: { state: GameState; 
               <dt>스타일</dt><dd><StyleTag style={g.style} /> — {style.desc}</dd>
               <dt>신분</dt><dd>{STATUS_NAMES[g.status]}</dd>
               <dt>주급</dt><dd>{g.wage} D {g.unpaidWeeks > 0 && <span className="tag neg">급료 {g.unpaidWeeks}회 밀림</span>}</dd>
-              <dt>현재 능력</dt><dd><Stars value={ca} /> <span style={{ color: "var(--text-faint)" }}>(CA {ca})</span></dd>
+              <dt>현재 능력</dt><dd>{isMine ? <><Stars value={ca} /> <span style={{ color: "var(--text-faint)" }}>(CA {ca})</span></> : <RangeStars lo={caRange(state, g).lo} hi={caRange(state, g).hi} />}</dd>
               <dt>잠재력</dt>
               <dd>
-                {isMine
-                  ? <Stars value={Math.max(ca, g.hidden.pa - paSpread(state, g))} range={Math.min(200, g.hidden.pa + paSpread(state, g))} />
-                  : <span style={{ color: "var(--text-faint)" }}>아직 모른다 (정찰 필요)</span>}
+                <RangeStars lo={paRange(state, g).lo} hi={paRange(state, g).hi} />
               </dd>
               <dt>사기</dt><dd><Bar value={g.morale} /> {g.morale}</dd>
               <dt>인기</dt><dd><Bar value={g.popularity} color="var(--torch)" /> {g.popularity}</dd>
@@ -131,6 +134,8 @@ export function GladiatorScreen({ state, id, nav, update }: { state: GameState; 
           </table>
         </div>
       </div>
+
+      {!isMine && g.alive && <AcquirePanel g={g} ctx={ctx} />}
 
       <DoctrinePanel g={g} editable={isMine && g.alive} onChange={(doc) => update((d) => { d.gladiators[g.id].doctrine = doc; })} />
 

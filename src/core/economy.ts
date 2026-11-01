@@ -3,11 +3,12 @@ import { absDay } from "./calendar";
 import { BALANCE, getRace } from "./data";
 import { logCareer, seasonRecord } from "./career";
 import { computeCA } from "./gladiator";
-import { generateGladiator } from "./generators/gladiator";
+import { computeWage, generateGladiator } from "./generators/gladiator";
 import { capacityAt, weeklyUpkeep } from "./facilities";
 import { modifierMult } from "./modifiers";
-import { buyMult, ratingOf, sellMult, staffWages } from "./staff";
 import { rulesOfNation } from "./nationRules";
+import { acceptsOffer, demandFor, gladiatorStanding, ludusReputation, type Demand } from "./reputation";
+import { staffWages } from "./staff";
 import type { Rng } from "./rng";
 import { pushMessage } from "./state";
 import type { GameState, Gladiator, Ludus } from "./types";
@@ -109,73 +110,87 @@ function stageOf(g: Gladiator) {
   return g.age < r.debut ? "youth" : g.age <= r.growthEnd ? "growth" : g.age <= r.primeEnd ? "prime" : "decline";
 }
 
-/** 노예 경매 매물 새로 고침 */
-export function refreshMarket(state: GameState, rng: Rng): void {
-  for (const l of state.market) {
-    const g = state.gladiators[l.gladiatorId];
-    if (g && !Object.values(state.ludi).some((x) => x.gladiators.includes(g.id))) delete state.gladiators[g.id];
-  }
-  state.market = [];
-  const player = state.ludi[state.playerLudusId];
-  const base = player.tier === 1 ? 9 : 6.5;
-  // 전쟁 포로: 패전국 출신이 싼값에 나온다
-  if (state.powPending) {
-    const pow = state.powPending;
-    state.powPending = undefined;
-    for (let i = 0; i < 4; i++) {
-      const g = generateGladiator(rng, { id: `G${state.nextId++}`, nation: pow, target: base + rng.range(-1, 2), status: "slave" });
-      g.morale = rng.int(15, 35);
-      if (!g.traits.includes("homesick")) g.traits.push("homesick");
-      state.gladiators[g.id] = g;
-      state.market.push({ gladiatorId: g.id, price: Math.round(marketValue(g) * 0.5 / 10) * 10 });
-    }
-  }
-  for (let i = 0; i < E.marketSize; i++) {
-    const g = generateGladiator(rng, {
-      id: `G${state.nextId++}`,
-      nation: state.nation,
-      target: base + rng.range(-2, 2.5),
-      status: "slave",
-      usedNames: new Set(Object.values(state.gladiators).map((x) => x.name)),
-    });
-    state.gladiators[g.id] = g;
-    state.market.push({ gladiatorId: g.id, price: Math.round(marketValue(g) * rng.range(0.85, 1.2) * modifierMult(state, "market") * rulesOfNation(state.nation).marketMult / 10) * 10 });
-  }
-}
-
 export function rosterCapacity(ludus: Ludus): number {
   return capacityAt(ludus.facilities.barracks);
 }
 
-/** 중개인 실력을 반영한 실제 구매가 */
-export function buyPrice(state: GameState, price: number): number {
-  return Math.round(price * buyMult(ratingOf(state, state.ludi[state.playerLudusId], "agent")) / 10) * 10;
+/** 무소속 검투사를 하나 만들어 명단에 올린다 */
+function addFreeAgent(state: GameState, rng: Rng, nation: GameState["nation"], target: number, used: Set<string>, pow = false): void {
+  const g = generateGladiator(rng, { id: `G${state.nextId++}`, nation, target, status: "free", usedNames: used });
+  g.popularity = Math.min(80, g.popularity + rng.int(0, 20));
+  g.wage = Math.round(computeWage(g, computeCA(g)) * (pow ? 0.5 : 1) * modifierMult(state, "market") * rulesOfNation(state.nation).marketMult);
+  if (pow) {
+    g.morale = rng.int(15, 35);
+    if (!g.traits.includes("homesick")) g.traits.push("homesick");
+  }
+  state.gladiators[g.id] = g;
+  state.freeAgents.push(g.id);
 }
 
-export function buyFromMarket(state: GameState, gladiatorId: string): string | null {
+const isOwned = (state: GameState, id: string) => Object.values(state.ludi).some((l) => l.gladiators.includes(id) || l.youth?.includes(id));
+
+/** 무소속 검투사 명단 새로 고침 (이적 시장이 열릴 때). 실력 폭이 넓고, 협상해야 온다 */
+export function refreshFreeAgents(state: GameState, rng: Rng): void {
+  for (const id of state.freeAgents ?? []) if (!isOwned(state, id)) delete state.gladiators[id];
+  state.freeAgents = [];
+  const used = new Set(Object.values(state.gladiators).map((x) => x.name));
+  const base = state.ludi[state.playerLudusId].tier === 1 ? 9 : 7;
+  // 전쟁 포로: 패전국 출신이 싼 주급에 풀린다
+  if (state.powPending) {
+    for (let i = 0; i < 4; i++) addFreeAgent(state, rng, state.powPending, base + rng.range(-1, 2), used, true);
+    state.powPending = undefined;
+  }
+  for (let i = 0; i < 24; i++) addFreeAgent(state, rng, state.nation, base + rng.range(-3, 6), used);
+}
+
+/** 매주: 몇 명은 다른 데로 가고 몇 명이 새로 풀린다 */
+export function weeklyFreeAgents(state: GameState, rng: Rng): void {
+  const used = new Set(Object.values(state.gladiators).map((x) => x.name));
+  for (let i = 0; i < 2 && state.freeAgents.length > 12; i++) {
+    const id = state.freeAgents.splice(rng.int(0, state.freeAgents.length - 1), 1)[0];
+    if (!isOwned(state, id)) delete state.gladiators[id];
+  }
+  const base = state.ludi[state.playerLudusId].tier === 1 ? 9 : 7;
+  for (let i = 0; i < 2; i++) addFreeAgent(state, rng, state.nation, base + rng.range(-3, 6), used);
+}
+
+/** 방출: 무소속이 된다 */
+export function releaseGladiator(state: GameState, id: string): void {
   const player = state.ludi[state.playerLudusId];
-  const listing = state.market.find((m) => m.gladiatorId === gladiatorId);
-  if (!listing) return "이미 팔린 매물이다.";
-  const price = buyPrice(state, listing.price);
-  if (player.treasury < price) return "금고가 모자란다.";
-  if (player.gladiators.length >= rosterCapacity(player)) return "막사에 빈자리가 없다.";
-  addMoney(state, player, -price, `${state.gladiators[gladiatorId].name} 구매`);
-  player.gladiators.push(gladiatorId);
-  state.market = state.market.filter((m) => m !== listing);
-  const g = state.gladiators[gladiatorId];
+  const g = state.gladiators[id];
+  player.gladiators = player.gladiators.filter((x) => x !== id);
+  g.contract = undefined;
+  state.freeAgents.push(id);
+  logCareer(state, g, `${player.name}에서 방출됐다`, "other");
+}
+
+/** 우리 명성에서 이 검투사가 원하는 주급 */
+export function freeAgentDemand(state: GameState, g: Gladiator): Demand {
+  return demandFor(gladiatorStanding(g), g.wage, ludusReputation(state, state.ludi[state.playerLudusId]));
+}
+
+/** 계약금 = 제안 주급 4주치 */
+export const signingFee = (offer: number) => offer * 4;
+
+export function signFreeAgent(state: GameState, id: string, offer: number, seasons: number, roll: number): string | null {
+  const player = state.ludi[state.playerLudusId];
+  const g = state.gladiators[id];
+  if (!state.freeAgents.includes(id)) return "이미 다른 곳과 계약했다";
+  if (player.gladiators.length >= rosterCapacity(player)) return "막사에 빈자리가 없다";
+  const d = freeAgentDemand(state, g);
+  if (d.refuse) return `${g.name}: ${d.reason}`;
+  if (player.treasury < signingFee(offer)) return "계약금이 모자란다";
+  if (!acceptsOffer(offer, d, roll)) {
+    state.freeAgents = state.freeAgents.filter((x) => x !== id);
+    return `${g.name}이(가) 제안을 거절하고 다른 루두스로 갔다 (원한 주급 ${d.wage} D)`;
+  }
+  addMoney(state, player, -signingFee(offer), `${g.name} 계약금`);
+  g.wage = offer;
+  g.contract = { untilSeason: state.season + seasons - 1, clauses: [] };
+  g.status = "free";
+  state.freeAgents = state.freeAgents.filter((x) => x !== id);
+  player.gladiators.push(id);
   seasonRecord(state, g);
-  logCareer(state, g, `노예 경매에서 ${player.name}에 팔려 왔다 (${price} D)`, "join");
-  return null;
-}
-
-export function sellGladiator(state: GameState, gladiatorId: string): string | null {
-  const player = state.ludi[state.playerLudusId];
-  const g = state.gladiators[gladiatorId];
-  if (g.status !== "slave") return "자유민은 팔 수 없다.";
-  const price = Math.round(marketValue(g) * E.sellShare * sellMult(ratingOf(state, player, "agent")) / 10) * 10;
-  player.gladiators = player.gladiators.filter((x) => x !== gladiatorId);
-  player.treasury += price;
-  state.ledger.unshift({ at: absDay(state.season, state.day), amount: price, desc: `${g.name} 판매` });
-  logCareer(state, g, `${player.name}에서 노예 상인에게 팔려 나갔다 (${price} D)`, "other");
+  logCareer(state, g, `자유민으로 ${player.name}과(와) ${seasons}시즌 계약했다 (주급 ${offer} D)`, "join");
   return null;
 }

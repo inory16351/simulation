@@ -1,6 +1,6 @@
 import { logCareer, seasonRecord } from "../career";
 import { BALANCE, NAMES, NATIONS, getNation } from "../data";
-import { payDividend, refreshMarket } from "../economy";
+import { payDividend, refreshFreeAgents } from "../economy";
 import { refreshStaffMarket, startingStaff } from "../staff";
 import { Rng } from "../rng";
 import type { GameState, Ludus, NationId } from "../types";
@@ -11,7 +11,7 @@ const PERSONALITIES: NonNullable<Ludus["aiPersonality"]>[] = ["aggressive", "sta
 export function newGame(seed: number, nation: NationId = "aurelia", ludusName = "모래의 집"): GameState {
   const rng = new Rng(seed);
   const state: GameState = {
-    version: 7,
+    version: 8,
     seed,
     rngState: 0,
     season: 1,
@@ -28,6 +28,7 @@ export function newGame(seed: number, nation: NationId = "aurelia", ludusName = 
     wars: [],
     contracts: [],
     staffMarket: [],
+    freeAgents: [],
     market: [],
     ledger: [],
     pendingEvents: [],
@@ -115,8 +116,8 @@ export function newGame(seed: number, nation: NationId = "aurelia", ludusName = 
 
   // 시즌 시작: 배당금, 경매장, 일대기 첫 줄
   for (const l of Object.values(state.ludi)) payDividend(state, l, l.isPlayer ? BALANCE.economy.promotedDividendCoef : undefined);
-  refreshMarket(state, rng);
   refreshStaffMarket(state, rng);
+  refreshFreeAgents(state, rng);
   startingStaff(state, rng, state.ludi[state.playerLudusId]);
   for (const l of Object.values(state.ludi)) {
     for (const id of l.gladiators) {

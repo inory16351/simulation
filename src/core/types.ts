@@ -85,6 +85,8 @@ export interface Gladiator {
   growth: Partial<Record<string, number>>;
   /** 마지막 경기 날짜 (절대 일수) */
   lastFightAt?: number;
+  /** 자유민 계약 (이 시즌까지) */
+  contract?: { untilSeason: number; clauses: string[] };
   /** 용병 파견 중이면 의뢰 id와 돌아오는 날 */
   deployment?: { contractId: Id; until: number };
   /** 경기감각 0~100. 경기를 뛰면 오르고 쉬면 떨어진다 */
@@ -150,6 +152,8 @@ export interface Ludus {
   staff: Id[];
   /** 유소년 학당 학생 */
   youth: Id[];
+  /** 판테온 컵·리그 우승 횟수 (명성에 반영) */
+  titles?: number;
   /** 나라별 호감도 (-100~100) */
   favor?: Partial<Record<NationId, number>>;
   /** 금고가 마이너스가 된 날 (절대 일수) */
@@ -298,8 +302,14 @@ export interface GameState {
   contracts: Contract[];
   /** 패전국 포로가 다음 경매에 나온다 */
   powPending?: NationId;
-  /** 고용할 수 있는 식솔 후보 */
+  /** 고용할 수 있는 식솔 후보 (검색 대상) */
   staffMarket: Id[];
+  /** 무소속 검투사 (협상해서 데려온다) */
+  freeAgents: Id[];
+  scouting?: import("./scouting").ScoutingState;
+  transfer?: import("./transfers").TransferState;
+  /** 관심 명단 */
+  shortlist?: Id[];
   market: MarketListing[];
   ledger: LedgerEntry[];
   /** 플레이어가 골라야 하는 이벤트 선택지 */

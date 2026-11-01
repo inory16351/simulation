@@ -1,7 +1,11 @@
 import { makeAvatar } from "../../core/avatar";
 import { getNation } from "../../core/data";
-import { ROLES, ROLE_DESC, ROLE_NAMES, fireStaff, hireStaff, staffOf, staffWages } from "../../core/staff";
-import type { Gladiator, Staff } from "../../core/types";
+import { useState } from "react";
+import { ROLES, ROLE_DESC, ROLE_NAMES, fireStaff, hireStaff, staffDemand, staffOf, staffWages } from "../../core/staff";
+import { ludusReputation, REPUTATION_NAMES } from "../../core/reputation";
+import { Rng } from "../../core/rng";
+import { Negotiate } from "../components/Negotiate";
+import type { Gladiator, Staff, StaffRole } from "../../core/types";
 import type { Ctx } from "../App";
 import { AvatarSvg } from "../components/Avatar";
 import { Bar } from "../components/common";
@@ -22,12 +26,21 @@ function StaffFace({ s, nation, size = 44 }: { s: Staff; nation: string; size?: 
 export function StaffScreen({ state, act }: Ctx) {
   const player = state.ludi[state.playerLudusId];
   const color = getNation(state.nation).color;
-  const candidates = state.staffMarket.map((id) => state.staff[id]).filter(Boolean);
+  const rep = ludusReputation(state, player);
+  const [role, setRole] = useState<StaffRole | "">("");
+  const [minRating, setMinRating] = useState(0);
+  const [onlyWilling, setOnlyWilling] = useState(false);
+  const [msg, setMsg] = useState<string | null>(null);
+  const list = state.staffMarket.map((id) => state.staff[id]).filter(Boolean)
+    .filter((c) => (!role || c.role === role) && c.rating >= minRating)
+    .map((c) => ({ s: c, d: staffDemand(state, c) }))
+    .filter((x) => !onlyWilling || !x.d.refuse)
+    .sort((x, y) => y.s.rating - x.s.rating);
 
   return (
     <>
       <h1 className="screen-title">식솔</h1>
-      <div className="screen-sub">자리마다 한 명씩 둔다. 식솔 급료는 급료일에 함께 나간다 (지금 주 {staffWages(state, player)} D). 후보는 경매장이 바뀔 때 함께 바뀐다.</div>
+      <div className="screen-sub">자리마다 한 명씩 둔다. 식솔 급료는 급료일에 함께 나간다 (지금 주 {staffWages(state, player)} D). 후보는 이적 시장이 열릴 때 바뀐다.</div>
       <div className="staff-grid">
         {ROLES.map((role) => {
           const s = staffOf(state, player, role);
@@ -53,19 +66,36 @@ export function StaffScreen({ state, act }: Ctx) {
         })}
       </div>
       <div className="panel">
-        <h3>고용 후보</h3>
+        <h3>식솔 찾기</h3>
+        <div className="pad search-filters">
+          <label>자리 <select value={role} onChange={(e) => setRole(e.target.value as StaffRole | "")}>
+            <option value="">전부</option>{ROLES.map((r) => <option key={r} value={r}>{ROLE_NAMES[r]}</option>)}
+          </select></label>
+          <label>실력 ≥ <select value={minRating} onChange={(e) => setMinRating(Number(e.target.value))}>
+            {[0, 5, 10, 15].map((v) => <option key={v} value={v}>{v || "제한 없음"}</option>)}
+          </select></label>
+          <label><input type="checkbox" checked={onlyWilling} onChange={(e) => setOnlyWilling(e.target.checked)} /> 올 마음이 있는 사람만</label>
+          <span className="hint">우리 명성 {rep} ({REPUTATION_NAMES(rep)}) — 실력 좋은 사람일수록 이름난 루두스를 원한다</span>
+        </div>
+        {msg && <div className="pad"><span className="tag neg">{msg}</span></div>}
         <table className="t">
-          <thead><tr><th>이름</th><th>자리</th><th>실력</th><th className="num">주급</th><th /></tr></thead>
+          <thead><tr><th>이름</th><th>자리</th><th>실력</th><th>협상</th></tr></thead>
           <tbody>
-            {candidates.map((s) => {
-              const taken = !!staffOf(state, player, s.role);
+            {list.length === 0 && <tr><td colSpan={4} className="hint">조건에 맞는 사람이 없다. 후보는 이적 시장이 열릴 때 바뀐다.</td></tr>}
+            {list.map(({ s: c, d }) => {
+              const taken = !!staffOf(state, player, c.role);
               return (
-                <tr key={s.id}>
-                  <td><div className="name-cell"><StaffFace s={s} nation={color} size={30} /><span className="n">{s.name}</span></div></td>
-                  <td>{ROLE_NAMES[s.role]}</td>
-                  <td><Bar value={s.rating} max={20} color="var(--torch)" /> {s.rating}</td>
-                  <td className="num">{s.wage} D</td>
-                  <td><button className="btn primary" disabled={taken} title={taken ? "그 자리는 이미 차 있다" : undefined} onClick={() => act((d) => { hireStaff(d, s.id); })}>고용</button></td>
+                <tr key={c.id}>
+                  <td><div className="name-cell"><StaffFace s={c} nation={color} size={30} /><span className="n">{c.name}</span><span className="hint">{c.age}세</span></div></td>
+                  <td>{ROLE_NAMES[c.role]}</td>
+                  <td><Bar value={c.rating} max={20} color="var(--torch)" /> {c.rating}</td>
+                  <td>
+                    <Negotiate demand={d} disabled={taken ? "그 자리는 이미 차 있다. 먼저 내보내라" : undefined} label="고용 제안" onOffer={(wage) => {
+                      const r = new Rng((state.rngState ^ state.nextId) >>> 0).next();
+                      setMsg(hireStaff(structuredClone(state), c.id, wage, r));
+                      act((st) => { hireStaff(st, c.id, wage, r); });
+                    }} />
+                  </td>
                 </tr>
               );
             })}
