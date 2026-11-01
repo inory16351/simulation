@@ -64,7 +64,12 @@ async function headAnchors(file) {
   const eyeL = avg(leftEye), eyeR = avg(rightEye);
   const cx = leftEye.length && rightEye.length ? (eyeL + eyeR) / 2 : mid;
   // 얼굴 폭: 눈높이에서 귀를 뺀 폭 ≈ 눈 사이 거리의 2.4배 (귀 때문에 윤곽 폭은 쓰지 않는다)
-  const eyeGap = eyeR - eyeL;
+  let eyeGap = eyeR - eyeL;
+  // 털이 어둡거나 눈을 못 찾으면 템플릿 비율로 대신한다 (머리 폭의 42%, 정수리~턱의 55% 높이)
+  let eyeYv = eyeY, cxv = cx;
+  if (!(eyeGap > maxW * 0.2 && eyeGap < maxW * 0.7) || !(eyeY > m.top && eyeY < chin)) {
+    eyeGap = maxW * 0.42; eyeYv = m.top + (chin - m.top) * 0.6; cxv = mid;
+  }
   const faceW = Math.min(maxW * 0.92, eyeGap * 2.45);
   // 어깨: 턱 아래에서 가장 넓은 줄
   let shW = 0, shCx = cx, shY = m.bottom;
@@ -72,7 +77,7 @@ async function headAnchors(file) {
   // 목 아래쪽(어깨 시작): 턱에서 목 폭이 다시 넓어지기 시작하는 곳
   let neckW = 1e9, neckBase = chin;
   for (let y = chin; y < shY; y++) { const [l, r] = m.row(y); if (l < 0) continue; if (r - l < neckW) neckW = r - l; if (r - l > neckW * 1.6) { neckBase = y; break; } }
-  return { top: m.top, cx, eyeY, eyeGap, faceW, headW: maxW, chin, neckBase, neckW, shW, shCx, shY, W: m.W, H: m.H };
+  return { top: m.top, cx: cxv, eyeY: eyeYv, eyeGap, faceW, headW: maxW, chin, neckBase, neckW, shW, shCx, shY, W: m.W, H: m.H };
 }
 
 /** 가운데 세로줄을 따라 위에서 내려가며: 처음 불투명이 나온 뒤 처음 투명해지는 곳 = 구멍의 윗가장자리 */

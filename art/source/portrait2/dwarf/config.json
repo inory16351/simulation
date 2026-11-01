@@ -1,0 +1,35 @@
+{
+ "heads": [
+  "m",
+  "m",
+  "m",
+  "f",
+  "m",
+  "m",
+  "f",
+  "m",
+  "f"
+ ],
+ "front": [
+  "hair_short",
+  "hair_long",
+  "hair_braids",
+  "beard_full",
+  "beard_short",
+  "helmet_crest",
+  "helmet_visor",
+  "armor_harness",
+  "armor_plate"
+ ],
+ "side": [
+  "hair_short",
+  "hair_long",
+  "hair_braids",
+  "beard_full",
+  "beard_short",
+  "helmet_crest",
+  "helmet_visor",
+  null,
+  null
+ ]
+}

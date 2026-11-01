@@ -33,16 +33,21 @@ export function paintedSpec(g: Gladiator): PaintedSpec | null {
   // 머리는 성별에 맞는 것 중에서
   const pool = rd.heads.map((s, i) => [s, i] as const).filter(([s]) => s === (female ? "f" : "m")).map(([, i]) => i);
   const head = r.pick(pool.length ? pool : rd.heads.map((_, i) => i));
+  // 이 종족에 그림이 있는 파츠만 고른다
+  const has = (n: string | null) => !!n && !!rd.front.parts[n];
+  const only = (list: (string | null)[]) => { const ok = list.filter((n) => n === null || has(n)); return ok.length ? r.pick(ok) : null; };
   const helmetItem = g.equipment.helmet ? getArmor(g.equipment.helmet) : undefined;
-  const helmet = helmetItem && r.chance(0.6) ? (helmetItem.weight === "heavy" ? "helmet_visor" : "helmet_crest") : null;
+  const helmetWant = helmetItem && r.chance(0.6) ? (helmetItem.weight === "heavy" ? "helmet_visor" : "helmet_crest") : null;
+  const helmet = has(helmetWant) ? helmetWant : null;
   const hair = helmet ? null
-    : female ? r.pick(["hair_long", "hair_braids", "hair_short"])
-    : r.pick(["hair_short", "hair_short", "hair_long", null]);
+    : female ? only(["hair_long", "hair_braids", "hair_short"])
+    : only(["hair_short", "hair_short", "hair_long", null]);
   // 수염은 남자만, 그것도 다는 아니다. 면갑을 쓰면 가려져서 뺀다
   const old = ageStage(g) === "decline";
-  const beard = !female && helmet !== "helmet_visor" && r.chance(old ? 0.75 : 0.45) ? r.pick(["beard_full", "beard_short"]) : null;
+  const beard = !female && helmet !== "helmet_visor" && r.chance(old ? 0.75 : g.race === "dwarf" ? 0.85 : 0.45) ? only(["beard_full", "beard_short"]) : null;
   const weight = getArmor(g.equipment.armor)?.weight;
-  const armor = weight === "heavy" || weight === "medium" ? "armor_plate" : weight === "light" ? "armor_harness" : null;
+  const armorWant = weight === "heavy" || weight === "medium" ? "armor_plate" : weight === "light" ? "armor_harness" : null;
+  const armor = has(armorWant) ? armorWant : null;
   return { race: g.race, head, hair, beard, helmet, armor };
 }
 

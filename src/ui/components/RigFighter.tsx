@@ -15,22 +15,27 @@ export type Pose = "idle" | "attack" | "hurt" | "block" | "dodge" | "step" | "ca
 
 const INK = "#1a120e";
 // 뼈 길이 (장면 단위)
-const B = { pelvisY: -31, neck: 26, shoulderY: -21, upperArm: 13, forearm: 12, thigh: 15.5, shin: 15.5, chest: 23, hips: 12, hipsUp: 6 };
-const HEAD_S = 0.1;
+const B = { pelvisY: -25, neck: 23, shoulderY: -18, upperArm: 11, forearm: 10, thigh: 12.5, shin: 12.5, chest: 22, hips: 11, hipsUp: 5 };
+const HEAD_S = 0.098;
+/** 팔다리·몸통 굵기 배율 (기준 그림처럼 다부지게) */
+const THICK = { arm: 1.65, thigh: 1.5, shin: 1.3, chest: 1.6, hips: 1.55 };
 
-/** 관절 각도. 팔다리는 0이 아래로 늘어진 자세, +가 앞(보는 쪽)으로. 무릎은 −가 뒤로 굽힘, 팔꿈치는 +가 앞으로 굽힘 */
+/**
+ * 관절 각도. 팔다리는 0이 아래로 늘어진 자세, +가 앞(보는 쪽)으로 도는 쪽.
+ * 무릎은 −가 뒤로 굽힘, 팔꿈치는 +가 앞으로 굽힘.
+ * grip: 무기 날의 방향 = 아래팔 방향을 grip만큼 앞으로 돌린 쪽 (0이면 아래팔을 그대로 잇는다)
+ */
 interface J {
   rx: number; ry: number; spin: number; lean: number; neck: number;
   sF: number; eF: number; sB: number; eB: number; grip: number;
   hF: number; kF: number; hB: number; kB: number;
 }
-const IDLE: J = { rx: 0, ry: 0, spin: 0, lean: 5, neck: -4, sF: 40, eF: 75, sB: 30, eB: 45, grip: 15, hF: 14, kF: -18, hB: -16, kB: -12 };
 
 type Frame = [number, Partial<J>];
 const ease = (x: number) => (x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2);
 
 /** 키프레임 사이를 부드럽게 잇는다. 첫 프레임 전은 기본 자세, 마지막 뒤는 마지막 자세 유지 */
-function keyframes(t: number, frames: Frame[], base: J = IDLE): J {
+function keyframes(t: number, frames: Frame[], base: J): J {
   const full = frames.map(([ft, p]) => [ft, { ...base, ...p }] as const);
   if (t <= 0) return { ...base };
   let prev: readonly [number, J] = [0, base];
@@ -46,74 +51,98 @@ function keyframes(t: number, frames: Frame[], base: J = IDLE): J {
   return { ...prev[1] };
 }
 
-type Style = "slash" | "overhead" | "thrust" | "punch" | "cast";
+/** 무기 쓰는 방식: 한손검+방패, 두손 내려찍기, 두손 찌르기(긴 자루), 한손 찌르기, 맨주먹, 주술 */
+type Style = "slash" | "overhead" | "pole" | "stab" | "punch" | "cast";
 const styleOf = (g: Gladiator): Style => {
   const c = getWeapon(g.equipment.main)?.class ?? "unarmed";
   if (c === "focus") return "cast";
   if (c === "unarmed") return "punch";
   if (c === "greatsword" || c === "axe" || c === "mace") return "overhead";
-  if (c === "dagger" || c === "spear" || c === "trident_net" || c === "throwing") return "thrust";
+  if (c === "spear" || c === "trident_net" || c === "throwing") return "pole";
+  if (c === "dagger") return "stab";
   return "slash";
 };
+// 다리를 넓게 벌린 경계 자세와 내딛기 (발이 땅에 닿게 골반 높이는 그릴 때 계산한다)
+const LEGS = { hF: 46, kF: -50, hB: -42, kB: -4, ry: 0 };
+const LUNGE = { hF: 62, kF: -68, hB: -55, kB: -2, ry: 0 };
+
+/** 경계 자세 (기준 그림 1·4번): 다리를 벌리고 앞무릎을 굽힌다 */
+function guard(style: Style): J {
+  const base = { rx: 0, spin: 0, lean: 6, neck: -4, ...LEGS };
+  switch (style) {
+    case "overhead": return { ...base, sF: 40, eF: 70, sB: 30, eB: 75, grip: 40 };
+    case "pole": return { ...base, sF: 55, eF: 35, sB: 25, eB: 65, grip: 0 };
+    case "punch": return { ...base, sF: 45, eF: 80, sB: 30, eB: 90, grip: 0 };
+    case "cast": return { ...base, sF: 50, eF: 40, sB: 30, eB: 60, grip: 70 };
+    default: return { ...base, sF: 40, eF: 45, sB: 50, eB: 40, grip: 10 };
+  }
+}
 
 /** 동작별 자세: t는 동작이 시작된 뒤 흐른 초 */
 export function poseAt(pose: Pose, t: number, style: Style): J {
-  // 모르는 동작은 기본 자세
+  const G = guard(style);
   const breathe = Math.sin(t * 2.6);
-  const idle = { ...IDLE, ry: breathe * 0.5, sF: IDLE.sF + breathe * 2, sB: IDLE.sB - breathe * 1.5 };
+  const idle = { ...G, ry: G.ry + breathe * 0.5, sF: G.sF + breathe * 2, sB: G.sB - breathe * 1.5 };
+  const kf = (frames: Frame[]) => keyframes(t, frames, G);
   switch (pose) {
     case "idle":
       return idle;
     case "attack":
-      if (style === "thrust" || style === "punch") return keyframes(t, [
-        [0.14, { sF: -5, eF: 125, lean: -6, rx: -3, grip: 70, hF: 8, kF: -12 }],
-        [0.22, { sF: 88, eF: 2, lean: 16, rx: style === "punch" ? 10 : 15, grip: 90, hF: 42, kF: -30, hB: -30, kB: -4 }],
-        [0.34, { sF: 84, eF: 6, lean: 14, rx: 14, grip: 90, hF: 40, kF: -28, hB: -28, kB: -6 }],
+      if (style === "overhead") return kf([   // 기준 그림 6·7번: 두 손으로 머리 위로 들었다 앞으로 찍는다
+        [0.2, { sF: 160, eF: 20, sB: 150, eB: 30, grip: 30, lean: -12, rx: -5, ...LEGS, hF: 18, kF: -25 }],
+        [0.3, { sF: 60, eF: -5, sB: 50, eB: 5, grip: 0, lean: 26, rx: 14, ...LUNGE }],
+        [0.44, { sF: 45, eF: -5, sB: 38, eB: 5, grip: -5, lean: 28, rx: 14, ...LUNGE }],
+        [0.8, {}],
+      ]);
+      if (style === "pole") return kf([       // 기준 그림 4·5번: 자루를 당겼다가 쭉 내지른다
+        [0.14, { sF: 30, eF: 60, sB: 10, eB: 80, rx: -4, lean: -4 }],
+        [0.22, { sF: 85, eF: 5, sB: 65, eB: 25, rx: 17, lean: 14, ...LUNGE }],
+        [0.36, { sF: 82, eF: 8, sB: 62, eB: 28, rx: 16, lean: 14, ...LUNGE }],
         [0.7, {}],
       ]);
-      if (style === "overhead") return keyframes(t, [
-        [0.2, { sF: 195, eF: 35, lean: -14, rx: -5, ry: 1, grip: 10, hF: 6, kF: -10, sB: 60 }],
-        [0.3, { sF: 25, eF: 0, lean: 26, rx: 13, ry: 4, grip: 30, hF: 45, kF: -45, hB: -28, kB: -20, sB: 10 }],
-        [0.44, { sF: 15, eF: 5, lean: 28, rx: 13, ry: 4, grip: 30, hF: 45, kF: -45, hB: -28, kB: -20 }],
-        [0.78, {}],
+      if (style === "stab" || style === "punch") return kf([
+        [0.12, { sF: 10, eF: 110, rx: -3, lean: -6 }],
+        [0.2, { sF: 88, eF: 0, grip: 0, rx: 13, lean: 16, ...LUNGE }],
+        [0.32, { sF: 85, eF: 4, rx: 13, lean: 15, ...LUNGE }],
+        [0.62, {}],
       ]);
-      if (style === "cast") return keyframes(t, [
-        [0.18, { sF: 70, eF: 60, lean: -6 }],
-        [0.32, { sF: 110, eF: 0, sB: 80, eB: 10, lean: 8, rx: 3, grip: 60 }],
-        [0.55, { sF: 110, eF: 0, sB: 80, eB: 10, lean: 8, rx: 3, grip: 60 }],
+      if (style === "cast") return kf([
+        [0.18, { sF: 80, eF: 60, lean: -6 }],
+        [0.32, { sF: 110, eF: 0, sB: 85, eB: 10, lean: 8, rx: 3, grip: 50 }],
+        [0.55, { sF: 110, eF: 0, sB: 85, eB: 10, lean: 8, rx: 3, grip: 50 }],
         [0.85, {}],
       ]);
-      return keyframes(t, [
-        [0.16, { sF: 205, eF: 25, lean: -10, rx: -3, grip: 25, hF: 6, kF: -10 }],
-        [0.25, { sF: 55, eF: 5, lean: 18, rx: 13, grip: 70, hF: 38, kF: -32, hB: -28, kB: -6 }],
-        [0.36, { sF: 15, eF: 10, lean: 22, rx: 14, grip: 80, hF: 40, kF: -34, hB: -28, kB: -6 }],
+      return kf([                              // 기준 그림 2·3번: 칼을 머리 뒤로 들었다가 앞으로 베어 내린다
+        [0.16, { sF: 165, eF: 15, grip: 25, lean: -10, rx: -3, sB: 60, eB: 50 }],
+        [0.25, { sF: 70, eF: -10, grip: 0, lean: 18, rx: 13, sB: 30, eB: 30, ...LUNGE }],
+        [0.36, { sF: 45, eF: -8, grip: -5, lean: 22, rx: 14, sB: 25, eB: 30, ...LUNGE }],
         [0.72, {}],
       ]);
-    case "hurt":
-      return keyframes(t, [
-        [0.06, { rx: -10, lean: -24, neck: -28, sF: 75, eF: 25, sB: 70, eB: 20, hF: 25, kF: -10 }],
-        [0.22, { rx: -11, lean: -12, neck: -10 }],
+    case "hurt":                                // 기준 그림 9번: 팔이 펼쳐지며 뒤로 밀린다
+      return kf([
+        [0.06, { rx: -11, lean: -24, neck: -26, sF: 120, eF: -20, sB: 150, eB: -10, grip: 20, hF: 25, kF: -10, hB: -40, kB: -30, ry: 0 }],
+        [0.22, { rx: -12, lean: -12, neck: -10 }],
         [0.55, {}],
       ]);
-    case "block":
-      return keyframes(t, [
-        [0.1, { sB: 95, eB: 15, lean: -6, rx: -3, sF: 25, eF: 60, kF: -26, kB: -18 }],
-        [0.4, { sB: 92, eB: 18, lean: -4, rx: -3, sF: 25, eF: 60, kF: -26, kB: -18 }],
+    case "block":                               // 기준 그림 8번: 방패를 들어 올리며 몸을 뒤로
+      return kf([
+        [0.1, { sB: 115, eB: 35, lean: -14, rx: -3, sF: 20, eF: 60, grip: 20, kF: -55, kB: -20 }],
+        [0.4, { sB: 112, eB: 38, lean: -12, rx: -3, sF: 20, eF: 60, grip: 20, kF: -55, kB: -20 }],
         [0.62, {}],
       ]);
     case "dodge":
-      return keyframes(t, [
-        [0.12, { rx: -17, ry: -7, lean: -20, hF: 40, kF: -60, hB: -20, kB: -50, sF: 70, sB: 60 }],
-        [0.3, { rx: -15, ry: 0, lean: -8, kF: -30, kB: -25 }],
+      return kf([
+        [0.12, { rx: -18, ry: -6, lean: -20, hF: 45, kF: -65, hB: -25, kB: -55 }],
+        [0.3, { rx: -15, ry: 2, lean: -8 }],
         [0.55, {}],
       ]);
     case "step": {
-      // 걸음: 다리를 번갈아 내딛는다 (0.45초에 한 걸음)
+      // 경계 자세를 유지한 채 다리를 번갈아 내딛는다 (0.45초에 한 걸음)
       const p = Math.min(1, t / 0.45), w = Math.sin(p * Math.PI * 2);
-      return { ...idle, hF: IDLE.hF + 22 * w, kF: IDLE.kF - 18 * Math.max(0, -w), hB: IDLE.hB - 22 * w, kB: IDLE.kB - 18 * Math.max(0, w), ry: -Math.abs(Math.sin(p * Math.PI * 2)) * 1.5 };
+      return { ...idle, hF: G.hF + 18 * w, kF: G.kF - 15 * Math.max(0, -w), hB: G.hB - 18 * w, kB: G.kB - 18 * Math.max(0, w), ry: G.ry - Math.abs(w) * 1.5 };
     }
     case "stagger":
-      return keyframes(t, [
+      return kf([
         [0.15, { lean: -16, neck: 12, sF: 10, eF: 20, sB: -10, rx: -4 }],
         [0.32, { lean: 12, neck: -8, rx: 2 }],
         [0.5, { lean: -6, neck: 4 }],
@@ -122,15 +151,15 @@ export function poseAt(pose: Pose, t: number, style: Style): J {
     case "down":
     case "dead":
       // 뒤로 넘어간다: 발을 축으로 몸 전체가 돈다
-      return keyframes(t, [
+      return kf([
         [0.15, { lean: -20, neck: -20, rx: -4, kF: -40, kB: -40, ry: 4 }],
         [0.5, { spin: -84, lean: 0, neck: pose === "dead" ? 25 : 10, rx: -6, ry: 0, sF: 120, eF: 10, sB: 140, eB: 20, hF: 10, kF: -5, hB: -5, kB: -5 }],
       ]);
     case "kneel":
-      return keyframes(t, [[0.4, { ry: 9, hF: 70, kF: -110, hB: -10, kB: -95, lean: 18, neck: 18, sF: 5, eF: 10, sB: 5, eB: 5 }]]);
+      return kf([[0.4, { ry: 9, hF: 70, kF: -110, hB: -10, kB: -95, lean: 18, neck: 18, sF: 5, eF: 10, sB: 5, eB: 5, grip: -60 }]]);
     case "cheer": {
       const w = Math.sin(t * 9);
-      return { ...idle, sF: 175 + w * 8, eF: 15, lean: -6, ry: -Math.abs(w) * 2, grip: 0 };
+      return { ...idle, sF: 170 + w * 8, eF: 10, grip: 0, lean: -6, ry: G.ry - Math.abs(w) * 2 };
     }
   }
   return idle;
@@ -163,10 +192,10 @@ function Piece({ name, len, filter, thick = 1 }: { name: RigName; len: number; f
 
 /** 무기 종류 → 그림, 장면 길이, 손으로 쥐는 자리(아래끝에서 전체 길이의 비율) */
 const WEAPONS: Record<string, [RigName, number, number]> = {
-  sword: ["w_sword", 26, 0.12], greatsword: ["w_greatsword", 40, 0.12], axe: ["w_axe", 32, 0.2], mace: ["w_mace", 28, 0.15],
-  dagger: ["w_dagger", 14, 0.14], spear: ["w_spear", 54, 0.3], trident_net: ["w_trident", 50, 0.3], throwing: ["w_javelin", 46, 0.35], focus: ["w_staff", 44, 0.3],
+  sword: ["w_sword", 40, 0.12], greatsword: ["w_greatsword", 56, 0.1], axe: ["w_axe", 50, 0.14], mace: ["w_mace", 40, 0.12],
+  dagger: ["w_dagger", 22, 0.15], spear: ["w_spear", 86, 0.45], trident_net: ["w_trident", 80, 0.45], throwing: ["w_javelin", 72, 0.45], focus: ["w_staff", 62, 0.35],
 };
-/** 손(0,0)에 쥔 그림 무기. 날이 위(−y)로 */
+/** 손(0,0)에 쥔 그림 무기. 그림은 날이 위(−y)로 그려져 있고, 쥐는 쪽에서 날 방향을 정한다 */
 function PaintedWeapon({ cls }: { cls: string }) {
   const w = WEAPONS[cls];
   if (!w) return null;
@@ -179,11 +208,11 @@ function PaintedWeapon({ cls }: { cls: string }) {
 }
 
 /** 위끝이 top, 높이가 height가 되게 가운데 맞춰 놓는다 (몸통·하반신) */
-function Fit({ name, top, height }: { name: RigName; top: number; height: number }) {
+function Fit({ name, top, height, wide = 1 }: { name: RigName; top: number; height: number; wide?: number }) {
   const p = RIG.parts[name];
   if (!p) return null;
   const sc = height / p.h;
-  return <image href={asset(`rig/${name}.webp`)} x={-p.top[0] * sc} y={top} width={p.w * sc} height={height} />;
+  return <image href={asset(`rig/${name}.webp`)} x={-p.top[0] * sc * wide} y={top} width={p.w * sc * wide} height={height} preserveAspectRatio="none" />;
 }
 
 /** 도형 팔다리 (그림 파츠가 없는 종족) */
@@ -223,33 +252,46 @@ export function RigFighter({ g, pose, poseKey, hpRatio, hitstop, fixedTime, weap
   const flash = pose === "hurt" && raw < 0.09;
 
   const limbFilter = rig ? `url(#${skinId})` : undefined;
+  const rad = Math.PI / 180;
+  const footY = (h: number, k: number) => B.thigh * Math.cos(h * rad) + B.shin * Math.cos((h + k) * rad);
+  const plant = -B.pelvisY - Math.max(footY(j.hF, j.kF), footY(j.hB, j.kB));
   const leg = (front: boolean) => {
     const h = front ? j.hF : j.hB, k = front ? j.kF : j.kB;
     return (
       <g transform={`translate(${front ? 2 : -2} 0) rotate(${-h})`}>
-        {rig ? <Piece name="thigh_bare" len={B.thigh} filter={limbFilter} thick={1.1} /> : <Stick len={B.thigh} w={7} color="#3a2c22" />}
+        {rig ? <Piece name="thigh_bare" len={B.thigh} filter={limbFilter} thick={THICK.thigh} /> : <Stick len={B.thigh} w={7} color="#3a2c22" />}
         <g transform={`translate(0 ${B.thigh}) rotate(${-k})`}>
-          {rig ? <Piece name="shin" len={B.shin * 0.82} filter={limbFilter} /> : <Stick len={B.shin} w={6} color="#3a2c22" />}
+          {rig ? <Piece name="shin" len={B.shin * 0.82} filter={limbFilter} thick={THICK.shin} /> : <Stick len={B.shin} w={6} color="#3a2c22" />}
         </g>
       </g>
     );
   };
   const arm = (front: boolean) => {
     const sh = front ? j.sF : j.sB, el = front ? j.eF : j.eB;
+    // 손 좌표계에서 아래팔 방향은 +y. 무기 그림(날이 −y)을 180° 돌려 아래팔을 잇게 하고 grip만큼 앞으로
+    const held = front
+      ? <g transform={`rotate(${180 - j.grip})`}>{rig ? <PaintedWeapon cls={getWeapon(g.equipment.main)?.class ?? "unarmed"} /> : <g transform="rotate(180)">{weapon}</g>}</g>
+      : null;
     return (
       <g transform={`translate(${front ? 3 : -3} ${B.shoulderY}) rotate(${-sh})`}>
-        {rig ? <Piece name="upper_arm" len={B.upperArm} filter={limbFilter} thick={1.35} /> : <Stick len={B.upperArm} w={5.5} color={s.skin} />}
+        {rig ? <Piece name="upper_arm" len={B.upperArm} filter={limbFilter} thick={THICK.arm} /> : <Stick len={B.upperArm} w={5.5} color={s.skin} />}
         <g transform={`translate(0 ${B.upperArm}) rotate(${-el})`}>
-          {rig ? <Piece name="forearm" len={B.forearm} filter={limbFilter} thick={1.3} /> : <Stick len={B.forearm} w={5} color={s.skin} />}
-          <g transform={`translate(0 ${B.forearm}) rotate(${-j.grip})`}>
-            {front ? (rig ? <PaintedWeapon cls={getWeapon(g.equipment.main)?.class ?? "unarmed"} /> : weapon) : shield && (rig
-              ? <image href={asset("rig/shield.webp")} x={-7} y={-16} width={(RIG.parts.shield.w / RIG.parts.shield.h) * 30} height={30} />
-              : <g transform="translate(-2 -4)"><ellipse rx="10" ry="14" fill="#a8823f" stroke={INK} strokeWidth="1.6" /><circle r="2.6" fill="#7a5c33" /></g>)}
-          </g>
+          {front && <g transform={`translate(0 ${B.forearm})`}>{held}</g>}
+          {rig ? <Piece name="forearm" len={B.forearm} filter={limbFilter} thick={THICK.arm} /> : <Stick len={B.forearm} w={5} color={s.skin} />}
+          {/* 방패는 몸 앞에 그려야 해서 따로 (shieldItem) */}
         </g>
       </g>
     );
   };
+
+  // 방패: 뒷손 자리를 같은 관절 사슬로 따라가되, 몸통·머리보다 앞에 그린다
+  const shieldItem = shield && (
+    <g transform={`translate(-3 ${B.shoulderY}) rotate(${-j.sB}) translate(0 ${B.upperArm}) rotate(${-j.eB}) translate(0 ${B.forearm}) rotate(${j.sB + j.eB - j.lean})`}>
+      {rig
+        ? <image href={asset("rig/shield.webp")} x={-9} y={-20} width={(RIG.parts.shield.w / RIG.parts.shield.h) * 36} height={36} />
+        : <g transform="translate(-2 -4)"><ellipse rx="10" ry="14" fill="#a8823f" stroke={INK} strokeWidth="1.6" /><circle r="2.6" fill="#7a5c33" /></g>}
+    </g>
+  );
 
   const head = rig ? (
     <svg x={-neckPt.x * HEAD_S} y={-neckPt.y * HEAD_S + 2} width={PORTRAIT_CELL * HEAD_S} height={PORTRAIT_CELL * HEAD_S} viewBox={`0 0 ${PORTRAIT_CELL} ${PORTRAIT_CELL}`} overflow="visible">
@@ -265,21 +307,22 @@ export function RigFighter({ g, pose, poseKey, hpRatio, hitstop, fixedTime, weap
     <g style={{ filter: flash ? "brightness(1.8) saturate(0.4)" : pose === "dead" ? "grayscale(0.85) brightness(0.7)" : undefined }}>
       {rig && <defs><filter id={skinId}><feColorMatrix type="matrix" values={`${(skin[0] / br).toFixed(3)} 0 0 0 0  0 ${(skin[1] / bgc).toFixed(3)} 0 0 0  0 0 ${(skin[2] / bb).toFixed(3)} 0 0  0 0 0 1 0`} /></filter></defs>}
       {/* 넘어질 때는 발을 축으로 몸 전체가 돈다 */}
-      <g transform={`translate(${j.rx} ${j.ry}) rotate(${j.spin})`}>
+      <g transform={`translate(${j.rx} ${j.ry + (j.spin ? 0 : plant)}) rotate(${j.spin})`}>
         <g transform={`translate(0 ${B.pelvisY})`}>
           {leg(false)}
           {/* 윗몸: 골반을 축으로 기운다 */}
           <g transform={`rotate(${j.lean})`}>
             {arm(false)}
             {rig
-              ? <Fit name={chestName} top={-B.neck + 1} height={B.chest} />
+              ? <Fit name={chestName} top={-B.neck + 1} height={B.chest} wide={THICK.chest} />
               : <rect x="-11" y={-B.neck - 2} width="22" height={B.neck + 6} rx="8" fill={bodyColor} stroke={INK} strokeWidth="1.6" />}
           </g>
           {leg(true)}
           {/* 하반신: 골반에 붙어 다리 윗부분을 덮는다 */}
-          {rig && <Fit name={hipsName} top={-B.hipsUp} height={B.hips} />}
+          {rig && <Fit name={hipsName} top={-B.hipsUp} height={B.hips} wide={THICK.hips} />}
           <g transform={`rotate(${j.lean})`}>
             <g transform={`translate(0 ${-B.neck}) rotate(${j.neck})`}>{head}</g>
+            {shieldItem}
             {arm(true)}
           </g>
         </g>

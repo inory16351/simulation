@@ -119,3 +119,24 @@ describe("전투 시뮬레이션", () => {
     for (const l of lines) expect(l.text).not.toContain("undefined");
   });
 });
+
+describe("초상화 성별 규칙", () => {
+  it("여성에게는 수염이 붙지 않고, 남성도 수염이 없을 수 있다", async () => {
+    const { generateGladiator } = await import("./generators/gladiator");
+    const { makeAvatar } = await import("./avatar");
+    const { paintedSpec } = await import("./portrait2");
+    const { Rng } = await import("./rng");
+    const rng = new Rng(99);
+    let menWithout = 0;
+    for (let i = 0; i < 400; i++) {
+      const g = generateGladiator(rng, { id: `g${i}`, nation: "aurelia", target: 9 });
+      const svg = makeAvatar(g);
+      const painted = paintedSpec(g);
+      if (g.gender === "f") {
+        expect(svg.beard).toBeNull();
+        expect(painted?.beard ?? null).toBeNull();
+      } else if (!svg.beard && !(painted?.beard)) menWithout++;
+    }
+    expect(menWithout).toBeGreaterThan(0);
+  });
+});

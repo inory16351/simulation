@@ -2,7 +2,7 @@
 // 머리×파츠마다 놓을 사각형을 미리 계산해 data/portrait2.json과 public/assets/portrait2/에 쓴다.
 // 사용: node tools/portrait-parts.mjs
 // 시트 위치: art/source/portrait2/<종족>/{front,side}_{heads,parts}.png (3×3 격자)
-import { mkdirSync, existsSync, writeFileSync } from "node:fs";
+import { mkdirSync, existsSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import sharp from "sharp";
 
@@ -85,16 +85,25 @@ function placeSide(name, a, h) {
   return [r1(p.hx - (p.px - a.left) * p.s), r1(p.hy - (p.py - a.top) * p.s), r1(a.w * p.s), r1(a.h * p.s)];
 }
 
+// 다른 종족은 tools/gen-race.mjs가 남긴 config.json을 읽는다
+for (const race of readdirSync(SRC)) {
+  if (RACES[race]) continue;
+  const cfg = `${SRC}/${race}/config.json`;
+  if (existsSync(cfg)) RACES[race] = JSON.parse(readFileSync(cfg, "utf8"));
+}
+
 const json = { cell: CELL, races: {} };
 for (const [race, cfg] of Object.entries(RACES)) {
   const entry = { heads: cfg.heads, front: { heads: [], parts: {} }, side: { heads: [], parts: {} } };
   for (const view of ["front", "side"]) {
     const headsSheet = `${SRC}/${race}/${view}_heads.png`, partsSheet = `${SRC}/${race}/${view}_parts.png`;
-    if (!existsSync(headsSheet) || !existsSync(partsSheet)) { console.log(`건너뜀: ${race} ${view} (시트 없음)`); continue; }
+    if (!existsSync(headsSheet)) { console.log(`건너뜀: ${race} ${view} (머리 시트 없음)`); continue; }
+    // 파츠가 하나도 없는 종족(리자드폴크·수인의 측면)은 머리만 있어도 된다
+    const hasParts = existsSync(partsSheet);
     const dir = `${TMP}/${race}/${view}`; mkdirSync(dir, { recursive: true });
     const outDir = `${OUT}/${race}/${view}`; mkdirSync(outDir, { recursive: true });
     const headFiles = await sliceSheet(headsSheet, `${dir}/head`);
-    const partFiles = await sliceSheet(partsSheet, `${dir}/part`);
+    const partFiles = hasParts ? await sliceSheet(partsSheet, `${dir}/part`) : [];
     const heads = [];
     for (let i = 0; i < 9; i++) {
       const h = view === "front" ? await headAnchors(headFiles[i]) : await sideHeadAnchors(headFiles[i]);
@@ -108,7 +117,7 @@ for (const [race, cfg] of Object.entries(RACES)) {
     const names = cfg[view];
     for (let i = 0; i < 9; i++) {
       const name = names[i];
-      if (!name) continue;
+      if (!name || !hasParts) continue;
       const k = KIND[name] === "hair_cap" ? "hair" : KIND[name];
       const a = view === "front" ? await partAnchors(partFiles[i], k) : await sidePartAnchors(partFiles[i], k);
       await sharp(a.buf).webp({ quality: 88, alphaQuality: 90 }).toFile(`${outDir}/${name}.webp`);
