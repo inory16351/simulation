@@ -99,7 +99,7 @@
   },
   {
     "id": "homesick",
-    "name": "고향병",
+    "name": "향수병",
     "cat": "personality",
     "desc": "출신국 밖에서 주간 사기 -2",
     "spawn": 3,
