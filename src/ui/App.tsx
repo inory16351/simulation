@@ -8,7 +8,8 @@ import { newGame } from "../core/generators/world";
 import { Rng } from "../core/rng";
 import { clearSave, loadGame, saveGame } from "../core/state";
 import type { GameState, Id } from "../core/types";
-import { asset, menuIconUrl } from "./assets";
+import { asset } from "./assets";
+import { MenuIcon } from "./components/Icons";
 import { NationCrest } from "./components/common";
 import { ChallengeScreen } from "./screens/ChallengeScreen";
 import { FinanceScreen } from "./screens/FinanceScreen";
@@ -189,7 +190,7 @@ function Game({ state, setState, onRestart }: { state: GameState; setState: (s: 
               onClick={() => setScreen(m.id)}
             >
               <span className="menu-label">
-                <img src={menuIconUrl(m.id)} alt="" onError={(e) => (e.currentTarget.style.visibility = "hidden")} />
+                <MenuIcon id={m.id} />
                 {m.label}
               </span>
               {m.id === "inbox" && unread > 0 && <span className="badge">{unread}</span>}

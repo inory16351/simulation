@@ -171,7 +171,7 @@ select, input[type="text"] { background: var(--bg-2); color: var(--parchment); b
 .fighter.right .hpbar { margin-left: auto; }
 .crowd-meter { text-align: center; color: var(--text-dim); font-size: 11px; }
 .crowd-meter b { display: block; font-size: 20px; color: var(--torch); }
-.feed { height: 420px; overflow-y: auto; padding: 12px 18px; font-size: 14px; line-height: 1.7; }
+.feed { height: 260px; overflow-y: auto; padding: 12px 18px; font-size: 14px; line-height: 1.7; }
 .feed .line { padding: 1px 0; }
 .feed .round { color: var(--text-faint); font-size: 11px; display: inline-block; width: 44px; }
 .feed .hit { color: var(--parchment); }
@@ -328,3 +328,65 @@ body {
 .nd-rules { margin: 0; padding-left: 18px; line-height: 1.8; }
 .newgame-start { display: flex; gap: 12px; align-items: center; margin-top: 8px; }
 .newgame-start input { margin-left: 8px; width: 180px; }
+
+/* ── 경기 장면 (코드 리깅) ── */
+.arena-stage { position: relative; height: 230px; background: #120d0a; border-bottom: 1px solid var(--line); overflow: hidden; }
+.arena-stage svg { width: 100%; height: 100%; display: block; }
+.arena-stage.shake { animation: shake 0.35s; }
+@keyframes shake { 0%,100% { transform: translate(0,0); } 20% { transform: translate(-5px,2px); } 40% { transform: translate(4px,-3px); } 60% { transform: translate(-3px,2px); } 80% { transform: translate(2px,-1px); } }
+.fighter { transition: transform 0.45s ease-in-out; }
+.rig .body { transform-origin: 0 0; animation: bob 1.6s ease-in-out infinite; }
+.rig .arm-front, .rig .arm-back { transform-origin: 0 0; }
+.rig .head { transform-origin: 0 -42px; }
+@keyframes bob { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-1.5px); } }
+.torch { animation: flicker 0.5s ease-in-out infinite alternate; transform-origin: center bottom; transform-box: fill-box; }
+@keyframes flicker { from { transform: scaleY(0.85); opacity: 0.85; } to { transform: scaleY(1.1); opacity: 1; } }
+.cheer-head { animation: hop 0.5s ease-in-out infinite alternate; }
+@keyframes hop { from { transform: translateY(0); } to { transform: translateY(-3px); } }
+
+/* 공격: 팔을 들었다 내리찍으며 앞으로 */
+.pose-attack .body { animation: lunge 0.5s ease-out; }
+.pose-attack .arm-front { animation: swing 0.5s ease-out; }
+@keyframes lunge { 0% { transform: translateX(0); } 35% { transform: translateX(-3px); } 60% { transform: translateX(16px) rotate(6deg); } 100% { transform: translateX(0); } }
+@keyframes swing { 0% { transform: rotate(0); } 35% { transform: rotate(-150deg); } 60% { transform: rotate(40deg); } 100% { transform: rotate(0); } }
+/* 맞음: 뒤로 밀리고 붉게 번쩍 */
+.pose-hurt .body { animation: knock 0.45s ease-out; }
+.pose-hurt .hurt-flash { animation: flash 0.45s ease-out; }
+.pose-hurt .head { animation: headsnap 0.45s ease-out; }
+@keyframes knock { 0% { transform: translateX(0); } 30% { transform: translateX(-12px) rotate(-8deg); } 100% { transform: translateX(0); } }
+@keyframes flash { 0% { opacity: 0; } 20% { opacity: 0.55; } 100% { opacity: 0; } }
+@keyframes headsnap { 0% { transform: rotate(0); } 30% { transform: rotate(-14deg); } 100% { transform: rotate(0); } }
+/* 막기: 뒷팔(방패)을 앞으로 */
+.pose-block .arm-back { animation: raise 0.5s ease-out; }
+.pose-block .body { animation: brace 0.5s ease-out; }
+@keyframes raise { 0% { transform: rotate(0); } 30%,70% { transform: rotate(-80deg) translateX(6px); } 100% { transform: rotate(0); } }
+@keyframes brace { 30% { transform: translateX(-4px); } }
+/* 피하기: 뒤로 깡충 */
+.pose-dodge .body { animation: dodge 0.5s ease-out; }
+@keyframes dodge { 0% { transform: translate(0,0); } 40% { transform: translate(-16px,-8px) rotate(-10deg); } 100% { transform: translate(0,0); } }
+/* 이동 */
+.pose-step .leg-front { animation: stepf 0.45s ease-in-out; transform-origin: 4px -18px; transform-box: view-box; }
+.pose-step .leg-back { animation: stepb 0.45s ease-in-out; transform-origin: -4px -18px; transform-box: view-box; }
+@keyframes stepf { 50% { transform: rotate(-25deg); } }
+@keyframes stepb { 50% { transform: rotate(25deg); } }
+/* 주술 */
+.pose-cast .arm-front { animation: cast 0.6s ease-out; }
+.cast-glow { animation: glow 0.6s ease-out forwards; }
+@keyframes cast { 0% { transform: rotate(0); } 40%,80% { transform: rotate(-120deg); } 100% { transform: rotate(-40deg); } }
+@keyframes glow { 0% { opacity: 0; transform: scale(0.4); } 50% { opacity: 0.9; } 100% { opacity: 0; transform: scale(1.6); } }
+/* 비틀거림 */
+.pose-stagger .body { animation: stagger 0.7s ease-in-out; }
+@keyframes stagger { 25% { transform: rotate(-12deg); } 50% { transform: rotate(8deg); } 75% { transform: rotate(-5deg); } }
+/* 쓰러짐·죽음·항복·환호 (지속) */
+.pose-down .body, .pose-dead .body { animation: none; transform: translate(-6px, -2px) rotate(-82deg); transition: transform 0.5s ease-in; }
+.pose-dead .body { filter: grayscale(0.85) brightness(0.7); }
+.pose-kneel .body { animation: none; transform: translateY(8px) rotate(-6deg); }
+.pose-kneel .arm-front { transform: rotate(-170deg); }
+.pose-cheer .arm-front { animation: cheer 0.6s ease-in-out infinite alternate; }
+@keyframes cheer { from { transform: rotate(-150deg); } to { transform: rotate(-175deg); } }
+/* 피 */
+.blood-drop { animation: drop 0.7s ease-out forwards; }
+@keyframes drop { 0% { transform: translate(0,0); opacity: 1; } 100% { transform: translate(var(--dx), calc(var(--dy) + 30px)); opacity: 0; } }
+.menu-icon { flex-shrink: 0; opacity: 0.85; }
+.sidebar button.active .menu-icon { opacity: 1; filter: drop-shadow(0 0 3px rgba(227, 154, 59, 0.6)); }
+.sidebar button.soon .menu-icon { opacity: 0.35; filter: grayscale(1); }

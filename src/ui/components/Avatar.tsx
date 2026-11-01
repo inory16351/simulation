@@ -18,10 +18,12 @@ interface Props {
   injured?: "light" | "serious";
   dead?: boolean;
   seed?: number;
+  /** 전투 장면용: 배경과 몸 없이 머리만 그린다 */
+  headOnly?: boolean;
 }
 
 /** 실크송·림월드풍 귀여운 검투사 초상화 (100×100) */
-export function AvatarSvg({ spec: s, bg, scars = 0, injured, dead, seed = 1 }: Props) {
+export function AvatarSvg({ spec: s, bg, scars = 0, injured, dead, seed = 1, headOnly }: Props) {
   const v = Number(s.variant) || 0;
   const beastly = s.race === "minotaur" || s.race === "lizardfolk" || s.race === "beastkin";
   const headCy = s.race === "dwarf" ? 46 : 44;
@@ -30,14 +32,14 @@ export function AvatarSvg({ spec: s, bg, scars = 0, injured, dead, seed = 1 }: P
   const id = `a${seed}`;
 
   return (
-    <svg viewBox="0 0 100 100" className={dead ? "avatar dead" : "avatar"}>
+    <svg viewBox="0 0 100 100" className={dead ? "avatar dead" : "avatar"} overflow="visible">
       <defs>
         <radialGradient id={`${id}bg`} cx="50%" cy="38%" r="72%">
           <stop offset="0" stopColor={bg} stopOpacity="0.85" />
           <stop offset="1" stopColor="#120d0a" />
         </radialGradient>
       </defs>
-      <rect width="100" height="100" fill={`url(#${id}bg)`} />
+      {!headOnly && <rect width="100" height="100" fill={`url(#${id}bg)`} />}
 
       {/* 뒷머리·갈기 */}
       {s.race === "beastkin" && v === 0 && <Mane color={s.race === "beastkin" ? shade(s.skin, -0.18) : s.hairColor} />}
@@ -51,7 +53,7 @@ export function AvatarSvg({ spec: s, bg, scars = 0, injured, dead, seed = 1 }: P
       )}
 
       {/* 몸 */}
-      <Body spec={s} />
+      {!headOnly && <Body spec={s} />}
 
       {/* 귀·뿔 (머리 뒤) */}
       <EarsAndHorns s={s} v={v} />

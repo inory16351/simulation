@@ -1,8 +1,7 @@
-import { useState } from "react";
 import { getNation } from "../../core/data";
 import { avatarOf } from "../../core/avatar";
-import { crestUrl } from "../assets";
 import { AvatarSvg } from "./Avatar";
+import { Crest } from "./Icons";
 import { stars } from "../../core/gladiator";
 import type { Gladiator, NationId } from "../../core/types";
 
@@ -48,17 +47,5 @@ export function Portrait({ g, size = 40 }: { g: Gladiator; size?: number }) {
 }
 
 export function NationCrest({ nation, size = 32 }: { nation: NationId; size?: number }) {
-  const n = getNation(nation);
-  const [failed, setFailed] = useState(false);
-  if (!failed) {
-    return <img className="crest" src={crestUrl(nation)} width={size} height={size} alt={n.short} onError={() => setFailed(true)} />;
-  }
-  return (
-    <svg className="crest" width={size} height={size} viewBox="0 0 40 40">
-      <path d="M20 2 L36 8 V20 C36 30 28 36 20 38 C12 36 4 30 4 20 V8 Z" fill={n.color} stroke="var(--bronze-hi)" strokeWidth="1.5" />
-      <text x="20" y="25" textAnchor="middle" fontSize="13" fontFamily="var(--serif)" fill="#f1e2c4" fontWeight="800">
-        {n.short[0]}
-      </text>
-    </svg>
-  );
+  return <Crest nation={nation} color={getNation(nation).color} size={size} />;
 }

@@ -11,6 +11,7 @@ import { pushMessage } from "../../core/state";
 import type { DeathRule, GameState, Gladiator, Id } from "../../core/types";
 import { leagueRules } from "../../core/nationRules";
 import type { Ctx, Nav } from "../App";
+import { ArenaStage } from "../components/ArenaStage";
 import { Portrait, Stars } from "../components/common";
 
 type Item = { kind: "line"; line: CommentaryLine } | { kind: "cut"; cut: HighlightKind };
@@ -316,6 +317,16 @@ function Playback({ live, speedMs, onDone, onClose, nav }: { live: Live; speedMs
   }, [shown]);
 
   const visible = live.items.slice(0, shown);
+  // 장면은 지금까지 보여 준 문장의 이벤트까지 진행한다
+  const stageEvents = useMemo(() => {
+    let lastIdx = -1;
+    for (const it of visible) {
+      if (it.kind !== "line") continue;
+      const i = live.result.events.indexOf(it.line.event);
+      if (i > lastIdx) lastIdx = i;
+    }
+    return live.result.events.slice(0, lastIdx + 1);
+  }, [visible, live.result.events]);
   const hp = useMemo(() => {
     const h: Record<Id, { hp: number; max: number }> = {};
     for (const it of visible) {
@@ -355,6 +366,7 @@ function Playback({ live, speedMs, onDone, onClose, nav }: { live: Live; speedMs
           <div className="crowd-meter"><b>{crowdValue}</b>관중 열광</div>
           {fighterBox(live.b, true)}
         </div>
+        <ArenaStage a={live.a} b={live.b} events={stageEvents} crowd={BALANCE.rules[live.rule].crowd} />
         <div className="feed" ref={feedRef}>
           {visible.map((it, i) =>
             it.kind === "line" ? (
