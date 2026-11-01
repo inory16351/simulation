@@ -2,10 +2,9 @@
 import injuriesJson from "../../data/injuries.json";
 import { logCareer, seasonRecord } from "./career";
 import { getTrait } from "./data";
-import { josa } from "./josa";
 import type { Rng } from "./rng";
 import { pushMessage } from "./state";
-import type { AttrId, GameState, Gladiator, Injury } from "./types";
+import { ATTR_NAMES, type AttrId, type GameState, type Gladiator, type Injury } from "./types";
 
 export type InjuryTier = "minor" | "moderate" | "severe";
 export type BodyArea = "head" | "eye" | "arm" | "leg" | "torso";
@@ -66,7 +65,7 @@ export function aggravate(state: GameState, g: Gladiator, rng: Rng): void {
   if (!inj || !rng.chance(0.3)) return;
   inj.daysLeft = Math.round(inj.daysLeft * 1.6 + 3);
   inj.total = Math.max(inj.total ?? 0, inj.daysLeft);
-  logCareer(state, g, `다친 ${inj.desc}을(를) 안고 싸우다 상처가 덧났다`, "injury");
+  logCareer(state, g, `부상(${inj.desc})을 안고 싸우다 상처가 덧났다`, "injury");
 }
 
 /**
@@ -82,7 +81,7 @@ export function onHealed(state: GameState, g: Gladiator, rng: Rng, medicalLevel:
   for (const [a, v] of Object.entries(def.perm.attrs ?? {})) {
     const k = a as AttrId;
     g.attrs[k] = Math.max(1, g.attrs[k] + (v ?? 0));
-    parts.push(`${a} ${v}`);
+    parts.push(`${ATTR_NAMES[k]} ${v}`);
   }
   if (def.perm.trait && !g.traits.includes(def.perm.trait)) {
     g.traits.push(def.perm.trait);
@@ -95,7 +94,7 @@ export function onHealed(state: GameState, g: Gladiator, rng: Rng, medicalLevel:
     pushMessage(state, {
       kind: "warning",
       title: `${g.name}: 영구 손상`,
-      body: `${josa(g.name, "이/가")} ${def.name}에서 회복했지만 후유증이 남았다.\n${def.perm.trait ? `특성 「${getTrait(def.perm.trait)?.name}」이 생겼다.` : "능력치가 영구히 떨어졌다."}`,
+      body: `${g.name}의 부상(${def.name})은 나았지만 후유증이 남았다.\n${def.perm.trait ? `새 특성: 「${getTrait(def.perm.trait)?.name}」` : "능력치가 영구히 떨어졌다."}`,
     });
   }
 }

@@ -53,7 +53,7 @@ export function AcquirePanel({ g, ctx }: { g: Gladiator; ctx: Ctx }) {
 
         {owner && !owner.isPlayer && (
           deal ? (
-            <div>이적료 {deal.fee.toLocaleString()} D에 합의했다. <button className="btn primary" onClick={() => nav.go("market")}>개인 계약 협상하러 가기</button></div>
+            <div>이적료 {deal.fee.toLocaleString()} D에 합의했다. <button className="btn primary" onClick={() => nav.go("market")}>개인 계약 협상으로</button></div>
           ) : (
             <div className="negotiate">
               <span className="hint">추정 가치 {Math.round(marketValue(g) / 50) * 50} D</span>

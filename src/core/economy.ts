@@ -2,6 +2,7 @@
 import { absDay } from "./calendar";
 import { BALANCE, getRace } from "./data";
 import { logCareer, seasonRecord } from "./career";
+import { josa } from "./josa";
 import { computeCA } from "./gladiator";
 import { computeWage, generateGladiator } from "./generators/gladiator";
 import { capacityAt, weeklyUpkeep } from "./facilities";
@@ -183,7 +184,7 @@ export function signFreeAgent(state: GameState, id: string, offer: number, seaso
   if (player.treasury < signingFee(offer)) return "계약금이 모자란다";
   if (!acceptsOffer(offer, d, roll)) {
     state.freeAgents = state.freeAgents.filter((x) => x !== id);
-    return `${g.name}이(가) 제안을 거절하고 다른 루두스로 갔다 (원한 주급 ${d.wage} D)`;
+    return `${josa(g.name, "이/가")} 제안을 거절하고 다른 루두스로 갔다 (원한 주급 ${d.wage} D)`;
   }
   addMoney(state, player, -signingFee(offer), `${g.name} 계약금`);
   g.wage = offer;
@@ -192,6 +193,6 @@ export function signFreeAgent(state: GameState, id: string, offer: number, seaso
   state.freeAgents = state.freeAgents.filter((x) => x !== id);
   player.gladiators.push(id);
   seasonRecord(state, g);
-  logCareer(state, g, `자유민으로 ${player.name}과(와) ${seasons}시즌 계약했다 (주급 ${offer} D)`, "join");
+  logCareer(state, g, `자유민으로 ${josa(player.name, "과/와")} ${seasons}시즌 계약했다 (주급 ${offer} D)`, "join");
   return null;
 }

@@ -233,7 +233,7 @@ export function MatchScreen({ state, update, replace, nav }: Ctx) {
                 <div key={c.id} className="official-row team">
                   <div>
                     <span className={`tag ${c.rule === "sudden" ? "neg" : ""}`}>{FORMAT_NAMES[n]} · {BALANCE.rules[c.rule].name}</span>
-                    <div className="hint">상대: {opp.name} — 이긴 사람이 남아 다음 상대와 싸운다. 체력은 조금만 돌아온다</div>
+                    <div className="hint">상대: {opp.name}. 이긴 사람이 남아 다음 상대와 싸운다. 체력은 조금만 돌아온다</div>
                   </div>
                   <div className="lineup">
                     {Array.from({ length: n }, (_, i) => (

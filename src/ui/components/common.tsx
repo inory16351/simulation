@@ -82,6 +82,6 @@ export function InjuryTag({ g }: { g: Gladiator }) {
   const tip = `${inj.desc} (${tier})\n남은 회복 ${Math.ceil(inj.daysLeft)}일${inj.total ? ` / ${inj.total}일` : ""}` +
     (pen ? `\n부상 중: ${pen}` : "") +
     (def?.permanent ? `\n영구 손상 위험 ${Math.round(def.permanent * 100)}% (의무실·메디쿠스가 줄여 준다)` : "") +
-    (inj.severity === "light" ? "\n출전할 수는 있지만 경기력 -15%, 상처가 덧날 수 있다" : "\n출전 불가");
+    (inj.severity === "light" ? "\n출전은 되지만 경기력 -15%. 상처가 덧날 수 있다" : "\n출전 불가");
   return <span className="tag inj tip" data-tip={tip}>✚ {inj.desc} {Math.ceil(inj.daysLeft)}일</span>;
 }

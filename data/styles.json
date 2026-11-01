@@ -32,7 +32,7 @@
     "skills": ["skill.flurry", "skill.parry", "skill.riposte"]
   },
   {
-    "id": "hoplomachus", "name": "호플로마쿠스", "desc": "창방패. 중거리 견제",
+    "id": "hoplomachus", "name": "호플로마쿠스", "desc": "창과 방패. 중거리에서 견제한다",
     "weights": { "rea": 3, "blk": 2, "acc": 2, "end": 1, "tou": 1 },
     "loadout": { "main": "hasta", "off": "aspis", "armor": "chainmail", "helmet": "brimmed_helm" },
     "profs": ["spear", "shield"], "preferredRange": 1, "aggression": 0.45,
@@ -40,7 +40,7 @@
     "skills": ["skill.pierce", "skill.iron_wall", "skill.disengage"]
   },
   {
-    "id": "dimachaerus", "name": "디마카이루스", "desc": "쌍검. 연타",
+    "id": "dimachaerus", "name": "디마카이루스", "desc": "쌍검. 쉴 새 없이 몰아친다",
     "weights": { "agi": 3, "agg": 2, "acc": 2, "end": 1, "rea": 1 },
     "loadout": { "main": "gladius", "off": "gladius", "armor": "leather", "helmet": "open_helm" },
     "profs": ["sword", "dagger"], "preferredRange": 0, "aggression": 0.75,
@@ -72,7 +72,7 @@
     "skills": ["skill.power_strike", "skill.armor_break", "skill.execute"]
   },
   {
-    "id": "runeblade", "name": "룬블레이드", "desc": "마검사. 무기에 마법을 싣는다",
+    "id": "runeblade", "name": "룬블레이드", "desc": "마검사. 무기에 주술을 싣는다",
     "weights": { "mag": 3, "acc": 2, "agi": 2, "comp": 1 },
     "loadout": { "main": "longsword", "off": "rune_charm", "armor": "scale", "helmet": "open_helm" },
     "profs": ["sword", "focus"], "preferredRange": 0, "aggression": 0.55,
@@ -80,7 +80,7 @@
     "skills": ["skill.flame_weapon", "skill.ward_rune", "skill.power_strike"]
   },
   {
-    "id": "sorcerer", "name": "주술투사", "desc": "저주와 원거리 마법",
+    "id": "sorcerer", "name": "주술투사", "desc": "저주를 걸고 멀리서 주술을 쏜다",
     "weights": { "mag": 4, "comp": 2, "dec": 2 },
     "loadout": { "main": "staff", "off": null, "armor": "leather", "helmet": null },
     "profs": ["focus", "dagger"], "preferredRange": 1, "aggression": 0.5,

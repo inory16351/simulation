@@ -13,7 +13,7 @@
     "id": "coward",
     "name": "겁쟁이",
     "cat": "personality",
-    "desc": "투지 -4, 위기에서 항복이 빠름",
+    "desc": "투지 -4, 궁지에 몰리면 쉽게 항복",
     "attrMods": {
       "grit": -4
     },
@@ -94,7 +94,7 @@
     "id": "open_minded",
     "name": "편견 없음",
     "cat": "personality",
-    "desc": "종족 간 감정 무시",
+    "desc": "다른 종족을 가리지 않음",
     "spawn": 3
   },
   {

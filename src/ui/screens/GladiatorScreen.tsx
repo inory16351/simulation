@@ -141,7 +141,7 @@ export function GladiatorScreen({ ctx, id }: { ctx: Ctx; id: string }) {
 
       <div className="grid2">
         <div className="panel">
-          <h3>스킬</h3>
+          <h3>기술</h3>
           <div className="pad">
             {g.skills.active.map((s) => <span key={s} className="tag">{getSkill(s)?.name ?? s}</span>)}
             {Array.from({ length: 4 - g.skills.active.length }, (_, i) => <span key={i} className="tag hidden">빈 칸</span>)}

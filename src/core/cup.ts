@@ -179,7 +179,7 @@ export function playTie(state: GameState, tieId: Id, rng: Rng, lineup?: Id[]): P
     pushMessage(state, {
       kind: "info",
       title: `판테온 컵 우승: ${w.name}`,
-      body: `${getNation(w.nation).name}의 ${josa(w.name, "이/가")} 결승에서 ${l.name}을(를) ${Math.max(...series.score)}:${Math.min(...series.score)}로 꺾고 판테온 컵을 들어 올렸다.`,
+      body: `${getNation(w.nation).name}의 ${josa(w.name, "이/가")} 결승에서 ${josa(l.name, "을/를")} 꺾고 판테온 컵을 들어 올렸다 (${Math.max(...series.score)}:${Math.min(...series.score)}).`,
     });
   }
   const me = state.playerLudusId;
@@ -189,7 +189,7 @@ export function playTie(state: GameState, tieId: Id, rng: Rng, lineup?: Id[]): P
     pushMessage(state, {
       kind: "match",
       title: `판테온 컵 ${STAGE_NAMES[tie.stage]}: ${won ? "승리" : "패배"}`,
-      body: `${opp.name}(${getNation(opp.nation).name})와의 대결 ${series.score[home.id === me ? 0 : 1]}:${series.score[home.id === me ? 1 : 0]}.` +
+      body: `상대 ${opp.name}(${getNation(opp.nation).name}) · ${series.score[home.id === me ? 0 : 1]}:${series.score[home.id === me ? 1 : 0]}` +
         `\n수입 ${(summary.money[me] ?? 0).toLocaleString()} D (세전)` +
         (tie.stage !== "group" && !won ? "\n여기서 탈락했다." : ""),
     });

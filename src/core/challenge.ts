@@ -122,7 +122,7 @@ export function respond(state: GameState, c: Challenge, accept: boolean, rng: Rn
     to.rp -= Math.round(penalty);
   }
   if (from.isPlayer) {
-    pushMessage(state, { kind: "info", title: `${josa(to.name, "이/가")} 도전을 거절했다`, body: `${RULE_NAME(c.rule)} 신청이 거절됐다.${penalty ? ` 그들은 RP ${Math.round(penalty)}를 잃었다.` : ""}` });
+    pushMessage(state, { kind: "info", title: `${josa(to.name, "이/가")} 도전을 거절했다`, body: `${RULE_NAME(c.rule)} 신청이 거절됐다.${penalty ? ` 상대는 RP를 ${Math.round(penalty)} 잃었다.` : ""}` });
   }
   if (to.isPlayer) {
     pushMessage(state, {
@@ -197,7 +197,7 @@ export function dailyChallenges(state: GameState, rng: Rng): void {
     pushMessage(state, {
       kind: "match",
       title: `${ai.name}의 도전장 (${fmt}${RULE_NAME(rule)})`,
-      body: `${c.format ? `${ai.name}이(가) ${FORMAT_NAMES[c.format]}을 걸어왔다. 선봉은 ${g.name}.` : `${ai.name}의 ${josa(g.name, "이/가")} ${RULE_NAME(rule)}을 걸어왔다.`}\n${dateLabel(fromAbs(c.respondBy).day)}까지 답하지 않으면 거절한 것으로 친다.\n\n도전장 화면에서 받을지 정하라.`,
+      body: `${c.format ? `${josa(ai.name, "이/가")} ${josa(FORMAT_NAMES[c.format], "을/를")} 걸어왔다. 선봉은 ${g.name}.` : `${ai.name}의 ${josa(g.name, "이/가")} ${josa(RULE_NAME(rule), "을/를")} 걸어왔다.`}\n${dateLabel(fromAbs(c.respondBy).day)}까지 답하지 않으면 거절한 것으로 친다.\n\n도전장 화면에서 받을지 정하라.`,
     });
     break;
   }

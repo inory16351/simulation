@@ -155,7 +155,7 @@ function Game({ state, setState, onRestart }: { state: GameState; setState: (s: 
   const alerts = [
     ...blocked,
     ...(unpaid ? [`급료가 밀린 검투사 ${unpaid}명`] : []),
-    ...(player.treasury < 0 ? ["금고가 마이너스다. 28일 안에 메우지 못하면 압류된다"] : []),
+    ...(player.treasury < 0 ? ["금고가 바닥났다. 28일 안에 메우지 못하면 압류된다"] : []),
   ];
 
   return (

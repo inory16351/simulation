@@ -128,7 +128,7 @@ export function newGame(seed: number, nation: NationId = "aurelia", ludusName = 
     read: false,
   });
 
-  // 시즌 시작: 배당금, 경매장, 일대기 첫 줄
+  // 시즌 시작: 배당금, 무소속 명단, 일대기 첫 줄
   for (const l of Object.values(state.ludi)) payDividend(state, l, l.isPlayer ? BALANCE.economy.promotedDividendCoef : undefined);
   refreshStaffMarket(state, rng);
   refreshFreeAgents(state, rng);

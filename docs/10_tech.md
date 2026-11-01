@@ -33,27 +33,34 @@
   facilities.json
   balance.json         ← 공식 계수, 상금, 주급 범위 등 튜닝 값 전부
 /src
-  /core                ← 순수 로직. DOM·React·Pixi 의존 금지
-    rng.ts             ← 시드 고정 난수 (mulberry32 등, C#에서 동일 구현)
-    model/             ← GameState, Gladiator, Ludus, Staff, Nation ...
-    systems/
-      calendar.ts      ← 주 진행, 단계 순서
-      challenge.ts     ← 도전 신청·응답·거절 페널티
-      combat/          ← 전투 시뮬 (이벤트 로그 출력)
-      league.ts        ← RP, 순위, 승강
-      cup.ts           ← 판테온 컵
-      economy.ts       ← 배당금, 급료, 미납, 대출, 파산
-      morale.ts        ← 사기, 반란, 탈주
-      training.ts      ← 훈련, 성장, 스킬 습득
-      market.ts        ← 노예 시장, 자유민, 이적, 대여
-      scouting.ts      ← 정보의 안개, 스카우트 보고서
-      youth.ts
-      war.ts           ← 국가 관계, 전쟁, 전황
-      mercenary.ts
-    ai/                ← AI 루두스 의사결정 (도전, 이적, 훈련)
-    generators/        ← 검투사·직원·루두스·이름 생성
-  /ui                  ← React 화면
-  /cutscene            ← PixiJS 하이라이트 컷
+  /core                ← 순수 로직. DOM·React 의존 금지 (현재 구현 기준)
+    rng.ts             ← 시드 고정 난수 (mulberry32, C#에서 동일 구현)
+    types.ts           ← GameState, Gladiator, Ludus, Staff ...
+    data.ts            ← data/*.json 로드
+    state.ts           ← 저장·불러오기, 서판 메시지
+    calendar.ts        ← 날짜 (시즌 168일, 28일 달 6개)
+    day.ts             ← 하루 진행 순서, 막힌 일, 시즌 종료·승강
+    challenge.ts       ← 도전 신청·응답·거절 페널티, AI 경기
+    match.ts           ← 경기 결과 반영, settle(): RP·상금·관중 수입 정산
+    series.ts          ← 여러 판짜리 경기: 단체전(승자 연속, 체력 이월), 컵(삼판양승)
+    cup.ts             ← 판테온 컵: 추첨, 조별 리그, 토너먼트, 국가 계수
+    combat/            ← sim.ts (이벤트 로그), commentary.ts (중계 문장)
+    tactics.ts         ← 전투 교범
+    condition.ts       ← 경기 감각, 혹사, 피로
+    training.ts        ← 훈련, 성장
+    injuries.ts        ← 부위별 부상, 후유증
+    career.ts          ← 일대기, 시즌 기록
+    economy.ts         ← 배당금, 급료, 무소속 검투사, 방출
+    reputation.ts      ← 루두스 명성, 영입 의사·요구 주급
+    transfers.ts       ← 이적료 협상, 개인 계약, AI 제안
+    scouting.ts        ← 정보량, 정찰, 추정 범위
+    staff.ts           ← 식솔 고용·효과
+    facilities.ts      ← 시설 증축
+    youth.ts           ← 유소년 학당
+    war.ts             ← 국가 관계, 전쟁, 용병 의뢰
+    events.ts, modifiers.ts, nationRules.ts, avatar.ts, josa.ts
+    generators/        ← 검투사, 세계 (여섯 나라 루두스) 생성
+  /ui                  ← React 화면 (screens/, components/)
 /tools
   sim-seasons.ts       ← UI 없이 N시즌 돌려 통계 출력 (밸런스 검증)
 /assets                ← 아트 (명명 규칙은 09 아트 디렉션)

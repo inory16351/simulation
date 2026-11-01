@@ -99,7 +99,7 @@ export function buildCommentary(
           push(prefix + pickLine(rng, [
             `${who}공격이 허공을 가른다.`,
             `${josa(d, "이/가")} 몸을 틀어 피했다!`,
-            `${skill ? "하지만 " : who}빗나갔다. 관중석에서 탄식이 터진다.`,
+            skill ? "하지만 빗나갔다. 관중석에서 탄식이 터진다." : `${a}의 공격이 빗나갔다. 관중석에서 탄식이 터진다.`,
           ]), "normal", e);
           break;
         }
@@ -161,7 +161,7 @@ export function buildCommentary(
         const n = name(e.actor);
         const a = e.action;
         const text =
-          a.type === "stance" ? `${josa(n, "이/가")} 자세를 바꾼다 — ${STANCE_NAMES[a.stance]}.`
+          a.type === "stance" ? `${josa(n, "이/가")} 자세를 ${josa(STANCE_NAMES[a.stance], "으로/로")} 바꾼다.`
           : a.type === "skill" ? `${josa(n, "이/가")} 기회를 노린다. 노리는 건 ${josa(getSkill(a.skill)?.name ?? "한 방", "이다/다")}.`
           : a.type === "rest" ? `${josa(n, "이/가")} 교범대로 물러나 숨을 돌린다.`
           : `${josa(n, "이/가")} 거리를 좁혀 들어간다.`;
@@ -184,7 +184,7 @@ export function buildCommentary(
         if (e.rule === "missio") {
           push(`▶ 미시오 판정 — 주최자가 관중을 둘러본다… (사망 확률 ${Math.round(e.deathChance * 100)}%)`, "system", e);
           push(e.died
-            ? `엄지가 아래를 향한다. ${opponentOf(events, e.target, fighters)}의 칼이 ${n}의 목을 꿰뚫는다. 피가 모래 위로 쏟아진다.`
+            ? `엄지가 아래를 향한다. ${josa(opponentOf(events, e.target, fighters), "이/가")} ${n}의 숨통을 끊는다. 피가 모래 위로 쏟아진다.`
             : `엄지가… 위로! ${josa(n, "은/는")} 살아남았다.`, e.died ? "death" : "crowd", e);
         } else if (e.died) {
           push(e.rule === "sudden"
@@ -212,7 +212,7 @@ const CROWD_WORDS = /관중|환호|야유|탄식/;
 /** 관중이 나오는 문장만 지운다. 남는 게 없으면 빈 문자열 */
 function withoutCrowd(text: string): string {
   return text
-    .split(/(?<=[.!…])s+/)
+    .split(/(?<=[.!…])\s+/)
     .filter((sentence) => !CROWD_WORDS.test(sentence))
     .join(" ")
     .trim();
@@ -277,7 +277,7 @@ function bloodLine(rng: Rng, gore: GoreLevel, a: string, d: string, part: string
       light: [`${w} ${d}의 ${p} 때린다. 살갗이 터지며 피가 맺힌다.`, `${w} ${d}의 ${p} 스치듯 후려친다.`],
       heavy: [`퍽! ${withName ? `${a}의 ` : ""}${weapon.noun}에 ${d}의 ${pSubj} 짓이겨진다.`, `둔탁한 소리와 함께 ${josa(d, "이/가")} 휘청인다. ${part}에서 피가 흐른다.`],
       crit: strong
-        ? [`치명타! 뼈 부러지는 소리가 경기장에 울린다. ${d}의 ${pSubj} 기괴하게 꺾였다!`, `치명타! ${w} ${d}의 ${p} 으스러뜨린다. 피와 이빨 조각이 모래 위로 튄다!`]
+        ? [`치명타! 뼈 부러지는 소리가 경기장에 울린다. ${d}의 ${pSubj} 기괴하게 꺾였다!`, `치명타! ${w} ${d}의 ${p} 으스러뜨린다. 피와 뼛조각이 모래 위로 튄다!`]
         : [`치명타! ${w} ${d}의 ${p} 정통으로 후려쳤다!`],
     },
   };

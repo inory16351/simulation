@@ -2,6 +2,7 @@ import { useState } from "react";
 import { dateLabel, fromAbs } from "../../core/calendar";
 import { availability, canChallenge, createChallenge, now, respond } from "../../core/challenge";
 import { BALANCE, getStyle } from "../../core/data";
+import { josa } from "../../core/josa";
 import { computeCA } from "../../core/gladiator";
 import type { DeathRule, Gladiator } from "../../core/types";
 import { autoLineup, FORMAT_MULT, FORMAT_NAMES, type Format } from "../../core/series";
@@ -157,7 +158,7 @@ export function ChallengeScreen({ state, act, nav }: Ctx) {
                     <tr key={c.id} className={today ? "me" : ""}>
                       <td>{today ? <b style={{ color: "var(--torch)" }}>오늘</b> : dateLabel(fromAbs(c.matchAt!).day)}</td>
                       <td><span className={`tag ${c.rule === "sudden" ? "neg" : ""}`}>{c.format ? `${FORMAT_NAMES[c.format]} · ` : ""}{BALANCE.rules[c.rule].name}</span></td>
-                      <td>{c.format ? `${opp.name}와 단체전 (선봉 ${me?.name ?? "미정"})` : `${me?.name} vs ${them?.name}`}</td>
+                      <td>{c.format ? `${josa(opp.name, "과/와")} 단체전 (선봉 ${me?.name ?? "미정"})` : `${me?.name} vs ${them?.name}`}</td>
                       <td className="hint">{opp.name}</td>
                       <td>{today && <button className="btn primary" onClick={() => nav.go("match")}>모래 마당으로</button>}</td>
                     </tr>

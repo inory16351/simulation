@@ -11,6 +11,7 @@ import { addMoney } from "./economy";
 import { modifierMult } from "./modifiers";
 import type { Rng } from "./rng";
 import { grow } from "./training";
+import { josa } from "./josa";
 import type { DeathRule, GameState, Gladiator, Id, Ludus } from "./types";
 
 export function eloDelta(myRp: number, oppRp: number, won: boolean, k: number): number {
@@ -72,7 +73,7 @@ export function applyMatchResult(state: GameState, r: MatchResult, opt: ApplyOpt
     if (inj && (!g.injury || g.injury.daysLeft < inj.daysLeft)) {
       g.injury = inj;
       rec.injuries++;
-      logCareer(state, g, `${opponentName(state, r, g)}와의 경기에서 ${inj.desc} (${inj.daysLeft}일)`, "injury");
+      logCareer(state, g, `${josa(opponentName(state, r, g), "과/와")}의 경기에서 ${inj.desc} (${inj.daysLeft}일)`, "injury");
     }
   }
   milestones(state, w);

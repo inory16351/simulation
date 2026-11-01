@@ -1,5 +1,6 @@
 import { makeAvatar } from "../../core/avatar";
 import { getNation } from "../../core/data";
+import { josa } from "../../core/josa";
 import { useState } from "react";
 import { ROLES, ROLE_DESC, ROLE_NAMES, fireStaff, hireStaff, staffDemand, staffOf, staffWages } from "../../core/staff";
 import { ludusReputation, REPUTATION_NAMES } from "../../core/reputation";
@@ -57,7 +58,7 @@ export function StaffScreen({ state, act }: Ctx) {
                       <div>실력 <Bar value={s.rating} max={20} color="var(--torch)" /> {s.rating}</div>
                       <div className="hint">주급 {s.wage} D · {s.age}세</div>
                     </div>
-                    <button className="btn danger" onClick={() => { if (confirm(`${s.name}을(를) 내보낼까요?`)) act((d) => fireStaff(d, s.id)); }}>내보낸다</button>
+                    <button className="btn danger" onClick={() => { if (confirm(`${josa(s.name, "을/를")} 내보낼까요?`)) act((d) => fireStaff(d, s.id)); }}>내보낸다</button>
                   </div>
                 ) : <div className="hint">비어 있다.</div>}
               </div>
@@ -75,7 +76,7 @@ export function StaffScreen({ state, act }: Ctx) {
             {[0, 5, 10, 15].map((v) => <option key={v} value={v}>{v || "제한 없음"}</option>)}
           </select></label>
           <label><input type="checkbox" checked={onlyWilling} onChange={(e) => setOnlyWilling(e.target.checked)} /> 올 마음이 있는 사람만</label>
-          <span className="hint">우리 명성 {rep} ({REPUTATION_NAMES(rep)}) — 실력 좋은 사람일수록 이름난 루두스를 원한다</span>
+          <span className="hint">우리 명성 {rep} ({REPUTATION_NAMES(rep)}). 실력 좋은 사람일수록 이름난 루두스를 원한다</span>
         </div>
         {msg && <div className="pad"><span className="tag neg">{msg}</span></div>}
         <table className="t">

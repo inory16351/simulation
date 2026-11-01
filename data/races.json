@@ -28,7 +28,7 @@
     "attrMods": { "str": -2, "agi": 3, "tou": -2, "rea": 2, "mag": 3, "acc": 2 },
     "age": { "debut": 40, "growthEnd": 79, "primeEnd": 180, "retire": 230 },
     "growthMult": 0.7, "wageMult": 1.3, "upkeepMult": 1.0,
-    "racialTrait": { "name": "천년의 눈", "desc": "회피 +10%, 마법 스킬 습득 속도 +50%" },
+    "racialTrait": { "name": "천년의 눈", "desc": "회피 +10%, 주술 기술 습득 속도 +50%" },
     "raceSkill": "skill.wind_step"
   },
   {

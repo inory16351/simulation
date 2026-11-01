@@ -1,6 +1,7 @@
 // 식솔: 독토레(교관), 메디쿠스(의원), 정찰꾼, 중개인
 import { NAMES, getNation } from "./data";
 import { acceptsOffer, demandFor, ludusReputation, staffStanding, type Demand } from "./reputation";
+import { josa } from "./josa";
 import type { Rng } from "./rng";
 import type { GameState, Gladiator, Ludus, RaceId, Staff, StaffRole } from "./types";
 
@@ -11,7 +12,7 @@ export const ROLE_DESC: Record<StaffRole, string> = {
   doctore: "수석 교관. 훈련·실전 성장과 교범 숙련을 끌어올린다",
   medicus: "의원. 부상을 빨리 낫게 하고, 사투에서 목숨을 건질 확률을 높인다",
   scout: "정찰꾼. 검투사의 숨은 그릇(잠재력)을 더 정확히 본다",
-  agent: "중개인. 노예 경매에서 싸게 사고 비싸게 판다",
+  agent: "중개인. 이적료를 깎아 사고, 팔 때는 더 받아 낸다",
 };
 
 /** 역할마다 한 명만 둔다 */
@@ -63,7 +64,7 @@ function makeStaff(state: GameState, rng: Rng, role: StaffRole, rating: number):
   return s;
 }
 
-/** 식솔 후보 새로 고침 (경매장 갱신 때) */
+/** 식솔 후보 새로 고침 (이적 시장이 열릴 때) */
 export function refreshStaffMarket(state: GameState, rng: Rng): void {
   for (const id of state.staffMarket) delete state.staff[id];
   state.staffMarket = [];
@@ -95,7 +96,7 @@ export function hireStaff(state: GameState, id: string, offer: number, roll: num
   if (d.refuse) return `${s.name}: ${d.reason}`;
   if (!acceptsOffer(offer, d, roll)) {
     state.staffMarket = state.staffMarket.filter((x) => x !== id);
-    return `${s.name}이(가) 제안을 거절하고 떠났다 (원한 주급 ${d.wage} D)`;
+    return `${josa(s.name, "이/가")} 제안을 거절하고 떠났다 (원한 주급 ${d.wage} D)`;
   }
   s.wage = offer;
   state.staffMarket = state.staffMarket.filter((x) => x !== id);

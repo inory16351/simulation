@@ -9,7 +9,7 @@ import { logCareer } from "./career";
 import type { Rng } from "./rng";
 import { pushMessage } from "./state";
 import { grow } from "./training";
-import type { GameState, Gladiator, PendingEvent } from "./types";
+import { ATTR_NAMES, type GameState, type Gladiator, type PendingEvent } from "./types";
 
 type Grade = "luck" | "opportunity" | "trial" | "disaster";
 
@@ -185,7 +185,7 @@ function applyEffects(state: GameState, rng: Rng, effects: Effect[], self?: Glad
         if (g) {
           const a = e.attr as keyof Gladiator["attrs"];
           g.attrs[a] = Math.max(1, Math.min(20, g.attrs[a] + e.value!));
-          lines.push(`${g.name} ${e.attr} ${e.value! > 0 ? "+" : ""}${e.value}`);
+          lines.push(`${g.name} ${ATTR_NAMES[a]} ${e.value! > 0 ? "+" : ""}${e.value}`);
         }
         break;
       case "growth":
@@ -208,7 +208,7 @@ function applyEffects(state: GameState, rng: Rng, effects: Effect[], self?: Glad
         if (g && !g.injury) {
           g.injury = { severity: e.serious ? "serious" : "light", daysLeft: e.days!, desc: e.desc! };
           lines.push(`${g.name}: ${e.desc} (${e.days}일)`);
-          logCareer(state, g, `${e.desc}으로 앓아누웠다`, "injury");
+          logCareer(state, g, `${josa(e.desc!, "으로/로")} 앓아누웠다`, "injury");
         }
         break;
       case "deathChance":
@@ -217,7 +217,7 @@ function applyEffects(state: GameState, rng: Rng, effects: Effect[], self?: Glad
           g.diedAt = { season: state.season, day: state.day, cause: e.cause! };
           player.gladiators = player.gladiators.filter((x) => x !== g.id);
           state.fallen.push(g.id);
-          logCareer(state, g, `${e.cause}으로 죽었다`, "death");
+          logCareer(state, g, `${josa(e.cause!, "으로/로")} 죽었다`, "death");
           lines.push(`${josa(g.name, "이/가")} 끝내 숨을 거뒀다.`);
         }
         break;

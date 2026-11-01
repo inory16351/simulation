@@ -83,7 +83,7 @@ export function dailyWar(s: GameState, rng: Rng): void {
         // 징발령을 무시하면 조국이 등을 돌린다
         addFavor(s, c.employer, -30);
         s.ludi[s.playerLudusId].rp -= 50;
-        pushMessage(s, { kind: "warning", title: "징발령을 거부했다", body: `${getNation(c.employer).name}이(가) 분노했다. 호감도 -30, RP -50. 사람들은 우리를 매국 루두스라 부른다.` });
+        pushMessage(s, { kind: "warning", title: "징발령을 거부했다", body: `${josa(getNation(c.employer).name, "이/가")} 분노했다. 호감도 -30, RP -50. 사람들은 우리를 매국 루두스라 부른다.` });
       }
     }
     if (c.status !== "active") continue;
@@ -100,7 +100,7 @@ function startWar(s: GameState, rng: Rng, a: NationId, b: NationId): void {
   pushMessage(s, {
     kind: "warning",
     title: `전쟁: ${na.short} ↔ ${nb.short}`,
-    body: `${na.name}과(와) ${nb.name} 사이에 전쟁이 터졌다. 양국이 루두스들에 용병을 구한다.\n대륙 정세 → 전쟁·용병에서 의뢰를 볼 수 있다.` +
+    body: `${josa(na.name, "과/와")} ${nb.name} 사이에 전쟁이 터졌다. 양국이 루두스마다 용병을 구하러 다닌다.\n대륙 정세 → 전쟁·용병에서 의뢰를 볼 수 있다.` +
       (ours ? "\n\n조국이 전쟁에 휘말렸다. 적국의 의뢰는 받을 수 없고, 징발령이 내려올 수 있다." : ""),
   });
   postContracts(s, rng, w);
@@ -236,10 +236,10 @@ function finishContract(s: GameState, rng: Rng, c: Contract): void {
         if (war) war.front += (war.a === c.employer ? 1 : -1) * 40;
         addTrait(champ, "war_hero");
         champ.popularity = Math.min(100, champ.popularity + 15);
-        logCareer(s, champ, `대리 결투에서 ${foe.name}을(를) 꺾고 영웅이 됐다`, "milestone");
+        logCareer(s, champ, `대리 결투에서 ${josa(foe.name, "을/를")} 꺾고 영웅이 됐다`, "milestone");
         addFavor(s, c.employer, 25);
         addFavor(s, c.enemy, -25);
-        pushMessage(s, { kind: "match", title: `대리 결투 승리: ${champ.name}`, body: `${josa(champ.name, "이/가")} ${foe.name}을(를) 쓰러뜨렸다. 전황이 크게 기울었다.` });
+        pushMessage(s, { kind: "match", title: `대리 결투 승리: ${champ.name}`, body: `${josa(champ.name, "이/가")} ${josa(foe.name, "을/를")} 쓰러뜨렸다. 전황이 크게 기울었다.` });
       } else if (r.died) {
         champ.alive = false;
         champ.diedAt = { season: s.season, day: s.day, cause: `대리 결투에서 ${foe.name}에게 패배` };
@@ -279,13 +279,13 @@ function endWar(s: GameState, rng: Rng, w: War): void {
   w.winner = w.front >= 0 ? w.a : w.b;
   const loser = w.winner === w.a ? w.b : w.a;
   setRelation(s, w.a, w.b, -30);
-  // 패전국 포로가 경매장에 나온다
+  // 패전국 포로가 무소속 명단에 나온다
   if (loser !== s.nation) s.powPending = loser;
   for (const c of s.contracts) if (c.warId === w.id && c.status === "open") c.status = "expired";
   pushMessage(s, {
     kind: "info",
     title: `종전: ${getNation(w.winner).short} 승리`,
-    body: `${getNation(w.winner).name}이(가) ${getNation(loser).name}을(를) 꺾었다. ${loser !== s.nation ? "다음 경매에 포로들이 싼값에 나온다." : "조국이 졌다. 다음 시즌 살림이 빠듯해질 것이다."}`,
+    body: `${josa(getNation(w.winner).name, "이/가")} ${josa(getNation(loser).name, "을/를")} 꺾었다. ${loser !== s.nation ? "곧 포로들이 무소속 명단에 헐값으로 나온다." : "조국이 졌다. 다음 시즌 살림이 빠듯해질 것이다."}`,
   });
   void rng;
 }

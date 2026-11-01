@@ -65,7 +65,7 @@ export function DoctrinePanel({ g, editable, onChange }: { g: Gladiator; editabl
             {d.order.length === 0 && <div className="hint">익힌 기술이 없다.</div>}
           </div>
           <div>
-            <div className="sublabel">조건 명령 <span className="hint">위에서부터 먼저 맞는 한 줄만 실행</span></div>
+            <div className="sublabel">조건 명령 <span className="hint">위에서부터 조건이 맞는 첫 줄만 따른다</span></div>
             {d.rules.map((r, i) =>
               editable
                 ? <RuleEditor key={i} rule={r} skills={d.order} onChange={(nr) => setRule(i, nr)} />

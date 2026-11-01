@@ -305,7 +305,7 @@ export interface GameState {
   relations: Record<NationId, Partial<Record<NationId, number>>>;
   wars: War[];
   contracts: Contract[];
-  /** 패전국 포로가 다음 경매에 나온다 */
+  /** 패전국 포로가 다음 무소속 명단에 나온다 */
   powPending?: NationId;
   /** 고용할 수 있는 식솔 후보 (검색 대상) */
   staffMarket: Id[];

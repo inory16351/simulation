@@ -77,7 +77,7 @@ export function advanceDay(state: GameState): string[] {
         g.injury = healed;
         onHealed(state, g, rng, l.facilities.medical, ratingOf(state, l, "medicus"), l.isPlayer);
         g.injury = undefined;
-        if (l.isPlayer && healed.severity === "serious") pushMessage(state, { kind: "info", title: `${g.name} 복귀`, body: `${healed.desc}에서 회복했다. 다시 싸울 수 있다.` });
+        if (l.isPlayer && healed.severity === "serious") pushMessage(state, { kind: "info", title: `${g.name} 복귀`, body: `부상(${healed.desc})이 다 나았다. 다시 싸울 수 있다.` });
       }
       if (injured && l.isPlayer) {
         seasonRecord(state, g).injuries++;
@@ -195,7 +195,7 @@ function unrest(state: GameState, rng: Rng, player: Ludus): void {
   pushMessage(state, {
     kind: "death",
     title: "반란을 진압했다",
-    body: `${rebels.map((g) => g.name).join(", ")}이(가) 들고일어났지만 진압됐다.${dead.length ? `\n죽은 자: ${dead.join(", ")}` : ""}\n금고 ${lost} D를 잃었다.`,
+    body: `${josa(rebels.map((g) => g.name).join(", "), "이/가")} 들고일어났지만 진압됐다.${dead.length ? `\n죽은 자: ${dead.join(", ")}` : ""}\n금고 ${lost} D를 잃었다.`,
   });
 }
 
@@ -236,7 +236,7 @@ function endSeason(state: GameState, rng: Rng): void {
   pushMessage(state, {
     kind: "info",
     title: `시즌 ${state.season} 종료 — ${wasPromoted ? "승격!" : wasRelegated ? "강등" : `${playerRank}위`}`,
-    body: `${player.name}은(는) ${wasPromoted ? "2부" : wasRelegated ? "1부" : `${player.tier}부`} ${playerRank}위로 시즌을 마쳤다.` +
+    body: `${josa(player.name, "은/는")} ${wasPromoted ? "2부" : wasRelegated ? "1부" : `${player.tier}부`} ${playerRank}위로 시즌을 마쳤다.` +
       `\n승격: ${promoted.map((l) => l.name).join(", ")}\n강등: ${relegated.map((l) => l.name).join(", ")}`,
   });
 
@@ -273,8 +273,8 @@ function endSeason(state: GameState, rng: Rng): void {
         pushMessage(state, { kind: "info", title: `${g.name} 재계약`, body: `계약이 끝났지만 남기로 했다. 주급이 ${g.wage} D로 올랐다 (1시즌).` });
       } else {
         me.gladiators = me.gladiators.filter((x) => x !== id);
-        logCareer(state, g, `계약이 끝나 ${me.name}을(를) 떠났다`, "other");
-        pushMessage(state, { kind: "warning", title: `${g.name} 떠남`, body: "계약이 끝났고, 사기가 낮아 재계약을 거부했다." });
+        logCareer(state, g, `계약이 끝나 ${josa(me.name, "을/를")} 떠났다`, "other");
+        pushMessage(state, { kind: "warning", title: `${g.name} 떠남`, body: "계약이 끝났다. 사기가 떨어져 재계약을 거절했다." });
       }
     }
   }

@@ -1,4 +1,5 @@
 import { getRace } from "../../core/data";
+import { josa } from "../../core/josa";
 import { AGE_STAGE_NAMES, ageStage, computeCA } from "../../core/gladiator";
 import { paSpread } from "../../core/staff";
 import { FOCUS_NAMES, INTENSITY_NAMES } from "../../core/training";
@@ -64,7 +65,7 @@ export function YouthScreen({ state, update, act, nav }: Ctx) {
                   <td style={{ display: "flex", gap: 6 }}>
                     <button className="btn primary" disabled={!ready || full} title={!ready ? `${AGE_STAGE_NAMES.youth}: 아직 실전에 못 나간다` : full ? "막사가 꽉 찼다" : undefined}
                       onClick={() => act((d) => { promoteYouth(d, d.ludi[d.playerLudusId], g.id); })}>1군 승격</button>
-                    <button className="btn danger" onClick={() => { if (confirm(`${g.name}을(를) 학당에서 내보낼까요?`)) act((d) => releaseYouth(d, d.ludi[d.playerLudusId], g.id)); }}>내보내기</button>
+                    <button className="btn danger" onClick={() => { if (confirm(`${josa(g.name, "을/를")} 학당에서 내보낼까요?`)) act((d) => releaseYouth(d, d.ludi[d.playerLudusId], g.id)); }}>내보내기</button>
                   </td>
                 </tr>
               );

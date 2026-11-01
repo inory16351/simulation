@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { ludusOf } from "../../core/career";
 import { NATIONS, RACES, STYLES } from "../../core/data";
+import { josa } from "../../core/josa";
 import { marketValue, releaseGladiator, rosterCapacity } from "../../core/economy";
 import { ageStage } from "../../core/gladiator";
 import { ludusReputation, REPUTATION_NAMES } from "../../core/reputation";
@@ -227,7 +228,7 @@ function Mine({ state, act }: Ctx) {
   return (
     <div className="panel">
       <h3>우리 검투사 — 방출</h3>
-      <div className="pad hint">방출하면 무소속이 되고, 돈은 받지 못한다. 팔고 싶다면 이적 시장 기간에 다른 루두스의 제안을 기다려라.</div>
+      <div className="pad hint">방출하면 무소속이 되고 한 푼도 받지 못한다. 팔려면 이적 시장 기간에 다른 루두스의 제안을 기다려라.</div>
       <table className="t">
         <tbody>
           {list.map((g) => (
@@ -236,7 +237,7 @@ function Mine({ state, act }: Ctx) {
               <td><StyleTag style={g.style} /></td>
               <td className="num">주급 {g.wage} D</td>
               <td className="num">추정 가치 {Math.round(marketValue(g) / 50) * 50} D</td>
-              <td><button className="btn danger" disabled={!!g.deployment} onClick={() => { if (confirm(`${g.name}을(를) 방출할까요?`)) act((s) => releaseGladiator(s, g.id)); }}>방출</button></td>
+              <td><button className="btn danger" disabled={!!g.deployment} onClick={() => { if (confirm(`${josa(g.name, "을/를")} 방출할까요?`)) act((s) => releaseGladiator(s, g.id)); }}>방출</button></td>
             </tr>
           ))}
         </tbody>

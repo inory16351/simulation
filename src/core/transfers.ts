@@ -69,7 +69,7 @@ export function bid(s: GameState, gladiatorId: Id, fee: number): BidResult {
   if (fee >= asking) {
     const deal: Deal = { id: `T${s.nextId++}`, gladiatorId, fromLudus: owner.id, fee, expiresAt: now(s) + 7 };
     transferOf(s).deals.push(deal);
-    pushMessage(s, { kind: "info", title: `이적료 합의: ${g.name}`, body: `${josa(owner.name, "이/가")} ${fee.toLocaleString()} D에 동의했다.\n${dateLabel(fromAbs(deal.expiresAt).day)}까지 ${g.name}과(와) 개인 계약을 맺어라.` });
+    pushMessage(s, { kind: "info", title: `이적료 합의: ${g.name}`, body: `${josa(owner.name, "이/가")} ${fee.toLocaleString()} D에 동의했다.\n${dateLabel(fromAbs(deal.expiresAt).day)}까지 ${josa(g.name, "과/와")} 개인 계약을 맺어라.` });
     return { status: "accepted", deal };
   }
   if (fee >= asking * 0.7) return { status: "countered", asking };
@@ -106,7 +106,7 @@ export function completeTransfer(s: GameState, dealId: Id, wage: number, seasons
   g.morale = Math.min(100, g.morale + 8);
   t.deals = t.deals.filter((x) => x !== deal);
   seasonRecord(s, g);
-  logCareer(s, g, `${from.name}에서 ${me.name}으로 이적했다 (${deal.fee.toLocaleString()} D)`, "join");
+  logCareer(s, g, `${from.name}에서 ${josa(me.name, "으로/로")} 이적했다 (${deal.fee.toLocaleString()} D)`, "join");
   return null;
 }
 
@@ -156,7 +156,7 @@ export function acceptOffer(s: GameState, offerId: Id): string | null {
   buyer.treasury -= fee;
   addMoney(s, me, fee, `${g.name} 이적료 수입`);
   t.offers = t.offers.filter((x) => x !== o);
-  logCareer(s, g, `${me.name}에서 ${buyer.name}으로 팔려 갔다 (${fee.toLocaleString()} D)`, "other");
+  logCareer(s, g, `${me.name}에서 ${josa(buyer.name, "으로/로")} 팔려 갔다 (${fee.toLocaleString()} D)`, "other");
   for (const id of me.gladiators) s.gladiators[id].morale = Math.max(0, s.gladiators[id].morale - (g.popularity > 40 ? 4 : 1));
   return null;
 }

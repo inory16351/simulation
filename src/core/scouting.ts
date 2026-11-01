@@ -55,7 +55,7 @@ export function dailyScouting(s: GameState): void {
     sc.knowledge[id] = Math.min(100, (sc.knowledge[id] ?? 0) + gain);
     if (sc.knowledge[id] >= 100) {
       unassignScout(s, id);
-      pushMessage(s, { kind: "info", title: `정찰 보고서: ${g.name}`, body: `${g.name}에 대한 정찰이 끝났다. 이제 능력과 잠재력을 꽤 정확하게 볼 수 있다.` });
+      pushMessage(s, { kind: "info", title: `정찰 보고서: ${g.name}`, body: `${g.name} 정찰이 끝났다. 이제 능력과 잠재력이 꽤 정확히 보인다.` });
     }
   }
 }
