@@ -21,7 +21,7 @@ export function WorldScreen({ state }: Ctx) {
             <NationCrest nation={x.id} size={36} />
             <div>
               <div className="nc-name">{x.short}{x.id === state.nation && <span className="tag" style={{ marginLeft: 6 }}>우리 나라</span>}</div>
-              <div className="nc-motif">{x.motif}</div>
+              <div className="nc-motif">{x.league}</div>
             </div>
           </button>
         ))}
@@ -30,7 +30,7 @@ export function WorldScreen({ state }: Ctx) {
         <div className="panel">
           <h3>{n.name}</h3>
           <div className="pad">
-            <div className="nd-meta">모티브 {n.motif} · 수도 {n.capital} · 대표 투기장 {n.arena} · 리그 「{n.league}」</div>
+            <div className="nd-meta">수도 {n.capital} · 대표 투기장 {n.arena} · 리그 「{n.league}」</div>
             <p className="nd-lore">{n.lore}</p>
           </div>
         </div>

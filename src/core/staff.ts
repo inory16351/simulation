@@ -17,7 +17,7 @@ export const ROLE_DESC: Record<StaffRole, string> = {
 export const ROLES: StaffRole[] = ["doctore", "medicus", "scout", "agent"];
 
 export function staffOf(state: GameState, ludus: Ludus, role: StaffRole): Staff | undefined {
-  return ludus.staff.map((id) => state.staff[id]).find((s) => s?.role === role);
+  return (ludus.staff ?? []).map((id) => state.staff?.[id]).find((s) => s?.role === role);
 }
 
 export const ratingOf = (state: GameState, ludus: Ludus | undefined, role: StaffRole) =>
@@ -40,7 +40,7 @@ export function paSpread(state: GameState, g: Gladiator): number {
 }
 
 export function staffWages(state: GameState, ludus: Ludus): number {
-  return ludus.staff.reduce((s, id) => s + (state.staff[id]?.wage ?? 0), 0);
+  return (ludus.staff ?? []).reduce((s, id) => s + (state.staff?.[id]?.wage ?? 0), 0);
 }
 
 function makeStaff(state: GameState, rng: Rng, role: StaffRole, rating: number): Staff {

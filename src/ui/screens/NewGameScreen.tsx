@@ -19,7 +19,7 @@ export function NewGameScreen({ onStart, onCancel }: { onStart: (nation: NationI
             <NationCrest nation={x.id} size={48} />
             <div>
               <div className="nc-name">{x.name}</div>
-              <div className="nc-motif">모티브: {x.motif}</div>
+              <div className="nc-motif">{x.league} · 수도 {x.capital}</div>
             </div>
           </button>
         ))}
