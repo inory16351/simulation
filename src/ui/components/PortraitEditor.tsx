@@ -3,9 +3,9 @@ import type { PartSlot } from "../../core/portraitLayout";
 import type { Gladiator, PortraitParts } from "../../core/types";
 
 const SLOT_NAMES: Record<PartSlot, string> = {
-  body: "몸통", head: "얼굴형", eyes: "눈", mouth: "입", hair: "머리", beard: "수염", helmet: "투구",
+  body: "몸통", head: "얼굴형", eyes: "눈", nose: "코", mouth: "입", hair: "머리", beard: "수염", helmet: "투구",
 };
-const SLOTS: PartSlot[] = ["head", "eyes", "mouth", "hair", "beard", "helmet", "body"];
+const SLOTS: PartSlot[] = ["head", "eyes", "nose", "mouth", "hair", "beard", "helmet", "body"];
 
 /** 초상화 파츠를 직접 고르는 편집기. 아무것도 안 고치면 시드로 자동 조합된다 */
 export function PortraitEditor({ g, onChange }: { g: Gladiator; onChange: (p: PortraitParts | undefined) => void }) {

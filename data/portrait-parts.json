@@ -7,7 +7,8 @@
     "h": 344,
     "races": [
       "human"
-    ]
+    ],
+    "tone": "tan"
   },
   {
     "id": "head.human.pale",
@@ -17,7 +18,8 @@
     "h": 488,
     "races": [
       "human"
-    ]
+    ],
+    "tone": "pale"
   },
   {
     "id": "head.human.dark",
@@ -27,7 +29,8 @@
     "h": 483,
     "races": [
       "human"
-    ]
+    ],
+    "tone": "dark"
   },
   {
     "id": "head.orc.green",
@@ -47,7 +50,8 @@
     "h": 458,
     "races": [
       "orc"
-    ]
+    ],
+    "tone": "grey"
   },
   {
     "id": "head.minotaur.black",
@@ -77,7 +81,8 @@
     "h": 456,
     "races": [
       "elf"
-    ]
+    ],
+    "tone": "pale"
   },
   {
     "id": "head.elf.dusk",
@@ -87,6 +92,27 @@
     "h": 432,
     "races": [
       "elf"
+    ],
+    "tone": "dusk"
+  },
+  {
+    "id": "head.dwarf.ruddy",
+    "slot": "head",
+    "file": "portrait/parts/head/dwarf_ruddy.webp",
+    "w": 468,
+    "h": 449,
+    "races": [
+      "dwarf"
+    ]
+  },
+  {
+    "id": "head.dwarf.tan",
+    "slot": "head",
+    "file": "portrait/parts/head/dwarf_tan.webp",
+    "w": 472,
+    "h": 455,
+    "races": [
+      "dwarf"
     ]
   },
   {
@@ -120,18 +146,204 @@
     ]
   },
   {
+    "id": "head.beast.jackal",
+    "slot": "head",
+    "file": "portrait/parts/head/beast_jackal.webp",
+    "w": 286,
+    "h": 508,
+    "races": [
+      "beastkin"
+    ]
+  },
+  {
     "id": "eyes.amber",
     "slot": "eyes",
     "file": "portrait/parts/eyes/amber.webp",
     "w": 501,
-    "h": 164
+    "h": 164,
+    "races": [
+      "orc",
+      "minotaur",
+      "beastkin"
+    ]
+  },
+  {
+    "id": "eyes.cold",
+    "slot": "eyes",
+    "file": "portrait/parts/eyes/cold.webp",
+    "w": 499,
+    "h": 156,
+    "races": [
+      "elf"
+    ]
+  },
+  {
+    "id": "eyes.hollow",
+    "slot": "eyes",
+    "file": "portrait/parts/eyes/hollow.webp",
+    "w": 466,
+    "h": 192,
+    "races": [
+      "orc",
+      "minotaur",
+      "beastkin"
+    ]
+  },
+  {
+    "id": "eyes.tired",
+    "slot": "eyes",
+    "file": "portrait/parts/eyes/tired.webp",
+    "w": 488,
+    "h": 181,
+    "races": [
+      "orc",
+      "minotaur"
+    ],
+    "tags": [
+      "old"
+    ]
+  },
+  {
+    "id": "eyes.fierce",
+    "slot": "eyes",
+    "file": "portrait/parts/eyes/fierce.webp",
+    "w": 487,
+    "h": 194,
+    "races": [
+      "orc",
+      "minotaur",
+      "beastkin"
+    ]
+  },
+  {
+    "id": "eyes.oneeye",
+    "slot": "eyes",
+    "file": "portrait/parts/eyes/oneeye.webp",
+    "w": 444,
+    "h": 203,
+    "races": [
+      "orc",
+      "minotaur",
+      "beastkin"
+    ],
+    "tags": [
+      "one_eyed"
+    ]
+  },
+  {
+    "id": "eyes.sharp_f",
+    "slot": "eyes",
+    "file": "portrait/parts/eyes/sharp_f.webp",
+    "w": 445,
+    "h": 125,
+    "races": [
+      "orc",
+      "beastkin"
+    ],
+    "gender": "f"
+  },
+  {
+    "id": "eyes.calm_f",
+    "slot": "eyes",
+    "file": "portrait/parts/eyes/calm_f.webp",
+    "w": 494,
+    "h": 152,
+    "races": [
+      "orc",
+      "beastkin"
+    ],
+    "gender": "f"
+  },
+  {
+    "id": "eyes.reptile",
+    "slot": "eyes",
+    "file": "portrait/parts/eyes/reptile.webp",
+    "w": 503,
+    "h": 214,
+    "races": [
+      "lizardfolk"
+    ]
   },
   {
     "id": "mouth.grim",
     "slot": "mouth",
     "file": "portrait/parts/mouth/grim.webp",
     "w": 307,
-    "h": 90
+    "h": 90,
+    "races": [
+      "human",
+      "orc",
+      "dwarf"
+    ]
+  },
+  {
+    "id": "mouth.snarl",
+    "slot": "mouth",
+    "file": "portrait/parts/mouth/snarl.webp",
+    "w": 351,
+    "h": 199,
+    "races": [
+      "orc"
+    ]
+  },
+  {
+    "id": "mouth.frown",
+    "slot": "mouth",
+    "file": "portrait/parts/mouth/frown.webp",
+    "w": 156,
+    "h": 80,
+    "races": [
+      "human",
+      "orc",
+      "dwarf"
+    ]
+  },
+  {
+    "id": "mouth.smirk",
+    "slot": "mouth",
+    "file": "portrait/parts/mouth/smirk.webp",
+    "w": 298,
+    "h": 112,
+    "races": [
+      "human",
+      "orc",
+      "dwarf"
+    ]
+  },
+  {
+    "id": "mouth.shout",
+    "slot": "mouth",
+    "file": "portrait/parts/mouth/shout.webp",
+    "w": 213,
+    "h": 207,
+    "races": [
+      "human",
+      "orc",
+      "dwarf"
+    ],
+    "fit": 0.8
+  },
+  {
+    "id": "mouth.tusks",
+    "slot": "mouth",
+    "file": "portrait/parts/mouth/tusks.webp",
+    "w": 345,
+    "h": 162,
+    "races": [
+      "orc"
+    ],
+    "fit": 1.1
+  },
+  {
+    "id": "mouth.tusks_broken",
+    "slot": "mouth",
+    "file": "portrait/parts/mouth/tusks_broken.webp",
+    "w": 327,
+    "h": 173,
+    "races": [
+      "orc"
+    ],
+    "fit": 1.1
   },
   {
     "id": "hair.spiky",
@@ -146,11 +358,595 @@
     ]
   },
   {
+    "id": "hair.ponytail",
+    "slot": "hair",
+    "file": "portrait/parts/hair/ponytail.webp",
+    "w": 323,
+    "h": 304,
+    "races": [
+      "human",
+      "elf"
+    ]
+  },
+  {
+    "id": "hair.braids_f",
+    "slot": "hair",
+    "file": "portrait/parts/hair/braids_f.webp",
+    "w": 295,
+    "h": 300,
+    "races": [
+      "human",
+      "elf",
+      "dwarf",
+      "orc"
+    ],
+    "gender": "f",
+    "fit": 1.05
+  },
+  {
+    "id": "hair.mohawk",
+    "slot": "hair",
+    "file": "portrait/parts/hair/mohawk.webp",
+    "w": 149,
+    "h": 206,
+    "races": [
+      "human",
+      "orc"
+    ],
+    "fit": 0.38
+  },
+  {
+    "id": "hair.silver_long",
+    "slot": "hair",
+    "file": "portrait/parts/hair/silver_long.webp",
+    "w": 333,
+    "h": 303,
+    "races": [
+      "elf",
+      "human"
+    ],
+    "fit": 1.1
+  },
+  {
+    "id": "hair.topknot",
+    "slot": "hair",
+    "file": "portrait/parts/hair/topknot.webp",
+    "w": 235,
+    "h": 230,
+    "races": [
+      "orc",
+      "human"
+    ],
+    "fit": 0.5
+  },
+  {
+    "id": "hair.curly",
+    "slot": "hair",
+    "file": "portrait/parts/hair/curly.webp",
+    "w": 288,
+    "h": 219,
+    "races": [
+      "human",
+      "dwarf"
+    ]
+  },
+  {
+    "id": "hair.grey_crop",
+    "slot": "hair",
+    "file": "portrait/parts/hair/grey_crop.webp",
+    "w": 283,
+    "h": 201,
+    "races": [
+      "human",
+      "dwarf",
+      "orc",
+      "elf"
+    ],
+    "tags": [
+      "old"
+    ]
+  },
+  {
+    "id": "beard.short",
+    "slot": "beard",
+    "file": "portrait/parts/beard/short.webp",
+    "w": 239,
+    "h": 189,
+    "races": [
+      "human",
+      "dwarf",
+      "orc"
+    ],
+    "gender": "m"
+  },
+  {
+    "id": "beard.braided",
+    "slot": "beard",
+    "file": "portrait/parts/beard/braided.webp",
+    "w": 283,
+    "h": 314,
+    "races": [
+      "dwarf"
+    ],
+    "gender": "m"
+  },
+  {
+    "id": "beard.forked_white",
+    "slot": "beard",
+    "file": "portrait/parts/beard/forked_white.webp",
+    "w": 284,
+    "h": 313,
+    "races": [
+      "dwarf",
+      "human"
+    ],
+    "gender": "m",
+    "tags": [
+      "old"
+    ]
+  },
+  {
+    "id": "beard.goatee",
+    "slot": "beard",
+    "file": "portrait/parts/beard/goatee.webp",
+    "w": 236,
+    "h": 237,
+    "races": [
+      "human",
+      "elf"
+    ],
+    "gender": "m",
+    "fit": 0.55
+  },
+  {
+    "id": "beard.rough",
+    "slot": "beard",
+    "file": "portrait/parts/beard/rough.webp",
+    "w": 271,
+    "h": 309,
+    "races": [
+      "orc",
+      "human"
+    ],
+    "gender": "m"
+  },
+  {
+    "id": "helmet.crested",
+    "slot": "helmet",
+    "file": "portrait/parts/helmet/crested.webp",
+    "w": 361,
+    "h": 318
+  },
+  {
+    "id": "helmet.griffin",
+    "slot": "helmet",
+    "file": "portrait/parts/helmet/griffin.webp",
+    "w": 330,
+    "h": 314
+  },
+  {
+    "id": "helmet.open",
+    "slot": "helmet",
+    "file": "portrait/parts/helmet/open.webp",
+    "w": 274,
+    "h": 287
+  },
+  {
+    "id": "helmet.horned",
+    "slot": "helmet",
+    "file": "portrait/parts/helmet/horned.webp",
+    "w": 412,
+    "h": 319
+  },
+  {
+    "id": "helmet.hood",
+    "slot": "helmet",
+    "file": "portrait/parts/helmet/hood.webp",
+    "w": 352,
+    "h": 323
+  },
+  {
+    "id": "helmet.rune_circlet",
+    "slot": "helmet",
+    "file": "portrait/parts/helmet/rune_circlet.webp",
+    "w": 318,
+    "h": 107,
+    "fit": 0.8
+  },
+  {
     "id": "body.scale",
     "slot": "body",
     "file": "portrait/parts/body/scale.webp",
     "w": 512,
     "h": 322,
+    "weight": "medium"
+  },
+  {
+    "id": "body.leather",
+    "slot": "body",
+    "file": "portrait/parts/body/leather.webp",
+    "w": 450,
+    "h": 227,
+    "weight": "light"
+  },
+  {
+    "id": "body.chain",
+    "slot": "body",
+    "file": "portrait/parts/body/chain.webp",
+    "w": 460,
+    "h": 308,
+    "weight": "medium"
+  },
+  {
+    "id": "body.cuirass",
+    "slot": "body",
+    "file": "portrait/parts/body/cuirass.webp",
+    "w": 460,
+    "h": 250,
+    "weight": "heavy"
+  },
+  {
+    "id": "body.fur_plate",
+    "slot": "body",
+    "file": "portrait/parts/body/fur_plate.webp",
+    "w": 460,
+    "h": 288,
+    "weight": "heavy"
+  },
+  {
+    "id": "body.robe",
+    "slot": "body",
+    "file": "portrait/parts/body/robe.webp",
+    "w": 457,
+    "h": 253,
+    "weight": "light"
+  },
+  {
+    "id": "eyes.human.brown",
+    "slot": "eyes",
+    "file": "portrait/parts/eyes/human_brown.webp",
+    "w": 497,
+    "h": 139,
+    "races": [
+      "human"
+    ]
+  },
+  {
+    "id": "eyes.human.blue",
+    "slot": "eyes",
+    "file": "portrait/parts/eyes/human_blue.webp",
+    "w": 500,
+    "h": 157,
+    "races": [
+      "human"
+    ]
+  },
+  {
+    "id": "eyes.human.grey",
+    "slot": "eyes",
+    "file": "portrait/parts/eyes/human_grey.webp",
+    "w": 494,
+    "h": 178,
+    "races": [
+      "human",
+      "dwarf"
+    ]
+  },
+  {
+    "id": "eyes.human.old",
+    "slot": "eyes",
+    "file": "portrait/parts/eyes/human_old.webp",
+    "w": 444,
+    "h": 142,
+    "races": [
+      "human"
+    ],
+    "tags": [
+      "old"
+    ]
+  },
+  {
+    "id": "eyes.human.f_dark",
+    "slot": "eyes",
+    "file": "portrait/parts/eyes/human_f_dark.webp",
+    "w": 409,
+    "h": 106,
+    "races": [
+      "human"
+    ],
+    "gender": "f"
+  },
+  {
+    "id": "eyes.human.f_green",
+    "slot": "eyes",
+    "file": "portrait/parts/eyes/human_f_green.webp",
+    "w": 397,
+    "h": 131,
+    "races": [
+      "human"
+    ],
+    "gender": "f"
+  },
+  {
+    "id": "eyes.human.patch",
+    "slot": "eyes",
+    "file": "portrait/parts/eyes/human_patch.webp",
+    "w": 438,
+    "h": 144,
+    "races": [
+      "human",
+      "dwarf"
+    ],
+    "tags": [
+      "one_eyed"
+    ]
+  },
+  {
+    "id": "eyes.elf.green",
+    "slot": "eyes",
+    "file": "portrait/parts/eyes/elf_green.webp",
+    "w": 418,
+    "h": 120,
+    "races": [
+      "elf"
+    ]
+  },
+  {
+    "id": "eyes.elf.violet_f",
+    "slot": "eyes",
+    "file": "portrait/parts/eyes/elf_violet_f.webp",
+    "w": 423,
+    "h": 116,
+    "races": [
+      "elf"
+    ],
+    "gender": "f"
+  },
+  {
+    "id": "eyes.elf.old",
+    "slot": "eyes",
+    "file": "portrait/parts/eyes/elf_old.webp",
+    "w": 435,
+    "h": 133,
+    "races": [
+      "elf"
+    ],
+    "tags": [
+      "old"
+    ]
+  },
+  {
+    "id": "eyes.dwarf.bushy",
+    "slot": "eyes",
+    "file": "portrait/parts/eyes/dwarf_bushy.webp",
+    "w": 459,
+    "h": 134,
+    "races": [
+      "dwarf"
+    ]
+  },
+  {
+    "id": "eyes.dwarf.bushy_grey",
+    "slot": "eyes",
+    "file": "portrait/parts/eyes/dwarf_bushy_grey.webp",
+    "w": 460,
+    "h": 141,
+    "races": [
+      "dwarf"
+    ],
+    "tags": [
+      "old"
+    ]
+  },
+  {
+    "id": "eyes.orc.beady",
+    "slot": "eyes",
+    "file": "portrait/parts/eyes/orc_beady.webp",
+    "w": 458,
+    "h": 145,
+    "races": [
+      "orc"
+    ]
+  },
+  {
+    "id": "eyes.beast.cat",
+    "slot": "eyes",
+    "file": "portrait/parts/eyes/beast_cat.webp",
+    "w": 460,
+    "h": 151,
+    "races": [
+      "beastkin"
+    ]
+  },
+  {
+    "id": "eyes.minotaur.bull",
+    "slot": "eyes",
+    "file": "portrait/parts/eyes/minotaur_bull.webp",
+    "w": 460,
+    "h": 145,
+    "races": [
+      "minotaur"
+    ]
+  },
+  {
+    "id": "nose.human.straight",
+    "slot": "nose",
+    "file": "portrait/parts/nose/human_straight.webp",
+    "w": 159,
+    "h": 203,
+    "races": [
+      "human"
+    ],
+    "fit": 0.8,
+    "tone": "tan",
+    "tones": {
+      "pale": "portrait/parts/nose/human_straight@pale.webp",
+      "dark": "portrait/parts/nose/human_straight@dark.webp",
+      "dusk": "portrait/parts/nose/human_straight@dusk.webp",
+      "grey": "portrait/parts/nose/human_straight@grey.webp"
+    }
+  },
+  {
+    "id": "nose.human.broken",
+    "slot": "nose",
+    "file": "portrait/parts/nose/human_broken.webp",
+    "w": 191,
+    "h": 197,
+    "races": [
+      "human"
+    ],
+    "fit": 0.8,
+    "tone": "tan",
+    "tones": {
+      "pale": "portrait/parts/nose/human_broken@pale.webp",
+      "dark": "portrait/parts/nose/human_broken@dark.webp",
+      "dusk": "portrait/parts/nose/human_broken@dusk.webp",
+      "grey": "portrait/parts/nose/human_broken@grey.webp"
+    }
+  },
+  {
+    "id": "nose.human.wide",
+    "slot": "nose",
+    "file": "portrait/parts/nose/human_wide.webp",
+    "w": 245,
+    "h": 185,
+    "races": [
+      "human"
+    ],
+    "fit": 0.8,
+    "tone": "tan",
+    "tones": {
+      "pale": "portrait/parts/nose/human_wide@pale.webp",
+      "dark": "portrait/parts/nose/human_wide@dark.webp",
+      "dusk": "portrait/parts/nose/human_wide@dusk.webp",
+      "grey": "portrait/parts/nose/human_wide@grey.webp"
+    }
+  },
+  {
+    "id": "nose.elf.thin",
+    "slot": "nose",
+    "file": "portrait/parts/nose/elf_thin.webp",
+    "w": 113,
+    "h": 202,
+    "races": [
+      "elf"
+    ],
+    "fit": 0.75,
+    "tone": "pale",
+    "tones": {
+      "dark": "portrait/parts/nose/elf_thin@dark.webp",
+      "dusk": "portrait/parts/nose/elf_thin@dusk.webp",
+      "grey": "portrait/parts/nose/elf_thin@grey.webp"
+    }
+  },
+  {
+    "id": "nose.orc.flat",
+    "slot": "nose",
+    "file": "portrait/parts/nose/orc_flat.webp",
+    "w": 273,
+    "h": 164,
+    "races": [
+      "orc"
+    ]
+  },
+  {
+    "id": "mouth.human.thin",
+    "slot": "mouth",
+    "file": "portrait/parts/mouth/human_thin.webp",
+    "w": 290,
+    "h": 71,
+    "races": [
+      "human",
+      "elf",
+      "dwarf"
+    ]
+  },
+  {
+    "id": "mouth.human.full_f",
+    "slot": "mouth",
+    "file": "portrait/parts/mouth/human_full_f.webp",
+    "w": 263,
+    "h": 135,
+    "races": [
+      "human",
+      "elf"
+    ],
+    "gender": "f"
+  },
+  {
+    "id": "mouth.human.grimace",
+    "slot": "mouth",
+    "file": "portrait/parts/mouth/human_grimace.webp",
+    "w": 272,
+    "h": 152,
+    "races": [
+      "human",
+      "dwarf"
+    ]
+  },
+  {
+    "id": "mouth.human.bite",
+    "slot": "mouth",
+    "file": "portrait/parts/mouth/human_bite.webp",
+    "w": 254,
+    "h": 128,
+    "races": [
+      "human",
+      "elf",
+      "dwarf"
+    ]
+  },
+  {
+    "id": "mouth.human.neutral",
+    "slot": "mouth",
+    "file": "portrait/parts/mouth/human_neutral.webp",
+    "w": 282,
+    "h": 87,
+    "races": [
+      "human",
+      "elf",
+      "dwarf"
+    ]
+  },
+  {
+    "id": "hair.blond_messy",
+    "slot": "hair",
+    "file": "portrait/parts/hair/blond_messy.webp",
+    "w": 285,
+    "h": 203,
+    "races": [
+      "human",
+      "elf",
+      "dwarf"
+    ]
+  },
+  {
+    "id": "hair.long_black",
+    "slot": "hair",
+    "file": "portrait/parts/hair/long_black.webp",
+    "w": 332,
+    "h": 305,
+    "races": [
+      "human",
+      "elf",
+      "orc"
+    ],
+    "fit": 1.1
+  },
+  {
+    "id": "body.tunic",
+    "slot": "body",
+    "file": "portrait/parts/body/tunic.webp",
+    "w": 458,
+    "h": 250,
+    "weight": "light"
+  },
+  {
+    "id": "body.lacquer",
+    "slot": "body",
+    "file": "portrait/parts/body/lacquer.webp",
+    "w": 460,
+    "h": 245,
     "weight": "medium"
   }
 ]

@@ -112,7 +112,7 @@ export interface CareerEvent {
   kind: "join" | "match" | "milestone" | "injury" | "death" | "other";
 }
 
-export type PortraitParts = Partial<Record<"body" | "head" | "eyes" | "mouth" | "hair" | "beard" | "helmet", string | null>>;
+export type PortraitParts = Partial<Record<"body" | "head" | "eyes" | "nose" | "mouth" | "hair" | "beard" | "helmet", string | null>>;
 
 export type TrainingFocus = "physical" | "weapon" | "defense" | "grapple" | "mental" | "magic" | "show" | "doctrine" | "rest";
 export type TrainingIntensity = "low" | "normal" | "high" | "extreme";

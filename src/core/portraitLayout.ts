@@ -1,15 +1,17 @@
 // 초상화 파츠 배치 규칙. 웹(SVG)과 미리보기 도구, Unity가 같은 규칙을 쓴다.
 // 좌표는 0~1 비율 (초상화 정사각형 기준). 파츠 이미지는 투명 여백을 잘라낸 크기(trim)를 기준으로 맞춘다.
 
-export type PartSlot = "body" | "head" | "eyes" | "mouth" | "beard" | "hair" | "helmet";
+export type PartSlot = "body" | "head" | "eyes" | "nose" | "mouth" | "beard" | "hair" | "helmet";
 
 /** 아래에서 위로 그리는 순서 */
-export const SLOT_ORDER: PartSlot[] = ["body", "head", "beard", "mouth", "eyes", "hair", "helmet"];
+export const SLOT_ORDER: PartSlot[] = ["body", "head", "nose", "beard", "mouth", "eyes", "hair", "helmet"];
 
 export interface PartMeta {
   /** 잘라낸 그림의 크기 (원본 픽셀) */
   w: number;
   h: number;
+  /** 파츠별 크기 보정 (좁은 모히칸, 작은 염소수염 등) */
+  fit?: number;
 }
 
 export interface Box {
@@ -58,7 +60,7 @@ export function layoutPortrait(parts: Partial<Record<PartSlot, PartMeta>>, face:
   const hh = face.headHeight;
   const hw = (head.w / head.h) * hh;
   // 목 아랫부분이 몸통 위에 살짝 겹치게
-  const headY = Math.min(0.12, bodyTop + 0.1 - hh);
+  const headY = Math.max(-0.04, bodyTop + 0.14 - hh);
   const hb: Box = { x: 0.5 - hw / 2, y: headY, w: hw, h: hh };
   out.head = hb;
 
@@ -66,10 +68,11 @@ export function layoutPortrait(parts: Partial<Record<PartSlot, PartMeta>>, face:
   const place = (slot: PartSlot, widthRatio: number, centerY: number | null, topY?: number) => {
     const m = parts[slot];
     if (!m) return;
-    const s = fit(m, faceW * widthRatio);
+    const s = fit(m, faceW * widthRatio * (m.fit ?? 1));
     out[slot] = { x: 0.5 - s.w / 2, y: centerY !== null ? centerY - s.h / 2 : topY!, ...s };
   };
   place("eyes", 1.0, hb.y + hb.h * face.eyeY);
+  place("nose", 0.3, hb.y + hb.h * (face.eyeY + (face.mouthY - face.eyeY) * 0.52));
   place("mouth", 0.5, hb.y + hb.h * face.mouthY);
   place("beard", 1.05, null, hb.y + hb.h * (face.mouthY - 0.08));
   place("hair", 1.75, null, hb.y - hb.h * 0.06);
