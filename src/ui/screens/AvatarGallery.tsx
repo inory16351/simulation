@@ -17,11 +17,16 @@ export function AvatarGallery() {
       {RACES.map(([race, nation]) => (
         <div key={race} style={{ display: "flex", gap: 10, marginBottom: 10, alignItems: "center" }}>
           <div style={{ width: 90, color: "var(--parchment)" }}>{race}<br /><span className="hint">{getNation(nation).short}</span></div>
-          {Array.from({ length: 8 }, (_, i) => {
+          {Array.from({ length: 4 }, (_, i) => {
             const g = generateGladiator(rng, { id: `${race}${i}`, nation, target: 9, race });
-            if (i === 6) g.injury = { severity: "serious", daysLeft: 9, desc: "" };
-            if (i === 7) g.record.wins = 20;
-            return <Portrait key={i} g={g} size={110} />;
+            if (i === 3) g.record.wins = 20;
+            // 같은 검투사를 기존 그림 / 동화책 시안으로 나란히
+            return (
+              <div key={i} style={{ display: "flex", gap: 3, marginRight: 10 }}>
+                <Portrait g={g} size={110} />
+                <Portrait g={g} size={110} painted />
+              </div>
+            );
           })}
         </div>
       ))}

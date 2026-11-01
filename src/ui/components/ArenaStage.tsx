@@ -1,8 +1,9 @@
 // 경기 장면: 림월드풍 꼬마 검투사 두 명을 코드로 리깅해 전투 이벤트대로 움직인다.
 import { avatarOf, type AvatarSpec } from "../../core/avatar";
 import type { CombatEvent } from "../../core/combat/sim";
-import { getArmor, getNation, getWeapon } from "../../core/data";
+import { getArmor, getWeapon } from "../../core/data";
 import type { Gladiator, Id } from "../../core/types";
+import { asset } from "../assets";
 import { AvatarSvg } from "./Avatar";
 
 const INK = "#1a120e";
@@ -31,24 +32,22 @@ interface Props {
 export function ArenaStage({ a, b, events, crowd }: Props) {
   const { dist, views, blood, burst, shake, crowdHype } = derive(a, b, events);
   const [xa, xb] = POS[dist] ?? POS[2];
-  const nation = getNation(a.nation);
 
   return (
-    <div className={`arena-stage ${shake ? "shake" : ""}`} key={shake ? `s${events.length}` : "s"}>
+    <div className={`arena-stage storybook ${shake ? "shake hitstop" : ""}`} key={shake ? `s${events.length}` : "s"}>
       <svg viewBox="0 0 400 160" preserveAspectRatio="xMidYMid slice">
-        {/* 배경: 벽, 관중, 모래 */}
+        <PaintDefs />
+        <g filter="url(#paintEdge)">
+        {/* 배경: 붓으로 그린 경기장 (훈련전은 관중 없는 훈련장) */}
         <rect width="400" height="160" fill="#1a1411" />
-        <rect y="0" width="400" height="70" fill="#2a201a" />
-        {crowd && <Crowd hype={crowdHype} color={nation.color} />}
-        <rect y="66" width="400" height="8" fill="#3b2d22" stroke={INK} strokeWidth="1.5" />
-        {[40, 120, 200, 280, 360].map((x) => <rect key={x} x={x - 3} y="40" width="6" height="30" fill="#4a382a" stroke={INK} strokeWidth="1.2" />)}
-        {[40, 360].map((x) => <g key={x}><path d={`M${x} 38 q4 -8 0 -14 q-4 6 0 14`} fill="#e39a3b" className="torch" /></g>)}
-        <ellipse cx="200" cy="140" rx="230" ry="44" fill="#9a7b52" />
-        <ellipse cx="200" cy="140" rx="230" ry="44" fill="url(#sandShade)" />
+        <image href={asset(crowd ? "ui/arena_provincial.webp" : "ui/bg_main.webp")} x="0" y="0" width="400" height="160" preserveAspectRatio={crowd ? "xMidYMax slice" : "xMidYMid slice"} />
+        {/* 관중이 달아오르면 관중석이 횃불빛으로 일렁인다 */}
+        {crowd && <rect width="400" height="90" fill="#ff9a3c" className={crowdHype > 55 ? "crowd-glow" : ""} opacity={Math.max(0, (crowdHype - 40) / 300)} style={{ mixBlendMode: "screen" }} />}
+        <ellipse cx="200" cy="146" rx="240" ry="34" fill="url(#sandShade)" opacity="0.55" />
         <defs>
           <radialGradient id="sandShade" cx="50%" cy="20%" r="80%">
-            <stop offset="0" stopColor="#b8956a" stopOpacity="0.6" />
-            <stop offset="1" stopColor="#5a4530" stopOpacity="0.8" />
+            <stop offset="0" stopColor="#c9a070" stopOpacity="0.35" />
+            <stop offset="1" stopColor="#3a2a1e" stopOpacity="0.7" />
           </radialGradient>
         </defs>
         {/* 모래에 남은 핏자국 */}
@@ -59,25 +58,79 @@ export function ArenaStage({ a, b, events, crowd }: Props) {
 
         {/* 피 튐 */}
         {burst && <BloodBurst key={burst.key} x={burst.side === 0 ? xa : xb} big={burst.big} dir={burst.side === 0 ? -1 : 1} />}
+        </g>
+        {/* 붓으로 그린 타격 효과 */}
+        {burst && <BrushHit key={`h${burst.key}`} x={burst.side === 0 ? xa : xb} big={burst.big} dir={burst.side === 0 ? -1 : 1} />}
+        {/* 동화책 조명: 왼쪽 횃불의 따뜻한 빛, 오른쪽 아래 푸른 그늘, 가장자리 어둠 */}
+        <rect width="400" height="160" fill="url(#warmKey)" style={{ mixBlendMode: "screen" }} pointerEvents="none" />
+        <rect width="400" height="160" fill="url(#coolShade)" style={{ mixBlendMode: "multiply" }} pointerEvents="none" />
+        <rect width="400" height="160" fill="url(#vignette)" pointerEvents="none" />
+        <rect width="400" height="160" filter="url(#canvasGrain)" opacity="0.16" style={{ mixBlendMode: "overlay" }} pointerEvents="none" />
+        {burst?.big && <rect key={`f${burst.key}`} className="impact-frame" width="400" height="160" fill="#fff6dc" pointerEvents="none" />}
       </svg>
     </div>
   );
 }
 
-function Crowd({ hype, color }: { hype: number; color: string }) {
-  const heads = [];
-  for (let row = 0; row < 3; row++) {
-    for (let i = 0; i < 26; i++) {
-      const x = 8 + i * 15.5 + (row % 2) * 7;
-      const y = 22 + row * 14;
-      const fill = (i + row) % 5 === 0 ? color : (i * 7 + row) % 3 === 0 ? "#5a4636" : "#3e3028";
-      heads.push(<g key={`${row}-${i}`} className={hype > 55 && (i + row) % 2 ? "cheer-head" : ""} style={{ animationDelay: `${(i % 5) * 0.08}s` }}>
-        <circle cx={x} cy={y} r="5" fill={fill} stroke={INK} strokeWidth="1" />
-        <rect x={x - 6} y={y + 4} width="12" height="8" rx="3" fill={fill} stroke={INK} strokeWidth="1" />
-      </g>);
-    }
-  }
-  return <g opacity="0.85">{heads}</g>;
+/** 붓질 느낌을 내는 SVG 필터와 조명 그라디언트 */
+function PaintDefs() {
+  return (
+    <defs>
+      {/* 윤곽을 살짝 흔들어 손으로 칠한 가장자리처럼 */}
+      <filter id="paintEdge" x="-5%" y="-5%" width="110%" height="110%">
+        <feTurbulence type="fractalNoise" baseFrequency="0.035" numOctaves="2" seed="7" result="n" />
+        <feDisplacementMap in="SourceGraphic" in2="n" scale="2.4" xChannelSelector="R" yChannelSelector="G" />
+      </filter>
+      {/* 캔버스 결 */}
+      <filter id="canvasGrain">
+        <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="3" />
+        <feColorMatrix type="saturate" values="0" />
+      </filter>
+      {/* 붓 자국 가장자리를 거칠게 */}
+      <filter id="brushRough" x="-20%" y="-20%" width="140%" height="140%">
+        <feTurbulence type="fractalNoise" baseFrequency="0.09" numOctaves="2" seed="11" result="n" />
+        <feDisplacementMap in="SourceGraphic" in2="n" scale="3.5" xChannelSelector="R" yChannelSelector="G" />
+      </filter>
+      <linearGradient id="warmKey" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0" stopColor="#ff9a3c" stopOpacity="0.38" />
+        <stop offset="0.45" stopColor="#ff9a3c" stopOpacity="0.06" />
+        <stop offset="1" stopColor="#ff9a3c" stopOpacity="0" />
+      </linearGradient>
+      <linearGradient id="coolShade" x1="0.2" y1="0" x2="1" y2="1">
+        <stop offset="0" stopColor="#ffffff" />
+        <stop offset="0.6" stopColor="#c9c3e6" />
+        <stop offset="1" stopColor="#3d4f7a" />
+      </linearGradient>
+      <radialGradient id="vignette" cx="50%" cy="55%" r="70%">
+        <stop offset="0.55" stopColor="#000" stopOpacity="0" />
+        <stop offset="1" stopColor="#0a0610" stopOpacity="0.75" />
+      </radialGradient>
+    </defs>
+  );
+}
+
+/** 타격: 붓으로 한 번에 그은 듯한 베기 자국, 치명타면 빛살이 터진다 */
+function BrushHit({ x, big, dir }: { x: number; big: boolean; dir: number }) {
+  const spikes = big ? 9 : 0;
+  return (
+    <g transform={`translate(${x} ${GROUND - 36}) scale(${dir * (big ? 1.5 : 1.15)} ${big ? 1.5 : 1.15})`} filter="url(#brushRough)">
+      {spikes > 0 && (
+        <g className="impact-star">
+          {Array.from({ length: spikes }, (_, i) => {
+            const a = (i / spikes) * Math.PI * 2;
+            const len = 26 + (i % 3) * 9;
+            const w = 4;
+            const tip = [Math.cos(a) * len, Math.sin(a) * len];
+            const l = [Math.cos(a + 1.57) * w, Math.sin(a + 1.57) * w];
+            return <path key={i} d={`M${l[0]} ${l[1]} L${tip[0]} ${tip[1]} L${-l[0]} ${-l[1]} Z`} fill={i % 2 ? "#ffd36b" : "#fff3d1"} />;
+          })}
+          <circle r="9" fill="#fff8e6" />
+        </g>
+      )}
+      <path className="brush-slash" d="M-30 -24 C-10 -22 14 -2 30 24 C20 22 -6 -2 -30 -24 Z" fill="#fff4d8" />
+      <path className="brush-slash red" d="M-24 -16 C-8 -12 10 4 24 20 C14 18 -6 2 -24 -16 Z" fill="#c4271c" />
+    </g>
+  );
 }
 
 function Fighter({ v, x, facing }: { v: FighterView; x: number; facing: 1 | -1 }) {
@@ -121,6 +174,8 @@ function Fighter({ v, x, facing }: { v: FighterView; x: number; facing: 1 | -1 }
               <g transform="translate(2 14)"><Weapon cls={weapon?.class ?? "unarmed"} /></g>
             </g>
           </g>
+          {/* 휘두른 자리에 남는 붓 자국 */}
+          {v.pose === "attack" && <path className="smear" d="M2 -62 C30 -60 40 -30 26 -4 C30 -28 22 -48 2 -54 Z" fill="#fff1cf" opacity="0" />}
           {/* 맞았을 때 붉은 번쩍임 */}
           <rect className="hurt-flash" x="-14" y="-78" width="28" height="78" rx="10" fill="#e02a1a" opacity="0" />
           {v.pose === "cast" && <circle className="cast-glow" cx="12" cy="-24" r="8" fill="#7ad0ff" opacity="0.7" />}

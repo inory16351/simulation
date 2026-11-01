@@ -20,10 +20,12 @@ interface Props {
   seed?: number;
   /** 전투 장면용: 배경과 몸 없이 머리만 그린다 */
   headOnly?: boolean;
+  /** 동화책 그림체 시안: 붓 자국 가장자리, 왼쪽 위 따뜻한 테두리 빛, 오른쪽 아래 푸른 그늘 */
+  painted?: boolean;
 }
 
 /** 실크송·림월드풍 귀여운 검투사 초상화 (100×100) */
-export function AvatarSvg({ spec: s, bg, scars = 0, injured, dead, seed = 1, headOnly }: Props) {
+export function AvatarSvg({ spec: s, bg, scars = 0, injured, dead, seed = 1, headOnly, painted }: Props) {
   const v = Number(s.variant) || 0;
   const beastly = s.race === "minotaur" || s.race === "lizardfolk" || s.race === "beastkin";
   const headCy = s.race === "dwarf" ? 46 : 44;
@@ -38,8 +40,17 @@ export function AvatarSvg({ spec: s, bg, scars = 0, injured, dead, seed = 1, hea
           <stop offset="0" stopColor={bg} stopOpacity="0.85" />
           <stop offset="1" stopColor="#120d0a" />
         </radialGradient>
+        {painted && <PaintFilter id={`${id}paint`} seed={seed} />}
+        {painted && (
+          <radialGradient id={`${id}glow`} cx="40%" cy="30%" r="60%">
+            <stop offset="0" stopColor="#ffb35c" stopOpacity="0.55" />
+            <stop offset="1" stopColor="#ffb35c" stopOpacity="0" />
+          </radialGradient>
+        )}
       </defs>
       {!headOnly && <rect width="100" height="100" fill={`url(#${id}bg)`} />}
+      {!headOnly && painted && <rect width="100" height="100" fill={`url(#${id}glow)`} />}
+      <g filter={painted ? `url(#${id}paint)` : undefined}>
 
       {/* 뒷머리·갈기 */}
       {s.race === "beastkin" && v === 0 && <Mane color={s.race === "beastkin" ? shade(s.skin, -0.18) : s.hairColor} />}
@@ -95,7 +106,42 @@ export function AvatarSvg({ spec: s, bg, scars = 0, injured, dead, seed = 1, hea
           {injured === "serious" && <path d="M62 36 C62 42 60 44 61 48" stroke="#a3241d" strokeWidth="1.8" fill="none" strokeLinecap="round" />}
         </g>
       )}
+      </g>
     </svg>
+  );
+}
+
+/**
+ * 붓으로 칠한 느낌: 윤곽을 흔들고, 캔버스 결을 얹고,
+ * 실루엣 왼쪽 위 가장자리엔 횃불빛, 오른쪽 아래엔 푸른 그늘을 칠한다.
+ */
+function PaintFilter({ id, seed }: { id: string; seed: number }) {
+  return (
+    <filter id={id} x="-10%" y="-10%" width="120%" height="120%" colorInterpolationFilters="sRGB">
+      <feTurbulence type="fractalNoise" baseFrequency="0.07" numOctaves="2" seed={seed % 50} result="wob" />
+      <feDisplacementMap in="SourceGraphic" in2="wob" scale="1.6" xChannelSelector="R" yChannelSelector="G" result="base" />
+      {/* 캔버스 결 */}
+      <feTurbulence type="fractalNoise" baseFrequency="0.55" numOctaves="3" seed={(seed % 50) + 3} result="grain" />
+      <feColorMatrix in="grain" type="matrix" values="0 0 0 0 0.5  0 0 0 0 0.45  0 0 0 0 0.4  0 0 0 0.35 0" result="grainTint" />
+      <feComposite in="grainTint" in2="base" operator="in" result="grainIn" />
+      <feBlend in="grainIn" in2="base" mode="overlay" result="textured" />
+      {/* 그늘: 실루엣을 왼쪽 위로 밀어 낸 나머지 = 오른쪽 아래 가장자리 */}
+      <feOffset in="base" dx="-4" dy="-3" result="shift1" />
+      <feComposite in="base" in2="shift1" operator="out" result="shadeEdge" />
+      <feGaussianBlur in="shadeEdge" stdDeviation="2.2" result="shadeBlur" />
+      <feFlood floodColor="#2c3a66" floodOpacity="0.75" />
+      <feComposite in2="shadeBlur" operator="in" />
+      <feComposite in2="base" operator="in" result="shade" />
+      {/* 테두리 빛: 오른쪽 아래로 밀어 낸 나머지 = 왼쪽 위 가장자리 */}
+      <feOffset in="base" dx="2.2" dy="2" result="shift2" />
+      <feComposite in="base" in2="shift2" operator="out" result="rimEdge" />
+      <feGaussianBlur in="rimEdge" stdDeviation="0.7" result="rimBlur" />
+      <feFlood floodColor="#ffc777" floodOpacity="0.9" />
+      <feComposite in2="rimBlur" operator="in" />
+      <feComposite in2="base" operator="in" result="rim" />
+      <feBlend in="shade" in2="textured" mode="multiply" result="shaded" />
+      <feBlend in="rim" in2="shaded" mode="screen" />
+    </filter>
   );
 }
 

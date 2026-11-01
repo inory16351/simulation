@@ -37,12 +37,12 @@ export function attrClass(v: number): string {
 }
 
 /** 실크송·림월드풍 초상화. 흉터·부상이 얼굴에 쌓인다 */
-export function Portrait({ g, size = 40 }: { g: Gladiator; size?: number }) {
+export function Portrait({ g, size = 40, painted }: { g: Gladiator; size?: number; painted?: boolean }) {
   const fights = g.record.wins + g.record.losses;
   const scars = Math.floor(fights / 6) + (g.traits.includes("scarred") ? 2 : 0);
   return (
     <div className={`portrait ${g.alive ? "" : "dead"}`} style={{ width: size, height: size }}>
-      <AvatarSvg spec={avatarOf(g)} bg={getNation(g.nation).color} scars={scars} injured={g.injury?.severity} dead={!g.alive} seed={g.portraitSeed % 997} />
+      <AvatarSvg spec={avatarOf(g)} bg={getNation(g.nation).color} scars={scars} injured={g.injury?.severity} dead={!g.alive} seed={g.portraitSeed % 997} painted={painted} />
     </div>
   );
 }
