@@ -13,7 +13,7 @@ export function pushMessage(state: GameState, msg: Omit<InboxMessage, "id" | "se
   state.inbox.unshift({ ...msg, id: `M${state.nextId++}`, season: state.season, day: state.day, read: false });
 }
 
-const SAVE_KEY = "colosseum-league.save.v5";
+const SAVE_KEY = "colosseum-league.save.v6";
 
 export function saveGame(state: GameState): void {
   try {
@@ -28,7 +28,7 @@ export function loadGame(): GameState | null {
     const raw = localStorage.getItem(SAVE_KEY);
     if (!raw) return null;
     const s = JSON.parse(raw) as GameState;
-    return s.version === 5 ? s : null;
+    return s.version === 6 ? s : null;
   } catch {
     return null;
   }

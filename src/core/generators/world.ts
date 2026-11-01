@@ -11,7 +11,7 @@ const PERSONALITIES: NonNullable<Ludus["aiPersonality"]>[] = ["aggressive", "sta
 export function newGame(seed: number, nation: NationId = "aurelia", ludusName = "모래의 집"): GameState {
   const rng = new Rng(seed);
   const state: GameState = {
-    version: 5,
+    version: 6,
     seed,
     rngState: 0,
     season: 1,
@@ -52,8 +52,9 @@ export function newGame(seed: number, nation: NationId = "aurelia", ludusName = 
       record: { wins: 0, losses: 0 },
       matchesThisSeason: 0,
       refusalsUsed: 0,
-      facilities: { barracks: 1, training: 1, medical: 1, bath: 0, arena: 1, guard: 0 },
+      facilities: { barracks: 1, training: 1, medical: 1, bath: 0, arena: 1, guard: 0, academy: 0 },
       staff: [],
+      youth: [],
     };
     for (let i = 0; i < rosterSize; i++) {
       const g = generateGladiator(rng, {

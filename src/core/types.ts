@@ -146,6 +146,8 @@ export interface Ludus {
   /** 진행 중인 공사 */
   construction?: { facility: FacilityId; toLevel: number; doneAt: number };
   staff: Id[];
+  /** 유소년 학당 학생 */
+  youth: Id[];
   /** 금고가 마이너스가 된 날 (절대 일수) */
   bankruptSince?: number;
 }
@@ -157,6 +159,7 @@ export interface Facilities {
   bath: number;
   arena: number;
   guard: number;
+  academy: number;
 }
 
 export type FacilityId = keyof Facilities;

@@ -42,7 +42,7 @@ export function payDividend(state: GameState, ludus: Ludus, coef?: number): void
 }
 
 export function weeklyWages(state: GameState, ludus: Ludus): number {
-  return ludus.gladiators.reduce((s, id) => s + state.gladiators[id].wage, 0);
+  return [...ludus.gladiators, ...(ludus.youth ?? [])].reduce((s, id) => s + (state.gladiators[id]?.wage ?? 0), 0);
 }
 
 export function weeklyFood(state: GameState, ludus: Ludus): number {
@@ -51,7 +51,7 @@ export function weeklyFood(state: GameState, ludus: Ludus): number {
 
 /** 급료일 처리. 돈이 모자라면 주급이 높은 순으로 주고, 못 받은 검투사는 미납이 쌓인다 */
 export function payday(state: GameState, ludus: Ludus): void {
-  const roster = ludus.gladiators.map((id) => state.gladiators[id]).filter((g) => g.alive);
+  const roster = [...ludus.gladiators, ...(ludus.youth ?? [])].map((id) => state.gladiators[id]).filter((g) => g?.alive);
   if (!ludus.isPlayer) {
     // AI 루두스는 추상적으로 처리: 급료와 식비를 내고, 상금 외 부수입을 조금 번다
     ludus.treasury += ludus.tier === 1 ? 400 : 150;

@@ -205,5 +205,12 @@
     },
     "spawn": 0,
     "negative": true
+  },
+  {
+    "id": "academy",
+    "name": "학당 출신",
+    "cat": "personality",
+    "desc": "루두스 학당에서 자랐다. 충성 +3, 사기가 쉽게 꺾이지 않는다",
+    "spawn": 0
   }
 ]

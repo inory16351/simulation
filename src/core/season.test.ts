@@ -97,3 +97,26 @@ describe("부상", () => {
     expect(g.attrs.acc).toBe(Math.max(1, accBase - 2));
   });
 });
+
+describe("유소년 학당", () => {
+  it("학당을 지으면 아이들이 들어오고, 견습 투기로 자라며 데뷔 나이가 되면 승격할 수 있다", async () => {
+    const { intake, apprenticeBouts, promoteYouth } = await import("./youth");
+    const { computeCA, ageStage } = await import("./gladiator");
+    const s = newGame(21);
+    const me = s.ludi[s.playerLudusId];
+    me.facilities.academy = 3;
+    const rng = new Rng(9);
+    const kids = intake(s, rng, me);
+    expect(kids.length).toBe(4);
+    expect(kids.every((k) => ageStage(k) === "youth")).toBe(true);
+    const before = kids.map(computeCA).reduce((a, b) => a + b, 0);
+    for (let i = 0; i < 40; i++) apprenticeBouts(s, rng, me);
+    expect(kids.every((k) => k.alive)).toBe(true);
+    expect(kids.map(computeCA).reduce((a, b) => a + b, 0)).toBeGreaterThan(before);
+    const k = kids[0];
+    expect(promoteYouth(s, me, k.id)).not.toBeNull();
+    k.age = 30;
+    expect(promoteYouth(s, me, k.id)).toBeNull();
+    expect(me.gladiators).toContain(k.id);
+  });
+});

@@ -8,6 +8,7 @@ import { payday, payDividend, refreshMarket, tierRanking } from "./economy";
 import { rollDailyEvents } from "./events";
 import { dailyConstruction } from "./facilities";
 import { onHealed } from "./injuries";
+import { apprenticeBouts, dailyYouth, intake, isApprenticeDay, seasonEndYouth } from "./youth";
 import { coachMult, healMult, ratingOf, refreshStaffMarket } from "./staff";
 import { rulesOfNation } from "./nationRules";
 import { generateGladiator } from "./generators/gladiator";
@@ -41,7 +42,8 @@ export function advanceDay(state: GameState): string[] {
 
   // 1. 아침: 이벤트, 시장
   rollDailyEvents(state, rng);
-  dailyConstruction(state);
+  // 학당을 처음 지으면 바로 첫 입학생을 받는다
+  for (const d of dailyConstruction(state)) if (d.facility === "academy" && d.level === 1) intake(state, rng, d.ludus);
   if ((BALANCE.economy.marketRefreshDays as number[]).includes(state.day)) {
     refreshMarket(state, rng);
     refreshStaffMarket(state, rng);
@@ -73,6 +75,13 @@ export function advanceDay(state: GameState): string[] {
         pushMessage(state, { kind: "warning", title: `훈련 중 부상: ${g.name}`, body: `${injured}. ${g.injury?.daysLeft}일 정도 쉬어야 한다.` });
       }
     }
+  }
+
+  // 유소년: 매일 훈련, 28일마다 견습 투기
+  for (const l of Object.values(state.ludi)) {
+    if (!l.youth?.length) continue;
+    dailyYouth(state, rng, l);
+    if (isApprenticeDay(state) && l.isPlayer) apprenticeBouts(state, rng, l);
   }
 
   // 4. 도전과 경기
@@ -234,6 +243,12 @@ function endSeason(state: GameState, rng: Rng): void {
     if (!g.alive) continue;
     g.age++;
     seasonRecord(state, g);
+  }
+  // 유소년: 졸업 안내, 새 입학생
+  for (const l of Object.values(state.ludi)) {
+    if (!l.youth) l.youth = [];
+    seasonEndYouth(state, l);
+    intake(state, rng, l);
   }
   state.challenges = state.challenges.filter((c) => c.status === "pending" || c.status === "scheduled");
   for (const c of state.challenges) c.status = "cancelled";

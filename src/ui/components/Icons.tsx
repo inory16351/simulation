@@ -28,6 +28,8 @@ const MENU: Record<string, ReactElement> = {
   league: <g {...ink}><rect x="9" y="8" width="6" height="13" fill={BRONZE} /><rect x="3" y="12" width="6" height="9" fill={IRON} /><rect x="15" y="15" width="6" height="6" fill="#a8703a" /><path d="M12 3 L13 5.5 L15.5 5.7 L13.6 7.2 L14.3 9.5 L12 8.2 L9.7 9.5 L10.4 7.2 L8.5 5.7 L11 5.5 Z" fill="#e8b84a" strokeWidth={1} /></g>,
   // 노예 경매: 족쇄와 돈주머니
   market: <g {...ink}><circle cx="8" cy="15" r="4" fill="none" stroke={IRON} strokeWidth={2.4} /><path d="M11 13 L13 11" stroke={IRON} strokeWidth={2} /><path d="M13 9 C13 6 21 6 21 9 L22 18 C22 21 12 21 12 18 Z" fill={BRONZE} /><path d="M15 7 L19 7" strokeWidth={1.2} /></g>,
+  // 유소년 학당: 목검을 든 아이
+  youth: <g {...ink}><circle cx="10" cy="7" r="3.6" fill="#e2b28c" /><path d="M6 20 C6 14 8 12 10 12 C12 12 14 14 14 20 Z" fill="#7a1e1a" /><path d="M15 18 L20 6" stroke={WOOD} strokeWidth={2.4} /><path d="M14.5 15 L17.5 16" stroke={WOOD} strokeWidth={1.8} /></g>,
   // 식솔: 열쇠
   staff: <g {...ink}><circle cx="8" cy="8" r="4.5" fill={BRONZE} /><circle cx="8" cy="8" r="1.6" fill="#3a2c22" /><path d="M11 11 L20 20 M16 16 L18 14 M18.5 18.5 L20.5 16.5" stroke={BRONZE_D} strokeWidth={2.4} /></g>,
   // 증축: 망치와 돌기둥

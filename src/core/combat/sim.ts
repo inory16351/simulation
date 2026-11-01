@@ -40,6 +40,8 @@ export interface MatchOptions {
   /** 지정하지 않으면 각 검투사의 교범을 쓴다 */
   doctrines?: [Doctrine | undefined, Doctrine | undefined];
   medicalLevel?: [number, number];
+  /** 견습 투기처럼 죽음이 없는 경기 */
+  noDeath?: boolean;
   /** 나라 리그 특징: 미시오 사망 확률 배율 */
   missioDeathMult?: number;
 }
@@ -648,7 +650,7 @@ export function simulateMatch(a: Gladiator, b: Gladiator, opt: MatchOptions): Ma
     } else {
       deathChance = Math.max(D.suddenMin, D.suddenBase - medical * D.suddenPerMedical);
     }
-    const isDead = rng.chance(deathChance);
+    const isDead = !opt.noDeath && rng.chance(deathChance);
     emit({ t: "verdict", target: loser.g.id, rule: opt.rule, deathChance, died: isDead });
     if (isDead) {
       died = loser.g.id;

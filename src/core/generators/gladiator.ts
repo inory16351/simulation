@@ -22,6 +22,10 @@ export interface GenOptions {
   race?: RaceId;
   style?: string;
   status?: Status;
+  /** 나이를 정해서 만든다 (유소년 등) */
+  age?: number;
+  /** 잠재력 상한 (유소년 학당 단계) */
+  paCap?: number;
   /** 이미 쓰인 이름. 겹치면 성을 붙이고, 생성한 이름을 추가한다 */
   usedNames?: Set<string>;
 }
@@ -47,7 +51,7 @@ export function generateGladiator(rng: Rng, opt: GenOptions): Gladiator {
 
   // 나이: 데뷔 ~ 전성기 끝 사이에서 성장기 쪽으로 치우치게
   const ageSpan = race.age.primeEnd + 2 - race.age.debut;
-  const age = race.age.debut + Math.floor(Math.pow(rng.next(), 1.4) * ageSpan);
+  const age = opt.age ?? race.age.debut + Math.floor(Math.pow(rng.next(), 1.4) * ageSpan);
 
   const attrs = {} as Record<AttrId, number>;
   for (const a of ATTRS) {
@@ -111,7 +115,7 @@ export function generateGladiator(rng: Rng, opt: GenOptions): Gladiator {
   g.doctrine = defaultDoctrine(g, rng.int(40, 90));
   const ca = computeCA(g);
   const stageGap = age <= race.age.growthEnd ? rng.range(15, 70) : rng.range(0, 20);
-  g.hidden.pa = clamp(Math.round(ca + stageGap), ca, 200);
+  g.hidden.pa = clamp(Math.round(ca + stageGap), ca, opt.paCap ?? 200);
   g.wage = computeWage(g, ca);
   if (g.popularity >= 40 && rng.chance(0.5)) g.nickname = rng.pick(NAMES.epithet);
   // 외형은 태어날 때 정해지고 바뀌지 않는다

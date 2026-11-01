@@ -20,6 +20,7 @@ export const FACILITIES: FacilityDef[] = [
   { id: "medical", name: "의무실", desc: "의원과 약초, 붕대", effect: (l) => `부상 회복 +${(l - 1) * 20}% · 사투 사망 -${l * 2}%p` },
   { id: "bath", name: "목욕탕", desc: "뜨거운 물과 마사지", effect: (l) => `피로 회복 +${l * 2}/일 · 혹사 회복 +${(l * 0.3).toFixed(1)}/일` },
   { id: "arena", name: "홈 경기장", desc: "우리 루두스의 작은 투기장", effect: (l) => `홈 관중 수입 ×${arenaTicketMult(l).toFixed(2)}` },
+  { id: "academy", name: "유소년 학당", desc: "고아와 노예 아이를 검투사로 키우는 학당", effect: (l) => l ? `매 시즌 입학 ${l + 1}명 · 잠재력 상한 ★${(academyPaCap(l) / 40).toFixed(1)} · 정원 ${l * 3 + 3}명` : "없음" },
   { id: "guard", name: "경비 초소", desc: "탈주와 반란을 막는 경비대", effect: (l) => `탈주 -${l * 10}% · 반란 -${l * 3}%p` },
 ];
 
@@ -27,6 +28,7 @@ export const getFacility = (id: FacilityId) => FACILITIES.find((f) => f.id === i
 
 export const capacityAt = (lvl: number) => [8, 8, 12, 16, 20, 24][lvl] ?? 8;
 export const arenaTicketMult = (lvl: number) => 0.7 + lvl * 0.15;
+export const academyPaCap = (lvl: number) => [0, 120, 140, 160, 180, 200][lvl] ?? 0;
 
 /** 다음 레벨로 올리는 비용·기간 */
 export function upgradeCost(id: FacilityId, toLevel: number): { cost: number; days: number } {
@@ -51,19 +53,22 @@ export function startUpgrade(state: GameState, ludus: Ludus, id: FacilityId): st
   return null;
 }
 
-/** 매일: 공사가 끝났는지 */
-export function dailyConstruction(state: GameState): void {
+/** 매일: 공사가 끝났는지. 완공된 것을 돌려준다 */
+export function dailyConstruction(state: GameState): { ludus: Ludus; facility: FacilityId; level: number }[] {
   const now = absDay(state.season, state.day);
+  const done: { ludus: Ludus; facility: FacilityId; level: number }[] = [];
   for (const l of Object.values(state.ludi)) {
     const c = l.construction;
     if (!c || c.doneAt > now) continue;
     l.facilities[c.facility] = c.toLevel;
     l.construction = undefined;
+    done.push({ ludus: l, facility: c.facility, level: c.toLevel });
     if (l.isPlayer) {
       const f = getFacility(c.facility);
       pushMessage(state, { kind: "info", title: `${f.name} ${c.toLevel}단계 완공`, body: `${f.name} 공사가 끝났다.\n${f.effect(c.toLevel)}` });
     }
   }
+  return done;
 }
 
 export function constructionLabel(state: GameState, ludus: Ludus): string | null {
