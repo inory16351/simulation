@@ -10,6 +10,8 @@ import { clearSave, loadGame, saveGame } from "../core/state";
 import type { GameState, Id } from "../core/types";
 import { asset } from "./assets";
 import { MenuIcon } from "./components/Icons";
+import { AudioControl } from "./components/AudioControl";
+import { unlockAudio } from "./audio";
 import { CupScreen } from "./screens/CupScreen";
 import { todaysPlayerTie } from "../core/cup";
 import { NationCrest } from "./components/common";
@@ -88,6 +90,13 @@ export function App() {
 function Game({ state, setState, onRestart }: { state: GameState; setState: (s: GameState | ((p: GameState | null) => GameState | null)) => void; onRestart: () => void }) {
   const [screen, setScreen] = useState<ScreenId>("inbox");
   const [selected, setSelected] = useState<Id | null>(null);
+  // 소리: 첫 입력에서 켠다 (음악은 전투 중에만)
+  useEffect(() => {
+    const on = () => unlockAudio();
+    window.addEventListener("pointerdown", on);
+    window.addEventListener("keydown", on);
+    return () => { window.removeEventListener("pointerdown", on); window.removeEventListener("keydown", on); };
+  }, []);
 
   const update = (fn: (draft: GameState) => void) => {
     setState((prev) => {
@@ -177,6 +186,7 @@ function Game({ state, setState, onRestart }: { state: GameState; setState: (s: 
           <b className={player.treasury < 0 ? "neg" : ""}>{player.treasury.toLocaleString()} D</b>
           <span>주급 합계 {weeklyWages(state, player).toLocaleString()} D</span>
         </div>
+        <AudioControl />
         <button className="btn" onClick={skipAhead} disabled={blocked.length > 0} title="결정할 일이나 새 소식이 생길 때까지 진행">
           일정까지 ▶▶
         </button>

@@ -7,15 +7,15 @@ const dist = "dist";
 const outDir = "release";
 const html = readFileSync(join(dist, "index.html"), "utf8");
 
-// public/assets 아래 이미지를 경로 → data URI로
+// public/assets 아래 이미지·음악을 경로 → data URI로
 const assets = {};
 const walk = (dir, prefix = "") => {
   for (const e of readdirSync(dir, { withFileTypes: true })) {
     const p = join(dir, e.name);
     const rel = prefix + e.name;
     if (e.isDirectory()) walk(p, rel + "/");
-    else if (/\.(webp|png|jpe?g|svg)$/.test(e.name)) {
-      const mime = { webp: "image/webp", png: "image/png", jpg: "image/jpeg", jpeg: "image/jpeg", svg: "image/svg+xml" }[e.name.split(".").pop()];
+    else if (/\.(webp|png|jpe?g|svg|mp3)$/.test(e.name)) {
+      const mime = { webp: "image/webp", png: "image/png", jpg: "image/jpeg", jpeg: "image/jpeg", svg: "image/svg+xml", mp3: "audio/mpeg" }[e.name.split(".").pop()];
       assets[rel] = `data:${mime};base64,${readFileSync(p).toString("base64")}`;
     }
   }

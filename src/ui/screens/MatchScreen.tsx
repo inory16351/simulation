@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { BALANCE, getStyle } from "../../core/data";
+import { BALANCE, getStyle, getWeapon } from "../../core/data";
+import { playMusic, sfx } from "../audio";
 import { buildCommentary, type CommentaryLine } from "../../core/combat/commentary";
 import { simulateMatch, type HighlightKind, type MatchResult } from "../../core/combat/sim";
 import { FOCUS_NAMES, RANGE_NAMES, STANCE_NAMES, type Stance } from "../../core/tactics";
@@ -387,7 +388,34 @@ function FighterPicker({ list, value, onChange }: { list: Gladiator[]; value?: I
   );
 }
 
-export function Playback({ live, speedMs, onDone, onClose, nav, closeLabel = "한 판 더" }: { live: Live; speedMs: number; onDone: () => void; onClose: () => void; nav: Nav; closeLabel?: string }) {
+export let battleScreens = 0;
+
+function weaponKind(g: Gladiator): "blunt" | "edge" {
+  return ["mace", "unarmed", "shield"].includes(getWeapon(g.equipment.main)?.class ?? "unarmed") ? "blunt" : "edge";
+}
+
+function playEventSound(e: MatchResult["events"][number], live: Live): void {
+  const by = (id: Id) => (id === live.a.id ? live.a : live.b);
+  switch (e.t) {
+    case "attack":
+      if (!e.hit) { sfx("swing"); sfx("miss"); break; }
+      if (e.blocked) { sfx("clang"); break; }
+      if (e.magic) { sfx("heavy", 0.7); break; }
+      if (weaponKind(by(e.actor)) === "blunt") sfx("blunt", e.crit ? 1.3 : 1);
+      else if (e.crit || e.damage / e.maxHp > 0.12) sfx("heavy", e.crit ? 1.3 : 1);
+      else sfx("hit");
+      if (e.crit || e.damage / e.maxHp > 0.12) sfx("blood", e.crit ? 1.3 : 1);
+      break;
+    case "crowd":
+      if (e.delta >= 8) sfx("cheer"); else if (e.delta <= -8) sfx("boo");
+      break;
+    case "ko": sfx("fall"); break;
+    case "verdict": if (e.died) sfx("death"); break;
+    case "move": sfx("step"); break;
+  }
+}
+
+function Playback({ live, speedMs, onDone, onClose, nav, closeLabel = "한 판 더" }: { live: Live; speedMs: number; onDone: () => void; onClose: () => void; nav: Nav; closeLabel?: string }) {
   const [shown, setShown] = useState(speedMs === 0 ? live.items.length : 0);
   const [cut, setCut] = useState<{ kind: HighlightKind; key: number } | null>(null);
   const [flash, setFlash] = useState(0);
@@ -415,6 +443,24 @@ export function Playback({ live, speedMs, onDone, onClose, nav, closeLabel = "�
   useEffect(() => {
     feedRef.current?.scrollTo({ top: feedRef.current.scrollHeight });
   }, [shown]);
+
+  // 새로 보인 문장의 사건에 맞춰 효과음
+  useEffect(() => {
+    const it = live.items[shown - 1];
+    if (!it || it.kind !== "line") return;
+    playEventSound(it.line.event, live);
+  }, [shown, live]);
+
+  // 경기 중에는 전투 음악
+  useEffect(() => {
+    battleScreens++;
+    playMusic("battle");
+    return () => {
+      battleScreens--;
+      // 다음 판으로 바로 넘어가면 음악을 끊지 않는다
+      window.setTimeout(() => { if (battleScreens === 0) playMusic(null); }, 400);
+    };
+  }, []);
 
   const visible = live.items.slice(0, shown);
   // 장면은 지금까지 보여 준 문장의 이벤트까지 진행한다

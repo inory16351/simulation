@@ -1,22 +1,14 @@
-// 경기 장면: 림월드풍 꼬마 검투사 두 명을 코드로 리깅해 전투 이벤트대로 움직인다.
-import { avatarOf, type AvatarSpec } from "../../core/avatar";
-import type { CombatEvent } from "../../core/combat/sim";
-import { getArmor, getWeapon } from "../../core/data";
+// 경기 장면: 관절 인형 검투사 두 명이 전투 이벤트대로 움직인다 (RigFighter).
+import type { BodyPart, CombatEvent } from "../../core/combat/sim";
+import { getWeapon } from "../../core/data";
 import type { Gladiator, Id } from "../../core/types";
 import { asset } from "../assets";
-import { AvatarSvg } from "./Avatar";
-import { PaintedAvatar } from "./PaintedAvatar";
-import { PORTRAIT_CELL, hasPainted, paintedSpec, sideNeck } from "../../core/portrait2";
-
-/** 그림 머리 크기: 512 셀을 전투 장면 단위로 줄이는 배율 */
-const HEAD_S = 0.088;
+import { RigFighter, type Pose } from "./RigFighter";
 
 const INK = "#1a120e";
 const GROUND = 128;
 /** 거리 상태(0 근접, 1 중거리, 2 원거리)별 두 사람의 x 위치 */
 const POS: Record<number, [number, number]> = { 0: [168, 232], 1: [138, 262], 2: [104, 296] };
-
-type Pose = "idle" | "attack" | "hurt" | "block" | "dodge" | "step" | "cast" | "stagger" | "down" | "dead" | "kneel" | "cheer";
 
 interface FighterView {
   g: Gladiator;
@@ -32,9 +24,11 @@ interface Props {
   /** 지금까지 보여 준 이벤트 */
   events: CombatEvent[];
   crowd: boolean;
+  /** 정지 화면 렌더링용: 동작 시간을 고정한다 */
+  fixedTime?: number;
 }
 
-export function ArenaStage({ a, b, events, crowd }: Props) {
+export function ArenaStage({ a, b, events, crowd, fixedTime }: Props) {
   const { dist, views, blood, burst, dodge, shake, crowdHype } = derive(a, b, events);
   const [xa, xb] = POS[dist] ?? POS[2];
 
@@ -61,8 +55,8 @@ export function ArenaStage({ a, b, events, crowd }: Props) {
             preserveAspectRatio="none" opacity="0.9" transform={i % 2 ? `translate(${p.x * 2} 0) scale(-1 1)` : undefined} />
         ))}
 
-        <Fighter v={views[0]} x={xa} facing={1} />
-        <Fighter v={views[1]} x={xb} facing={-1} />
+        <Fighter v={views[0]} x={xa} facing={1} hitstop={shake} fixedTime={fixedTime} />
+        <Fighter v={views[1]} x={xb} facing={-1} hitstop={shake} fixedTime={fixedTime} />
 
         {/* 피 튐 */}
         {dodge && <FxSprite key={`d${dodge.key}`} name="dust" x={dodge.side === 0 ? xa - 10 : xb + 10} y={GROUND - 10} size={46} className="fx-dust" />}
@@ -112,7 +106,10 @@ function PaintDefs() {
   );
 }
 
-interface Hit { side: number; big: boolean; heavy: boolean; blunt: boolean; key: number }
+interface Hit { side: number; big: boolean; heavy: boolean; blunt: boolean; key: number; part: BodyPart }
+
+/** 맞은 부위의 높이 (땅 0 기준) */
+const PART_Y: Record<BodyPart, number> = { head: -56, neck: -46, chest: -32, side: -28, shoulder: -38, arm: -30, thigh: -12, leg: -6 };
 
 /** 그림 이펙트 한 장. 가운데를 (x, y)에 맞추고 dir이 -1이면 좌우를 뒤집는다 */
 function FxSprite({ name, x, y, size, dir = 1, rotate = 0, className }: { name: string; x: number; y: number; size: number; dir?: number; rotate?: number; className?: string }) {
@@ -125,78 +122,30 @@ function FxSprite({ name, x, y, size, dir = 1, rotate = 0, className }: { name: 
 
 /** 타격: 무기에 따라 베기·둔기 충격, 세게 맞으면 피가 뿜어지고, 치명타는 빛살과 함께 피가 쏟아진다 */
 function HitFx({ x, hit, dir }: { x: number; hit: Hit; dir: number }) {
-  const y = GROUND - 40;
+  // dir: 맞은 쪽에서 본 바깥 방향(공격자 반대쪽). 핏줄기는 그쪽으로 튄다
+  const y = GROUND + PART_Y[hit.part];
+  const k = hit.big ? 1.25 : hit.heavy ? 1 : 0.8;
   return (
     <g>
-      {hit.big && <FxSprite name="crit_star" x={x} y={y} size={78} className="fx-star" />}
+      {hit.big && <FxSprite name="crit_star" x={x - dir * 4} y={y} size={46} className="fx-star" />}
       {hit.blunt
-        ? <FxSprite name="impact_blunt" x={x} y={y + 4} size={hit.big ? 80 : 62} dir={dir} className="fx-pop" />
-        : <FxSprite name={hit.heavy || hit.big ? "slash_blood" : "slash_gold"} x={x} y={y} size={hit.big ? 84 : 66} dir={-dir} rotate={-8} className="fx-slash" />}
-      {(hit.heavy || hit.big) && <FxSprite name="blood_splash" x={x + dir * 26} y={y + 2} size={hit.big ? 82 : 64} dir={-dir} className="fx-spray" />}
-      {!hit.heavy && !hit.big && <FxSprite name="blood_drops" x={x + dir * 20} y={y - 4} size={44} dir={-dir} className="fx-spray" />}
-      {hit.big && <FxSprite name="blood_gush" x={x + dir * 8} y={y + 18} size={70} dir={-dir} className="fx-gush" />}
+        ? <FxSprite name="impact_blunt" x={x - dir * 6} y={y} size={40 * k} dir={dir} className="fx-pop" />
+        : <FxSprite name={hit.heavy || hit.big ? "slash_blood" : "slash_gold"} x={x - dir * 4} y={y} size={40 * k} dir={-dir} rotate={hit.part === "head" ? -20 : -6} className="fx-slash" />}
+      {(hit.heavy || hit.big) && <FxSprite name="blood_splash" x={x + dir * 16} y={y + 2} size={42 * k} dir={-dir} className="fx-spray" />}
+      {!hit.heavy && !hit.big && <FxSprite name="blood_drops" x={x + dir * 12} y={y - 2} size={26} dir={-dir} className="fx-spray" />}
+      {hit.big && <FxSprite name="blood_gush" x={x + dir * 6} y={Math.min(GROUND - 8, y + 16)} size={40} dir={-dir} className="fx-gush" />}
     </g>
   );
 }
 
-function Fighter({ v, x, facing }: { v: FighterView; x: number; facing: 1 | -1 }) {
-  const s = avatarOf(v.g);
-  // 그림 옆모습이 있는 종족은 그 머리를 쓴다
-  const painted = hasPainted(v.g.race, "side") ? paintedSpec(v.g) : null;
-  const neck = painted ? sideNeck(painted) : null;
+function Fighter({ v, x, facing, hitstop, fixedTime }: { v: FighterView; x: number; facing: 1 | -1; hitstop?: boolean; fixedTime?: number }) {
   const weapon = getWeapon(v.g.equipment.main);
-  const off = v.g.equipment.off;
-  const shield = off ? getArmor(off)?.slot === "shield" : false;
-  const bodyColor = armorColor(s);
-  const legColor = "#3a2c22";
   return (
     <g className="fighter" style={{ transform: `translate(${x}px, ${GROUND}px) scale(${facing}, 1)` }}>
-      <ellipse cx="0" cy="1" rx="16" ry="3.5" fill="#000" opacity="0.3" />
-      <g key={v.key} className={`rig pose-${v.pose}`}>
-        <g className="body">
-          {/* 다리 */}
-          <g className="legs">
-            <path className="leg-back" d="M-4 -18 L-7 0" stroke={legColor} strokeWidth="6" strokeLinecap="round" />
-            <path className="leg-front" d="M4 -18 L7 0" stroke={legColor} strokeWidth="6" strokeLinecap="round" />
-          </g>
-          {/* 뒷팔 + 방패 */}
-          <g transform="translate(-6 -34)">
-            <g className="arm-back">
-              <path d="M0 0 L-2 14" stroke={s.skin} strokeWidth="5" strokeLinecap="round" />
-              <path d="M0 0 L-2 14" stroke={INK} strokeWidth="6.6" strokeLinecap="round" opacity="0.0" />
-              {shield && <g transform="translate(-2 12)"><ellipse rx="9" ry="12" fill="#a8823f" stroke={INK} strokeWidth="1.6" /><circle r="2.4" fill="#7a5c33" /></g>}
-            </g>
-          </g>
-          {/* 몸통 */}
-          <rect x="-11" y="-42" width="22" height="26" rx="8" fill={bodyColor} stroke={INK} strokeWidth="1.6" />
-          <path d="M-9 -28 L9 -20" stroke="#5a3b22" strokeWidth="3" opacity={s.armor === "light" ? 1 : 0} />
-          {/* 머리 */}
-          <g className="head">
-            {painted && neck ? (
-              // 그림 옆모습: 목 끝을 몸통 위(0, -40)에 맞춘다
-              <svg x={-neck.x * HEAD_S} y={-40 - neck.y * HEAD_S} width={PORTRAIT_CELL * HEAD_S} height={PORTRAIT_CELL * HEAD_S} viewBox={`0 0 ${PORTRAIT_CELL} ${PORTRAIT_CELL}`} overflow="visible">
-                <PaintedAvatar spec={painted} view="side" seed={v.g.portraitSeed % 997} />
-              </svg>
-            ) : (
-              <svg x="-25" y="-75" width="50" height="50" viewBox="0 0 100 100" overflow="visible">
-                <AvatarSvg spec={s} bg="none" headOnly injured={v.hpRatio < 0.35 ? "serious" : v.hpRatio < 0.7 ? "light" : undefined} seed={v.g.portraitSeed % 997} />
-              </svg>
-            )}
-          </g>
-          {/* 앞팔 + 무기 */}
-          <g transform="translate(7 -34)">
-            <g className="arm-front">
-              <path d="M0 0 L2 14" stroke={s.skin} strokeWidth="5" strokeLinecap="round" />
-              <g transform="translate(2 14)"><Weapon cls={weapon?.class ?? "unarmed"} /></g>
-            </g>
-          </g>
-          {/* 휘두른 자리에 남는 붓 자국 */}
-          {v.pose === "attack" && <path className="smear" d="M2 -62 C30 -60 40 -30 26 -4 C30 -28 22 -48 2 -54 Z" fill="#fff1cf" opacity="0" />}
-          {/* 맞았을 때 붉은 번쩍임 */}
-          <rect className="hurt-flash" x="-14" y="-78" width="28" height="78" rx="10" fill="#e02a1a" opacity="0" />
-          {v.pose === "cast" && <circle className="cast-glow" cx="12" cy="-24" r="8" fill="#7ad0ff" opacity="0.7" />}
-        </g>
-      </g>
+      <ellipse cx="0" cy="1" rx="18" ry="3.8" fill="#000" opacity="0.3" />
+      <RigFighter g={v.g} pose={v.pose} poseKey={v.key} hpRatio={v.hpRatio} hitstop={hitstop} fixedTime={fixedTime}
+        weapon={<Weapon cls={weapon?.class ?? "unarmed"} />} />
+      {v.pose === "cast" && <circle className="cast-glow" cx="16" cy="-40" r="9" fill="#7ad0ff" opacity="0.7" />}
     </g>
   );
 }
@@ -226,9 +175,6 @@ function Weapon({ cls }: { cls: string }) {
   }
 }
 
-function armorColor(s: AvatarSpec): string {
-  return s.armor === "heavy" ? "#b08a4f" : s.armor === "medium" ? "#6f7378" : s.cloth;
-}
 
 /** 이벤트 목록에서 지금 장면 상태를 계산한다 */
 function derive(a: Gladiator, b: Gladiator, events: CombatEvent[]) {
@@ -267,7 +213,7 @@ function derive(a: Gladiator, b: Gladiator, events: CombatEvent[]) {
           const [xa, xb] = POS[dist] ?? POS[2];
           if (e.damage / e.maxHp > 0.08 || e.crit) blood.push({ x: t === 0 ? xa - 6 : xb + 6, dy: (idx % 5) - 2, r: Math.min(9, 3 + (e.damage / e.maxHp) * 30) });
           if (last) {
-            burst = { side: t, big: e.crit, heavy: e.damage / e.maxHp > 0.12, blunt: bluntOf(views[side(e.actor)].g), key: idx };
+            burst = { side: t, big: e.crit, heavy: e.damage / e.maxHp > 0.12, blunt: bluntOf(views[side(e.actor)].g), key: idx, part: e.part };
             shake = e.crit;
           }
         }
