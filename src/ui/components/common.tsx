@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { getNation, getRace } from "../../core/data";
-import { crestUrl, portraitUrl } from "../assets";
+import { placePortrait } from "../../core/portrait";
+import { asset, crestUrl } from "../assets";
 import { stars } from "../../core/gladiator";
 import { Rng } from "../../core/rng";
 import type { Gladiator, NationId } from "../../core/types";
@@ -37,14 +38,18 @@ export function attrClass(v: number): string {
 
 /** 생성 이미지 초상화 + 흉터·부상·피 오버레이. 이미지가 없으면 절차 생성 초상화로 대체한다. */
 export function Portrait({ g, size = 40 }: { g: Gladiator; size?: number }) {
-  const [failed, setFailed] = useState(false);
-  if (failed) return <FallbackPortrait g={g} size={size} />;
+  const placed = placePortrait(g);
+  // 이 종족 파츠가 아직 없으면 절차 생성 초상화로 대체
+  if (!placed.length) return <FallbackPortrait g={g} size={size} />;
   const r = new Rng(g.portraitSeed ^ 0x9e3779b9);
   const fights = g.record.wins + g.record.losses;
   const scars = Math.min(4, Math.floor(fights / 6) + (g.traits.includes("scarred") ? 2 : 0));
   return (
     <div className={`portrait img ${g.alive ? "" : "dead"}`} style={{ width: size, height: size }}>
-      <img src={portraitUrl(g)} alt="" draggable={false} onError={() => setFailed(true)} />
+      {placed.map(({ slot, part, box }) => (
+        <img key={slot} className="part" src={asset(part.file)} alt="" draggable={false}
+          style={{ left: `${box.x * 100}%`, top: `${box.y * 100}%`, width: `${box.w * 100}%`, height: `${box.h * 100}%` }} />
+      ))}
       <svg viewBox="0 0 100 100" className="overlay">
         {/* 흉터: 경기를 치를수록 얼굴에 쌓인다 */}
         {Array.from({ length: scars }, (_, i) => {

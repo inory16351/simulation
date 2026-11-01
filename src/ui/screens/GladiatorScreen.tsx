@@ -7,6 +7,7 @@ import {
 import { dateLabel } from "../../core/calendar";
 import type { Nav } from "../App";
 import { CareerPanel } from "../components/CareerPanel";
+import { PortraitEditor } from "../components/PortraitEditor";
 import { DoctrinePanel } from "../components/DoctrinePanel";
 import { performance } from "../../core/condition";
 import { Bar, Portrait, Stars, attrClass } from "../components/common";
@@ -47,7 +48,12 @@ export function GladiatorScreen({ state, id, nav, update }: { state: GameState; 
       </div>
       <div className="panel">
         <div className="pad profile-head">
-          <Portrait g={g} size={180} />
+          <div>
+            <Portrait g={g} size={180} />
+            {isMine && g.alive && (
+              <PortraitEditor g={g} onChange={(p) => update((d) => { d.gladiators[g.id].portrait = p; })} />
+            )}
+          </div>
           <div>
             <div className="big-name">
               {g.name} {g.nickname && <span style={{ fontSize: 15, color: "var(--text-dim)" }}>"{g.nickname}"</span>}

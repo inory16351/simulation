@@ -27,7 +27,18 @@ export interface RaceFace {
   mouthY: number;
 }
 
-export const DEFAULT_FACE: RaceFace = { headHeight: 0.56, faceWidth: 0.62, eyeY: 0.47, mouthY: 0.68 };
+export const DEFAULT_FACE: RaceFace = { headHeight: 0.56, faceWidth: 0.6, eyeY: 0.46, mouthY: 0.7 };
+
+/** 종족별 얼굴 위치 (머리 그림 안에서의 비율). 귀·뿔·갈기가 넓을수록 faceWidth가 작다 */
+export const RACE_FACE: Record<string, RaceFace> = {
+  human: DEFAULT_FACE,
+  elf: { headHeight: 0.56, faceWidth: 0.42, eyeY: 0.48, mouthY: 0.72 },
+  orc: { headHeight: 0.56, faceWidth: 0.55, eyeY: 0.43, mouthY: 0.68 },
+  dwarf: { headHeight: 0.54, faceWidth: 0.62, eyeY: 0.42, mouthY: 0.64 },
+  minotaur: { headHeight: 0.62, faceWidth: 0.36, eyeY: 0.46, mouthY: 0.8 },
+  lizardfolk: { headHeight: 0.58, faceWidth: 0.46, eyeY: 0.4, mouthY: 0.75 },
+  beastkin: { headHeight: 0.6, faceWidth: 0.42, eyeY: 0.47, mouthY: 0.75 },
+};
 
 /** 머리 그림을 기준으로 각 파츠 위치를 계산한다 */
 export function layoutPortrait(parts: Partial<Record<PartSlot, PartMeta>>, face: RaceFace = DEFAULT_FACE): Partial<Record<PartSlot, Box>> {

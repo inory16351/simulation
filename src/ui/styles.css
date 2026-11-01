@@ -296,3 +296,11 @@ body {
 .career-item.death { background: rgba(122, 30, 26, 0.15); }
 .career-item.death .ci-icon, .career-item.death .ci-text { color: #ff8a7a; }
 .topbar .btn { white-space: nowrap; }
+.portrait.img img.part { position: absolute; object-fit: fill; width: auto; height: auto; inset: auto; }
+.portrait.img { background: radial-gradient(circle at 50% 38%, #3a2c22, #120e0b 70%); }
+.portrait-editor { margin-top: 8px; display: grid; gap: 3px; }
+.pe-row { display: grid; grid-template-columns: 52px 22px 1fr 22px; align-items: center; gap: 4px; font-size: 12px; }
+.pe-label { color: var(--text-dim); }
+.pe-value { text-align: center; color: var(--parchment); }
+.pe-actions { display: flex; gap: 6px; margin-top: 4px; }
+.pe-actions .btn { padding: 3px 10px; font-size: 12px; }

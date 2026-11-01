@@ -1,0 +1,156 @@
+[
+  {
+    "id": "head.human.tan",
+    "slot": "head",
+    "file": "portrait/parts/head/human_tan.webp",
+    "w": 287,
+    "h": 344,
+    "races": [
+      "human"
+    ]
+  },
+  {
+    "id": "head.human.pale",
+    "slot": "head",
+    "file": "portrait/parts/head/human_pale.webp",
+    "w": 372,
+    "h": 488,
+    "races": [
+      "human"
+    ]
+  },
+  {
+    "id": "head.human.dark",
+    "slot": "head",
+    "file": "portrait/parts/head/human_dark.webp",
+    "w": 370,
+    "h": 483,
+    "races": [
+      "human"
+    ]
+  },
+  {
+    "id": "head.orc.green",
+    "slot": "head",
+    "file": "portrait/parts/head/orc_green.webp",
+    "w": 401,
+    "h": 472,
+    "races": [
+      "orc"
+    ]
+  },
+  {
+    "id": "head.orc.grey",
+    "slot": "head",
+    "file": "portrait/parts/head/orc_grey.webp",
+    "w": 474,
+    "h": 458,
+    "races": [
+      "orc"
+    ]
+  },
+  {
+    "id": "head.minotaur.black",
+    "slot": "head",
+    "file": "portrait/parts/head/minotaur_black.webp",
+    "w": 503,
+    "h": 481,
+    "races": [
+      "minotaur"
+    ]
+  },
+  {
+    "id": "head.minotaur.brown",
+    "slot": "head",
+    "file": "portrait/parts/head/minotaur_brown.webp",
+    "w": 489,
+    "h": 504,
+    "races": [
+      "minotaur"
+    ]
+  },
+  {
+    "id": "head.elf.pale",
+    "slot": "head",
+    "file": "portrait/parts/head/elf_pale.webp",
+    "w": 486,
+    "h": 456,
+    "races": [
+      "elf"
+    ]
+  },
+  {
+    "id": "head.elf.dusk",
+    "slot": "head",
+    "file": "portrait/parts/head/elf_dusk.webp",
+    "w": 480,
+    "h": 432,
+    "races": [
+      "elf"
+    ]
+  },
+  {
+    "id": "head.lizard.green",
+    "slot": "head",
+    "file": "portrait/parts/head/lizard_green.webp",
+    "w": 457,
+    "h": 498,
+    "races": [
+      "lizardfolk"
+    ]
+  },
+  {
+    "id": "head.lizard.ochre",
+    "slot": "head",
+    "file": "portrait/parts/head/lizard_ochre.webp",
+    "w": 382,
+    "h": 504,
+    "races": [
+      "lizardfolk"
+    ]
+  },
+  {
+    "id": "head.beast.lion",
+    "slot": "head",
+    "file": "portrait/parts/head/beast_lion.webp",
+    "w": 498,
+    "h": 508,
+    "races": [
+      "beastkin"
+    ]
+  },
+  {
+    "id": "eyes.amber",
+    "slot": "eyes",
+    "file": "portrait/parts/eyes/amber.webp",
+    "w": 501,
+    "h": 164
+  },
+  {
+    "id": "mouth.grim",
+    "slot": "mouth",
+    "file": "portrait/parts/mouth/grim.webp",
+    "w": 307,
+    "h": 90
+  },
+  {
+    "id": "hair.spiky",
+    "slot": "hair",
+    "file": "portrait/parts/hair/spiky.webp",
+    "w": 468,
+    "h": 374,
+    "races": [
+      "human",
+      "orc",
+      "elf"
+    ]
+  },
+  {
+    "id": "body.scale",
+    "slot": "body",
+    "file": "portrait/parts/body/scale.webp",
+    "w": 512,
+    "h": 322,
+    "weight": "medium"
+  }
+]
