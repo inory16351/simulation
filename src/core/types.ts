@@ -138,6 +138,9 @@ export interface Ludus {
   /** 이번 시즌 쓴 거절 횟수 */
   refusalsUsed: number;
   facilities: Facilities;
+  /** 진행 중인 공사 */
+  construction?: { facility: FacilityId; toLevel: number; doneAt: number };
+  staff: Id[];
   /** 금고가 마이너스가 된 날 (절대 일수) */
   bankruptSince?: number;
 }
@@ -146,7 +149,28 @@ export interface Facilities {
   barracks: number;
   training: number;
   medical: number;
+  bath: number;
+  arena: number;
   guard: number;
+}
+
+export type FacilityId = keyof Facilities;
+
+export type StaffRole = "doctore" | "medicus" | "scout" | "agent";
+
+export interface Staff {
+  id: Id;
+  name: string;
+  race: RaceId;
+  gender: "m" | "f";
+  age: number;
+  role: StaffRole;
+  /** 능력 1~20 */
+  rating: number;
+  wage: number;
+  portraitSeed: number;
+  /** 은퇴한 검투사 출신이면 그 검투사 id */
+  formerGladiator?: Id;
 }
 
 export interface Challenge {
@@ -218,6 +242,9 @@ export interface GameState {
   /** 플레이어 루두스에서 죽은 검투사 (명예의 전당·로스터 표시용) */
   fallen: Id[];
   challenges: Challenge[];
+  staff: Record<Id, Staff>;
+  /** 고용할 수 있는 식솔 후보 */
+  staffMarket: Id[];
   market: MarketListing[];
   ledger: LedgerEntry[];
   /** 플레이어가 골라야 하는 이벤트 선택지 */

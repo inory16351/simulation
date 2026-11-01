@@ -1,9 +1,9 @@
-import { getNation } from "../../core/data";
+import { getNation, getRace, getStyle } from "../../core/data";
 import { avatarOf } from "../../core/avatar";
 import { AvatarSvg } from "./Avatar";
 import { Crest } from "./Icons";
 import { stars } from "../../core/gladiator";
-import type { Gladiator, NationId } from "../../core/types";
+import type { Gladiator, NationId, RaceId } from "../../core/types";
 
 export function Stars({ value, range }: { value: number; range?: number }) {
   const s = stars(value);
@@ -48,4 +48,25 @@ export function Portrait({ g, size = 40 }: { g: Gladiator; size?: number }) {
 
 export function NationCrest({ nation, size = 32 }: { nation: NationId; size?: number }) {
   return <Crest nation={nation} color={getNation(nation).color} size={size} />;
+}
+
+const ATTR_SHORT: Record<string, string> = {
+  str: "근력", agi: "민첩", end: "지구력", tou: "강인함", rea: "반응", rec: "회복력", acc: "정확도", eva: "회피", blk: "막기",
+  grp: "제압", mag: "마력", grit: "투지", comp: "침착", dec: "판단력", show: "쇼맨십", agg: "공격성", disc: "규율", lead: "리더십",
+};
+
+/** 종족 이름. 마우스를 올리면 종족 특성·능력치 보정·수명이 보인다 */
+export function RaceTag({ race }: { race: RaceId }) {
+  const r = getRace(race);
+  const mods = Object.entries(r.attrMods).map(([k, v]) => `${ATTR_SHORT[k]} ${v! > 0 ? "+" : ""}${v}`).join(", ");
+  const tip = `◆ ${r.racialTrait.name}: ${r.racialTrait.desc}\n능력치: ${mods || "보정 없음"}\n데뷔 ${r.age.debut}세 · 전성기 ${r.age.growthEnd + 1}~${r.age.primeEnd}세 · 은퇴 무렵 ${r.age.retire}세` +
+    (r.wageMult !== 1 ? `\n주급 ×${r.wageMult}` : "");
+  return <span className="tip-inline" data-tip={tip}>{r.name}</span>;
+}
+
+/** 전투 스타일 이름. 마우스를 올리면 설명과 상성이 보인다 */
+export function StyleTag({ style }: { style: string }) {
+  const s = getStyle(style);
+  const strong = s.counters.map((c) => getStyle(c).name).join(", ");
+  return <span className="tip-inline" data-tip={`${s.desc}${strong ? `\n유리한 상대: ${strong}` : ""}`}>{s.name}</span>;
 }

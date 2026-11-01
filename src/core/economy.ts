@@ -4,7 +4,9 @@ import { BALANCE, getRace } from "./data";
 import { logCareer, seasonRecord } from "./career";
 import { computeCA } from "./gladiator";
 import { generateGladiator } from "./generators/gladiator";
+import { capacityAt, weeklyUpkeep } from "./facilities";
 import { modifierMult } from "./modifiers";
+import { buyMult, ratingOf, sellMult, staffWages } from "./staff";
 import { rulesOfNation } from "./nationRules";
 import type { Rng } from "./rng";
 import { pushMessage } from "./state";
@@ -58,6 +60,10 @@ export function payday(state: GameState, ludus: Ludus): void {
   }
   const food = Math.round(weeklyFood(state, ludus) * modifierMult(state, "food"));
   addMoney(state, ludus, -food, "식비");
+  const upkeep = weeklyUpkeep(ludus);
+  if (upkeep) addMoney(state, ludus, -upkeep, "시설 유지비");
+  const staffPay = staffWages(state, ludus);
+  if (staffPay) addMoney(state, ludus, -staffPay, "식솔 급료");
   const unpaidNames: string[] = [];
   for (const g of [...roster].sort((a, b) => b.wage - a.wage)) {
     // 밀린 급료까지 같이 갚는다
@@ -69,7 +75,7 @@ export function payday(state: GameState, ludus: Ludus): void {
         const lost = BALANCE.morale.unpaid.slice(1, g.unpaidWeeks + 1).reduce((s, v) => s + v, 0);
         g.morale = Math.min(100, g.morale + lost / 2);
         g.unpaidWeeks = 0;
-      } else g.morale = Math.min(100, g.morale + BALANCE.morale.paidBonus);
+      } else g.morale = Math.min(100, g.morale + BALANCE.morale.paidBonus + ludus.facilities.barracks * 0.5);
     } else {
       g.unpaidWeeks++;
       const greed = g.traits.includes("greedy") ? 1.5 : 1;
@@ -125,21 +131,27 @@ export function refreshMarket(state: GameState, rng: Rng): void {
 }
 
 export function rosterCapacity(ludus: Ludus): number {
-  return [8, 8, 12, 16, 20, 24][ludus.facilities.barracks] ?? 8;
+  return capacityAt(ludus.facilities.barracks);
+}
+
+/** 중개인 실력을 반영한 실제 구매가 */
+export function buyPrice(state: GameState, price: number): number {
+  return Math.round(price * buyMult(ratingOf(state, state.ludi[state.playerLudusId], "agent")) / 10) * 10;
 }
 
 export function buyFromMarket(state: GameState, gladiatorId: string): string | null {
   const player = state.ludi[state.playerLudusId];
   const listing = state.market.find((m) => m.gladiatorId === gladiatorId);
   if (!listing) return "이미 팔린 매물이다.";
-  if (player.treasury < listing.price) return "금고가 모자란다.";
+  const price = buyPrice(state, listing.price);
+  if (player.treasury < price) return "금고가 모자란다.";
   if (player.gladiators.length >= rosterCapacity(player)) return "막사에 빈자리가 없다.";
-  addMoney(state, player, -listing.price, `${state.gladiators[gladiatorId].name} 구매`);
+  addMoney(state, player, -price, `${state.gladiators[gladiatorId].name} 구매`);
   player.gladiators.push(gladiatorId);
   state.market = state.market.filter((m) => m !== listing);
   const g = state.gladiators[gladiatorId];
   seasonRecord(state, g);
-  logCareer(state, g, `노예 경매에서 ${player.name}에 팔려 왔다 (${listing.price} D)`, "join");
+  logCareer(state, g, `노예 경매에서 ${player.name}에 팔려 왔다 (${price} D)`, "join");
   return null;
 }
 
@@ -147,7 +159,7 @@ export function sellGladiator(state: GameState, gladiatorId: string): string | n
   const player = state.ludi[state.playerLudusId];
   const g = state.gladiators[gladiatorId];
   if (g.status !== "slave") return "자유민은 팔 수 없다.";
-  const price = Math.round(marketValue(g) * E.sellShare / 10) * 10;
+  const price = Math.round(marketValue(g) * E.sellShare * sellMult(ratingOf(state, player, "agent")) / 10) * 10;
   player.gladiators = player.gladiators.filter((x) => x !== gladiatorId);
   player.treasury += price;
   state.ledger.unshift({ at: absDay(state.season, state.day), amount: price, desc: `${g.name} 판매` });

@@ -41,18 +41,18 @@ export function afterMatch(g: Gladiator, at: number, rule: DeathRule): void {
 }
 
 /** 하루치 회복과 감각 변화 */
-export function dailyCondition(g: Gladiator, at: number, medicalLevel: number): void {
+export function dailyCondition(g: Gladiator, at: number, medicalLevel: number, bathLevel = 0, healMult = 1): void {
   const T = BALANCE.training;
   const resting = g.training.focus === "rest";
-  const recover = T.fatigueRecoveryBase + g.attrs.rec * T.fatigueRecoveryPerRec + (resting ? T.restRecoveryBonus : 0);
+  const recover = T.fatigueRecoveryBase + g.attrs.rec * T.fatigueRecoveryPerRec + (resting ? T.restRecoveryBonus : 0) + bathLevel * 2;
   const load = resting ? 0 : T.intensity[g.training.intensity].fatigue;
   g.fatigue = Math.max(0, Math.min(100, g.fatigue + load - recover));
-  g.wear = Math.max(0, g.wear - (1.2 + (resting ? 1.5 : 0)));
+  g.wear = Math.max(0, g.wear - (1.2 + (resting ? 1.5 : 0) + bathLevel * 0.3));
   const idle = g.lastFightAt === undefined ? 99 : at - g.lastFightAt;
   if (idle > 5) g.sharpness = Math.max(0, g.sharpness - 1.2);
   else if (!resting) g.sharpness = Math.min(100, g.sharpness + 0.1);
   if (g.injury) {
-    const speed = (g.race === "lizardfolk" ? 2 : 1) * (1 + (medicalLevel - 1) * 0.2);
+    const speed = (g.race === "lizardfolk" ? 2 : 1) * (1 + (medicalLevel - 1) * 0.2) * healMult;
     g.injury.daysLeft -= speed;
     if (g.injury.daysLeft <= 0) g.injury = undefined;
   }

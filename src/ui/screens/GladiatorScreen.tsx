@@ -7,10 +7,10 @@ import {
 import { dateLabel } from "../../core/calendar";
 import type { Nav } from "../App";
 import { CareerPanel } from "../components/CareerPanel";
-import { PortraitEditor } from "../components/PortraitEditor";
+import { paSpread } from "../../core/staff";
 import { DoctrinePanel } from "../components/DoctrinePanel";
 import { performance } from "../../core/condition";
-import { Bar, Portrait, Stars, attrClass } from "../components/common";
+import { Bar, Portrait, RaceTag, Stars, StyleTag, attrClass } from "../components/common";
 
 const STATUS_NAMES = { slave: "노예", free: "자유민", freedman: "해방민" };
 
@@ -50,26 +50,23 @@ export function GladiatorScreen({ state, id, nav, update }: { state: GameState; 
         <div className="pad profile-head">
           <div>
             <Portrait g={g} size={180} />
-            {isMine && g.alive && (
-              <PortraitEditor g={g} onChange={(p) => update((d) => { d.gladiators[g.id].portrait = p; })} />
-            )}
           </div>
           <div>
             <div className="big-name">
               {g.name} {g.nickname && <span style={{ fontSize: 15, color: "var(--text-dim)" }}>"{g.nickname}"</span>}
             </div>
             <div style={{ color: "var(--text-dim)" }}>
-              {race.name} · {getNation(g.nation).short} 출신 · {g.age}세 ({AGE_STAGE_NAMES[ageStage(g)]}) · {owner?.name ?? "무소속"}
+              <RaceTag race={g.race} /> · {getNation(g.nation).short} 출신 · {g.age}세 ({AGE_STAGE_NAMES[ageStage(g)]}) · {owner?.name ?? "무소속"}
             </div>
             <dl className="kv">
-              <dt>스타일</dt><dd>{style.name} — {style.desc}</dd>
+              <dt>스타일</dt><dd><StyleTag style={g.style} /> — {style.desc}</dd>
               <dt>신분</dt><dd>{STATUS_NAMES[g.status]}</dd>
               <dt>주급</dt><dd>{g.wage} D {g.unpaidWeeks > 0 && <span className="tag neg">급료 {g.unpaidWeeks}회 밀림</span>}</dd>
               <dt>현재 능력</dt><dd><Stars value={ca} /> <span style={{ color: "var(--text-faint)" }}>(CA {ca})</span></dd>
               <dt>잠재력</dt>
               <dd>
                 {isMine
-                  ? <Stars value={Math.max(ca, g.hidden.pa - 15)} range={Math.min(200, g.hidden.pa + 15)} />
+                  ? <Stars value={Math.max(ca, g.hidden.pa - paSpread(state, g))} range={Math.min(200, g.hidden.pa + paSpread(state, g))} />
                   : <span style={{ color: "var(--text-faint)" }}>아직 모른다 (정찰 필요)</span>}
               </dd>
               <dt>사기</dt><dd><Bar value={g.morale} /> {g.morale}</dd>
@@ -100,12 +97,12 @@ export function GladiatorScreen({ state, id, nav, update }: { state: GameState; 
               <dt>전적</dt><dd>{g.record.wins}승 {g.record.losses}패 · 살해 {g.record.kills}</dd>
             </dl>
             <div style={{ marginTop: 10 }}>
-              <span className="tag" title={race.racialTrait.desc}>◆ {race.racialTrait.name}</span>
+              <span className="tag tip" data-tip={race.racialTrait.desc}>◆ {race.racialTrait.name}</span>
               {g.traits.map((t) => {
                 const def = getTrait(t);
                 if (def.hidden && !isMine) return <span key={t} className="tag hidden">?</span>;
                 return (
-                  <span key={t} className={`tag ${def.negative ? "neg" : ""} ${def.hidden ? "hidden" : ""}`} title={def.desc}>
+                  <span key={t} className={`tag tip ${def.negative ? "neg" : ""} ${def.hidden ? "hidden" : ""}`} data-tip={def.desc}>
                     {def.name}
                   </span>
                 );

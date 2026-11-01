@@ -92,7 +92,7 @@ export function avatarOf(g: Gladiator): AvatarSpec {
   return { ...base, ...(o as Partial<AvatarSpec>) };
 }
 
-/** 편집기에서 고를 수 있는 항목 */
+/** (개발용) 고를 수 있는 항목 */
 export function avatarOptions(g: Gladiator): { key: keyof PortraitParts & keyof AvatarSpec; label: string; values: (string | null)[] }[] {
   const out: { key: keyof PortraitParts & keyof AvatarSpec; label: string; values: (string | null)[] }[] = [
     { key: "skin", label: "피부", values: SKINS[g.race] },

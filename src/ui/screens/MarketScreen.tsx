@@ -1,8 +1,9 @@
-import { buyFromMarket, marketValue, rosterCapacity, sellGladiator } from "../../core/economy";
-import { BALANCE, getRace, getStyle } from "../../core/data";
+import { buyFromMarket, buyPrice, marketValue, rosterCapacity, sellGladiator } from "../../core/economy";
+import { paSpread, ratingOf, sellMult } from "../../core/staff";
+import { BALANCE, getStyle } from "../../core/data";
 import { AGE_STAGE_NAMES, ageStage, computeCA } from "../../core/gladiator";
 import type { Ctx } from "../App";
-import { Portrait, Stars } from "../components/common";
+import { Portrait, RaceTag, Stars, StyleTag } from "../components/common";
 
 export function MarketScreen({ state, act, nav }: Ctx) {
   const player = state.ludi[state.playerLudusId];
@@ -24,10 +25,11 @@ export function MarketScreen({ state, act, nav }: Ctx) {
           </thead>
           <tbody>
             {state.market.length === 0 && <tr><td colSpan={9} className="hint">매물이 없다.</td></tr>}
-            {state.market.map(({ gladiatorId, price }) => {
+            {state.market.map(({ gladiatorId, price: listed }) => {
+              const price = buyPrice(state, listed);
               const g = state.gladiators[gladiatorId];
               const ca = computeCA(g);
-              // 정찰 직원이 없으니 잠재력은 넓은 범위로만 보인다
+              // 잠재력은 정찰꾼 실력만큼 좁혀서 보인다
               return (
                 <tr key={g.id}>
                   <td>
@@ -36,11 +38,11 @@ export function MarketScreen({ state, act, nav }: Ctx) {
                       <span className="n">{g.name}</span>
                     </div>
                   </td>
-                  <td>{getRace(g.race).name}</td>
+                  <td><RaceTag race={g.race} /></td>
                   <td>{g.age} <span className="hint">{AGE_STAGE_NAMES[ageStage(g)]}</span></td>
-                  <td>{getStyle(g.style).name}</td>
+                  <td><StyleTag style={g.style} /></td>
                   <td><Stars value={ca} /></td>
-                  <td><Stars value={Math.max(ca, g.hidden.pa - 30)} range={Math.min(200, g.hidden.pa + 30)} /></td>
+                  <td><Stars value={Math.max(ca, g.hidden.pa - paSpread(state, g))} range={Math.min(200, g.hidden.pa + paSpread(state, g))} /></td>
                   <td className="num">{g.wage} D</td>
                   <td className="num" style={{ color: "var(--parchment)", fontWeight: 700 }}>{price.toLocaleString()} D</td>
                   <td>
@@ -60,7 +62,7 @@ export function MarketScreen({ state, act, nav }: Ctx) {
         <table className="t">
           <tbody>
             {roster.filter((g) => g.status === "slave").map((g) => {
-              const price = Math.round(marketValue(g) * BALANCE.economy.sellShare / 10) * 10;
+              const price = Math.round(marketValue(g) * BALANCE.economy.sellShare * sellMult(ratingOf(state, player, "agent")) / 10) * 10;
               return (
                 <tr key={g.id}>
                   <td><div className="name-cell"><Portrait g={g} size={26} /><span className="n">{g.name}</span></div></td>

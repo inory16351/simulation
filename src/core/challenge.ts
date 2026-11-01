@@ -10,12 +10,16 @@ import { applyMatchResult, type MatchSummary } from "./match";
 import type { Rng } from "./rng";
 import { rulesOfNation } from "./nationRules";
 import { pushMessage } from "./state";
+import { ratingOf } from "./staff";
 import type { Challenge, DeathRule, GameState, Gladiator, Ludus } from "./types";
 
 const L = BALANCE.league;
 const RULE_NAME = (r: DeathRule) => BALANCE.rules[r].name;
 
 export const now = (state: GameState) => absDay(state.season, state.day);
+
+/** 사투 생존에 쓰는 의료 수준: 의무실 단계 + 메디쿠스 실력 */
+export const medicalOf = (state: GameState, l: Ludus) => l.facilities.medical + ratingOf(state, l, "medicus") / 8;
 
 /** 정규 기간에만 도전 경기를 치른다 */
 export const inRegularPeriod = (state: GameState) => state.day >= 15 && state.day <= 154;
@@ -200,7 +204,7 @@ export function dailyChallenges(state: GameState, rng: Rng): void {
       const ga = pickFighter(state, a, rule, t);
       const gb = pickFighter(state, b, rule, t);
       if (!ga || !gb) continue;
-      const r = simulateMatch(ga, gb, { rule, seed: rng.int(0, 2 ** 31 - 1), missioDeathMult: rulesOfNation(a.nation).missioDeathMult });
+      const r = simulateMatch(ga, gb, { rule, seed: rng.int(0, 2 ** 31 - 1), missioDeathMult: rulesOfNation(a.nation).missioDeathMult, medicalLevel: [medicalOf(state, a), medicalOf(state, b)] });
       applyMatchResult(state, r, { rule, ranked: true, homeLudusId: b.id }, rng);
     }
   }
@@ -245,7 +249,7 @@ export function playChallenge(state: GameState, c: Challenge, rng: Rng): PlayedM
   }
   const snapA = structuredClone(a);
   const snapB = structuredClone(b);
-  const result = simulateMatch(a, b, { rule: c.rule, seed: rng.int(0, 2 ** 31 - 1), missioDeathMult: rulesOfNation(to.nation).missioDeathMult });
+  const result = simulateMatch(a, b, { rule: c.rule, seed: rng.int(0, 2 ** 31 - 1), missioDeathMult: rulesOfNation(to.nation).missioDeathMult, medicalLevel: [medicalOf(state, from), medicalOf(state, to)] });
   const summary = applyMatchResult(state, result, { rule: c.rule, ranked: true, homeLudusId: to.id }, rng);
   return { challenge: c, result, a: snapA, b: snapB, summary };
 }

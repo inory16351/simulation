@@ -3,7 +3,9 @@ import { logCareer, ludusOf, seasonRecord } from "./career";
 import type { MatchResult } from "./combat/sim";
 import { afterMatch } from "./condition";
 import { BALANCE, getSkill } from "./data";
+import { arenaTicketMult } from "./facilities";
 import { rulesOfNation } from "./nationRules";
+import { coachMult, ratingOf } from "./staff";
 import { addMoney } from "./economy";
 import { modifierMult } from "./modifiers";
 import type { Rng } from "./rng";
@@ -59,7 +61,7 @@ export function applyMatchResult(state: GameState, r: MatchResult, opt: ApplyOpt
     afterMatch(g, at, opt.rule);
     // 실전 경험: 훈련전·미시오·사투 모두 성장한다 (진 쪽도 배운다)
     const home = ludusOf(state, g.id);
-    grow(g, rng, "match", rule.growthDays * (g === w ? 1 : 0.8) * nr.growthMult, 1, home?.facilities.training ?? 1);
+    grow(g, rng, "match", rule.growthDays * (g === w ? 1 : 0.8) * nr.growthMult * coachMult(ratingOf(state, home, "doctore")), 1, home?.facilities.training ?? 1);
     const rec = seasonRecord(state, g);
     rec.apps++;
     if (g === w) rec.wins++;
@@ -119,8 +121,10 @@ export function applyMatchResult(state: GameState, r: MatchResult, opt: ApplyOpt
       const tier = String(Math.min(wl.tier, ll.tier)) as "1" | "2";
       const purse = Math.round(E.purse[tier] * rule.purseMult * nr.purseMult * (opt.rule === "sudden" ? nr.suddenPurseMult : 1));
       const crowdFactor = 0.5 + (w.popularity + l.popularity) / 200 + r.crowd / 200;
-      const tickets = Math.round(E.ticketIncome[tier] * rule.ticketMult * crowdFactor * modifierMult(state, "ticket") * nr.ticketMult);
+      const baseTickets = Math.round(E.ticketIncome[tier] * rule.ticketMult * crowdFactor * modifierMult(state, "ticket") * nr.ticketMult);
       const homeId = opt.homeLudusId ?? ll.id;
+      // 홈 경기장이 클수록 관중 수입이 늘어난다
+      const tickets = Math.round(baseTickets * arenaTicketMult(state.ludi[homeId]?.facilities.arena ?? 1));
       for (const lu of [wl, ll]) {
         const won = lu === wl;
         const share = (won ? purse : Math.round(purse * E.loserPurseShare)) + Math.round(tickets * (lu.id === homeId ? E.homeShare : 1 - E.homeShare));

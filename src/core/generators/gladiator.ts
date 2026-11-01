@@ -1,4 +1,5 @@
 import { BALANCE, NAMES, TRAITS, getArmor, getNation, getRace, STYLES, getStyle } from "../data";
+import { makeAvatar } from "../avatar";
 import { computeCA } from "../gladiator";
 import { defaultDoctrine } from "../tactics";
 import type { Rng } from "../rng";
@@ -113,6 +114,12 @@ export function generateGladiator(rng: Rng, opt: GenOptions): Gladiator {
   g.hidden.pa = clamp(Math.round(ca + stageGap), ca, 200);
   g.wage = computeWage(g, ca);
   if (g.popularity >= 40 && rng.chance(0.5)) g.nickname = rng.pick(NAMES.epithet);
+  // 외형은 태어날 때 정해지고 바뀌지 않는다
+  const look = makeAvatar(g);
+  g.portrait = {
+    skin: look.skin, hair: look.hair, hairColor: look.hairColor, eyes: look.eyes, mouth: look.mouth,
+    beard: look.beard, helmet: look.helmet, cloth: look.cloth, variant: String(look.variant),
+  };
   return g;
 }
 

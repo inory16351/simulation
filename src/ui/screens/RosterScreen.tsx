@@ -1,13 +1,13 @@
 import { useState } from "react";
-import { getRace, getStyle } from "../../core/data";
 import { AGE_STAGE_NAMES, ageStage, computeCA } from "../../core/gladiator";
 import type { GameState, Gladiator } from "../../core/types";
 import type { Nav } from "../App";
-import { Bar, Portrait, Stars } from "../components/common";
+import { Bar, Portrait, RaceTag, Stars, StyleTag } from "../components/common";
+import { paSpread } from "../../core/staff";
 
 type SortKey = "ca" | "age" | "wage" | "morale" | "name";
 
-export function GladiatorTable({ list, nav, showPa = true }: { list: Gladiator[]; nav: Nav; showPa?: boolean }) {
+export function GladiatorTable({ list, nav, state, showPa = true }: { list: Gladiator[]; nav: Nav; state: GameState; showPa?: boolean }) {
   const [sort, setSort] = useState<SortKey>("ca");
   const sorted = [...list].sort((a, b) => {
     switch (sort) {
@@ -58,13 +58,13 @@ export function GladiatorTable({ list, nav, showPa = true }: { list: Gladiator[]
                   </div>
                 </div>
               </td>
-              <td>{getRace(g.race).name}</td>
+              <td><RaceTag race={g.race} /></td>
               <td>
                 {g.age} <span style={{ color: "var(--text-faint)", fontSize: 11 }}>{AGE_STAGE_NAMES[stage]}</span>
               </td>
-              <td>{getStyle(g.style).name}</td>
+              <td><StyleTag style={g.style} /></td>
               <td><Stars value={ca} /></td>
-              {showPa && <td><Stars value={Math.max(ca, g.hidden.pa - 15)} range={Math.min(200, g.hidden.pa + 15)} /></td>}
+              {showPa && <td><Stars value={Math.max(ca, g.hidden.pa - paSpread(state, g))} range={Math.min(200, g.hidden.pa + paSpread(state, g))} /></td>}
               <td><Bar value={g.morale} /></td>
               <td><Bar value={100 - g.fatigue} /></td>
               <td><Bar value={g.sharpness} color="var(--bronze-hi)" /></td>
@@ -95,12 +95,12 @@ export function RosterScreen({ state, nav }: { state: GameState; nav: Nav }) {
         검투사 {list.length}명 · 주급 합계 {list.reduce((s, g) => s + g.wage, 0).toLocaleString()} D
       </div>
       <div className="panel">
-        <GladiatorTable list={list} nav={nav} />
+        <GladiatorTable list={list} nav={nav} state={state} />
       </div>
       {fallen.length > 0 && (
         <div className="panel">
           <h3>모래에 묻힌 자들</h3>
-          <GladiatorTable list={fallen} nav={nav} showPa={false} />
+          <GladiatorTable list={fallen} nav={nav} state={state} showPa={false} />
         </div>
       )}
     </>

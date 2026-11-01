@@ -23,6 +23,8 @@ import { RosterScreen } from "./screens/RosterScreen";
 import { NewGameScreen } from "./screens/NewGameScreen";
 import { TrainingScreen } from "./screens/TrainingScreen";
 import { WorldScreen } from "./screens/WorldScreen";
+import { StaffScreen } from "./screens/StaffScreen";
+import { FacilitiesScreen } from "./screens/FacilitiesScreen";
 
 export type ScreenId =
   | "inbox" | "overview" | "roster" | "gladiator" | "training" | "challenge" | "match" | "league"
@@ -52,8 +54,8 @@ const MENU: { id: ScreenId; label: string; ready: boolean }[] = [
   { id: "match", label: "모래 마당", ready: true },
   { id: "league", label: "서열표", ready: true },
   { id: "market", label: "노예 경매", ready: true },
-  { id: "staff", label: "식솔", ready: false },
-  { id: "facilities", label: "증축", ready: false },
+  { id: "staff", label: "식솔", ready: true },
+  { id: "facilities", label: "증축", ready: true },
   { id: "finance", label: "금고", ready: true },
   { id: "world", label: "대륙 정세", ready: true },
   { id: "hall", label: "비석의 언덕", ready: false },
@@ -222,6 +224,8 @@ function Game({ state, setState, onRestart }: { state: GameState; setState: (s: 
           {screen === "market" && <MarketScreen {...ctx} />}
           {screen === "finance" && <FinanceScreen {...ctx} />}
           {screen === "world" && <WorldScreen {...ctx} />}
+          {screen === "staff" && <StaffScreen {...ctx} />}
+          {screen === "facilities" && <FacilitiesScreen {...ctx} />}
           {!MENU.find((m) => m.id === screen)?.ready && screen !== "gladiator" && (
             <div className="empty-state" style={{ backgroundImage: `linear-gradient(rgba(20,17,15,0.35), rgba(20,17,15,0.9)), url(${asset("ui/empty.webp")})` }}>
               <h2>{MENU.find((m) => m.id === screen)?.label}</h2>

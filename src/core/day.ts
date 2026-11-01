@@ -6,6 +6,8 @@ import { dailyCondition } from "./condition";
 import { BALANCE } from "./data";
 import { payday, payDividend, refreshMarket, tierRanking } from "./economy";
 import { rollDailyEvents } from "./events";
+import { dailyConstruction } from "./facilities";
+import { coachMult, healMult, ratingOf, refreshStaffMarket } from "./staff";
 import { rulesOfNation } from "./nationRules";
 import { generateGladiator } from "./generators/gladiator";
 import { computeCA } from "./gladiator";
@@ -38,8 +40,10 @@ export function advanceDay(state: GameState): string[] {
 
   // 1. 아침: 이벤트, 시장
   rollDailyEvents(state, rng);
+  dailyConstruction(state);
   if ((BALANCE.economy.marketRefreshDays as number[]).includes(state.day)) {
     refreshMarket(state, rng);
+    refreshStaffMarket(state, rng);
     replenishAi(state, rng);
     pushMessage(state, { kind: "info", title: "노예 경매장에 새 매물", body: "경매장에 새 노예들이 들어왔다. 노예 경매 화면에서 볼 수 있다." });
   }
@@ -54,8 +58,8 @@ export function advanceDay(state: GameState): string[] {
       const g = state.gladiators[id];
       if (!g.alive) continue;
       if (!l.isPlayer) aiTrainingPlan(g);
-      const injured = dailyTraining(g, rng, l.facilities.training, rulesOfNation(l.nation).growthMult);
-      dailyCondition(g, at, l.facilities.medical);
+      const injured = dailyTraining(g, rng, l.facilities.training, rulesOfNation(l.nation).growthMult * coachMult(ratingOf(state, l, "doctore")));
+      dailyCondition(g, at, l.facilities.medical, l.facilities.bath, healMult(ratingOf(state, l, "medicus")));
       if (injured && l.isPlayer) {
         seasonRecord(state, g).injuries++;
         logCareer(state, g, `훈련 중 다쳤다: ${injured}`, "injury");
