@@ -14,6 +14,7 @@ const RULES = [
   { prefix: "portrait/", max: 256, quality: 82 },
   { prefix: "icon/", max: 64, quality: 90 },
   { prefix: "crest/", max: 128, quality: 90 },
+  { prefix: "fx/", max: 256, quality: 85 },
   { prefix: "ui/", max: 1920, quality: 72 },
   { prefix: "style/", max: 1280, quality: 75 },
   { prefix: "", max: 1024, quality: 80 },

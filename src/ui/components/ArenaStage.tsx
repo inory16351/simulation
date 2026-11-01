@@ -30,7 +30,7 @@ interface Props {
 }
 
 export function ArenaStage({ a, b, events, crowd }: Props) {
-  const { dist, views, blood, burst, shake, crowdHype } = derive(a, b, events);
+  const { dist, views, blood, burst, dodge, shake, crowdHype } = derive(a, b, events);
   const [xa, xb] = POS[dist] ?? POS[2];
 
   return (
@@ -51,16 +51,19 @@ export function ArenaStage({ a, b, events, crowd }: Props) {
           </radialGradient>
         </defs>
         {/* 모래에 남은 핏자국 */}
-        {blood.map((p, i) => <ellipse key={i} cx={p.x} cy={GROUND + 4 + p.dy} rx={p.r * 1.6} ry={p.r * 0.5} fill="#6e1712" opacity="0.85" />)}
+        {blood.map((p, i) => (
+          <image key={i} href={asset("fx/blood_pool.webp")} x={p.x - p.r * 2.6} y={GROUND - p.r * 0.7 + 3 + p.dy} width={p.r * 5.2} height={p.r * 2}
+            preserveAspectRatio="none" opacity="0.9" transform={i % 2 ? `translate(${p.x * 2} 0) scale(-1 1)` : undefined} />
+        ))}
 
         <Fighter v={views[0]} x={xa} facing={1} />
         <Fighter v={views[1]} x={xb} facing={-1} />
 
         {/* 피 튐 */}
-        {burst && <BloodBurst key={burst.key} x={burst.side === 0 ? xa : xb} big={burst.big} dir={burst.side === 0 ? -1 : 1} />}
+        {dodge && <FxSprite key={`d${dodge.key}`} name="dust" x={dodge.side === 0 ? xa - 10 : xb + 10} y={GROUND - 10} size={46} className="fx-dust" />}
         </g>
         {/* 붓으로 그린 타격 효과 */}
-        {burst && <BrushHit key={`h${burst.key}`} x={burst.side === 0 ? xa : xb} big={burst.big} dir={burst.side === 0 ? -1 : 1} />}
+        {burst && <HitFx key={`h${burst.key}`} x={burst.side === 0 ? xa : xb} hit={burst} dir={burst.side === 0 ? -1 : 1} />}
         {/* 동화책 조명: 왼쪽 횃불의 따뜻한 빛, 오른쪽 아래 푸른 그늘, 가장자리 어둠 */}
         <rect width="400" height="160" fill="url(#warmKey)" style={{ mixBlendMode: "screen" }} pointerEvents="none" />
         <rect width="400" height="160" fill="url(#coolShade)" style={{ mixBlendMode: "multiply" }} pointerEvents="none" />
@@ -86,11 +89,6 @@ function PaintDefs() {
         <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="3" />
         <feColorMatrix type="saturate" values="0" />
       </filter>
-      {/* 붓 자국 가장자리를 거칠게 */}
-      <filter id="brushRough" x="-20%" y="-20%" width="140%" height="140%">
-        <feTurbulence type="fractalNoise" baseFrequency="0.09" numOctaves="2" seed="11" result="n" />
-        <feDisplacementMap in="SourceGraphic" in2="n" scale="3.5" xChannelSelector="R" yChannelSelector="G" />
-      </filter>
       <linearGradient id="warmKey" x1="0" y1="0" x2="1" y2="0">
         <stop offset="0" stopColor="#ff9a3c" stopOpacity="0.38" />
         <stop offset="0.45" stopColor="#ff9a3c" stopOpacity="0.06" />
@@ -109,26 +107,29 @@ function PaintDefs() {
   );
 }
 
-/** 타격: 붓으로 한 번에 그은 듯한 베기 자국, 치명타면 빛살이 터진다 */
-function BrushHit({ x, big, dir }: { x: number; big: boolean; dir: number }) {
-  const spikes = big ? 9 : 0;
+interface Hit { side: number; big: boolean; heavy: boolean; blunt: boolean; key: number }
+
+/** 그림 이펙트 한 장. 가운데를 (x, y)에 맞추고 dir이 -1이면 좌우를 뒤집는다 */
+function FxSprite({ name, x, y, size, dir = 1, rotate = 0, className }: { name: string; x: number; y: number; size: number; dir?: number; rotate?: number; className?: string }) {
   return (
-    <g transform={`translate(${x} ${GROUND - 36}) scale(${dir * (big ? 1.5 : 1.15)} ${big ? 1.5 : 1.15})`} filter="url(#brushRough)">
-      {spikes > 0 && (
-        <g className="impact-star">
-          {Array.from({ length: spikes }, (_, i) => {
-            const a = (i / spikes) * Math.PI * 2;
-            const len = 26 + (i % 3) * 9;
-            const w = 4;
-            const tip = [Math.cos(a) * len, Math.sin(a) * len];
-            const l = [Math.cos(a + 1.57) * w, Math.sin(a + 1.57) * w];
-            return <path key={i} d={`M${l[0]} ${l[1]} L${tip[0]} ${tip[1]} L${-l[0]} ${-l[1]} Z`} fill={i % 2 ? "#ffd36b" : "#fff3d1"} />;
-          })}
-          <circle r="9" fill="#fff8e6" />
-        </g>
-      )}
-      <path className="brush-slash" d="M-30 -24 C-10 -22 14 -2 30 24 C20 22 -6 -2 -30 -24 Z" fill="#fff4d8" />
-      <path className="brush-slash red" d="M-24 -16 C-8 -12 10 4 24 20 C14 18 -6 2 -24 -16 Z" fill="#c4271c" />
+    <g transform={`translate(${x} ${y}) scale(${dir} 1) rotate(${rotate})`}>
+      <image className={`fx-sprite ${className ?? ""}`} href={asset(`fx/${name}.webp`)} x={-size / 2} y={-size / 2} width={size} height={size} />
+    </g>
+  );
+}
+
+/** 타격: 무기에 따라 베기·둔기 충격, 세게 맞으면 피가 뿜어지고, 치명타는 빛살과 함께 피가 쏟아진다 */
+function HitFx({ x, hit, dir }: { x: number; hit: Hit; dir: number }) {
+  const y = GROUND - 40;
+  return (
+    <g>
+      {hit.big && <FxSprite name="crit_star" x={x} y={y} size={78} className="fx-star" />}
+      {hit.blunt
+        ? <FxSprite name="impact_blunt" x={x} y={y + 4} size={hit.big ? 80 : 62} dir={dir} className="fx-pop" />
+        : <FxSprite name={hit.heavy || hit.big ? "slash_blood" : "slash_gold"} x={x} y={y} size={hit.big ? 84 : 66} dir={-dir} rotate={-8} className="fx-slash" />}
+      {(hit.heavy || hit.big) && <FxSprite name="blood_splash" x={x + dir * 26} y={y + 2} size={hit.big ? 82 : 64} dir={-dir} className="fx-spray" />}
+      {!hit.heavy && !hit.big && <FxSprite name="blood_drops" x={x + dir * 20} y={y - 4} size={44} dir={-dir} className="fx-spray" />}
+      {hit.big && <FxSprite name="blood_gush" x={x + dir * 8} y={y + 18} size={70} dir={-dir} className="fx-gush" />}
     </g>
   );
 }
@@ -210,21 +211,6 @@ function Weapon({ cls }: { cls: string }) {
   }
 }
 
-function BloodBurst({ x, big, dir }: { x: number; big: boolean; dir: number }) {
-  const drops = Array.from({ length: big ? 12 : 6 }, (_, i) => {
-    const ang = (-30 - i * (big ? 12 : 22)) * (Math.PI / 180);
-    const d = (big ? 34 : 22) + (i % 3) * 6;
-    return { dx: Math.cos(ang) * d * dir, dy: Math.sin(ang) * d, r: big ? 2.6 : 2 };
-  });
-  return (
-    <g transform={`translate(${x} ${GROUND - 32})`}>
-      {drops.map((p, i) => (
-        <circle key={i} className="blood-drop" r={p.r} fill="#b3261c" style={{ ["--dx" as string]: `${p.dx}px`, ["--dy" as string]: `${p.dy}px`, animationDelay: `${i * 0.015}s` }} />
-      ))}
-    </g>
-  );
-}
-
 function armorColor(s: AvatarSpec): string {
   return s.armor === "heavy" ? "#b08a4f" : s.armor === "medium" ? "#6f7378" : s.cloth;
 }
@@ -239,7 +225,9 @@ function derive(a: Gladiator, b: Gladiator, events: CombatEvent[]) {
   ];
   const blood: { x: number; dy: number; r: number }[] = [];
   const persistent: (Pose | null)[] = [null, null];
-  let burst = null as { side: number; big: boolean; key: number } | null;
+  let burst = null as Hit | null;
+  let dodge = null as { side: number; key: number } | null;
+  const bluntOf = (g: Gladiator) => ["mace", "unarmed", "shield"].includes(getWeapon(g.equipment.main)?.class ?? "unarmed");
   let shake = false as boolean;
   let crowdHype = 30;
 
@@ -263,8 +251,12 @@ function derive(a: Gladiator, b: Gladiator, events: CombatEvent[]) {
         if (e.hit && !e.blocked && e.damage > 0) {
           const [xa, xb] = POS[dist] ?? POS[2];
           if (e.damage / e.maxHp > 0.08 || e.crit) blood.push({ x: t === 0 ? xa - 6 : xb + 6, dy: (idx % 5) - 2, r: Math.min(9, 3 + (e.damage / e.maxHp) * 30) });
-          if (last) { burst = { side: t, big: e.crit, key: idx }; shake = e.crit; }
+          if (last) {
+            burst = { side: t, big: e.crit, heavy: e.damage / e.maxHp > 0.12, blunt: bluntOf(views[side(e.actor)].g), key: idx };
+            shake = e.crit;
+          }
         }
+        if (!e.hit && last) dodge = { side: t, key: idx };
         break;
       }
       case "self":
@@ -299,5 +291,5 @@ function derive(a: Gladiator, b: Gladiator, events: CombatEvent[]) {
     }
   }
   persistent.forEach((p, i) => { if (p) { views[i].pose = p; } });
-  return { dist, views, blood, burst, shake, crowdHype };
+  return { dist, views, blood, burst, dodge, shake, crowdHype };
 }
