@@ -110,7 +110,7 @@ describe("나라별 리그", () => {
       autoplay(s, 60, { challenge: true });
       if (n.rules.suddenBanned) expect(s.challenges.some((c) => c.rule === "sudden")).toBe(false);
     }
-  });
+  }, 30000); // 나라 여섯 × 70개 루두스를 60일씩 돌린다
 });
 
 describe("부상", () => {
