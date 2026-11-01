@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { dateLabel } from "../../core/calendar";
 import type { GameState } from "../../core/types";
 
 export function InboxScreen({ state, update }: { state: GameState; update: (fn: (d: GameState) => void) => void }) {
@@ -15,8 +16,8 @@ export function InboxScreen({ state, update }: { state: GameState; update: (fn: 
 
   return (
     <>
-      <h1 className="screen-title">받은편지함</h1>
-      <div className="screen-sub">소식, 경기 결과, 사건이 이곳으로 모인다.</div>
+      <h1 className="screen-title">전령의 서판</h1>
+      <div className="screen-sub">전령이 가져온 소식과 경기 결과가 여기 쌓인다.</div>
       <div className="inbox">
         <div className="panel list">
           {state.inbox.map((m) => (
@@ -26,7 +27,7 @@ export function InboxScreen({ state, update }: { state: GameState; update: (fn: 
               onClick={() => open(m.id)}
             >
               <div className="title">{m.title}</div>
-              <div className="meta">시즌 {m.season} · {m.week}주차</div>
+              <div className="meta">시즌 {m.season} · {dateLabel(m.day)}</div>
             </div>
           ))}
         </div>
@@ -36,7 +37,7 @@ export function InboxScreen({ state, update }: { state: GameState; update: (fn: 
               <>
                 <h2>{msg.title}</h2>
                 <div className="meta" style={{ color: "var(--text-faint)", marginBottom: 14 }}>
-                  시즌 {msg.season} · {msg.week}주차
+                  시즌 {msg.season} · {dateLabel(msg.day)}
                 </div>
                 <div className="body">{msg.body}</div>
               </>

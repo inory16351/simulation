@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { BALANCE, getStyle } from "../../core/data";
 import { buildCommentary, type CommentaryLine } from "../../core/combat/commentary";
-import { simulateMatch, type HighlightKind, type MatchResult, type Tactic } from "../../core/combat/sim";
+import { simulateMatch, type HighlightKind, type MatchResult } from "../../core/combat/sim";
+import { FOCUS_NAMES, RANGE_NAMES, STANCE_NAMES, type Stance } from "../../core/tactics";
 import { canFight, computeCA } from "../../core/gladiator";
 import { applyMatchResult } from "../../core/match";
 import { Rng } from "../../core/rng";
@@ -22,13 +23,6 @@ const CUT_LABEL: Record<HighlightKind, string> = {
   death: "사망",
 };
 
-const TACTICS: { id: Tactic; label: string }[] = [
-  { id: "balanced", label: "균형" },
-  { id: "aggressive", label: "공격적" },
-  { id: "defensive", label: "수비적" },
-  { id: "showman", label: "쇼맨십" },
-  { id: "quick", label: "빠른 결착" },
-];
 
 const SPEEDS = [
   { id: "normal", label: "보통", ms: 650 },
@@ -55,7 +49,8 @@ export function MatchScreen({ state, update, nav }: { state: GameState; update: 
   const oppList = state.ludi[oppLudus].gladiators.map((id) => state.gladiators[id]).filter(canFight);
   const [oppId, setOppId] = useState<Id | undefined>(oppList[0]?.id);
   const [rule, setRule] = useState<DeathRule>("training");
-  const [tactic, setTactic] = useState<Tactic>("balanced");
+  /** 이번 경기만 자세를 바꾼다. 비어 있으면 교범 그대로 */
+  const [stanceOverride, setStanceOverride] = useState<Stance | "">("");
   const [speed, setSpeed] = useState<(typeof SPEEDS)[number]["id"]>("normal");
   const [live, setLive] = useState<Live | null>(null);
 
@@ -69,8 +64,8 @@ export function MatchScreen({ state, update, nav }: { state: GameState; update: 
     const r = new Rng(state.rngState);
     const seed = r.int(0, 2 ** 31 - 1);
     update((d) => { d.rngState = r.state; });
-    const oppTactic = (["balanced", "aggressive", "defensive"] as Tactic[])[seed % 3];
-    const result = simulateMatch(a, b, { rule, seed, tactics: [tactic, oppTactic] });
+    const myDoctrine = stanceOverride ? { ...a.doctrine, stance: stanceOverride } : a.doctrine;
+    const result = simulateMatch(a, b, { rule, seed, doctrines: [myDoctrine, undefined] });
     const lines = buildCommentary(result.events, { [a.id]: a, [b.id]: b }, seed);
     const items: Item[] = [];
     for (const e of result.events) {
@@ -93,10 +88,10 @@ export function MatchScreen({ state, update, nav }: { state: GameState; update: 
             const died = live.result.died ? d.gladiators[live.result.died] : null;
             pushMessage(d, {
               kind: died ? "death" : "match",
-              title: died ? `${died.name}, 모래 위에서 숨을 거두다` : `친선 경기: ${w.name} 승리`,
+              title: died ? `${died.name}, 모래 위에서 숨을 거두다` : `연습 시합: ${w.name} 승리`,
               body: `${BALANCE.rules[live.rule].name} · ${w.name} vs ${l.name}\n` +
                 `${w.name} 승리 (${{ ko: "KO", surrender: "항복", timeout: "판정" }[live.result.reason]}, ${live.result.rounds}라운드)` +
-                (died ? `\n\n${died.name}의 이름이 묘비에 새겨졌다. 되돌릴 수 없다.` : ""),
+                (died ? `\n\n${died.name}의 이름이 비석에 새겨졌다. 다시는 돌아오지 않는다.` : ""),
             });
           });
         }}
@@ -108,9 +103,9 @@ export function MatchScreen({ state, update, nav }: { state: GameState; update: 
 
   return (
     <>
-      <h1 className="screen-title">친선 경기</h1>
+      <h1 className="screen-title">모래 마당</h1>
       <div className="screen-sub">
-        RP 변동 없는 연습 경기. 단, 생사 규칙은 실제로 적용된다 — 죽으면 돌아오지 않는다.
+        다른 루두스 검투사와 붙는 연습 시합이다. RP는 그대로지만 생사 규칙은 실전과 똑같다. 죽으면 끝이다.
       </div>
       <div className="match-setup">
         <div className="panel">
@@ -145,16 +140,34 @@ export function MatchScreen({ state, update, nav }: { state: GameState; update: 
               </div>
               <div style={{ color: "var(--text-faint)", fontSize: 11, marginTop: 4 }}>
                 {rule === "training" && "쓰러지면 종료. 사고사 1%"}
-                {rule === "missio" && "쓰러지면 관중이 생사를 판정한다 (5~40%)"}
-                {rule === "sudden" && "패자는 거의 확실히 죽는다 (85~95%)"}
+                {rule === "missio" && "쓰러지면 관중이 살릴지 죽일지 정한다 (5~40%)"}
+                {rule === "sudden" && "지면 거의 죽는다 (85~95%)"}
               </div>
             </div>
-            <div className="field">
-              <label>전술 지시</label>
-              <select value={tactic} onChange={(e) => setTactic(e.target.value as Tactic)}>
-                {TACTICS.map((t) => <option key={t.id} value={t.id}>{t.label}</option>)}
-              </select>
-            </div>
+            {myId && (
+              <div className="field">
+                <label>전투 교범</label>
+                <div className="doctrine-mini">
+                  {(() => {
+                    const d = state.gladiators[myId].doctrine;
+                    return (
+                      <>
+                        <span className="tag">{STANCE_NAMES[d.stance]}</span>
+                        <span className="tag">{RANGE_NAMES[d.range]}</span>
+                        <span className="tag">노림: {FOCUS_NAMES[d.focus]}</span>
+                        <span className="tag">숙련 {d.familiarity}</span>
+                        <button className="btn" style={{ padding: "2px 8px" }} onClick={() => nav.openGladiator(myId)}>교범 고치기</button>
+                      </>
+                    );
+                  })()}
+                </div>
+                <label style={{ marginTop: 6 }}>이번 경기만 자세 바꾸기</label>
+                <select value={stanceOverride} onChange={(e) => setStanceOverride(e.target.value as Stance | "")}>
+                  <option value="">교범대로</option>
+                  {(Object.keys(STANCE_NAMES) as Stance[]).map((st) => <option key={st} value={st}>{STANCE_NAMES[st]}</option>)}
+                </select>
+              </div>
+            )}
             <div className="field">
               <label>중계 속도</label>
               <div className="seg">
@@ -164,7 +177,7 @@ export function MatchScreen({ state, update, nav }: { state: GameState; update: 
               </div>
             </div>
             <button className={`btn ${rule === "sudden" ? "danger" : "primary"}`} disabled={!myId || !oppId} onClick={start} style={{ width: "100%", marginTop: 6 }}>
-              {rule === "sudden" ? "사투를 시작한다" : "경기 시작"}
+              {rule === "sudden" ? "사투 시작" : "경기 시작"}
             </button>
           </div>
         </div>
@@ -257,7 +270,7 @@ function Playback({ live, speedMs, onDone, onClose, nav }: { live: Live; speedMs
   return (
     <>
       <h1 className="screen-title">{BALANCE.rules[live.rule].name}</h1>
-      <div className="screen-sub">친선 경기</div>
+      <div className="screen-sub">모래 마당 연습 시합</div>
       <div className="arena">
         <div className="arena-head">
           {fighterBox(live.a, false)}
@@ -289,9 +302,9 @@ function Playback({ live, speedMs, onDone, onClose, nav }: { live: Live; speedMs
         )}
       </div>
       <div style={{ marginTop: 12, display: "flex", gap: 8 }}>
-        {!finished && <button className="btn" onClick={() => setShown(live.items.length)}>결과로 건너뛰기</button>}
-        {finished && <button className="btn primary" onClick={onClose}>다른 경기</button>}
-        {finished && <button className="btn" onClick={() => nav.go("roster")}>로스터로</button>}
+        {!finished && <button className="btn" onClick={() => setShown(live.items.length)}>결과 보기</button>}
+        {finished && <button className="btn primary" onClick={onClose}>한 판 더</button>}
+        {finished && <button className="btn" onClick={() => nav.go("roster")}>막사로</button>}
       </div>
     </>
   );

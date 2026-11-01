@@ -1,4 +1,6 @@
+import { useState } from "react";
 import { getNation, getRace } from "../../core/data";
+import { crestUrl, portraitUrl } from "../assets";
 import { stars } from "../../core/gladiator";
 import { Rng } from "../../core/rng";
 import type { Gladiator, NationId } from "../../core/types";
@@ -33,8 +35,37 @@ export function attrClass(v: number): string {
   return v <= 5 ? "a1" : v <= 10 ? "a2" : v <= 15 ? "a3" : "a4";
 }
 
-/** 이미지 에셋이 준비되기 전까지 쓰는 절차 생성 초상화 */
+/** 생성 이미지 초상화 + 흉터·부상·피 오버레이. 이미지가 없으면 절차 생성 초상화로 대체한다. */
 export function Portrait({ g, size = 40 }: { g: Gladiator; size?: number }) {
+  const [failed, setFailed] = useState(false);
+  if (failed) return <FallbackPortrait g={g} size={size} />;
+  const r = new Rng(g.portraitSeed ^ 0x9e3779b9);
+  const fights = g.record.wins + g.record.losses;
+  const scars = Math.min(4, Math.floor(fights / 6) + (g.traits.includes("scarred") ? 2 : 0));
+  return (
+    <div className={`portrait img ${g.alive ? "" : "dead"}`} style={{ width: size, height: size }}>
+      <img src={portraitUrl(g)} alt="" draggable={false} onError={() => setFailed(true)} />
+      <svg viewBox="0 0 100 100" className="overlay">
+        {/* 흉터: 경기를 치를수록 얼굴에 쌓인다 */}
+        {Array.from({ length: scars }, (_, i) => {
+          const x = 38 + r.int(0, 22), y = 26 + r.int(0, 22);
+          return <path key={i} d={`M${x} ${y} l${4 + r.int(0, 6)} ${5 + r.int(0, 6)}`} stroke="#5e1611" strokeWidth="1.1" opacity="0.85" />;
+        })}
+        {g.traits.includes("one_eyed") && <path d="M30 34 L70 46 M44 38 a6 4 0 1 0 1 0" stroke="#0d0a08" strokeWidth="2.4" fill="#0d0a08" />}
+        {/* 부상: 붕대와 번지는 피 */}
+        {g.injury && (
+          <>
+            <path d="M26 24 Q50 14 74 24 L73 31 Q50 22 27 31 Z" fill="#c9b994" opacity="0.92" />
+            <ellipse cx={58 + r.int(0, 8)} cy="26" rx="4" ry="2.6" fill="#7e170f" opacity="0.9" />
+            {g.injury.severity === "serious" && <path d="M52 30 q2 10 -1 18 q3 -4 4 -14 Z" fill="#8e1d14" opacity="0.85" />}
+          </>
+        )}
+      </svg>
+    </div>
+  );
+}
+
+function FallbackPortrait({ g, size = 40 }: { g: Gladiator; size?: number }) {
   const race = getRace(g.race);
   const nation = getNation(g.nation);
   const r = new Rng(g.portraitSeed);
@@ -114,6 +145,10 @@ export function Portrait({ g, size = 40 }: { g: Gladiator; size?: number }) {
 
 export function NationCrest({ nation, size = 32 }: { nation: NationId; size?: number }) {
   const n = getNation(nation);
+  const [failed, setFailed] = useState(false);
+  if (!failed) {
+    return <img className="crest" src={crestUrl(nation)} width={size} height={size} alt={n.short} onError={() => setFailed(true)} />;
+  }
   return (
     <svg className="crest" width={size} height={size} viewBox="0 0 40 40">
       <path d="M20 2 L36 8 V20 C36 30 28 36 20 38 C12 36 4 30 4 20 V8 Z" fill={n.color} stroke="var(--bronze-hi)" strokeWidth="1.5" />

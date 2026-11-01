@@ -1,3 +1,5 @@
+import type { Doctrine } from "./tactics";
+
 export type Id = string;
 
 export const PHYSICAL = ["str", "agi", "end", "tou", "rea", "rec"] as const;
@@ -47,6 +49,7 @@ export interface Gladiator {
   id: Id;
   name: string;
   nickname?: string;
+  gender: "m" | "f";
   race: RaceId;
   nation: NationId;
   age: number;
@@ -66,7 +69,8 @@ export interface Gladiator {
   injury?: Injury;
   record: { wins: number; losses: number; kills: number };
   alive: boolean;
-  diedAt?: { season: number; week: number; cause: string };
+  diedAt?: { season: number; day: number; cause: string };
+  doctrine: Doctrine;
   portraitSeed: number;
 }
 
@@ -86,7 +90,7 @@ export interface Ludus {
 export interface InboxMessage {
   id: Id;
   season: number;
-  week: number;
+  day: number;
   kind: "info" | "match" | "event" | "warning" | "death";
   title: string;
   body: string;
@@ -98,7 +102,8 @@ export interface GameState {
   seed: number;
   rngState: number;
   season: number;
-  week: number;
+  /** 시즌 안의 날짜 1~168 */
+  day: number;
   nation: NationId;
   playerLudusId: Id;
   ludi: Record<Id, Ludus>;

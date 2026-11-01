@@ -137,6 +137,7 @@ export const SKILLS = skillsJson as SkillDef[];
 export const TRAITS = traitsJson as TraitDef[];
 export const NAMES = namesJson as {
   gladiator: Record<RaceId, string[]>;
+  female: string[];
   surname: Record<RaceId, string[]>;
   epithet: string[];
   ludusPrefix: string[];

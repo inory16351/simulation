@@ -8,11 +8,11 @@ const PERSONALITIES: NonNullable<Ludus["aiPersonality"]>[] = ["aggressive", "sta
 export function newGame(seed: number, nation: NationId = "aurelia", ludusName = "모래의 집"): GameState {
   const rng = new Rng(seed);
   const state: GameState = {
-    version: 1,
+    version: 3,
     seed,
     rngState: 0,
     season: 1,
-    week: 1,
+    day: 1,
     nation,
     playerLudusId: "",
     ludi: {},
@@ -78,14 +78,14 @@ export function newGame(seed: number, nation: NationId = "aurelia", ludusName = 
   state.inbox.push({
     id: newId("M"),
     season: 1,
-    week: 1,
+    day: 1,
     kind: "info",
-    title: `${nationDef.short} 2부 리그에 오신 것을 환영합니다`,
+    title: `${nationDef.short} 2부 리그 입성`,
     body:
-      `라니스타여, ${ludusName}의 문이 열렸다.\n\n` +
-      `금고에는 ${BALANCE.economy.startTreasury.toLocaleString()} 데나리, 숙소에는 검투사 ${BALANCE.economy.startRoster}명이 있다. ` +
-      `모두 급료를 기다리고 있다. 돈이 마르면 그들의 칼끝이 어디를 향할지 잊지 말라.\n\n` +
-      `목표: 2부 리그 상위 2위 안에 들어 승격하라.`,
+      `라니스타, ${ludusName}의 문이 열렸다.\n\n` +
+      `금고엔 ${BALANCE.economy.startTreasury.toLocaleString()} 데나리, 막사엔 검투사 ${BALANCE.economy.startRoster}명. ` +
+      `다들 급료 날만 기다린다. 돈줄이 끊기면 저 칼끝이 누구를 향할지 잊지 마라.\n\n` +
+      `이번 시즌 목표: 2부 리그 2위 안에 들어 승격.`,
     read: false,
   });
 

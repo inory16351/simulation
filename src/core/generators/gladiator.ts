@@ -1,5 +1,6 @@
 import { BALANCE, NAMES, TRAITS, getArmor, getNation, getRace, STYLES, getStyle } from "../data";
 import { computeCA } from "../gladiator";
+import { defaultDoctrine } from "../tactics";
 import type { Rng } from "../rng";
 import {
   ATTRS,
@@ -24,10 +25,12 @@ export interface GenOptions {
   usedNames?: Set<string>;
 }
 
-function uniqueName(rng: Rng, raceId: RaceId, used?: Set<string>): string {
-  let name = rng.pick(NAMES.gladiator[raceId]);
+function uniqueName(rng: Rng, raceId: RaceId, gender: "m" | "f", used?: Set<string>): string {
+  const female = new Set(NAMES.female);
+  const pool = NAMES.gladiator[raceId].filter((n) => female.has(n) === (gender === "f"));
+  let name = rng.pick(pool);
   for (let i = 0; used?.has(name) && i < 30; i++) {
-    name = `${rng.pick(NAMES.gladiator[raceId])} ${rng.pick(NAMES.surname[raceId])}`;
+    name = `${rng.pick(pool)} ${rng.pick(NAMES.surname[raceId])}`;
   }
   used?.add(name);
   return name;
@@ -62,10 +65,12 @@ export function generateGladiator(rng: Rng, opt: GenOptions): Gladiator {
   }
 
   const traits = pickTraits(rng, rng.chance(0.55) ? 2 : 1);
+  const gender = rng.chance(0.25) ? "f" : "m";
 
   const g: Gladiator = {
     id: opt.id,
-    name: uniqueName(rng, raceId, opt.usedNames),
+    name: uniqueName(rng, raceId, gender, opt.usedNames),
+    gender,
     race: raceId,
     nation: opt.nation,
     age,
@@ -84,6 +89,7 @@ export function generateGladiator(rng: Rng, opt: GenOptions): Gladiator {
     },
     traits,
     skills: { active: pickSkills(rng, style.skills, raceId, opt.target), passive: [] },
+    doctrine: undefined as unknown as Gladiator["doctrine"],
     equipment: fixLoadout(raceId, { ...style.loadout }),
     wage: 0,
     unpaidWeeks: 0,
@@ -95,6 +101,7 @@ export function generateGladiator(rng: Rng, opt: GenOptions): Gladiator {
     portraitSeed: rng.int(0, 1_000_000),
   };
 
+  g.doctrine = defaultDoctrine(g, rng.int(40, 90));
   const ca = computeCA(g);
   const stageGap = age <= race.age.growthEnd ? rng.range(15, 70) : rng.range(0, 20);
   g.hidden.pa = clamp(Math.round(ca + stageGap), ca, 200);

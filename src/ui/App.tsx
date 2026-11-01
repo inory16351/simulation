@@ -3,6 +3,8 @@ import { getNation } from "../core/data";
 import { newGame } from "../core/generators/world";
 import { clearSave, loadGame, saveGame } from "../core/state";
 import type { GameState, Id } from "../core/types";
+import { dateLabel, daysToPayday } from "../core/calendar";
+import { asset, menuIconUrl } from "./assets";
 import { NationCrest } from "./components/common";
 import { GladiatorScreen } from "./screens/GladiatorScreen";
 import { InboxScreen } from "./screens/InboxScreen";
@@ -21,19 +23,19 @@ export interface Nav {
 }
 
 const MENU: { id: ScreenId; label: string; ready: boolean }[] = [
-  { id: "inbox", label: "받은편지함", ready: true },
-  { id: "overview", label: "개요", ready: true },
-  { id: "roster", label: "로스터", ready: true },
-  { id: "training", label: "훈련", ready: false },
-  { id: "challenge", label: "도전", ready: false },
-  { id: "match", label: "친선 경기", ready: true },
-  { id: "league", label: "일정·리그", ready: true },
-  { id: "market", label: "시장", ready: false },
-  { id: "staff", label: "직원", ready: false },
-  { id: "facilities", label: "시설", ready: false },
-  { id: "finance", label: "재정", ready: false },
-  { id: "world", label: "세계", ready: false },
-  { id: "hall", label: "명예의 전당", ready: false },
+  { id: "inbox", label: "서판", ready: true },
+  { id: "overview", label: "안뜰", ready: true },
+  { id: "roster", label: "막사", ready: true },
+  { id: "training", label: "연무장", ready: false },
+  { id: "challenge", label: "도전장", ready: false },
+  { id: "match", label: "모래 마당", ready: true },
+  { id: "league", label: "서열표", ready: true },
+  { id: "market", label: "노예 경매", ready: false },
+  { id: "staff", label: "식솔", ready: false },
+  { id: "facilities", label: "증축", ready: false },
+  { id: "finance", label: "금고", ready: false },
+  { id: "world", label: "대륙 정세", ready: false },
+  { id: "hall", label: "비석의 언덕", ready: false },
 ];
 
 export function App() {
@@ -68,7 +70,7 @@ export function App() {
   const nation = getNation(state.nation);
 
   const restart = () => {
-    if (!confirm("새 게임을 시작할까요? 현재 진행은 사라집니다.")) return;
+    if (!confirm("새 루두스를 세울까요? 지금 루두스는 사라집니다.")) return;
     clearSave();
     setState(newGame(Date.now() % 2 ** 31));
     setScreen("inbox");
@@ -86,19 +88,19 @@ export function App() {
         </div>
         <div className="spacer" />
         <div className="stat">
-          <b>시즌 {state.season} · {state.week}주차</b>
-          <span>정규 기간은 3주차부터</span>
+          <b>시즌 {state.season} · {dateLabel(state.day)}</b>
+          <span>급료일까지 {daysToPayday(state.day)}일</span>
         </div>
         <div className="stat">
           <b>{player.treasury.toLocaleString()} D</b>
           <span>주급 합계 {weeklyWages.toLocaleString()} D</span>
         </div>
-        <button className="continue" disabled title="주간 진행은 다음 단계(M2)에서 구현됩니다">
-          계속 ▶
+        <button className="continue" disabled title="일 단위 진행은 다음 단계(M2)에서 구현됩니다">
+          다음 날로 ▶
         </button>
       </header>
       <div className="alertbar">
-        개발 빌드 M1 — 주간 진행·도전·시장은 다음 단계에서 구현됩니다. 지금은 로스터 확인과 친선 경기(실제 사망 포함)를 해볼 수 있습니다.
+        개발 빌드 M1 — 날짜 진행·도전·시장은 다음 단계에서 구현됩니다. 지금은 막사 확인과 모래 마당 연습 시합(실제 사망 포함)을 해볼 수 있습니다.
       </div>
       <div className="body">
         <nav className="sidebar">
@@ -108,24 +110,27 @@ export function App() {
               className={`${screen === m.id || (screen === "gladiator" && m.id === "roster") ? "active" : ""} ${m.ready ? "" : "soon"}`}
               onClick={() => setScreen(m.id)}
             >
-              {m.label}
+              <span className="menu-label">
+                <img src={menuIconUrl(m.id)} alt="" onError={(e) => (e.currentTarget.style.visibility = "hidden")} />
+                {m.label}
+              </span>
               {m.id === "inbox" && unread > 0 && <span className="badge">{unread}</span>}
             </button>
           ))}
           <div className="sep" />
-          <button onClick={restart}>새 게임</button>
+          <button onClick={restart}>새 루두스 세우기</button>
         </nav>
         <main className="main">
           {screen === "inbox" && <InboxScreen state={state} update={update} />}
           {screen === "overview" && <OverviewScreen state={state} nav={nav} />}
           {screen === "roster" && <RosterScreen state={state} nav={nav} />}
-          {screen === "gladiator" && selected && <GladiatorScreen state={state} id={selected} nav={nav} />}
+          {screen === "gladiator" && selected && <GladiatorScreen state={state} id={selected} nav={nav} update={update} />}
           {screen === "league" && <LeagueScreen state={state} />}
           {screen === "match" && <MatchScreen state={state} update={update} nav={nav} />}
           {!MENU.find((m) => m.id === screen)?.ready && screen !== "gladiator" && (
-            <div className="empty-state">
+            <div className="empty-state" style={{ backgroundImage: `linear-gradient(rgba(20,17,15,0.35), rgba(20,17,15,0.9)), url(${asset("ui/empty.jpg")})` }}>
               <h2>{MENU.find((m) => m.id === screen)?.label}</h2>
-              <p>이 화면은 다음 개발 단계에서 구현됩니다.</p>
+              <p>아직 문이 닫혀 있다. 다음 개발 단계에서 열린다.</p>
             </div>
           )}
         </main>

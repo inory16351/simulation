@@ -1,0 +1,74 @@
+{
+  "styleRef": "public/assets/style/combat_reference.png",
+  "styleRefPresets": ["portrait", "wide", "crest"],
+  "style": "Style: match the attached style reference image EXACTLY (it shows the in-game combat look). Painted cut-paper puppet art: every part is a flat paper piece with rough hand-cut edges, thin dark outlines, small soft drop shadows between overlapping layers, bold simplified shapes, painterly brush texture inside flat shapes, NOT realistic rendering, NOT a photo-like painting. Dark and tense, low saturation charcoal, sand and tarnished bronze palette with blood-red accents, torch light from the left. No text, no letters, no watermark, no border.",
+  "presets": {
+    "portrait": "512x512 square head-and-shoulders portrait (bust) of the same kind of paper puppet character as in the reference, face slightly turned (3/4 view), face centered horizontally with the eyes at about 42% from the top, shoulders reaching the bottom edge. Head, neck, torso armor pieces and hair are separate cut-paper layers. Plain dark charcoal background (#14110F) with a faint warm glow behind the head. Paper-cut blood splatter and grime on skin and armor.",
+    "icon": "128x128 square icon on a fully TRANSPARENT background (alpha channel, no background color at all). A single bold silhouette symbol in tarnished bronze (#B08A4F) with subtle painterly texture and a thin dark outline, centered with small padding. Flat, readable at 24px.",
+    "crest": "256x256 square heraldic shield crest on a fully TRANSPARENT background (alpha channel). Painted bronze-rimmed shield, centered.",
+    "wide": "Wide painterly background image. Very dark overall so light UI text stays readable on top of it."
+  },
+  "items": [
+    { "id": "portrait.human.1", "out": "public/assets/portrait/human/base_1.png", "preset": "portrait", "prompt": "A battle-worn human gladiator, male, about 28 years old, short dark hair, stubble, stern expression, bronze shoulder armor." },
+    { "id": "portrait.human.2", "out": "public/assets/portrait/human/base_2.png", "preset": "portrait", "prompt": "A fierce human gladiatrix, female, about 25 years old, dark hair in tight warrior braids, cut on the cheekbone, leather and bronze armor." },
+    { "id": "portrait.human.3", "out": "public/assets/portrait/human/base_3.png", "preset": "portrait", "prompt": "A veteran human gladiator, male, about 40 years old, grey short beard, many old scars, one crooked nose, tired hard eyes, dented bronze armor." },
+    { "id": "portrait.human.4", "out": "public/assets/portrait/human/base_4.png", "preset": "portrait", "prompt": "A young human gladiator slave, male, about 18 years old, shaved head, thin face, iron slave collar, frightened but defiant eyes." },
+
+    { "id": "portrait.orc.1", "out": "public/assets/portrait/orc/base_1.png", "preset": "portrait", "prompt": "A brutal orc gladiator, male, grey-green skin, protruding lower tusks, black topknot, heavy brow, crude iron pauldron, war paint." },
+    { "id": "portrait.orc.2", "out": "public/assets/portrait/orc/base_2.png", "preset": "portrait", "prompt": "A female orc gladiator, olive-green skin, small tusks, long black braids with bone beads, fur and iron armor, fierce grin." },
+    { "id": "portrait.orc.3", "out": "public/assets/portrait/orc/base_3.png", "preset": "portrait", "prompt": "An old one-eared orc gladiator, dark green wrinkled skin, broken tusk, milky scarred eye, grey braided beard, battered armor." },
+    { "id": "portrait.orc.4", "out": "public/assets/portrait/orc/base_4.png", "preset": "portrait", "prompt": "A young orc gladiator, pale green skin, small tusks, shaved sides with a mohawk, leather harness, eager violent eyes." },
+
+    { "id": "portrait.minotaur.1", "out": "public/assets/portrait/minotaur/base_1.png", "preset": "portrait", "prompt": "A minotaur gladiator: massive black-furred bull head on a muscular humanoid body, one broken horn, iron nose ring, heavy chain around the neck." },
+    { "id": "portrait.minotaur.2", "out": "public/assets/portrait/minotaur/base_2.png", "preset": "portrait", "prompt": "A minotaur gladiator: brown-furred bull head, long curved horns with bronze caps, scarred snout, heavy leather straps." },
+    { "id": "portrait.minotaur.3", "out": "public/assets/portrait/minotaur/base_3.png", "preset": "portrait", "prompt": "An old minotaur gladiator: grey-white fur, chipped horns, clouded eye, deep scars across the muzzle, rusted iron collar." },
+    { "id": "portrait.minotaur.4", "out": "public/assets/portrait/minotaur/base_4.png", "preset": "portrait", "prompt": "A young minotaur gladiator: red-brown fur, short sharp horns, wild eyes, bronze ring in the ear, rope binding on the shoulders." },
+
+    { "id": "portrait.elf.1", "out": "public/assets/portrait/elf/base_1.png", "preset": "portrait", "prompt": "An elf gladiator, male, long pointed ears, sharp angular features, long silver hair tied back, pale skin, fine scale armor, cold calm eyes." },
+    { "id": "portrait.elf.2", "out": "public/assets/portrait/elf/base_2.png", "preset": "portrait", "prompt": "An elf gladiatrix, female, long pointed ears, dark hair cut short, green leaf-pattern face tattoos, leather armor, intense stare." },
+    { "id": "portrait.elf.3", "out": "public/assets/portrait/elf/base_3.png", "preset": "portrait", "prompt": "An ancient elf gladiator, ageless face with faint lines, long white hair, pointed ears with silver rings, rune-etched bronze armor, glowing faint blue runes." },
+    { "id": "portrait.elf.4", "out": "public/assets/portrait/elf/base_4.png", "preset": "portrait", "prompt": "A young elf gladiator, androgynous, long pointed ears, auburn hair in a single braid, bruised face, simple leather armor." },
+
+    { "id": "portrait.dwarf.1", "out": "public/assets/portrait/dwarf/base_1.png", "preset": "portrait", "prompt": "A dwarf gladiator, male, broad face, huge braided red beard with iron rings, bald head with scars, heavy plate armor." },
+    { "id": "portrait.dwarf.2", "out": "public/assets/portrait/dwarf/base_2.png", "preset": "portrait", "prompt": "A dwarf gladiatrix, female, stocky, brown hair in thick braids, soot-marked face, steel gorget and plate pauldrons." },
+    { "id": "portrait.dwarf.3", "out": "public/assets/portrait/dwarf/base_3.png", "preset": "portrait", "prompt": "An old dwarf gladiator, long white forked beard, deep wrinkles, burn scars, heavy dented helm pushed back." },
+    { "id": "portrait.dwarf.4", "out": "public/assets/portrait/dwarf/base_4.png", "preset": "portrait", "prompt": "A young dwarf gladiator, short black beard, determined face, chainmail hood, bronze armor." },
+
+    { "id": "portrait.lizardfolk.1", "out": "public/assets/portrait/lizardfolk/base_1.png", "preset": "portrait", "prompt": "A lizardfolk gladiator, reptilian humanoid, dark green scales, bony head frill, yellow slit-pupil eyes, sharp teeth, leather harness." },
+    { "id": "portrait.lizardfolk.2", "out": "public/assets/portrait/lizardfolk/base_2.png", "preset": "portrait", "prompt": "A lizardfolk gladiator, reptilian humanoid, mottled brown and ochre scales, crocodile-like snout, bronze nose stud, net slung over the shoulder." },
+    { "id": "portrait.lizardfolk.3", "out": "public/assets/portrait/lizardfolk/base_3.png", "preset": "portrait", "prompt": "An old lizardfolk gladiator, reptilian humanoid, faded grey-green scales, missing scales and scars, clouded eye, crest of spines." },
+    { "id": "portrait.lizardfolk.4", "out": "public/assets/portrait/lizardfolk/base_4.png", "preset": "portrait", "prompt": "A young lizardfolk gladiator, reptilian humanoid, bright teal-green scales, small frill, curious cold eyes, simple loincloth harness." },
+
+    { "id": "portrait.beastkin.1", "out": "public/assets/portrait/beastkin/base_1.png", "preset": "portrait", "prompt": "A lion-folk beastkin gladiator, male, lion head with a dark golden mane, feline eyes, gold ear cuffs, Egyptian-style bronze collar armor." },
+    { "id": "portrait.beastkin.2", "out": "public/assets/portrait/beastkin/base_2.png", "preset": "portrait", "prompt": "A jackal-folk beastkin gladiatrix, female, black jackal head with tall ears, kohl-lined eyes, lapis lazuli jewelry, light armor." },
+    { "id": "portrait.beastkin.3", "out": "public/assets/portrait/beastkin/base_3.png", "preset": "portrait", "prompt": "An old lioness beastkin gladiator, female, tawny fur greying at the muzzle, torn ear, scarred face, worn bronze armor." },
+    { "id": "portrait.beastkin.4", "out": "public/assets/portrait/beastkin/base_4.png", "preset": "portrait", "prompt": "A young jackal-folk beastkin gladiator, male, sandy fur, big ears, eager eyes, leather and linen armor." },
+
+    { "id": "ui.bg_main", "out": "public/assets/ui/bg_main.jpg", "preset": "wide", "prompt": "1920x1080. Interior wall of an ancient gladiator school at night: rough stone blocks, faded fresco fragments, hanging weapons in deep shadow, sand on the floor, faint torch glow at the edges. Mostly near-black (#14110F), low contrast, no focal subject in the center." },
+    { "id": "ui.sidebar", "out": "public/assets/ui/sidebar.jpg", "preset": "wide", "prompt": "400x1200 tall vertical strip. Dark weathered leather and wood panel with bronze studs along the edges, worn and stained, near-black overall, subtle texture only." },
+    { "id": "ui.topbar", "out": "public/assets/ui/topbar.jpg", "preset": "wide", "prompt": "1920x200 very wide strip. Silhouette of a colosseum skyline at dusk seen from below, dark red-brown sky, banners and torches on the walls, extremely dark lower half." },
+    { "id": "ui.arena_provincial", "out": "public/assets/ui/arena_provincial.jpg", "preset": "wide", "prompt": "1600x500 wide. Inside a provincial wooden-and-stone gladiator arena during a fight: blood-stained sand floor in the foreground, wooden stands packed with dark crowd silhouettes, torches and banners, dust in the air, layered depth like stacked paper cutouts. Center area left empty for UI." },
+    { "id": "ui.empty", "out": "public/assets/ui/empty.jpg", "preset": "wide", "prompt": "1200x600 wide. An empty arena gate at night: a broken sword stuck in blood-soaked sand, a closed iron portcullis behind it, a single torch, heavy darkness." },
+
+    { "id": "crest.aurelia", "out": "public/assets/crest/aurelia.png", "preset": "crest", "prompt": "Imperial crest: a golden eagle with spread wings over a deep purple (#5B2A4E) field with a laurel wreath." },
+    { "id": "crest.grommar", "out": "public/assets/crest/grommar.png", "preset": "crest", "prompt": "Barbarian tribal crest: a horned skull and two crossed axes over a frost blue-grey (#4E5D66) field, splashes of blood red." },
+    { "id": "crest.sylvaren", "out": "public/assets/crest/sylvaren.png", "preset": "crest", "prompt": "Elven crest: a silver ancient tree with sprawling roots over a moss green (#3F5A3A) field, delicate silver filigree." },
+    { "id": "crest.dolgar", "out": "public/assets/crest/dolgar.png", "preset": "crest", "prompt": "Dwarven crest: an anvil and hammer with a mountain behind, over a furnace orange-brown (#A0522D) field, iron rivets." },
+    { "id": "crest.karsea", "out": "public/assets/crest/karsea.png", "preset": "crest", "prompt": "Merchant sea league crest: a sea serpent coiled around a ship's anchor over a sea teal (#2F5F63) field, verdigris copper rim." },
+    { "id": "crest.kemer", "out": "public/assets/crest/kemer.png", "preset": "crest", "prompt": "Sun theocracy crest: a radiant sun disk above a jackal head over a desert gold (#B8913A) field with lapis blue (#2C3E73) accents." },
+
+    { "id": "icon.inbox", "out": "public/assets/icon/menu/inbox.png", "preset": "icon", "prompt": "A wax tablet with a stylus (messenger's tablet)." },
+    { "id": "icon.overview", "out": "public/assets/icon/menu/overview.png", "preset": "icon", "prompt": "A Roman courtyard gate arch." },
+    { "id": "icon.roster", "out": "public/assets/icon/menu/roster.png", "preset": "icon", "prompt": "A gladiator helmet with a crest (barracks)." },
+    { "id": "icon.training", "out": "public/assets/icon/menu/training.png", "preset": "icon", "prompt": "A wooden training dummy with a wooden sword." },
+    { "id": "icon.challenge", "out": "public/assets/icon/menu/challenge.png", "preset": "icon", "prompt": "A rolled scroll pierced by a dagger (challenge letter)." },
+    { "id": "icon.match", "out": "public/assets/icon/menu/match.png", "preset": "icon", "prompt": "Two crossed gladius swords over a round shield." },
+    { "id": "icon.league", "out": "public/assets/icon/menu/league.png", "preset": "icon", "prompt": "A stone column with ranked tally marks and a laurel on top (ranking)." },
+    { "id": "icon.market", "out": "public/assets/icon/menu/market.png", "preset": "icon", "prompt": "Iron shackles and a coin pouch (slave auction)." },
+    { "id": "icon.staff", "out": "public/assets/icon/menu/staff.png", "preset": "icon", "prompt": "A trainer's vine staff crossed with a key (household staff)." },
+    { "id": "icon.facilities", "out": "public/assets/icon/menu/facilities.png", "preset": "icon", "prompt": "A mason's hammer and a stone block with a column capital (construction)." },
+    { "id": "icon.finance", "out": "public/assets/icon/menu/finance.png", "preset": "icon", "prompt": "A small iron-bound treasure chest with coins." },
+    { "id": "icon.world", "out": "public/assets/icon/menu/world.png", "preset": "icon", "prompt": "A rolled map with a compass rose." },
+    { "id": "icon.hall", "out": "public/assets/icon/menu/hall.png", "preset": "icon", "prompt": "A tombstone stele with a laurel wreath hanging on it." }
+  ]
+}

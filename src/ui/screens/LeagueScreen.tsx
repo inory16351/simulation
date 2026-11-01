@@ -17,7 +17,7 @@ export function LeagueScreen({ state }: { state: GameState }) {
 
   return (
     <>
-      <h1 className="screen-title">일정·리그</h1>
+      <h1 className="screen-title">서열표</h1>
       <div className="screen-sub">
         RP 순위로 승강이 결정된다. 2부 1·2위 자동 승격, 3위 승강전 / 1부 8위 승강전, 9·10위 강등.
       </div>

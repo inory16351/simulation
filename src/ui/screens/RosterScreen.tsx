@@ -86,7 +86,7 @@ export function RosterScreen({ state, nav }: { state: GameState; nav: Nav }) {
   const fallen = state.fallen.map((id) => state.gladiators[id]);
   return (
     <>
-      <h1 className="screen-title">로스터</h1>
+      <h1 className="screen-title">막사</h1>
       <div className="screen-sub">
         검투사 {list.length}명 · 주급 합계 {list.reduce((s, g) => s + g.wage, 0).toLocaleString()} D
       </div>

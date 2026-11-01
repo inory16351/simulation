@@ -16,7 +16,7 @@ export function OverviewScreen({ state, nav }: { state: GameState; nav: Nav }) {
   return (
     <>
       <h1 className="screen-title">{player.name}</h1>
-      <div className="screen-sub">루두스 개요</div>
+      <div className="screen-sub">안뜰 — 루두스의 오늘</div>
       <div className="grid3">
         <div className="panel">
           <h3>재정</h3>
@@ -24,7 +24,7 @@ export function OverviewScreen({ state, nav }: { state: GameState; nav: Nav }) {
             <div style={{ fontSize: 24, color: "var(--parchment)", fontWeight: 700 }}>{player.treasury.toLocaleString()} D</div>
             <div style={{ color: "var(--text-dim)", marginTop: 4 }}>주급 합계 {wages} D/주</div>
             <div style={{ marginTop: 8, color: weeksOfCash < 8 ? "#e08b80" : "var(--text)" }}>
-              현재 금고로 급료를 <b>{weeksOfCash}주</b> 버틸 수 있다
+              지금 금고로 급료를 <b>{weeksOfCash}주</b> 더 줄 수 있다
             </div>
           </div>
         </div>
@@ -33,7 +33,7 @@ export function OverviewScreen({ state, nav }: { state: GameState; nav: Nav }) {
           <div className="pad">
             <div style={{ fontSize: 24, color: "var(--parchment)", fontWeight: 700 }}>{player.tier}부 {rank + 1}위</div>
             <div style={{ color: "var(--text-dim)", marginTop: 4 }}>RP {player.rp} · 1위와 {tier[0].rp - player.rp}점 차이</div>
-            <button className="btn" style={{ marginTop: 10 }} onClick={() => nav.go("league")}>순위표 보기</button>
+            <button className="btn" style={{ marginTop: 10 }} onClick={() => nav.go("league")}>서열표 보기</button>
           </div>
         </div>
         <div className="panel">

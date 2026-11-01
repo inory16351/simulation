@@ -1,7 +1,8 @@
-import { getSkill } from "../data";
+import { getSkill, getWeapon } from "../data";
 import { josa } from "../josa";
 import { Rng } from "../rng";
-import type { Gladiator, Id } from "../types";
+import { STANCE_NAMES } from "../tactics";
+import type { Gladiator, Id, WeaponClassId } from "../types";
 import type { BodyPart, CombatEvent } from "./sim";
 
 export type GoreLevel = "strong" | "normal" | "mild";
@@ -17,29 +18,31 @@ const PART_NAMES: Record<BodyPart, string> = {
   head: "머리", neck: "목", chest: "가슴", side: "옆구리", shoulder: "어깨", arm: "팔", thigh: "허벅지", leg: "정강이",
 };
 
-const STATUS_TEXT: Record<string, string> = {
-  stun: "비틀거리며 정신을 잃었다",
-  bound: "그물에 휘감겼다",
-  prone: "모래 위로 나뒹굴었다",
-  grappled: "목이 졸린 채 붙잡혔다",
-  blinded: "눈에 모래가 들어가 앞을 보지 못한다",
-  armor_break: "갑옷이 쩍 갈라졌다",
-  poison: "상처에서 검게 독이 번진다",
-  weakened: "팔다리에 힘이 빠져나간다",
+const STATUS_TEXT: Record<string, (n: string) => string> = {
+  stun: (n) => `${josa(n, "이/가")} 비틀거리며 정신을 놓았다.`,
+  bound: (n) => `그물이 ${josa(n, "을/를")} 휘감았다!`,
+  prone: (n) => `${josa(n, "이/가")} 모래 위로 나뒹군다.`,
+  grappled: (n) => `${josa(n, "이/가")} 목을 졸린 채 꼼짝 못 한다.`,
+  blinded: (n) => `${n}의 눈에 모래가 들어갔다. 앞이 안 보인다.`,
+  armor_break: (n) => `${n}의 갑옷이 쩍 갈라졌다.`,
+  poison: (n) => `${n}의 상처에서 검게 독이 번진다.`,
+  weakened: (n) => `${n}의 팔다리에서 힘이 쭉 빠진다.`,
+  hobbled: (n) => `${josa(n, "이/가")} 다리를 절뚝인다.`,
+  arm_wound: (n) => `${n}의 무기 든 팔이 축 늘어진다.`,
 };
 
 const SELF_TEXT: Record<string, string> = {
   "skill.iron_wall": "방패를 땅에 박고 몸을 웅크린다",
   "skill.riposte": "칼끝을 낮추고 상대의 빈틈을 노린다",
-  "skill.parry": "발끝으로 모래를 디디며 몸을 흔든다",
+  "skill.parry": "발놀림을 가볍게 하며 공격을 흘려낼 채비를 한다",
   "skill.catch_breath": "한 걸음 물러나 거친 숨을 고른다",
   "skill.taunt": "무기를 내리고 관중을 향해 두 팔을 벌린다",
-  "skill.flame_weapon": "칼날을 쓸어내리자 불꽃이 붙는다",
+  "skill.flame_weapon": "칼날을 손으로 훑자 불길이 확 일어난다",
   "skill.ward_rune": "허공에 룬을 그린다. 푸른 빛이 몸을 감싼다",
   "skill.adapt": "상대의 수를 읽고 자세를 바꾼다",
   "skill.war_cry": "짐승 같은 함성을 내지른다",
-  "skill.wind_step": "바람처럼 가벼워진다",
-  "skill.earth_stance": "두 발을 땅에 박아 넣는다. 꿈쩍도 하지 않는다",
+  "skill.wind_step": "몸놀림이 바람처럼 가벼워진다",
+  "skill.earth_stance": "두 발을 모래에 단단히 박는다. 이제 꿈쩍도 않는다",
   "skill.war_roar": "포효한다. 상대의 눈빛이 흔들린다",
 };
 
@@ -80,13 +83,15 @@ export function buildCommentary(
       case "attack": {
         const a = name(e.actor), d = name(e.target);
         const skill = e.skill ? getSkill(e.skill) : undefined;
-        const prefix = skill ? `[${skill.name}] ` : "";
+        const prefix = skill ? `${a}의 ${skill.name}! ` : "";
         const part = PART_NAMES[e.part];
         if (!e.hit) {
+          // 기술 이름으로 이미 공격자를 말했으면 문장에서 이름을 다시 쓰지 않는다
+          const who = skill ? "" : `${a}의 `;
           push(prefix + pickLine(rng, [
-            `${a}의 공격이 허공을 가른다.`,
+            `${who}공격이 허공을 가른다.`,
             `${josa(d, "이/가")} 몸을 틀어 피했다!`,
-            `${a}의 일격이 빗나갔다. 관중석에서 탄식이 터진다.`,
+            `${skill ? "하지만 " : who}빗나갔다. 관중석에서 탄식이 터진다.`,
           ]), "normal", e);
           break;
         }
@@ -99,26 +104,27 @@ export function buildCommentary(
         }
         const ratio = e.damage / e.maxHp;
         const hpText = ` (${d} ${e.hpAfter}/${e.maxHp})`;
+        const weapon = weaponWord(fighters[e.actor], e.skill);
         if (e.magic) {
-          push(`${prefix}${a}의 주술이 ${josa(d, "을/를")} 덮친다! 살이 타는 냄새가 퍼진다.${hpText}`, e.crit ? "crit" : "hit", e);
+          push(`${prefix}${skill ? "" : `${a}의 `}주술이 ${josa(d, "을/를")} 덮친다! 살 타는 냄새가 퍼진다.${hpText}`, e.crit ? "crit" : "hit", e);
         } else if (e.crit) {
-          push(prefix + bloodLine(rng, gore, a, d, part, "crit") + hpText, "crit", e);
+          push(prefix + bloodLine(rng, gore, a, d, part, "crit", weapon, !skill) + hpText, "crit", e);
         } else if (ratio > 0.12) {
-          push(prefix + bloodLine(rng, gore, a, d, part, "heavy") + hpText, "blood", e);
+          push(prefix + bloodLine(rng, gore, a, d, part, "heavy", weapon, !skill) + hpText, "blood", e);
         } else {
-          push(prefix + bloodLine(rng, gore, a, d, part, "light") + hpText, "hit", e);
+          push(prefix + bloodLine(rng, gore, a, d, part, "light", weapon, !skill) + hpText, "hit", e);
         }
         break;
       }
       case "status": {
         const n = name(e.target);
         if (e.resisted) push(`${josa(n, "은/는")} 버텨냈다!`, "normal", e);
-        else if (STATUS_TEXT[e.status]) push(`${josa(n, "이/가")} ${STATUS_TEXT[e.status]}.`, "hit", e);
+        else if (STATUS_TEXT[e.status]) push(STATUS_TEXT[e.status](n), "hit", e);
         break;
       }
       case "self": {
         const s = getSkill(e.skill);
-        push(`[${s.name}] ${josa(name(e.actor), "이/가")} ${SELF_TEXT[e.skill] ?? "자세를 가다듬는다"}.`, "normal", e);
+        push(`${josa(name(e.actor), "이/가")} ${SELF_TEXT[e.skill] ?? "자세를 가다듬는다"}. (${s.name})`, "normal", e);
         break;
       }
       case "crowd":
@@ -129,7 +135,7 @@ export function buildCommentary(
         push(`${josa(name(e.actor), "이/가")} 숨을 몰아쉰다.`, "normal", e);
         break;
       case "poison":
-        push(`독이 퍼진다. ${josa(name(e.target), "이/가")} 피를 토한다. (${e.hpAfter})`, "blood", e);
+        push(`독이 돈다. ${josa(name(e.target), "이/가")} 검은 피를 토한다. (${e.hpAfter})`, "blood", e);
         break;
       case "skip": {
         const n = name(e.actor);
@@ -141,8 +147,19 @@ export function buildCommentary(
         push(`▶ 피의 격노 — ${name(e.actor)}의 눈이 붉게 물든다.`, "crit", e);
         break;
       case "unbreakable":
-        push(`▶ 불굴 — 쓰러져야 할 ${josa(name(e.actor), "이/가")} 피투성이로 다시 일어선다!`, "crit", e);
+        push(`▶ 불굴 — 쓰러지나 싶던 ${josa(name(e.actor), "이/가")} 피투성이가 된 채 다시 일어선다!`, "crit", e);
         break;
+      case "doctrine": {
+        const n = name(e.actor);
+        const a = e.action;
+        const text =
+          a.type === "stance" ? `${josa(n, "이/가")} 자세를 바꾼다 — ${STANCE_NAMES[a.stance]}.`
+          : a.type === "skill" ? `${josa(n, "이/가")} 기회를 노린다. 노리는 건 ${josa(getSkill(a.skill)?.name ?? "한 방", "이다/다")}.`
+          : a.type === "rest" ? `${josa(n, "이/가")} 교범대로 물러나 숨을 돌린다.`
+          : `${josa(n, "이/가")} 거리를 좁혀 들어간다.`;
+        push(`▶ 교범 — ${text}`, "system", e);
+        break;
+      }
       case "surrender":
         push(`${josa(name(e.actor), "이/가")} 무릎을 꿇고 손가락을 들어 올린다. 항복이다.`, "system", e);
         break;
@@ -152,7 +169,7 @@ export function buildCommentary(
           : `${josa(name(e.target), "이/가")} 쓰러졌다. 관중이 숨을 죽인다…`, "death", e);
         break;
       case "timeout":
-        push("시간이 다 됐다! 심판이 판정에 들어간다.", "system", e);
+        push("시간 종료! 심판들이 판정에 들어간다.", "system", e);
         break;
       case "verdict": {
         const n = name(e.target);
@@ -164,9 +181,9 @@ export function buildCommentary(
         } else if (e.died) {
           push(e.rule === "sudden"
             ? `사투에 자비는 없다. ${josa(opponentOf(events, e.target, fighters), "이/가")} 마지막 일격을 내리꽂는다. ${josa(n, "은/는")} 다시 일어나지 못했다.`
-            : `${josa(n, "이/가")} 일어나지 못한다… 의무병이 달려가지만, 이미 숨이 멎었다.`, "death", e);
+            : `${josa(n, "이/가")} 일어나지 못한다. 의무병이 뛰어들었지만 이미 숨이 끊긴 뒤였다.`, "death", e);
         } else if (e.rule === "sudden") {
-          push(`기적이다! 숨이 붙어 있다. ${josa(n, "은/는")} 들것에 실려 나간다.`, "crowd", e);
+          push(`기적이다! 아직 숨이 붙어 있다. ${josa(n, "이/가")} 들것에 실려 나간다.`, "crowd", e);
         }
         break;
       }
@@ -188,29 +205,62 @@ function opponentOf(events: CombatEvent[], id: Id, fighters: Record<Id, Gladiato
   return fighters[start.a === id ? start.b : start.a].name;
 }
 
-function bloodLine(rng: Rng, gore: GoreLevel, a: string, d: string, part: string, level: "light" | "heavy" | "crit"): string {
+type WeaponKind = "cut" | "stab" | "blunt";
+
+const WEAPON_WORDS: Record<WeaponClassId, { noun: string; kind: WeaponKind }> = {
+  sword: { noun: "칼", kind: "cut" },
+  greatsword: { noun: "대검", kind: "cut" },
+  axe: { noun: "도끼", kind: "cut" },
+  dagger: { noun: "단검", kind: "stab" },
+  spear: { noun: "창", kind: "stab" },
+  trident_net: { noun: "삼지창", kind: "stab" },
+  throwing: { noun: "투창", kind: "stab" },
+  mace: { noun: "철퇴", kind: "blunt" },
+  unarmed: { noun: "주먹", kind: "blunt" },
+  shield: { noun: "방패", kind: "blunt" },
+  focus: { noun: "지팡이", kind: "blunt" },
+};
+
+function weaponWord(g: Gladiator | undefined, skillId?: string): { noun: string; kind: WeaponKind } {
+  if (skillId === "skill.javelin") return WEAPON_WORDS.throwing;
+  if (skillId === "skill.shield_bash") return WEAPON_WORDS.shield;
+  if (skillId === "skill.horn_charge") return { noun: "뿔", kind: "stab" };
+  if (skillId === "skill.venom_bite") return { noun: "이빨", kind: "stab" };
+  if (skillId === "skill.pounce") return { noun: "발톱", kind: "cut" };
+  const w = g ? getWeapon(g.equipment.main) : undefined;
+  return w ? WEAPON_WORDS[w.class] : WEAPON_WORDS.unarmed;
+}
+
+function bloodLine(rng: Rng, gore: GoreLevel, a: string, d: string, part: string, level: "light" | "heavy" | "crit", weapon: { noun: string; kind: WeaponKind }, withName = true): string {
+  const w = withName ? `${a}의 ${josa(weapon.noun, "이/가")}` : josa(weapon.noun, "이/가");
+  const p = josa(part, "을/를");
+  const pSubj = josa(part, "이/가");
   if (gore === "mild") {
-    return level === "light" ? `${a}의 공격이 ${d}의 ${josa(part, "을/를")} 스쳤다.` : `${a}의 강한 일격이 ${d}의 ${josa(part, "을/를")} 때렸다!`;
+    return level === "light" ? `${w} ${d}의 ${p} 스쳤다.` : level === "heavy" ? `${w} ${d}의 ${p} 제대로 때렸다!` : `치명타! ${w} ${d}의 ${p} 정통으로 맞혔다!`;
   }
   const strong = gore === "strong";
-  const lines = {
-    light: [
-      `${a}의 칼날이 ${d}의 ${josa(part, "을/를")} 스친다. 붉은 선이 그어진다.`,
-      `${d}의 ${josa(part, "이/가")} 베였다. 피가 한 방울씩 모래에 떨어진다.`,
-      `${a}의 공격이 ${d}의 ${josa(part, "을/를")} 파고든다.`,
-    ],
-    heavy: [
-      `${a}의 일격이 ${d}의 ${josa(part, "을/를")} 깊게 가른다! 피가 튄다.`,
-      `${d}의 ${part}에서 피가 솟구친다! ${strong ? "모래가 붉게 젖는다." : ""}`,
-      `둔탁한 소리. ${d}의 ${josa(part, "이/가")} 짓이겨졌다.`,
-    ],
-    crit: strong
-      ? [
-          `치명타! ${a}의 무기가 ${d}의 ${josa(part, "을/를")} 꿰뚫었다. 피가 분수처럼 뿜어져 나온다!`,
-          `치명타! 살이 찢기고 뼈가 부러지는 소리. ${d}의 ${part}에서 검붉은 피가 쏟아진다!`,
-          `치명타! ${a}의 일격에 ${d}의 ${josa(part, "이/가")} 갈라졌다. 관중석 앞줄까지 피가 튄다!`,
-        ]
-      : [`치명타! ${a}의 일격이 ${d}의 ${josa(part, "을/를")} 정통으로 갈랐다!`],
+  const lines: Record<WeaponKind, Record<typeof level, string[]>> = {
+    cut: {
+      light: [`${w} ${d}의 ${p} 스친다. 피가 배어 나온다.`, `${d}의 ${pSubj} 얕게 베였다.`],
+      heavy: [`${w} ${d}의 ${p} 깊게 가른다! 피가 튄다.`, `${d}의 ${pSubj} 쩍 갈라진다!${strong ? " 모래가 붉게 젖어 든다." : ""}`],
+      crit: strong
+        ? [`치명타! ${w} ${d}의 ${p} 그대로 갈라 버린다. 관중석 앞줄까지 피가 튄다!`, `치명타! ${d}의 ${part}에서 피가 뿜어져 나온다. 살점이 모래 위로 떨어진다!`]
+        : [`치명타! ${w} ${d}의 ${p} 깊숙이 베었다!`],
+    },
+    stab: {
+      light: [`${w} ${d}의 ${p} 얕게 찌른다. 피가 번진다.`, `${w} ${d}의 ${p} 긁고 지나간다.`],
+      heavy: [`${w} ${d}의 ${part}에 깊이 박힌다! 뽑아내자 피가 솟는다.`, `${w} ${d}의 ${p} 파고든다! ${d}의 입에서 신음이 터진다.`],
+      crit: strong
+        ? [`치명타! ${w} ${d}의 ${p} 꿰뚫었다. 피가 왈칵 쏟아진다!`, `치명타! ${w} ${d}의 ${p} 관통했다. 등 뒤로 핏방울이 흩날린다!`]
+        : [`치명타! ${w} ${d}의 ${p} 꿰뚫었다!`],
+    },
+    blunt: {
+      light: [`${w} ${d}의 ${p} 때린다. 살갗이 터지며 피가 맺힌다.`, `${w} ${d}의 ${p} 스치듯 후려친다.`],
+      heavy: [`퍽! ${withName ? `${a}의 ` : ""}${weapon.noun}에 ${d}의 ${pSubj} 짓이겨진다.`, `둔탁한 소리와 함께 ${josa(d, "이/가")} 휘청인다. ${part}에서 피가 흐른다.`],
+      crit: strong
+        ? [`치명타! 뼈 부러지는 소리가 경기장에 울린다. ${d}의 ${pSubj} 기괴하게 꺾였다!`, `치명타! ${w} ${d}의 ${p} 으스러뜨린다. 피와 이빨 조각이 모래 위로 튄다!`]
+        : [`치명타! ${w} ${d}의 ${p} 정통으로 후려쳤다!`],
+    },
   };
-  return rng.pick(lines[level]).trim();
+  return rng.pick(lines[weapon.kind][level]);
 }

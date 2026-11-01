@@ -36,7 +36,7 @@ export function applyMatchResult(state: GameState, r: MatchResult, opt: ApplyOpt
     const dead = state.gladiators[r.died];
     dead.alive = false;
     dead.injury = undefined;
-    dead.diedAt = { season: state.season, week: state.week, cause: `${w.name}에게 패배` };
+    dead.diedAt = { season: state.season, day: state.day, cause: `${w.name}에게 패배` };
     w.record.kills++;
     // 동료의 죽음은 루두스 전체의 사기를 꺾는다
     const home = ludusOf(dead.id);

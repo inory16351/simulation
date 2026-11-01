@@ -1,9 +1,9 @@
 import { BALANCE, getArmor, getRace, getSkill, getStyle, getWeapon, type ArmorDef, type SkillDef, type WeaponDef } from "../data";
 import { effectiveAttr } from "../gladiator";
 import { Rng } from "../rng";
+import { defaultDoctrine, type Doctrine, type Focus, type RuleAction, type Stance } from "../tactics";
 import type { AttrId, DeathRule, Gladiator, Id, Injury } from "../types";
 
-export type Tactic = "aggressive" | "balanced" | "defensive" | "showman" | "quick";
 export type EndReason = "ko" | "surrender" | "timeout";
 export type HighlightKind = "entrance" | "crit" | "race_skill" | "execute" | "comeback" | "missio" | "death";
 export type BodyPart = "head" | "neck" | "chest" | "side" | "shoulder" | "arm" | "thigh" | "leg";
@@ -25,6 +25,7 @@ export type CombatEvent =
   | { t: "enrage"; actor: Id }
   | { t: "unbreakable"; actor: Id }
   | { t: "surrender"; actor: Id }
+  | { t: "doctrine"; actor: Id; action: RuleAction }
   | { t: "ko"; target: Id; crit: boolean }
   | { t: "timeout" }
   | { t: "verdict"; target: Id; rule: DeathRule; deathChance: number; died: boolean }
@@ -34,8 +35,8 @@ export type CombatEvent =
 export interface MatchOptions {
   rule: DeathRule;
   seed: number;
-  tactics?: [Tactic, Tactic];
-  allowSurrender?: [boolean, boolean];
+  /** 지정하지 않으면 각 검투사의 교범을 쓴다 */
+  doctrines?: [Doctrine | undefined, Doctrine | undefined];
   medicalLevel?: [number, number];
 }
 
@@ -76,8 +77,12 @@ interface Fighter {
   wardHp: number;
   usedUnbreakable: boolean;
   usedRaceSkill: boolean;
-  tactic: Tactic;
-  allowSurrender: boolean;
+  doctrine: Doctrine;
+  stance: Stance;
+  /** 이번 판에서 이미 알린 조건 명령 */
+  firedRules: Set<number>;
+  /** 조건 명령이 지정한 최우선 기술 */
+  priorityStake?: string;
   damageDealt: number;
   damageTaken: number;
   crowdContribution: number;
@@ -88,7 +93,16 @@ const PART_WEIGHTS: Record<BodyPart, number> = {
   head: 1, neck: 0.4, chest: 3, side: 2, shoulder: 2, arm: 2.5, thigh: 2, leg: 1.5,
 };
 
-function makeFighter(g: Gladiator, idx: 0 | 1, tactic: Tactic, allowSurrender: boolean): Fighter {
+const FOCUS_HIT: Record<Focus, number> = { spread: 0, head: -0.15, body: 0.1, legs: -0.05, arm: -0.1 };
+const FOCUS_PARTS: Record<Focus, Partial<Record<BodyPart, number>>> = {
+  spread: PART_WEIGHTS,
+  head: { head: 4, neck: 1, shoulder: 1 },
+  body: { chest: 4, side: 3, shoulder: 1 },
+  legs: { thigh: 3, leg: 3, side: 0.5 },
+  arm: { arm: 4, shoulder: 2 },
+};
+
+function makeFighter(g: Gladiator, idx: 0 | 1, doctrine: Doctrine): Fighter {
   const main = getWeapon(g.equipment.main) ?? getWeapon("cestus")!;
   const offW = g.equipment.off ? getWeapon(g.equipment.off) : undefined;
   const offA = g.equipment.off ? getArmor(g.equipment.off) : undefined;
@@ -112,7 +126,7 @@ function makeFighter(g: Gladiator, idx: 0 | 1, tactic: Tactic, allowSurrender: b
     wardHp: 0,
     usedUnbreakable: false,
     usedRaceSkill: false,
-    tactic, allowSurrender,
+    doctrine, stance: doctrine.stance, firedRules: new Set(),
     damageDealt: 0, damageTaken: 0, crowdContribution: 0,
     hasPassive: (id) => g.skills.passive.includes(id),
   };
@@ -122,6 +136,7 @@ function makeFighter(g: Gladiator, idx: 0 | 1, tactic: Tactic, allowSurrender: b
 function attr(f: Fighter, a: AttrId): number {
   let v = effectiveAttr(f.g, a);
   if (f.statuses.has("weakened") && (a === "str" || a === "acc")) v -= 3;
+  if (f.statuses.has("hobbled") && (a === "agi" || a === "eva")) v -= 4;
   if (a === "agi" && f.armor && !(f.g.race === "dwarf")) v -= f.armor.agiPenalty ?? 0;
   if (a === "acc" && f.helmet?.accPenalty) v -= f.helmet.accPenalty;
   if (a === "show" && f.helmet?.showBonus) v += f.helmet.showBonus;
@@ -130,11 +145,10 @@ function attr(f: Fighter, a: AttrId): number {
 
 export function simulateMatch(a: Gladiator, b: Gladiator, opt: MatchOptions): MatchResult {
   const rng = new Rng(opt.seed);
-  const tactics = opt.tactics ?? ["balanced", "balanced"];
-  const surrender = opt.allowSurrender ?? [true, true];
+  const docs = [opt.doctrines?.[0] ?? a.doctrine ?? defaultDoctrine(a), opt.doctrines?.[1] ?? b.doctrine ?? defaultDoctrine(b)];
   const F: [Fighter, Fighter] = [
-    makeFighter(a, 0, tactics[0], surrender[0]),
-    makeFighter(b, 1, tactics[1], surrender[1]),
+    makeFighter(a, 0, docs[0]),
+    makeFighter(b, 1, docs[1]),
   ];
   const events: CombatEvent[] = [];
   const emit = (e: CombatEvent) => events.push(e);
@@ -171,6 +185,8 @@ export function simulateMatch(a: Gladiator, b: Gladiator, opt: MatchOptions): Ma
   const dealDamage = (att: Fighter, def: Fighter, amount: number) => {
     let dmg = amount;
     if (def.statuses.has("adapt")) dmg = Math.round(dmg * 0.5);
+    if (def.stance === "bulwark") dmg = Math.round(dmg * 0.9);
+    else if (def.stance === "assault") dmg = Math.round(dmg * 1.05);
     if (def.wardHp > 0) {
       const absorbed = Math.min(def.wardHp, dmg);
       def.wardHp -= absorbed;
@@ -214,6 +230,7 @@ export function simulateMatch(a: Gladiator, b: Gladiator, opt: MatchOptions): Ma
     if (def.statuses.has("evade_up")) hitChance -= 0.3;
     if (def.statuses.has("wind_step")) hitChance -= 0.4;
     if (def.statuses.has("bound")) hitChance += 0.25;
+    if (spec.magicDamage === undefined) hitChance += FOCUS_HIT[att.doctrine.focus];
     if (def.statuses.has("prone")) hitChance += 0.15;
     if (def.statuses.has("exposed")) hitChance += 0.2;
     if (def.g.race === "elf") hitChance -= 0.1;
@@ -222,7 +239,7 @@ export function simulateMatch(a: Gladiator, b: Gladiator, opt: MatchOptions): Ma
     if (def.g.traits.includes("shadow") && round <= 3) hitChance -= 0.2;
     hitChance = Math.max(C.hitMin, Math.min(C.hitMax, hitChance));
 
-    const part = rng.weighted(PART_WEIGHTS);
+    const part = rng.weighted(spec.magicDamage !== undefined ? PART_WEIGHTS : FOCUS_PARTS[att.doctrine.focus]);
     const hit = spec.autoHit || rng.chance(hitChance);
     if (!hit) {
       emit({ t: "attack", actor: att.g.id, target: def.g.id, skill: spec.skill?.id, hit: false, blocked: false, crit: false, damage: 0, part, hpAfter: def.hp, maxHp: def.maxHp, magic });
@@ -245,7 +262,7 @@ export function simulateMatch(a: Gladiator, b: Gladiator, opt: MatchOptions): Ma
     }
 
     let raw: number;
-    let critChance = attr(att, "acc") * C.critPerAcc + w.crit + spec.critAdd;
+    let critChance = attr(att, "acc") * C.critPerAcc + w.crit + spec.critAdd + (att.doctrine.focus === "head" ? 0.1 : 0);
     if (magic) {
       const focusBonus = (att.main.magicBonus ?? 0) + (att.off?.magicBonus ?? 0);
       raw = spec.magicDamage! * (1 + attr(att, "mag") / 20) * (1 + focusBonus);
@@ -257,6 +274,7 @@ export function simulateMatch(a: Gladiator, b: Gladiator, opt: MatchOptions): Ma
       if (att.statuses.has("flame")) raw *= 1.4;
       if (def.statuses.has("bound") && w.boundBonus) raw *= 1 + w.boundBonus;
       if (def.statuses.has("prone")) raw *= 1.3;
+      if (att.statuses.has("arm_wound")) raw *= 0.75;
     }
     if (att.g.race === "orc" && hpRatio(att) <= 0.3) raw *= 1.25;
     if (def.g.race === "orc" && hpRatio(def) <= 0.3) raw *= 1.1;
@@ -284,6 +302,12 @@ export function simulateMatch(a: Gladiator, b: Gladiator, opt: MatchOptions): Ma
       emit({ t: "highlight", kind: spec.skill?.id === "skill.execute" ? "execute" : "crit", actors: [att.g.id, def.g.id] });
     } else if (dealt > def.maxHp * 0.15) addCrowd(3, att);
 
+    if (!blocked && !magic && def.hp > 0) {
+      const focus = att.doctrine.focus;
+      if (focus === "legs" && rng.chance(0.3)) applyStatus(def, "hobbled", 2);
+      else if (focus === "arm" && rng.chance(0.3)) applyStatus(def, "arm_wound", 2);
+      else if (focus === "head" && rng.chance(0.12 * (def.g.traits.includes("glass_jaw") ? 2 : 1))) applyStatus(def, "stun", 1);
+    }
     if (!blocked && w.stun && def.hp > 0) {
       const p = w.stun * (def.g.traits.includes("glass_jaw") ? 2 : 1);
       if (rng.chance(p)) applyStatus(def, "stun", 1);
@@ -324,19 +348,72 @@ export function simulateMatch(a: Gladiator, b: Gladiator, opt: MatchOptions): Ma
   const scoreSkill = (f: Fighter, s: SkillDef): number => {
     const t = opp(f);
     let score = 1.2;
-    const tac = f.tactic;
-    if (s.kind === "attack") score += tac === "aggressive" ? 0.5 : tac === "quick" ? 0.8 : 0.3;
-    if (s.kind === "control") score += 0.6;
-    if (s.kind === "self") score += tac === "defensive" ? 0.6 : 0.1;
+    const st = f.stance;
+    if (s.kind === "attack") score += st === "assault" ? 0.5 : st === "blitz" ? 0.8 : st === "bulwark" ? 0 : 0.3;
+    if (s.kind === "control") score += st === "harass" ? 0.9 : 0.6;
+    if (s.kind === "self") score += st === "bulwark" ? 0.7 : 0.1;
+    if (s.kind === "move") score += st === "harass" ? 0.8 : 0;
+    // 기술 순서: 앞일수록 먼저
+    const idx = f.doctrine.order.indexOf(s.id);
+    if (idx >= 0) score += (4 - idx) * 0.25;
+    if (f.priorityStake === s.id) score += 5;
     if (s.id === "skill.catch_breath") score = f.sta < f.maxSta * 0.25 ? 3 : -1;
-    if (s.id === "skill.taunt") score = tac === "showman" ? 2 : hpRatio(f) > 0.6 && hpRatio(t) < 0.5 ? 1.2 : 0.2;
+    if (s.id === "skill.taunt") score = st === "showman" ? 2.5 : hpRatio(f) > 0.6 && hpRatio(t) < 0.5 ? 1.2 : 0.2;
     if (s.id === "skill.flourish") score = 3;
     if (s.id === "skill.execute") score = 3;
     if (s.id === "skill.ward_rune" || s.id === "skill.iron_wall") score += hpRatio(f) < 0.5 ? 0.8 : 0;
     if (s.id === "skill.net_throw") score = 2.2;
-    if (s.id === "skill.sand_throw") score = tac === "showman" ? 0 : 1;
+    if (s.id === "skill.sand_throw") score = st === "showman" ? 0 : 1;
     if (s.race) score += 0.4;
     return score;
+  };
+
+  /** 사거리가 닿는 한에서 교범이 원하는 거리 */
+  const desiredRange = (f: Fighter, styleRange: number): number => {
+    const pref = f.doctrine.range;
+    const want = pref === "style" ? styleRange : pref === "close" ? 0 : pref === "mid" ? 1 : 2;
+    // 실제로 쓸 수 있는 원거리 수단이 남아 있을 때만 멀리 선다
+    const hasRanged = f.g.skills.active.some((id) => {
+      const sk = getSkill(id);
+      return !!sk?.ranged && (sk.mana ?? 0) <= f.mana && (!sk.useAmmo || f.ammo > 0) && (!sk.requireNet || f.netReady);
+    });
+    return Math.min(want, hasRanged ? 2 : reach(f));
+  };
+
+  /** 조건 명령 판정. 숙련도와 판단력이 낮으면 상황을 늦게 알아챈다 */
+  const checkRules = (f: Fighter): RuleAction | undefined => {
+    const t = opp(f);
+    const notice = Math.min(1, 0.4 + f.doctrine.familiarity / 200 + attr(f, "dec") / 50);
+    for (let i = 0; i < f.doctrine.rules.length; i++) {
+      const { cond, action } = f.doctrine.rules[i];
+      const met =
+        cond.type === "myHpBelow" ? hpRatio(f) * 100 <= cond.value
+        : cond.type === "oppHpBelow" ? hpRatio(t) * 100 <= cond.value
+        : cond.type === "staBelow" ? (f.sta / f.maxSta) * 100 <= cond.value
+        : cond.type === "oppDisabled" ? t.statuses.has("bound") || t.statuses.has("prone") || t.statuses.has("stun")
+        : round >= cond.value;
+      if (!met || !rng.chance(notice)) continue;
+      // 자세 변경은 한 번만. 기술·휴식·접근은 조건이 맞는 동안 계속 적용
+      if (action.type === "stance") {
+        if (f.firedRules.has(i)) continue;
+        f.firedRules.add(i);
+        f.stance = action.stance;
+        emit({ t: "doctrine", actor: f.g.id, action });
+        continue;
+      }
+      if (action.type === "skill") {
+        if (f.priorityStake !== action.skill) emit({ t: "doctrine", actor: f.g.id, action });
+        f.priorityStake = action.skill;
+        return action;
+      }
+      if (!f.firedRules.has(i)) {
+        f.firedRules.add(i);
+        emit({ t: "doctrine", actor: f.g.id, action });
+      }
+      return action;
+    }
+    f.priorityStake = undefined;
+    return undefined;
   };
 
   const act = (f: Fighter) => {
@@ -344,6 +421,17 @@ export function simulateMatch(a: Gladiator, b: Gladiator, opt: MatchOptions): Ma
     const options: { score: number; run: () => void }[] = [];
     const noise = ((21 - attr(f, "dec")) / 20) * 0.8;
     const style = getStyle(f.g.style);
+    const ruleAction = checkRules(f);
+    if (ruleAction?.type === "rest") {
+      const breath = getSkill("skill.catch_breath");
+      if (f.g.skills.active.includes(breath.id) && skillUsable(f, breath)) useSkill(f, t, breath);
+      else rest(f);
+      return;
+    }
+    if (ruleAction?.type === "close" && dist > 0 && !f.statuses.has("bound")) {
+      move(f, -1);
+      return;
+    }
 
     for (const sid of f.g.skills.active) {
       const s = getSkill(sid);
@@ -351,13 +439,15 @@ export function simulateMatch(a: Gladiator, b: Gladiator, opt: MatchOptions): Ma
       options.push({ score: scoreSkill(f, s) + rng.next() * noise, run: () => useSkill(f, t, s) });
     }
     if (dist <= reach(f)) {
-      const aggr = (style.aggression + attr(f, "agg") / 40) * (f.tactic === "defensive" ? 0.7 : 1);
+      const stanceMult = { assault: 1.35, balanced: 1, bulwark: 0.85, harass: 0.95, showman: 0.85, blitz: 1.15 }[f.stance];
+      const aggr = (style.aggression + attr(f, "agg") / 40) * stanceMult;
       options.push({ score: 0.6 + aggr + rng.next() * noise, run: () => basicAttack(f, t) });
     }
     if (!f.statuses.has("bound")) {
-      const desired = Math.min(style.preferredRange, reach(f));
-      if (dist > reach(f)) options.push({ score: 1.5 + rng.next() * noise, run: () => move(f, -1) });
-      else if (dist < desired) options.push({ score: 0.9 + rng.next() * noise, run: () => move(f, 1) });
+      const desired = desiredRange(f, style.preferredRange);
+      const keepAway = f.stance === "harass" ? 0.2 : 0;
+      if (dist > Math.max(reach(f), desired)) options.push({ score: 1.5 + rng.next() * noise, run: () => move(f, -1) });
+      else if (dist < desired) options.push({ score: 0.9 + keepAway + rng.next() * noise, run: () => move(f, 1) });
     }
     if (f.sta < f.maxSta * 0.15) options.push({ score: 1.4, run: () => rest(f) });
     if (options.length === 0) options.push({ score: 0, run: () => rest(f) });
@@ -478,7 +568,7 @@ export function simulateMatch(a: Gladiator, b: Gladiator, opt: MatchOptions): Ma
   };
 
   const checkSurrender = (f: Fighter): boolean => {
-    if (!f.allowSurrender || f.momentum > C.surrenderMomentum || hpRatio(f) > C.surrenderHpRatio) return false;
+    if (!f.doctrine.allowSurrender || f.momentum > C.surrenderMomentum || hpRatio(f) > C.surrenderHpRatio) return false;
     const grit = attr(f, "grit");
     if (grit >= 20) return false;
     if (rng.chance((20 - grit) * C.surrenderPerGrit)) {

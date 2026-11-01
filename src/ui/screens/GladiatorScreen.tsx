@@ -4,12 +4,14 @@ import {
   MENTAL, PHYSICAL, TECHNICAL, ATTR_NAMES, WEAPON_CLASS_NAMES, WEAPON_CLASSES,
   type AttrId, type GameState,
 } from "../../core/types";
+import { dateLabel } from "../../core/calendar";
 import type { Nav } from "../App";
+import { DoctrinePanel } from "../components/DoctrinePanel";
 import { Bar, Portrait, Stars, attrClass } from "../components/common";
 
 const STATUS_NAMES = { slave: "노예", free: "자유민", freedman: "해방민" };
 
-export function GladiatorScreen({ state, id, nav }: { state: GameState; id: string; nav: Nav }) {
+export function GladiatorScreen({ state, id, nav, update }: { state: GameState; id: string; nav: Nav; update: (fn: (d: GameState) => void) => void }) {
   const g = state.gladiators[id];
   const race = getRace(g.race);
   const style = getStyle(g.style);
@@ -39,7 +41,7 @@ export function GladiatorScreen({ state, id, nav }: { state: GameState; id: stri
   return (
     <>
       <div style={{ marginBottom: 10 }}>
-        <button className="btn" onClick={() => nav.go("roster")}>← 로스터</button>
+        <button className="btn" onClick={() => nav.go("roster")}>← 막사</button>
       </div>
       <div className="panel">
         <div className="pad profile-head">
@@ -60,7 +62,7 @@ export function GladiatorScreen({ state, id, nav }: { state: GameState; id: stri
               <dd>
                 {isMine
                   ? <Stars value={Math.max(ca, g.hidden.pa - 15)} range={Math.min(200, g.hidden.pa + 15)} />
-                  : <span style={{ color: "var(--text-faint)" }}>스카우트 필요</span>}
+                  : <span style={{ color: "var(--text-faint)" }}>아직 모른다 (정찰 필요)</span>}
               </dd>
               <dt>사기</dt><dd><Bar value={g.morale} /> {g.morale}</dd>
               <dt>인기</dt><dd><Bar value={g.popularity} color="var(--torch)" /> {g.popularity}</dd>
@@ -68,7 +70,7 @@ export function GladiatorScreen({ state, id, nav }: { state: GameState; id: stri
               <dt>상태</dt>
               <dd>
                 {!g.alive
-                  ? <span className="tag neg">사망 — 시즌 {g.diedAt?.season} {g.diedAt?.week}주차, {g.diedAt?.cause}</span>
+                  ? <span className="tag neg">사망 — 시즌 {g.diedAt?.season} {dateLabel(g.diedAt?.day ?? 1)}, {g.diedAt?.cause}</span>
                   : g.injury
                     ? <span className="tag inj">{g.injury.desc} ({g.injury.severity === "serious" ? "중상" : "경상"}, {g.injury.weeksLeft}주)</span>
                     : "출전 가능"}
@@ -110,6 +112,8 @@ export function GladiatorScreen({ state, id, nav }: { state: GameState; id: stri
           </table>
         </div>
       </div>
+
+      <DoctrinePanel g={g} editable={isMine && g.alive} onChange={(doc) => update((d) => { d.gladiators[g.id].doctrine = doc; })} />
 
       <div className="grid2">
         <div className="panel">

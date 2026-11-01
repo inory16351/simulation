@@ -196,3 +196,80 @@ select, input[type="text"] { background: var(--bg-2); color: var(--parchment); b
 
 .empty-state { padding: 60px 20px; text-align: center; color: var(--text-dim); }
 .empty-state h2 { font-family: var(--serif); color: var(--parchment); }
+
+/* ── 생성 이미지 적용 ── */
+body {
+  background:
+    linear-gradient(rgba(14, 11, 9, 0.82), rgba(14, 11, 9, 0.9)),
+    url("/assets/ui/bg_main.jpg") center / cover fixed,
+    var(--bg);
+}
+.topbar {
+  background:
+    linear-gradient(90deg, rgba(20, 16, 13, 0.92) 0%, rgba(20, 16, 13, 0.55) 45%, rgba(20, 16, 13, 0.92) 100%),
+    url("/assets/ui/topbar.jpg") center 40% / cover,
+    #191512;
+  box-shadow: 0 2px 0 #0b0907, 0 4px 18px rgba(0, 0, 0, 0.6);
+}
+.topbar .crest { object-fit: contain; filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.8)); }
+.sidebar {
+  background:
+    linear-gradient(rgba(16, 13, 11, 0.6), rgba(16, 13, 11, 0.85)),
+    url("/assets/ui/sidebar.jpg") center / cover,
+    var(--bg-2);
+  border-right: 1px solid var(--bronze);
+  box-shadow: inset -6px 0 12px rgba(0, 0, 0, 0.5);
+}
+.menu-label { display: inline-flex; align-items: center; gap: 10px; }
+.menu-label img { width: 22px; height: 22px; object-fit: contain; opacity: 0.75; filter: drop-shadow(0 1px 1px #000); }
+.sidebar button.active .menu-label img { opacity: 1; filter: drop-shadow(0 0 4px rgba(227, 154, 59, 0.6)); }
+.sidebar button.soon .menu-label img { opacity: 0.35; filter: grayscale(1); }
+
+.panel {
+  background: linear-gradient(rgba(38, 31, 26, 0.92), rgba(30, 25, 21, 0.94));
+  border: 1px solid #4a3b2c;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.6), 0 6px 16px rgba(0, 0, 0, 0.35);
+}
+.panel > h3 { background: linear-gradient(90deg, rgba(122, 92, 51, 0.22), transparent 70%); }
+.panel > h3::before { content: "◆"; color: var(--bronze); margin-right: 7px; font-size: 9px; vertical-align: 1px; }
+.screen-title { text-shadow: 0 2px 8px rgba(0, 0, 0, 0.8); }
+
+.portrait.img { position: relative; background: #0e0c0a; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.6); }
+.portrait.img img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.portrait.img .overlay { position: absolute; inset: 0; width: 100%; height: 100%; }
+.portrait.dead { filter: grayscale(1) brightness(0.55) contrast(1.1); }
+
+.arena-head {
+  padding: 34px 22px 26px;
+  background:
+    linear-gradient(rgba(12, 9, 7, 0.35), rgba(12, 9, 7, 0.85)),
+    url("/assets/ui/arena_provincial.jpg") center 60% / cover,
+    #120f0d;
+}
+.fighter .fname { text-shadow: 0 2px 6px #000; }
+.crowd-meter { text-shadow: 0 2px 6px #000; }
+
+.empty-state {
+  min-height: 460px; display: flex; flex-direction: column; justify-content: flex-end; align-items: center;
+  border: 1px solid #4a3b2c; border-radius: 3px; background-size: cover; background-position: center;
+}
+.empty-state h2 { font-size: 28px; margin-bottom: 4px; }
+
+/* ── 전투 교범 ── */
+.doctrine-fam { margin-bottom: 12px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.doctrine-grid { display: grid; grid-template-columns: 1.4fr 1fr 1.2fr; gap: 16px; margin-bottom: 14px; }
+.doctrine-cols { display: grid; grid-template-columns: 220px 1fr; gap: 20px; }
+.sublabel { color: var(--bronze-hi); font-size: 11px; font-weight: 700; margin-bottom: 6px; letter-spacing: 0.04em; }
+.hint { color: var(--text-faint); font-size: 11px; font-weight: 400; }
+.seg.wrap { flex-wrap: wrap; }
+.seg button:disabled { opacity: 0.35; cursor: default; }
+.order-row { display: flex; align-items: center; gap: 6px; padding: 3px 0; border-bottom: 1px solid rgba(58, 47, 37, 0.6); }
+.order-n { width: 18px; color: var(--torch); font-weight: 700; text-align: center; }
+.order-name { flex: 1; color: var(--parchment); }
+.mini { background: var(--bg-2); color: var(--text); border: 1px solid var(--line); border-radius: 2px; cursor: pointer; padding: 1px 6px; font-size: 11px; }
+.mini:disabled { opacity: 0.3; cursor: default; }
+.rule-row { display: flex; align-items: center; gap: 6px; margin-bottom: 6px; flex-wrap: wrap; }
+.rule-row input[type="number"] { width: 52px; background: var(--bg-2); color: var(--parchment); border: 1px solid var(--line); padding: 4px; border-radius: 3px; }
+.rule-text { color: var(--parchment); padding: 3px 0; }
+.check { display: flex; align-items: center; gap: 6px; margin-top: 12px; cursor: pointer; }
+.doctrine-mini { display: flex; flex-wrap: wrap; align-items: center; gap: 2px; }

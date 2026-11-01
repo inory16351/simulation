@@ -11,7 +11,7 @@ function hasRieulBatchim(word: string): boolean {
   return (ch - 0xac00) % 28 === 8;
 }
 
-export type JosaPair = "이/가" | "을/를" | "은/는" | "과/와" | "으로/로" | "아/야" | "이여/여";
+export type JosaPair = "이/가" | "을/를" | "은/는" | "과/와" | "으로/로" | "아/야" | "이여/여" | "이다/다";
 
 export function josa(word: string, pair: JosaPair): string {
   const [withB, withoutB] = pair.split("/");
