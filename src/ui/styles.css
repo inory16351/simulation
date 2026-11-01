@@ -304,3 +304,6 @@ body {
 .pe-value { text-align: center; color: var(--parchment); }
 .pe-actions { display: flex; gap: 6px; margin-top: 4px; }
 .pe-actions .btn { padding: 3px 10px; font-size: 12px; }
+.portrait svg.avatar { display: block; width: 100%; height: 100%; }
+.portrait.dead svg.avatar { filter: grayscale(1) brightness(0.6); }
+.swatch { display: inline-block; width: 14px; height: 14px; border-radius: 3px; border: 1px solid var(--line); vertical-align: middle; }

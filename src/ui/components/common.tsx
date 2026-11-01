@@ -1,9 +1,9 @@
 import { useState } from "react";
-import { getNation, getRace } from "../../core/data";
-import { placePortrait } from "../../core/portrait";
-import { asset, crestUrl } from "../assets";
+import { getNation } from "../../core/data";
+import { avatarOf } from "../../core/avatar";
+import { crestUrl } from "../assets";
+import { AvatarSvg } from "./Avatar";
 import { stars } from "../../core/gladiator";
-import { Rng } from "../../core/rng";
 import type { Gladiator, NationId } from "../../core/types";
 
 export function Stars({ value, range }: { value: number; range?: number }) {
@@ -36,114 +36,13 @@ export function attrClass(v: number): string {
   return v <= 5 ? "a1" : v <= 10 ? "a2" : v <= 15 ? "a3" : "a4";
 }
 
-/** 생성 이미지 초상화 + 흉터·부상·피 오버레이. 이미지가 없으면 절차 생성 초상화로 대체한다. */
+/** 실크송·림월드풍 초상화. 흉터·부상이 얼굴에 쌓인다 */
 export function Portrait({ g, size = 40 }: { g: Gladiator; size?: number }) {
-  const placed = placePortrait(g);
-  // 이 종족 파츠가 아직 없으면 절차 생성 초상화로 대체
-  if (!placed.length) return <FallbackPortrait g={g} size={size} />;
-  const r = new Rng(g.portraitSeed ^ 0x9e3779b9);
   const fights = g.record.wins + g.record.losses;
-  const scars = Math.min(4, Math.floor(fights / 6) + (g.traits.includes("scarred") ? 2 : 0));
-  return (
-    <div className={`portrait img ${g.alive ? "" : "dead"}`} style={{ width: size, height: size }}>
-      {placed.map(({ slot, part, box }) => (
-        <img key={slot} className="part" src={asset(part.file)} alt="" draggable={false}
-          style={{ left: `${box.x * 100}%`, top: `${box.y * 100}%`, width: `${box.w * 100}%`, height: `${box.h * 100}%` }} />
-      ))}
-      <svg viewBox="0 0 100 100" className="overlay">
-        {/* 흉터: 경기를 치를수록 얼굴에 쌓인다 */}
-        {Array.from({ length: scars }, (_, i) => {
-          const x = 38 + r.int(0, 22), y = 26 + r.int(0, 22);
-          return <path key={i} d={`M${x} ${y} l${4 + r.int(0, 6)} ${5 + r.int(0, 6)}`} stroke="#5e1611" strokeWidth="1.1" opacity="0.85" />;
-        })}
-        {g.traits.includes("one_eyed") && <path d="M30 34 L70 46 M44 38 a6 4 0 1 0 1 0" stroke="#0d0a08" strokeWidth="2.4" fill="#0d0a08" />}
-        {/* 부상: 붕대와 번지는 피 */}
-        {g.injury && (
-          <>
-            <path d="M26 24 Q50 14 74 24 L73 31 Q50 22 27 31 Z" fill="#c9b994" opacity="0.92" />
-            <ellipse cx={58 + r.int(0, 8)} cy="26" rx="4" ry="2.6" fill="#7e170f" opacity="0.9" />
-            {g.injury.severity === "serious" && <path d="M52 30 q2 10 -1 18 q3 -4 4 -14 Z" fill="#8e1d14" opacity="0.85" />}
-          </>
-        )}
-      </svg>
-    </div>
-  );
-}
-
-function FallbackPortrait({ g, size = 40 }: { g: Gladiator; size?: number }) {
-  const race = getRace(g.race);
-  const nation = getNation(g.nation);
-  const r = new Rng(g.portraitSeed);
-  const headW = 26 + r.int(0, 8) + (g.race === "minotaur" ? 8 : 0);
-  const headH = 32 + r.int(0, 6);
-  const shoulder = 70 + r.int(0, 14) + (g.race === "minotaur" || g.race === "orc" ? 10 : 0);
-  const hairDark = ["#1e1712", "#2f241b", "#4a3a2a", "#6b5a45", "#121010"][r.int(0, 4)];
-  const injured = !!g.injury;
-  const scarCount = Math.min(3, Math.floor((g.record.wins + g.record.losses) / 8));
+  const scars = Math.floor(fights / 6) + (g.traits.includes("scarred") ? 2 : 0);
   return (
     <div className={`portrait ${g.alive ? "" : "dead"}`} style={{ width: size, height: size }}>
-      <svg viewBox="0 0 100 100">
-        <defs>
-          <radialGradient id={`bg${g.id}`} cx="50%" cy="35%" r="70%">
-            <stop offset="0" stopColor={nation.color} stopOpacity="0.55" />
-            <stop offset="1" stopColor="#0c0a08" />
-          </radialGradient>
-          <linearGradient id={`sk${g.id}`} x1="0" x2="1">
-            <stop offset="0" stopColor={race.color} />
-            <stop offset="1" stopColor="#1a1410" />
-          </linearGradient>
-        </defs>
-        <rect width="100" height="100" fill={`url(#bg${g.id})`} />
-        {/* 어깨 */}
-        <path d={`M${50 - shoulder / 2} 100 Q50 ${66 - r.int(0, 4)} ${50 + shoulder / 2} 100 Z`} fill="#2a211a" />
-        {/* 목 */}
-        <rect x={50 - headW / 4} y="58" width={headW / 2} height="16" fill={`url(#sk${g.id})`} />
-        {/* 머리 */}
-        <ellipse cx="50" cy="45" rx={headW / 2} ry={headH / 2} fill={`url(#sk${g.id})`} />
-        {/* 종족 특징 */}
-        {g.race === "elf" && (
-          <>
-            <path d={`M${50 - headW / 2} 44 l-9 -10 l7 14 Z`} fill={race.color} />
-            <path d={`M${50 + headW / 2} 44 l9 -10 l-7 14 Z`} fill="#3b4a40" />
-          </>
-        )}
-        {g.race === "minotaur" && (
-          <>
-            <path d={`M${50 - headW / 2 + 2} 34 q-14 -4 -16 -18 q8 10 18 12 Z`} fill="#cdbb98" />
-            <path d={`M${50 + headW / 2 - 2} 34 q14 -4 16 -18 q-8 10 -18 12 Z`} fill="#a9987a" />
-          </>
-        )}
-        {g.race === "orc" && <path d="M44 56 l2 -6 l2 6 Z M52 56 l2 -6 l2 6 Z" fill="#e8dcc0" />}
-        {g.race === "beastkin" && (
-          <>
-            <path d={`M${50 - headW / 2 + 3} 34 l-4 -14 l10 9 Z`} fill={race.color} />
-            <path d={`M${50 + headW / 2 - 3} 34 l4 -14 l-10 9 Z`} fill="#5a4320" />
-          </>
-        )}
-        {g.race === "lizardfolk" && <path d={`M44 30 q6 -10 12 0`} stroke="#2c3f37" strokeWidth="3" fill="none" />}
-        {/* 머리카락 / 수염 */}
-        {g.race !== "lizardfolk" && g.race !== "minotaur" && r.chance(0.7) && (
-          <path d={`M${50 - headW / 2} 42 Q50 ${22 - r.int(0, 6)} ${50 + headW / 2} 42 Q50 30 ${50 - headW / 2} 42 Z`} fill={hairDark} />
-        )}
-        {g.race === "dwarf" && <path d={`M${50 - headW / 2 + 2} 50 Q50 ${78 + r.int(0, 6)} ${50 + headW / 2 - 2} 50 Z`} fill={hairDark} />}
-        {/* 눈 (그늘) */}
-        <rect x="40" y="43" width="7" height="2.5" fill="#0d0a08" />
-        <rect x="53" y="43" width="7" height="2.5" fill="#0d0a08" />
-        {g.traits.includes("one_eyed") && <path d="M38 40 L62 48" stroke="#0d0a08" strokeWidth="2" />}
-        {/* 흉터: 경기를 치를수록 쌓인다 */}
-        {Array.from({ length: scarCount + (g.traits.includes("scarred") ? 2 : 0) }, (_, i) => (
-          <path key={i} d={`M${40 + i * 7} ${36 + i * 6} l${6 + i} ${8 - i}`} stroke="#6e1c16" strokeWidth="1.3" />
-        ))}
-        {/* 부상: 붕대와 핏자국 */}
-        {injured && (
-          <>
-            <path d={`M${50 - headW / 2} 34 Q50 28 ${50 + headW / 2} 34 l0 5 Q50 33 ${50 - headW / 2} 39 Z`} fill="#cbbd9e" opacity="0.9" />
-            <circle cx={50 + headW / 4} cy="35" r="2.6" fill="#8e1d14" />
-          </>
-        )}
-        {/* 측광 */}
-        <path d="M0 0 H38 L18 100 H0 Z" fill="#000" opacity="0.28" />
-      </svg>
+      <AvatarSvg spec={avatarOf(g)} bg={getNation(g.nation).color} scars={scars} injured={g.injury?.severity} dead={!g.alive} seed={g.portraitSeed % 997} />
     </div>
   );
 }

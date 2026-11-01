@@ -1,38 +1,68 @@
 [
   {
-    "id": "aurelia", "name": "아우렐리아 제국", "short": "아우렐리아", "color": "#5B2A4E",
+    "id": "aurelia", "name": "아우렐리아 제국", "short": "아우렐리아", "motif": "로마 제국", "color": "#5B2A4E",
     "races": { "human": 6, "orc": 1, "elf": 1, "dwarf": 1, "lizardfolk": 1, "beastkin": 1, "minotaur": 0.5 },
-    "culture": "쇼맨십 중시. 관중 수입 +20%, 세금 +10%",
+    "capital": "아우렐리온", "arena": "아우렐리온 대콜로세움", "league": "황제 리그",
+    "lore": "일곱 언덕 위에 세운 도시가 대륙을 삼켰다. 황제는 원로원을 누르고 군단으로 국경을 넓혔지만, 백성을 붙잡아 두는 것은 칼이 아니라 빵과 경기였다. 아우렐리온 대콜로세움에 오만 명이 모이는 날이면 원로들도, 노예도, 황제도 같은 함성을 지른다.\n\n투기는 이곳에서 '제국의 의식'이다. 귀족 가문은 루두스를 후원해 민심을 사고, 판테온 컵 결승은 언제나 이 도시에서 열린다. 화려한 경기를 좋아하고, 지루한 승리에는 야유를 보낸다.",
+    "culture": "쇼맨십을 사랑한다. 관중은 많고 세금도 무겁다.",
+    "styles": ["murmillo", "secutor", "retiarius"],
+    "rules": { "ticketMult": 1.25, "fameMult": 1.2, "taxRate": 0.2 },
+    "ruleText": ["관중 수입 +25%", "명성 +20%", "세금 20% (기본 10%)"],
     "relations": { "grommar": -60, "sylvaren": 20, "dolgar": 30, "karsea": -30, "kemer": 10 }
   },
   {
-    "id": "grommar", "name": "그롬마르 부족연합", "short": "그롬마르", "color": "#4E5D66",
-    "races": { "orc": 6, "minotaur": 3, "human": 1 },
-    "culture": "사투가 명예. 사투 상금 +30%",
-    "relations": { "aurelia": -60, "sylvaren": -10, "dolgar": 10, "karsea": 0, "kemer": -20 }
-  },
-  {
-    "id": "sylvaren", "name": "실바렌 왕국", "short": "실바렌", "color": "#3F5A3A",
-    "races": { "elf": 8, "human": 1, "beastkin": 1 },
-    "culture": "기술과 마법. 국내 리그 사투 불가, 마법 검투사 인기 +50%",
-    "relations": { "aurelia": 20, "grommar": -10, "dolgar": -40, "karsea": 0, "kemer": 20 }
-  },
-  {
-    "id": "dolgar", "name": "돌가르 산악공화국", "short": "돌가르", "color": "#A0522D",
-    "races": { "dwarf": 8, "human": 1, "orc": 1 },
-    "culture": "방어와 인내. 장비 가격 -30%",
+    "id": "dolgar", "name": "라케다이몬 산악동맹", "short": "라케다이몬", "motif": "스파르타", "color": "#A0522D",
+    "races": { "dwarf": 6, "human": 4 },
+    "capital": "라케다", "arena": "방패의 원", "league": "방패 리그",
+    "lore": "높은 산맥의 드워프 씨족과 골짜기의 인간 전사들이 맺은 동맹. 아이는 일곱 살에 집을 떠나 '아고게'라 불리는 훈련장에서 자라고, 방패를 잃은 자는 고향에 돌아오지 못한다. 도시에는 성벽이 없다. 성벽은 전사들 자신이기 때문이다.\n\n이 나라의 투기장은 관중이 적고 조용하다. 사람들은 환호하러 오는 게 아니라 배우러 온다. 항복은 가장 큰 수치이며, 끝까지 싸운 패자가 비겁한 승자보다 존경받는다.",
+    "culture": "단련과 인내. 항복을 경멸하고 훈련을 신성하게 여긴다.",
+    "styles": ["hoplomachus", "murmillo", "crusher"],
+    "rules": { "growthMult": 1.15, "ticketMult": 0.85, "surrenderShame": true },
+    "ruleText": ["아고게: 훈련·실전 성장 +15%", "관중 수입 -15% (검소한 관중)", "항복하면 인기 -10, RP -5"],
     "relations": { "aurelia": 30, "grommar": 10, "sylvaren": -40, "karsea": 30, "kemer": 0 }
   },
   {
-    "id": "karsea", "name": "카르세아 해상연맹", "short": "카르세아", "color": "#2F5F63",
+    "id": "karsea", "name": "카르세아 해상연맹", "short": "카르세아", "motif": "카르타고·페니키아", "color": "#2F5F63",
     "races": { "lizardfolk": 5, "human": 4, "orc": 1, "beastkin": 1 },
-    "culture": "도박. 이적 수수료 -50%, 판돈 상한 2배",
+    "capital": "카르세아 항", "arena": "부두의 목조 투기장", "league": "상인 리그",
+    "lore": "자줏빛 염료와 노예, 은과 향신료. 카르세아는 칼보다 장부로 싸우는 나라다. 늪에서 온 리자드폴크 선원과 바닷가 인간 상인들이 뭉쳐 대륙 바다를 손에 넣었고, 제국과는 바다를 두고 오래 다퉈 왔다.\n\n부두의 목조 투기장에서는 경기보다 판돈이 먼저 움직인다. 대륙에서 가장 큰 노예 시장이 있어 검투사를 싸게 구할 수 있고, 상금도 넉넉하다. 대신 이 나라에서는 모든 것에 값이 붙는다.",
+    "culture": "돈과 도박. 노예 시장이 크고 상금이 넉넉하다.",
+    "styles": ["retiarius", "hoplomachus", "dimachaerus"],
+    "rules": { "marketMult": 0.8, "purseMult": 1.15, "taxRate": 0.05 },
+    "ruleText": ["노예 경매 가격 -20%", "상금 +15%", "세금 5%"],
     "relations": { "aurelia": -30, "grommar": 0, "sylvaren": 0, "dolgar": 30, "kemer": -40 }
   },
   {
-    "id": "kemer", "name": "케메르 태양신정국", "short": "케메르", "color": "#B8913A",
+    "id": "kemer", "name": "케메르 태양신정국", "short": "케메르", "motif": "고대 이집트", "color": "#B8913A",
     "races": { "beastkin": 7, "human": 2, "lizardfolk": 1 },
-    "culture": "야수전과 신앙. 야수전 상금 +50%",
+    "capital": "헬리오폴", "arena": "태양 신전 투기장", "league": "태양의 제전",
+    "lore": "큰 강이 사막을 가르는 땅. 사자와 자칼의 얼굴을 한 수인들이 태양신을 섬기고, 신관들이 왕을 대신해 나라를 다스린다. 피라미드 그늘 아래 투기장에서 흘린 피는 해가 다시 뜨게 하는 제물로 여겨진다.\n\n경기는 곧 제사다. 신전은 시즌마다 가장 뛰어난 루두스에 금을 내리고, 관중은 신의 뜻을 읽으려 숨을 죽인다. 카르세아의 노예 무역을 더럽다 여겨 오래 적대해 왔다.",
+    "culture": "신앙과 제사. 신전이 강한 루두스를 후원한다.",
+    "styles": ["bestiarius", "dimachaerus", "thraex"],
+    "rules": { "templeSubsidy": 3000, "fameMult": 1.1 },
+    "ruleText": ["신전 후원: 시즌 종료 시 1부 상위 3팀에 3,000 D", "명성 +10%"],
     "relations": { "aurelia": 10, "grommar": -20, "sylvaren": 20, "dolgar": 0, "karsea": -40 }
+  },
+  {
+    "id": "grommar", "name": "그롬마르 부족연합", "short": "그롬마르", "motif": "게르마니아·노르드", "color": "#4E5D66",
+    "races": { "orc": 6, "minotaur": 3, "human": 1 },
+    "capital": "흐로트가르", "arena": "피의 원목장", "league": "피의 회합",
+    "lore": "눈과 침엽수의 북방. 오크 부족과 미노타우로스 씨족은 왕을 두지 않고, 해마다 '회합'에 모여 족장을 뽑는다. 제국 군단이 몇 번이고 국경을 넘어왔지만 숲에서 살아 돌아간 자는 드물다.\n\n이곳의 투기는 명예의 결투다. 사투로 죽는 것은 영광이고, 미시오로 살아남는 것은 체면이 깎이는 일이다. 사투 상금이 크고, 루두스들은 사투를 서슴없이 건다.",
+    "culture": "명예와 피. 사투가 흔하고 상금이 크다.",
+    "styles": ["crusher", "pankratiast", "secutor"],
+    "rules": { "suddenPurseMult": 1.3, "aiSuddenMult": 2.5, "ticketMult": 0.9 },
+    "ruleText": ["사투 상금 +30%", "AI 루두스가 사투를 훨씬 자주 건다", "관중 수입 -10%"],
+    "relations": { "aurelia": -60, "sylvaren": -10, "dolgar": 10, "karsea": 0, "kemer": -20 }
+  },
+  {
+    "id": "sylvaren", "name": "실바렌 숲의 왕국", "short": "실바렌", "motif": "켈트·드루이드", "color": "#3F5A3A",
+    "races": { "elf": 8, "human": 1, "beastkin": 1 },
+    "capital": "넴에톤", "arena": "고목 뿌리의 원", "league": "숲의 시합",
+    "lore": "천 년 된 참나무가 하늘을 덮은 숲. 엘프 드루이드들이 별과 나무의 말을 읽으며 다스린다. 이들에게 투기는 생명을 빼앗는 일이 아니라 기술과 주술을 겨루는 시합이다.\n\n국내 리그에서는 사투가 금지돼 있고, 미시오에서도 관중은 쉽게 엄지를 내리지 않는다. 대신 주술을 쓰는 검투사는 영웅 대접을 받는다. 숲을 베어 나가는 라케다이몬의 드워프들과는 오랜 원수다.",
+    "culture": "기술과 주술. 사투를 금하고 자비롭다.",
+    "styles": ["runeblade", "sorcerer", "thraex"],
+    "rules": { "suddenBanned": true, "missioDeathMult": 0.6, "magicFameMult": 1.5 },
+    "ruleText": ["국내 리그 사투 금지", "미시오 사망 확률 -40%", "주술을 쓰는 검투사 명성 +50%"],
+    "relations": { "aurelia": 20, "grommar": -10, "dolgar": -40, "karsea": 0, "kemer": 20 }
   }
 ]

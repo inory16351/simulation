@@ -1,44 +1,43 @@
-import { OPTIONAL_SLOTS, allowedParts, pickPortrait, portraitOf } from "../../core/portrait";
-import type { PartSlot } from "../../core/portraitLayout";
+import { avatarOf, avatarOptions } from "../../core/avatar";
 import type { Gladiator, PortraitParts } from "../../core/types";
 
-const SLOT_NAMES: Record<PartSlot, string> = {
-  body: "몸통", head: "얼굴형", eyes: "눈", nose: "코", mouth: "입", hair: "머리", beard: "수염", helmet: "투구",
+const LABELS: Record<string, string> = {
+  tuft: "삐죽", short: "짧게", long: "긴 머리", pony: "꽁지", mohawk: "모히칸", bun: "올림", braids: "땋음", messy: "헝클",
+  round: "동그란", fierce: "사나운", sleepy: "졸린", wide: "큰",
+  line: "일자", smile: "미소", grit: "이 악묾", frown: "찡그림", open: "벌림",
+  stubble: "까끌", full: "덥수룩", braided: "땋은 수염", goatee: "염소",
+  crest: "볏 투구", horned: "뿔 투구", cap: "철모", hood: "두건",
 };
-const SLOTS: PartSlot[] = ["head", "eyes", "nose", "mouth", "hair", "beard", "helmet", "body"];
 
-/** 초상화 파츠를 직접 고르는 편집기. 아무것도 안 고치면 시드로 자동 조합된다 */
+/** 초상화 직접 고치기. 아무것도 안 고치면 시드로 자동으로 생긴다 */
 export function PortraitEditor({ g, onChange }: { g: Gladiator; onChange: (p: PortraitParts | undefined) => void }) {
-  const cur = portraitOf(g);
+  const cur = avatarOf(g) as unknown as Record<string, string | number | null>;
 
-  const cycle = (slot: PartSlot, dir: 1 | -1) => {
-    const list = allowedParts(g, slot).map((p) => p.id as string | null);
-    if (OPTIONAL_SLOTS.includes(slot)) list.unshift(null);
-    if (!list.length) return;
-    const i = list.indexOf(cur[slot] ?? null);
-    const next = list[(i + dir + list.length) % list.length];
-    onChange({ ...cur, [slot]: next });
+  const cycle = (key: string, values: (string | null)[], dir: 1 | -1) => {
+    const now = cur[key] === null ? null : String(cur[key]);
+    const i = values.indexOf(now);
+    const next = values[(i + dir + values.length) % values.length];
+    onChange({ ...(g.portrait ?? {}), [key]: next });
   };
 
   return (
     <div className="portrait-editor">
-      {SLOTS.map((slot) => {
-        const list = allowedParts(g, slot);
-        if (!list.length && !OPTIONAL_SLOTS.includes(slot)) return null;
-        if (!list.length) return null;
-        const idx = list.findIndex((p) => p.id === cur[slot]);
+      {avatarOptions(g).map((o) => {
+        const val = cur[o.key] === null ? null : String(cur[o.key]);
+        const isColor = typeof val === "string" && val.startsWith("#");
         return (
-          <div key={slot} className="pe-row">
-            <span className="pe-label">{SLOT_NAMES[slot]}</span>
-            <button className="mini" onClick={() => cycle(slot, -1)}>◀</button>
-            <span className="pe-value">{idx >= 0 ? `${idx + 1}/${list.length}` : "없음"}</span>
-            <button className="mini" onClick={() => cycle(slot, 1)}>▶</button>
+          <div key={o.key} className="pe-row">
+            <span className="pe-label">{o.label}</span>
+            <button className="mini" onClick={() => cycle(o.key, o.values, -1)}>◀</button>
+            <span className="pe-value">
+              {isColor ? <i className="swatch" style={{ background: val! }} /> : val === null ? "없음" : LABELS[val] ?? `${Number(val) + 1}번`}
+            </span>
+            <button className="mini" onClick={() => cycle(o.key, o.values, 1)}>▶</button>
           </div>
         );
       })}
       <div className="pe-actions">
-        <button className="btn" onClick={() => onChange(pickPortrait(g, Math.floor(Math.random() * 1e9)))}>무작위</button>
-        <button className="btn" onClick={() => onChange(undefined)}>자동으로</button>
+        <button className="btn" onClick={() => onChange(undefined)}>처음대로</button>
       </div>
     </div>
   );
