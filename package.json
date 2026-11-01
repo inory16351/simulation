@@ -9,7 +9,8 @@
     "preview": "vite preview",
     "test": "vitest run",
     "typecheck": "tsc",
-    "sim": "tsx tools/sim-seasons.ts"
+    "sim": "tsx tools/sim-seasons.ts",
+    "build:single": "npm run build && node tools/build-single.mjs"
   },
   "dependencies": {
     "react": "^19.3.1",
