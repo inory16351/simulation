@@ -61,13 +61,21 @@ export function buildCommentary(
   const out: CommentaryLine[] = [];
   const name = (id: Id) => fighters[id]?.name ?? "?";
   let round = 0;
-  const push = (text: string, tone: CommentaryLine["tone"], event: CombatEvent) => out.push({ round, text, tone, event });
+  const start = events.find((x) => x.t === "start");
+  const noCrowd = start?.t === "start" && start.rule === "training";
+  const push = (text: string, tone: CommentaryLine["tone"], event: CombatEvent) => {
+    // 훈련전은 관중이 없으니 관중 이야기를 뺀다
+    const t = noCrowd ? withoutCrowd(text) : text;
+    if (t) out.push({ round, text: t, tone, event });
+  };
 
   for (const e of events) {
     switch (e.t) {
       case "start": {
         const a = fighters[e.a], b = fighters[e.b];
-        push(`${josa(a.name, "과/와")} ${josa(b.name, "이/가")} 모래 위에 섰다. 관중석이 술렁인다.`, "system", e);
+        push(noCrowd
+          ? `텅 빈 연습장. ${josa(a.name, "과/와")} ${josa(b.name, "이/가")} 마주 선다. 들리는 건 교관의 호루라기뿐이다.`
+          : `${josa(a.name, "과/와")} ${josa(b.name, "이/가")} 모래 위에 섰다. 관중석이 술렁인다.`, "system", e);
         break;
       }
       case "round":
@@ -197,6 +205,17 @@ export function buildCommentary(
     }
   }
   return out;
+}
+
+const CROWD_WORDS = /관중|환호|야유|탄식/;
+
+/** 관중이 나오는 문장만 지운다. 남는 게 없으면 빈 문자열 */
+function withoutCrowd(text: string): string {
+  return text
+    .split(/(?<=[.!…])s+/)
+    .filter((sentence) => !CROWD_WORDS.test(sentence))
+    .join(" ")
+    .trim();
 }
 
 function opponentOf(events: CombatEvent[], id: Id, fighters: Record<Id, Gladiator>): string {

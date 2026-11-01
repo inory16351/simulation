@@ -35,7 +35,9 @@ export function GladiatorTable({ list, nav, showPa = true }: { list: Gladiator[]
           {th("ca", "현재")}
           {showPa && <th>잠재</th>}
           {th("morale", "사기")}
-          <th>피로</th>
+          <th>체력</th>
+          <th title="경기감각">감각</th>
+          <th title="혹사도. 85 이상이면 탈진">혹사</th>
           <th>상태</th>
           <th className="num">전적</th>
           {th("wage", "주급", "num")}
@@ -65,9 +67,11 @@ export function GladiatorTable({ list, nav, showPa = true }: { list: Gladiator[]
               {showPa && <td><Stars value={Math.max(ca, g.hidden.pa - 15)} range={Math.min(200, g.hidden.pa + 15)} /></td>}
               <td><Bar value={g.morale} /></td>
               <td><Bar value={100 - g.fatigue} /></td>
+              <td><Bar value={g.sharpness} color="var(--bronze-hi)" /></td>
+              <td><Bar value={g.wear} color={g.wear >= 85 ? "var(--blood)" : g.wear >= 50 ? "var(--torch)" : "var(--good)"} /></td>
               <td>
                 {!g.alive ? <span className="tag neg">사망</span>
-                  : g.injury ? <span className="tag inj">{g.injury.desc} {g.injury.weeksLeft}주</span>
+                  : g.injury ? <span className="tag inj">{g.injury.desc} {g.injury.daysLeft}일</span>
                   : <span style={{ color: "var(--good)" }}>출전 가능</span>}
               </td>
               <td className="num">{g.record.wins}-{g.record.losses}</td>

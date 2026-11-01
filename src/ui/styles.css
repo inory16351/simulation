@@ -201,13 +201,13 @@ select, input[type="text"] { background: var(--bg-2); color: var(--parchment); b
 body {
   background:
     linear-gradient(rgba(14, 11, 9, 0.82), rgba(14, 11, 9, 0.9)),
-    url("/assets/ui/bg_main.jpg") center / cover fixed,
+    url("/assets/ui/bg_main.webp") center / cover fixed,
     var(--bg);
 }
 .topbar {
   background:
     linear-gradient(90deg, rgba(20, 16, 13, 0.92) 0%, rgba(20, 16, 13, 0.55) 45%, rgba(20, 16, 13, 0.92) 100%),
-    url("/assets/ui/topbar.jpg") center 40% / cover,
+    url("/assets/ui/topbar.webp") center 40% / cover,
     #191512;
   box-shadow: 0 2px 0 #0b0907, 0 4px 18px rgba(0, 0, 0, 0.6);
 }
@@ -215,7 +215,7 @@ body {
 .sidebar {
   background:
     linear-gradient(rgba(16, 13, 11, 0.6), rgba(16, 13, 11, 0.85)),
-    url("/assets/ui/sidebar.jpg") center / cover,
+    url("/assets/ui/sidebar.webp") center / cover,
     var(--bg-2);
   border-right: 1px solid var(--bronze);
   box-shadow: inset -6px 0 12px rgba(0, 0, 0, 0.5);
@@ -243,7 +243,7 @@ body {
   padding: 34px 22px 26px;
   background:
     linear-gradient(rgba(12, 9, 7, 0.35), rgba(12, 9, 7, 0.85)),
-    url("/assets/ui/arena_provincial.jpg") center 60% / cover,
+    url("/assets/ui/arena_provincial.webp") center 60% / cover,
     #120f0d;
 }
 .fighter .fname { text-shadow: 0 2px 6px #000; }
@@ -273,3 +273,26 @@ body {
 .rule-text { color: var(--parchment); padding: 3px 0; }
 .check { display: flex; align-items: center; gap: 6px; margin-top: 12px; cursor: pointer; }
 .doctrine-mini { display: flex; flex-wrap: wrap; align-items: center; gap: 2px; }
+
+/* ── M2 화면 ── */
+.neg { color: #e08b80 !important; }
+.big-num { font-size: 26px; font-weight: 700; color: var(--parchment); font-variant-numeric: tabular-nums; }
+.event-card { border-color: var(--torch); box-shadow: 0 0 0 1px rgba(227, 154, 59, 0.25), 0 6px 16px rgba(0, 0, 0, 0.35); }
+.event-text { margin: 0 0 12px; line-height: 1.7; color: var(--parchment); }
+.event-choices { display: flex; gap: 8px; flex-wrap: wrap; }
+.official { border-color: var(--torch); }
+.official-row { display: grid; grid-template-columns: 1fr auto 1fr auto; gap: 16px; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--line); }
+.official-row .name-cell:nth-child(3) { justify-content: flex-end; }
+.official-row .vs { text-align: center; }
+.gameover { border-color: var(--blood); }
+.gameover p { color: #f0b3aa; font-size: 15px; }
+.t tr.total td { border-top: 1px solid var(--bronze); color: var(--parchment); font-weight: 700; }
+.career-log { max-height: 360px; overflow-y: auto; }
+.career-item { display: grid; grid-template-columns: 18px 120px 1fr; gap: 8px; padding: 6px 12px; border-bottom: 1px solid rgba(58, 47, 37, 0.6); }
+.career-item .ci-icon { color: var(--bronze-hi); text-align: center; }
+.career-item .ci-date { color: var(--text-faint); font-size: 11px; padding-top: 2px; }
+.career-item.milestone .ci-icon { color: var(--torch); }
+.career-item.injury .ci-icon { color: #e08b80; }
+.career-item.death { background: rgba(122, 30, 26, 0.15); }
+.career-item.death .ci-icon, .career-item.death .ci-text { color: #ff8a7a; }
+.topbar .btn { white-space: nowrap; }

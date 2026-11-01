@@ -1,4 +1,6 @@
+import { logCareer, seasonRecord } from "../career";
 import { BALANCE, NAMES, getNation } from "../data";
+import { payDividend, refreshMarket } from "../economy";
 import { Rng } from "../rng";
 import type { GameState, Ludus, NationId } from "../types";
 import { generateGladiator } from "./gladiator";
@@ -8,7 +10,7 @@ const PERSONALITIES: NonNullable<Ludus["aiPersonality"]>[] = ["aggressive", "sta
 export function newGame(seed: number, nation: NationId = "aurelia", ludusName = "모래의 집"): GameState {
   const rng = new Rng(seed);
   const state: GameState = {
-    version: 3,
+    version: 4,
     seed,
     rngState: 0,
     season: 1,
@@ -19,6 +21,13 @@ export function newGame(seed: number, nation: NationId = "aurelia", ludusName = 
     gladiators: {},
     inbox: [],
     fallen: [],
+    challenges: [],
+    market: [],
+    ledger: [],
+    pendingEvents: [],
+    lastDisasterAt: -999,
+    luckStreak: 0,
+    modifiers: [],
     nextId: 1,
   };
   const newId = (prefix: string) => `${prefix}${state.nextId++}`;
@@ -38,6 +47,9 @@ export function newGame(seed: number, nation: NationId = "aurelia", ludusName = 
       isPlayer,
       aiPersonality: isPlayer ? undefined : rng.pick(PERSONALITIES),
       record: { wins: 0, losses: 0 },
+      matchesThisSeason: 0,
+      refusalsUsed: 0,
+      facilities: { barracks: 1, training: 1, medical: 1, guard: 0 },
     };
     for (let i = 0; i < rosterSize; i++) {
       const g = generateGladiator(rng, {
@@ -57,7 +69,10 @@ export function newGame(seed: number, nation: NationId = "aurelia", ludusName = 
 
   const ludusNameGen = () => {
     for (;;) {
-      const n = rng.pick(NAMES.ludusPrefix) + rng.pick(NAMES.ludusSuffix);
+      // "붉은 늑대 투기단" 또는 "늑대의 집" 꼴
+      const n = rng.chance(0.35)
+        ? `${rng.pick(NAMES.ludusAdj)} ${rng.pick(NAMES.ludusNoun)}${rng.pick(NAMES.ludusSuffixAfterAdj)}`
+        : rng.pick(NAMES.ludusNoun) + rng.pick(NAMES.ludusSuffix);
       if (!usedNames.has(n)) {
         usedNames.add(n);
         return n;
@@ -88,6 +103,17 @@ export function newGame(seed: number, nation: NationId = "aurelia", ludusName = 
       `이번 시즌 목표: 2부 리그 2위 안에 들어 승격.`,
     read: false,
   });
+
+  // 시즌 시작: 배당금, 경매장, 일대기 첫 줄
+  for (const l of Object.values(state.ludi)) payDividend(state, l, l.isPlayer ? BALANCE.economy.promotedDividendCoef : undefined);
+  refreshMarket(state, rng);
+  for (const l of Object.values(state.ludi)) {
+    for (const id of l.gladiators) {
+      const g = state.gladiators[id];
+      seasonRecord(state, g);
+      logCareer(state, g, `${l.name}에 들어왔다`, "join");
+    }
+  }
 
   state.rngState = rng.state;
   return state;

@@ -6,7 +6,9 @@ import {
 } from "../../core/types";
 import { dateLabel } from "../../core/calendar";
 import type { Nav } from "../App";
+import { CareerPanel } from "../components/CareerPanel";
 import { DoctrinePanel } from "../components/DoctrinePanel";
+import { performance } from "../../core/condition";
 import { Bar, Portrait, Stars, attrClass } from "../components/common";
 
 const STATUS_NAMES = { slave: "노예", free: "자유민", freedman: "해방민" };
@@ -56,7 +58,7 @@ export function GladiatorScreen({ state, id, nav, update }: { state: GameState; 
             <dl className="kv">
               <dt>스타일</dt><dd>{style.name} — {style.desc}</dd>
               <dt>신분</dt><dd>{STATUS_NAMES[g.status]}</dd>
-              <dt>주급</dt><dd>{g.wage} D {g.unpaidWeeks > 0 && <span className="tag neg">미납 {g.unpaidWeeks}주</span>}</dd>
+              <dt>주급</dt><dd>{g.wage} D {g.unpaidWeeks > 0 && <span className="tag neg">급료 {g.unpaidWeeks}회 밀림</span>}</dd>
               <dt>현재 능력</dt><dd><Stars value={ca} /> <span style={{ color: "var(--text-faint)" }}>(CA {ca})</span></dd>
               <dt>잠재력</dt>
               <dd>
@@ -66,13 +68,27 @@ export function GladiatorScreen({ state, id, nav, update }: { state: GameState; 
               </dd>
               <dt>사기</dt><dd><Bar value={g.morale} /> {g.morale}</dd>
               <dt>인기</dt><dd><Bar value={g.popularity} color="var(--torch)" /> {g.popularity}</dd>
-              <dt>피로</dt><dd><Bar value={100 - g.fatigue} /> {g.fatigue}</dd>
+              <dt>체력</dt><dd><Bar value={100 - g.fatigue} /> {Math.round(100 - g.fatigue)}</dd>
+              <dt>경기감각</dt><dd><Bar value={g.sharpness} color="var(--bronze-hi)" /> {Math.round(g.sharpness)}</dd>
+              <dt>혹사도</dt><dd><Bar value={g.wear} color={g.wear >= 85 ? "var(--blood)" : g.wear >= 50 ? "var(--torch)" : "var(--good)"} /> {Math.round(g.wear)}{g.wear >= 85 && <span className="tag neg" style={{ marginLeft: 6 }}>탈진</span>}</dd>
+              <dt>경기력</dt>
+              <dd>
+                {(() => {
+                  const p = performance(g);
+                  return (
+                    <>
+                      <b style={{ color: p.total >= 1 ? "var(--good)" : p.total >= 0.85 ? "var(--parchment)" : "#e08b80" }}>{Math.round(p.total * 100)}%</b>
+                      {p.parts.map((x) => <span key={x.label} className="hint" style={{ marginLeft: 8 }}>{x.label} {x.value > 0 ? "+" : ""}{Math.round(x.value * 100)}%</span>)}
+                    </>
+                  );
+                })()}
+              </dd>
               <dt>상태</dt>
               <dd>
                 {!g.alive
                   ? <span className="tag neg">사망 — 시즌 {g.diedAt?.season} {dateLabel(g.diedAt?.day ?? 1)}, {g.diedAt?.cause}</span>
                   : g.injury
-                    ? <span className="tag inj">{g.injury.desc} ({g.injury.severity === "serious" ? "중상" : "경상"}, {g.injury.weeksLeft}주)</span>
+                    ? <span className="tag inj">{g.injury.desc} ({g.injury.severity === "serious" ? "중상" : "경상"}, {g.injury.daysLeft}일)</span>
                     : "출전 가능"}
               </dd>
               <dt>전적</dt><dd>{g.record.wins}승 {g.record.losses}패 · 살해 {g.record.kills}</dd>
@@ -137,6 +153,8 @@ export function GladiatorScreen({ state, id, nav, update }: { state: GameState; 
           </div>
         </div>
       </div>
+
+      <CareerPanel g={g} />
     </>
   );
 }

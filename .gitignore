@@ -4,3 +4,6 @@ dist/
 .DS_Store
 .vite/
 coverage/
+
+# 생성 원본은 art/source에 커밋한다. 임시 산출물만 무시
+art/tmp/

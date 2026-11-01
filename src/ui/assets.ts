@@ -29,5 +29,5 @@ export function portraitUrl(g: Gladiator): string {
   return asset(`portrait/${g.race}/base_${n}.png`);
 }
 
-export const crestUrl = (n: NationId) => asset(`crest/${n}.png`);
-export const menuIconUrl = (id: string) => asset(`icon/menu/${id}.png`);
+export const crestUrl = (n: NationId) => asset(`crest/${n}.webp`);
+export const menuIconUrl = (id: string) => asset(`icon/menu/${id}.webp`);

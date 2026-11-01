@@ -5,10 +5,11 @@ import { simulateMatch, type HighlightKind, type MatchResult } from "../../core/
 import { FOCUS_NAMES, RANGE_NAMES, STANCE_NAMES, type Stance } from "../../core/tactics";
 import { canFight, computeCA } from "../../core/gladiator";
 import { applyMatchResult } from "../../core/match";
+import { availability, playChallenge, todaysPlayerMatches } from "../../core/challenge";
 import { Rng } from "../../core/rng";
 import { pushMessage } from "../../core/state";
 import type { DeathRule, GameState, Gladiator, Id } from "../../core/types";
-import type { Nav } from "../App";
+import type { Ctx, Nav } from "../App";
 import { Portrait, Stars } from "../components/common";
 
 type Item = { kind: "line"; line: CommentaryLine } | { kind: "cut"; cut: HighlightKind };
@@ -37,12 +38,15 @@ interface Live {
   b: Gladiator;
   seed: number;
   rule: DeathRule;
+  /** 공식 경기는 미리 계산한 결과 상태를 중계가 끝난 뒤 반영한다 */
+  commit?: GameState;
 }
 
-export function MatchScreen({ state, update, nav }: { state: GameState; update: (fn: (d: GameState) => void) => void; nav: Nav }) {
+export function MatchScreen({ state, update, replace, nav }: Ctx) {
   const player = state.ludi[state.playerLudusId];
-  const mine = player.gladiators.map((id) => state.gladiators[id]).filter(canFight);
+  const mine = player.gladiators.map((id) => state.gladiators[id]).filter((g) => canFight(g) && !availability(state, g));
   const others = Object.values(state.ludi).filter((l) => !l.isPlayer).sort((x, y) => y.rp - x.rp);
+  const official = todaysPlayerMatches(state);
 
   const [myId, setMyId] = useState<Id | undefined>(mine[0]?.id);
   const [oppLudus, setOppLudus] = useState<Id>(others.find((l) => l.tier === player.tier)?.id ?? others[0].id);
@@ -58,6 +62,49 @@ export function MatchScreen({ state, update, nav }: { state: GameState; update: 
     if (!oppList.find((g) => g.id === oppId)) setOppId(oppList[0]?.id);
   }, [oppLudus]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  const buildItems = (result: MatchResult, a: Gladiator, b: Gladiator, seed: number): Item[] => {
+    const lines = buildCommentary(result.events, { [a.id]: a, [b.id]: b }, seed);
+    const items: Item[] = [];
+    for (const e of result.events) {
+      if (e.t === "highlight") items.push({ kind: "cut", cut: e.kind });
+      else for (const l of lines) if (l.event === e) items.push({ kind: "line", line: l });
+    }
+    return items;
+  };
+
+  /** 공식 경기: 결과를 미리 계산해 두고, 중계가 끝나면 반영한다 */
+  const playOfficial = (challengeId: string) => {
+    const draft = structuredClone(state);
+    const rng = new Rng(draft.rngState);
+    const c = draft.challenges.find((x) => x.id === challengeId)!;
+    const played = playChallenge(draft, c, rng);
+    draft.rngState = rng.state;
+    const meFirst = draft.ludi[c.from].isPlayer;
+    if (!played.result) {
+      pushMessage(draft, { kind: "match", title: "기권", body: played.forfeit ?? "" });
+      replace(draft);
+      return;
+    }
+    const r = played.result;
+    const myLudus = draft.playerLudusId;
+    const w = draft.gladiators[r.winnerId];
+    const l = draft.gladiators[r.loserId];
+    const died = r.died ? draft.gladiators[r.died] : null;
+    const rp = played.summary?.rpChange[myLudus] ?? 0;
+    const money = played.summary?.money[myLudus] ?? 0;
+    pushMessage(draft, {
+      kind: died ? "death" : "match",
+      title: died ? `${died.name}, 모래 위에서 숨을 거두다` : `${BALANCE.rules[c.rule].name}: ${w.name} 승리`,
+      body: `${w.name} vs ${l.name} — ${w.name} 승리 (${{ ko: "KO", surrender: "항복", timeout: "판정" }[r.reason]}, ${r.rounds}라운드)\n` +
+        `RP ${rp >= 0 ? "+" : ""}${rp} · 수입 ${money.toLocaleString()} D (세전)` +
+        (died ? `\n\n${died.name}의 이름이 비석에 새겨졌다. 다시는 돌아오지 않는다.` : ""),
+    });
+    setLive({
+      result: r, a: meFirst ? played.a : played.b, b: meFirst ? played.b : played.a,
+      items: buildItems(r, played.a, played.b, r.rounds), seed: 0, rule: c.rule, commit: draft,
+    });
+  };
+
   const start = () => {
     const a = state.gladiators[myId!];
     const b = state.gladiators[oppId!];
@@ -66,13 +113,7 @@ export function MatchScreen({ state, update, nav }: { state: GameState; update: 
     update((d) => { d.rngState = r.state; });
     const myDoctrine = stanceOverride ? { ...a.doctrine, stance: stanceOverride } : a.doctrine;
     const result = simulateMatch(a, b, { rule, seed, doctrines: [myDoctrine, undefined] });
-    const lines = buildCommentary(result.events, { [a.id]: a, [b.id]: b }, seed);
-    const items: Item[] = [];
-    for (const e of result.events) {
-      if (e.t === "highlight") items.push({ kind: "cut", cut: e.kind });
-      else for (const l of lines) if (l.event === e) items.push({ kind: "line", line: l });
-    }
-    setLive({ result, items, a: structuredClone(a), b: structuredClone(b), seed, rule });
+    setLive({ result, items: buildItems(result, a, b, seed), a: structuredClone(a), b: structuredClone(b), seed, rule });
   };
 
   if (live) {
@@ -81,8 +122,12 @@ export function MatchScreen({ state, update, nav }: { state: GameState; update: 
         live={live}
         speedMs={SPEEDS.find((s) => s.id === speed)!.ms}
         onDone={() => {
+          if (live.commit) {
+            replace(live.commit);
+            return;
+          }
           update((d) => {
-            applyMatchResult(d, live.result, { ranked: false, rpMult: 1 });
+            applyMatchResult(d, live.result, { rule: live.rule, ranked: false }, new Rng(live.seed));
             const w = d.gladiators[live.result.winnerId];
             const l = d.gladiators[live.result.loserId];
             const died = live.result.died ? d.gladiators[live.result.died] : null;
@@ -104,8 +149,40 @@ export function MatchScreen({ state, update, nav }: { state: GameState; update: 
   return (
     <>
       <h1 className="screen-title">모래 마당</h1>
+      {official.length > 0 && (
+        <div className="panel official">
+          <h3>오늘의 공식 경기</h3>
+          <div className="pad">
+            {official.map((c) => {
+              const iAmFrom = state.ludi[c.from].isPlayer;
+              const me = state.gladiators[iAmFrom ? c.fromGladiator : c.toGladiator!];
+              const them = state.gladiators[iAmFrom ? c.toGladiator! : c.fromGladiator];
+              const opp = state.ludi[iAmFrom ? c.to : c.from];
+              return (
+                <div key={c.id} className="official-row">
+                  <div className="name-cell"><Portrait g={me} size={48} /><span className="n">{me.name}</span></div>
+                  <div className="vs">
+                    <span className={`tag ${c.rule === "sudden" ? "neg" : ""}`}>{BALANCE.rules[c.rule].name}</span>
+                    <div className="hint">{opp.name}</div>
+                  </div>
+                  <div className="name-cell"><span className="n">{them.name}</span><Portrait g={them} size={48} /></div>
+                  <button className={`btn ${c.rule === "sudden" ? "danger" : "primary"}`} onClick={() => playOfficial(c.id)}>경기장에 들어간다</button>
+                </div>
+              );
+            })}
+            <div className="field" style={{ marginTop: 10 }}>
+              <label>중계 속도</label>
+              <div className="seg">
+                {SPEEDS.map((s) => (
+                  <button key={s.id} className={speed === s.id ? "on" : ""} onClick={() => setSpeed(s.id)}>{s.label}</button>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
       <div className="screen-sub">
-        다른 루두스 검투사와 붙는 연습 시합이다. RP는 그대로지만 생사 규칙은 실전과 똑같다. 죽으면 끝이다.
+        연습 시합: RP와 돈은 오가지 않지만 성장·피로·혹사는 실전과 같고, 생사 규칙도 그대로다. 죽으면 끝이다.
       </div>
       <div className="match-setup">
         <div className="panel">
@@ -140,7 +217,7 @@ export function MatchScreen({ state, update, nav }: { state: GameState; update: 
               </div>
               <div style={{ color: "var(--text-faint)", fontSize: 11, marginTop: 4 }}>
                 {rule === "training" && "쓰러지면 종료. 사고사 1%"}
-                {rule === "missio" && "쓰러지면 관중이 살릴지 죽일지 정한다 (5~40%)"}
+                {rule === "missio" && "쓰러지면 관중이 살릴지 죽일지 정한다 (3~25%)"}
                 {rule === "sudden" && "지면 거의 죽는다 (85~95%)"}
               </div>
             </div>

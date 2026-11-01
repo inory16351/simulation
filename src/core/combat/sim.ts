@@ -1,4 +1,5 @@
 import { BALANCE, getArmor, getRace, getSkill, getStyle, getWeapon, type ArmorDef, type SkillDef, type WeaponDef } from "../data";
+import { performance } from "../condition";
 import { effectiveAttr } from "../gladiator";
 import { Rng } from "../rng";
 import { defaultDoctrine, type Doctrine, type Focus, type RuleAction, type Stance } from "../tactics";
@@ -87,6 +88,8 @@ interface Fighter {
   damageTaken: number;
   crowdContribution: number;
   hasPassive: (id: string) => boolean;
+  /** 컨디션(사기·감각·혹사·피로·미납)을 모은 경기력 배율 */
+  perf: number;
 }
 
 const PART_WEIGHTS: Record<BodyPart, number> = {
@@ -129,6 +132,7 @@ function makeFighter(g: Gladiator, idx: 0 | 1, doctrine: Doctrine): Fighter {
     doctrine, stance: doctrine.stance, firedRules: new Set(),
     damageDealt: 0, damageTaken: 0, crowdContribution: 0,
     hasPassive: (id) => g.skills.passive.includes(id),
+    perf: performance(g).total,
   };
 }
 
@@ -158,8 +162,10 @@ export function simulateMatch(a: Gladiator, b: Gladiator, opt: MatchOptions): Ma
   let ended: { winner: Fighter; loser: Fighter; reason: EndReason; crit: boolean } | null = null;
   let round = 0;
 
+  // 훈련전은 관중 없이 치른다
+  const hasCrowd = BALANCE.rules[opt.rule].crowd;
   const addCrowd = (delta: number, by?: Fighter) => {
-    if (delta === 0) return;
+    if (delta === 0 || !hasCrowd) return;
     const before = crowd;
     crowd = Math.max(0, Math.min(100, crowd + delta));
     if (by) by.crowdContribution += crowd - before;
@@ -224,6 +230,7 @@ export function simulateMatch(a: Gladiator, b: Gladiator, opt: MatchOptions): Ma
     if (counters(att, def)) hitChance += C.counterHit;
     if (counters(def, att)) hitChance -= C.counterEvade;
     if (att.momentum >= 80) hitChance += 0.1;
+    hitChance += (att.perf - 1) * 0.5 - (def.perf - 1) * 0.3;
     if (attr(att, "str") < w.reqStr) hitChance -= 0.1;
     if (att.sta <= 0) hitChance -= C.exhaustedPenalty;
     if (att.statuses.has("blinded")) hitChance -= 0.4;
@@ -292,6 +299,7 @@ export function simulateMatch(a: Gladiator, b: Gladiator, opt: MatchOptions): Ma
     if (crit) dmg *= C.critMult;
     if (blocked) dmg *= 1 - C.blockReduction;
     if (part === "head" || part === "neck") dmg *= 1.2;
+    dmg *= att.perf;
     const dealt = dealDamage(att, def, Math.max(1, Math.round(dmg)));
 
     emit({ t: "attack", actor: att.g.id, target: def.g.id, skill: spec.skill?.id, hit: true, blocked, crit, damage: dealt, part, hpAfter: Math.max(0, def.hp), maxHp: def.maxHp, magic });
@@ -645,7 +653,7 @@ export function simulateMatch(a: Gladiator, b: Gladiator, opt: MatchOptions): Ma
   const injuries: Record<Id, Injury | undefined> = {};
   for (const f of F) {
     if (f.g.id === died) continue;
-    injuries[f.g.id] = rollInjury(rng, f, reason === "ko" && f === loser);
+    injuries[f.g.id] = rollInjury(rng, f, reason === "ko" && f === loser, BALANCE.rules[opt.rule].injuryMult);
   }
 
   return {
@@ -667,14 +675,14 @@ const INJURY_DESC = {
   serious: ["부러진 팔", "깊게 베인 허벅지", "금 간 두개골", "찢어진 어깨 근육", "부러진 갈비뼈"],
 };
 
-function rollInjury(rng: Rng, f: Fighter, knockedOut: boolean): Injury | undefined {
+function rollInjury(rng: Rng, f: Fighter, knockedOut: boolean, mult: number): Injury | undefined {
   const proneMult = f.g.hidden.injuryProne / 10 * (f.g.traits.includes("injury_prone") ? 1.5 : 1);
-  const p = (f.damageTaken / f.maxHp) * 0.35 * proneMult + (knockedOut ? 0.25 : 0);
+  const p = ((f.damageTaken / f.maxHp) * 0.35 * proneMult + (knockedOut ? 0.25 : 0)) * mult;
   if (!rng.chance(p)) return undefined;
   let seriousChance = 0.2 + (knockedOut ? 0.2 : 0);
   if (getRace(f.g.race).id === "dwarf") seriousChance *= 0.6;
   const serious = rng.chance(seriousChance);
   return serious
-    ? { severity: "serious", weeksLeft: rng.int(4, 8), desc: rng.pick(INJURY_DESC.serious) }
-    : { severity: "light", weeksLeft: rng.int(1, 2), desc: rng.pick(INJURY_DESC.light) };
+    ? { severity: "serious", daysLeft: rng.int(28, 56), desc: rng.pick(INJURY_DESC.serious) }
+    : { severity: "light", daysLeft: rng.int(4, 12), desc: rng.pick(INJURY_DESC.light) };
 }

@@ -99,6 +99,12 @@ export function generateGladiator(rng: Rng, opt: GenOptions): Gladiator {
     record: { wins: 0, losses: 0, kills: 0 },
     alive: true,
     portraitSeed: rng.int(0, 1_000_000),
+    training: { focus: "physical", intensity: "normal" },
+    growth: {},
+    sharpness: rng.int(45, 80),
+    wear: rng.int(0, 15),
+    history: [],
+    career: [],
   };
 
   g.doctrine = defaultDoctrine(g, rng.int(40, 90));

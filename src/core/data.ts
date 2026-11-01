@@ -140,8 +140,10 @@ export const NAMES = namesJson as {
   female: string[];
   surname: Record<RaceId, string[]>;
   epithet: string[];
-  ludusPrefix: string[];
+  ludusNoun: string[];
+  ludusAdj: string[];
   ludusSuffix: string[];
+  ludusSuffixAfterAdj: string[];
 };
 export const BALANCE = balanceJson;
 

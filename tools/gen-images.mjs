@@ -4,6 +4,7 @@
 //   node tools/gen-images.mjs --only portrait  id가 이 접두어로 시작하는 항목만
 //   node tools/gen-images.mjs --force          이미 있어도 다시 생성
 //   node tools/gen-images.mjs --jobs 4         동시에 실행할 codex 수 (기본 3)
+//   node tools/gen-images.mjs --manifest tools/portrait-parts.json   다른 목록 사용
 import { spawn } from "node:child_process";
 import { existsSync, mkdirSync, readFileSync } from "node:fs";
 import { dirname } from "node:path";
@@ -15,7 +16,7 @@ const opt = (name, def) => {
   return i >= 0 ? args[i + 1] : def;
 };
 
-const manifest = JSON.parse(readFileSync("tools/assets.json", "utf8"));
+const manifest = JSON.parse(readFileSync(opt("--manifest", "tools/assets.json"), "utf8"));
 const only = opt("--only", "");
 const jobs = Number(opt("--jobs", "3"));
 
@@ -35,7 +36,7 @@ function buildPrompt(it) {
     "Do not write any code, scripts, or other files.",
     "",
     `Image: ${manifest.presets[it.preset]}`,
-    it.prompt,
+    it.prompt.replace("{headRule}", manifest.headRule ?? ""),
     manifest.style,
     "",
     "When done, reply with only the saved file path.",

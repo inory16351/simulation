@@ -1,0 +1,674 @@
+[
+  {
+    "id": "event.anonymous_patron",
+    "scope": "ludus",
+    "grade": "luck",
+    "weight": 3,
+    "title": "익명의 후원자",
+    "text": "아침에 문 앞에 묵직한 돈주머니가 놓여 있었다. 쪽지 한 장 없이.",
+    "choices": [
+      {
+        "label": "받는다",
+        "effects": [
+          {
+            "type": "gold",
+            "min": 800,
+            "max": 2000
+          }
+        ]
+      },
+      {
+        "label": "신전에 바친다",
+        "effects": [
+          {
+            "type": "moraleAll",
+            "value": 5
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "event.arms_dealer",
+    "scope": "ludus",
+    "grade": "opportunity",
+    "weight": 3,
+    "title": "떠돌이 무기상",
+    "text": "무기상이 남은 물건을 헐값에 넘기겠단다. 칼날은 무뎌도 쓸 만하다.",
+    "choices": [
+      {
+        "label": "산다 (400 D)",
+        "cost": 400,
+        "effects": [
+          {
+            "type": "gold",
+            "value": -400
+          },
+          {
+            "type": "attr",
+            "target": "random",
+            "attr": "acc",
+            "value": 1
+          },
+          {
+            "type": "attr",
+            "target": "random",
+            "attr": "str",
+            "value": 1
+          }
+        ]
+      },
+      {
+        "label": "돌려보낸다",
+        "effects": []
+      }
+    ]
+  },
+  {
+    "id": "event.wandering_master",
+    "scope": "ludus",
+    "grade": "opportunity",
+    "weight": 2,
+    "title": "떠돌이 고수",
+    "text": "낡은 망토를 두른 노인이 문 앞에 섰다. 손바닥 굳은살이 예사롭지 않다. 하루만 가르쳐 줄 수 있다고 한다.",
+    "choices": [
+      {
+        "label": "가장 어린 검투사를 맡긴다 (300 D)",
+        "cost": 300,
+        "effects": [
+          {
+            "type": "gold",
+            "value": -300
+          },
+          {
+            "type": "growth",
+            "target": "youngest",
+            "days": 30
+          }
+        ]
+      },
+      {
+        "label": "돌려보낸다",
+        "effects": []
+      }
+    ]
+  },
+  {
+    "id": "event.troupe",
+    "scope": "ludus",
+    "grade": "opportunity",
+    "weight": 3,
+    "title": "유랑 극단의 제안",
+    "text": "광장 공연에 검투사 하나를 빌려 달란다. 칼 쓰는 시늉만 하면 된다고.",
+    "choices": [
+      {
+        "label": "빌려준다",
+        "effects": [
+          {
+            "type": "gold",
+            "value": 500
+          },
+          {
+            "type": "popularity",
+            "target": "random",
+            "value": 6
+          },
+          {
+            "type": "fatigue",
+            "target": "same",
+            "value": 20
+          }
+        ]
+      },
+      {
+        "label": "거절한다",
+        "effects": []
+      }
+    ]
+  },
+  {
+    "id": "event.gambler_tip",
+    "scope": "ludus",
+    "grade": "opportunity",
+    "weight": 2,
+    "title": "도박꾼의 귀띔",
+    "text": "투기장 뒷골목 도박꾼이 돈을 걸 만한 정보를 판다. 믿을 만한지는 모른다.",
+    "choices": [
+      {
+        "label": "산다 (200 D)",
+        "cost": 200,
+        "effects": [
+          {
+            "type": "gold",
+            "value": -200
+          },
+          {
+            "type": "gamble",
+            "chance": 0.55,
+            "win": 900
+          }
+        ]
+      },
+      {
+        "label": "무시한다",
+        "effects": []
+      }
+    ]
+  },
+  {
+    "id": "event.fever",
+    "scope": "ludus",
+    "grade": "trial",
+    "weight": 2,
+    "title": "막사에 열병이 돈다",
+    "text": "밤새 기침 소리가 끊이지 않았다. 몇 놈은 이미 이마가 불덩이다.",
+    "choices": [
+      {
+        "label": "의원을 부른다 (350 D)",
+        "cost": 350,
+        "effects": [
+          {
+            "type": "gold",
+            "value": -350
+          },
+          {
+            "type": "fatigueAll",
+            "value": 15
+          }
+        ]
+      },
+      {
+        "label": "격리한다",
+        "effects": [
+          {
+            "type": "injury",
+            "target": "random",
+            "days": 10,
+            "desc": "열병"
+          },
+          {
+            "type": "injury",
+            "target": "random",
+            "days": 10,
+            "desc": "열병"
+          }
+        ]
+      },
+      {
+        "label": "버티라고 한다",
+        "effects": [
+          {
+            "type": "attr",
+            "target": "random",
+            "attr": "end",
+            "value": -1
+          },
+          {
+            "type": "attr",
+            "target": "random",
+            "attr": "tou",
+            "value": -1
+          },
+          {
+            "type": "moraleAll",
+            "value": -8
+          },
+          {
+            "type": "deathChance",
+            "target": "random",
+            "chance": 0.05,
+            "cause": "열병"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "event.thief",
+    "scope": "ludus",
+    "grade": "trial",
+    "weight": 2,
+    "title": "도둑이 들었다",
+    "text": "밤사이 금고 자물쇠가 뜯겨 있었다.",
+    "choices": [
+      {
+        "label": "어쩔 수 없다",
+        "effects": [
+          {
+            "type": "goldPercent",
+            "value": -0.1
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "event.tax_audit",
+    "scope": "ludus",
+    "grade": "trial",
+    "weight": 2,
+    "title": "세무관이 찾아왔다",
+    "text": "장부를 보자고 한다. 눈빛이 돈 냄새를 맡은 사냥개 같다.",
+    "choices": [
+      {
+        "label": "뇌물을 쥐여 준다 (400 D)",
+        "cost": 400,
+        "effects": [
+          {
+            "type": "gold",
+            "value": -400
+          }
+        ]
+      },
+      {
+        "label": "정직하게 장부를 연다",
+        "effects": [
+          {
+            "type": "gamble",
+            "chance": 0.5,
+            "win": 0,
+            "lose": -1200
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "event.bad_well",
+    "scope": "ludus",
+    "grade": "trial",
+    "weight": 2,
+    "title": "우물이 썩었다",
+    "text": "물에서 비린내가 난다. 이대로면 다들 배탈이 난다.",
+    "choices": [
+      {
+        "label": "고친다 (300 D)",
+        "cost": 300,
+        "effects": [
+          {
+            "type": "gold",
+            "value": -300
+          }
+        ]
+      },
+      {
+        "label": "그냥 마시게 한다",
+        "effects": [
+          {
+            "type": "fatigueAll",
+            "value": 25
+          },
+          {
+            "type": "moraleAll",
+            "value": -5
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "event.secret_meeting",
+    "scope": "ludus",
+    "grade": "disaster",
+    "weight": 3,
+    "condition": "lowMorale",
+    "title": "밤의 비밀 회합",
+    "text": "막사 뒤에서 수군거리는 소리가 들린다. 선동하는 놈이 있다.",
+    "choices": [
+      {
+        "label": "주동자를 매질한다",
+        "effects": [
+          {
+            "type": "moraleAll",
+            "value": -5
+          },
+          {
+            "type": "injury",
+            "target": "lowestMorale",
+            "days": 7,
+            "desc": "매질"
+          }
+        ]
+      },
+      {
+        "label": "급료를 올려 주겠다고 약속한다",
+        "effects": [
+          {
+            "type": "wageRaise",
+            "value": 0.15
+          },
+          {
+            "type": "moraleAll",
+            "value": 12
+          }
+        ]
+      },
+      {
+        "label": "못 들은 척한다",
+        "effects": [
+          {
+            "type": "moraleAll",
+            "value": -10
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "event.epiphany",
+    "scope": "gladiator",
+    "grade": "luck",
+    "weight": 4,
+    "title": "깨달음",
+    "text": "{name}이(가) 새벽 수련 중에 무언가를 붙잡은 얼굴로 서 있다.",
+    "choices": [
+      {
+        "label": "좋다",
+        "effects": [
+          {
+            "type": "growth",
+            "target": "self",
+            "days": 20
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "event.awakening",
+    "scope": "gladiator",
+    "grade": "luck",
+    "weight": 1,
+    "condition": "growthStage",
+    "title": "잠재력이 터졌다",
+    "text": "{name}의 움직임이 하루아침에 달라졌다. 교관들이 서로 눈을 마주친다.",
+    "choices": [
+      {
+        "label": "좋다",
+        "effects": [
+          {
+            "type": "pa",
+            "target": "self",
+            "min": 10,
+            "max": 30
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "event.admirer",
+    "scope": "gladiator",
+    "grade": "luck",
+    "weight": 2,
+    "condition": "popular",
+    "title": "귀부인의 선물",
+    "text": "귀족 부인이 {name}에게 비단 주머니를 보냈다. 안에는 금화가 들어 있다.",
+    "choices": [
+      {
+        "label": "루두스 금고에 넣는다",
+        "effects": [
+          {
+            "type": "gold",
+            "value": 400
+          },
+          {
+            "type": "morale",
+            "target": "self",
+            "value": -5
+          }
+        ]
+      },
+      {
+        "label": "본인이 갖게 한다",
+        "effects": [
+          {
+            "type": "morale",
+            "target": "self",
+            "value": 12
+          },
+          {
+            "type": "popularity",
+            "target": "self",
+            "value": 5
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "event.letter_home",
+    "scope": "gladiator",
+    "grade": "opportunity",
+    "weight": 3,
+    "title": "고향에서 온 편지",
+    "text": "{name}의 가족이 굶고 있다는 소식이 왔다.",
+    "choices": [
+      {
+        "label": "송금해 준다 (200 D)",
+        "cost": 200,
+        "effects": [
+          {
+            "type": "gold",
+            "value": -200
+          },
+          {
+            "type": "morale",
+            "target": "self",
+            "value": 15
+          },
+          {
+            "type": "loyalty",
+            "target": "self",
+            "value": 1
+          }
+        ]
+      },
+      {
+        "label": "모른 척한다",
+        "effects": [
+          {
+            "type": "morale",
+            "target": "self",
+            "value": -8
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "event.tavern_brawl",
+    "scope": "gladiator",
+    "grade": "trial",
+    "weight": 3,
+    "condition": "lowDiscipline",
+    "title": "술집 난투",
+    "text": "{name}이(가) 밤에 몰래 나가 술집에서 주먹을 휘둘렀다. 경비대가 끌고 왔다.",
+    "choices": [
+      {
+        "label": "벌금을 내고 벌한다 (200 D)",
+        "cost": 200,
+        "effects": [
+          {
+            "type": "gold",
+            "value": -200
+          },
+          {
+            "type": "morale",
+            "target": "self",
+            "value": -10
+          }
+        ]
+      },
+      {
+        "label": "벌금만 낸다 (200 D)",
+        "cost": 200,
+        "effects": [
+          {
+            "type": "gold",
+            "value": -200
+          },
+          {
+            "type": "attr",
+            "target": "self",
+            "attr": "disc",
+            "value": -1
+          }
+        ]
+      },
+      {
+        "label": "벌금을 못 낸다. 매질로 대신한다",
+        "effects": [
+          {
+            "type": "injury",
+            "target": "self",
+            "days": 5,
+            "desc": "매질"
+          },
+          {
+            "type": "morale",
+            "target": "self",
+            "value": -15
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "event.poison",
+    "scope": "gladiator",
+    "grade": "disaster",
+    "weight": 1,
+    "condition": "popular",
+    "title": "독이 든 음식",
+    "text": "{name}이(가) 저녁을 먹고 피를 토하며 쓰러졌다. 누군가 음식에 손을 댔다.",
+    "choices": [
+      {
+        "label": "의원을 부른다",
+        "effects": [
+          {
+            "type": "injury",
+            "target": "self",
+            "days": 21,
+            "desc": "중독",
+            "serious": true
+          },
+          {
+            "type": "deathChance",
+            "target": "self",
+            "chance": 0.08,
+            "cause": "독살"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "event.emperor_festival",
+    "scope": "world",
+    "grade": "luck",
+    "weight": 2,
+    "title": "황제의 축제",
+    "text": "제국 전역에 축제가 선포됐다. 앞으로 28일간 투기장마다 사람이 넘친다.",
+    "choices": [
+      {
+        "label": "좋다",
+        "effects": [
+          {
+            "type": "modifier",
+            "kind": "ticket",
+            "mult": 1.5,
+            "days": 28
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "event.good_harvest",
+    "scope": "world",
+    "grade": "luck",
+    "weight": 2,
+    "title": "풍년",
+    "text": "곡물 값이 떨어졌다. 한동안 식비 걱정은 덜었다.",
+    "choices": [
+      {
+        "label": "좋다",
+        "effects": [
+          {
+            "type": "modifier",
+            "kind": "food",
+            "mult": 0.5,
+            "days": 28
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "event.famine",
+    "scope": "world",
+    "grade": "trial",
+    "weight": 2,
+    "title": "흉년",
+    "text": "가뭄이 들어 곡물 값이 치솟는다.",
+    "choices": [
+      {
+        "label": "버틴다",
+        "effects": [
+          {
+            "type": "modifier",
+            "kind": "food",
+            "mult": 2,
+            "days": 42
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "event.shipwreck",
+    "scope": "world",
+    "grade": "opportunity",
+    "weight": 2,
+    "title": "노예선 난파",
+    "text": "카르세아 노예선이 해안에 좌초했다. 경매장에 매물이 쏟아진다.",
+    "choices": [
+      {
+        "label": "좋다",
+        "effects": [
+          {
+            "type": "modifier",
+            "kind": "market",
+            "mult": 0.6,
+            "days": 14
+          },
+          {
+            "type": "refreshMarket"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "event.plague",
+    "scope": "world",
+    "grade": "disaster",
+    "weight": 1,
+    "title": "역병",
+    "text": "대륙에 역병이 돈다. 사람들이 모이는 곳을 피한다.",
+    "choices": [
+      {
+        "label": "버틴다",
+        "effects": [
+          {
+            "type": "modifier",
+            "kind": "ticket",
+            "mult": 0.5,
+            "days": 28
+          }
+        ]
+      }
+    ]
+  }
+]

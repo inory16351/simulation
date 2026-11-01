@@ -16,24 +16,83 @@
   },
   "death": {
     "trainingKo": 0.01, "trainingCritKo": 0.03,
-    "missioBase": 0.40, "missioPerPopularity": 0.002, "missioPerCrowd": 0.002,
-    "missioCrowdHand": 0.15, "missioMin": 0.05, "missioMax": 0.40,
+    "missioBase": 0.25, "missioPerPopularity": 0.002, "missioPerCrowd": 0.002,
+    "missioCrowdHand": 0.15, "missioMin": 0.03, "missioMax": 0.25,
     "suddenBase": 0.95, "suddenPerMedical": 0.02, "suddenMin": 0.85
   },
   "rules": {
-    "training": { "name": "훈련전", "purseMult": 1, "rpMult": 1.0 },
-    "missio": { "name": "미시오", "purseMult": 3, "rpMult": 1.5 },
-    "sudden": { "name": "사투", "purseMult": 6, "rpMult": 2.0 }
+    "training": { "name": "훈련전", "purseMult": 0, "ticketMult": 0, "fameMult": 0, "rpMult": 0.5, "crowd": false, "growthDays": 6, "fatigueMult": 0.6, "injuryMult": 0.5 },
+    "missio": { "name": "미시오", "purseMult": 3, "ticketMult": 1, "fameMult": 1, "rpMult": 1.5, "crowd": true, "growthDays": 8, "fatigueMult": 1, "injuryMult": 1 },
+    "sudden": { "name": "사투", "purseMult": 6, "ticketMult": 2.2, "fameMult": 2, "rpMult": 2.0, "crowd": true, "growthDays": 12, "fatigueMult": 1.3, "injuryMult": 1.2 }
   },
   "league": {
     "teamsPerTier": 10,
     "rpTier1": 1500, "rpTier2": 1200,
-    "eloK": 32
+    "eloK": 32,
+    "seasonRegression": 0.25,
+    "minMatches": 8, "minMatchPenalty": 25,
+    "freeRefusals": 3, "refusalPenalty": 10,
+    "challengeRange": 200,
+    "challengesPerWeek": 2,
+    "restDays": 2,
+    "matchDelayMin": 3, "matchDelayMax": 5,
+    "respondDays": 2,
+    "aiMatchChancePerDay": 0.08,
+    "aiChallengePlayerChance": 0.06,
+    "promote": 2, "relegate": 2
   },
   "economy": {
     "startTreasury": 4000,
     "startRoster": 6,
     "aiRoster": 8,
-    "wage": { "slaveMin": 5, "slaveMax": 20, "perCa": 0.9 }
+    "wage": { "slaveMin": 5, "slaveMax": 20, "perCa": 0.9 },
+    "dividendBase": { "1": 12000, "2": 5000 },
+    "promotedDividendCoef": 0.6, "relegatedDividendCoef": 1.2,
+    "purse": { "1": 400, "2": 150 },
+    "loserPurseShare": 0.3,
+    "ticketIncome": { "1": 900, "2": 300 },
+    "homeShare": 0.7,
+    "foodPerWeek": 5,
+    "taxRate": 0.1,
+    "bankruptDays": 28,
+    "marketSize": 8,
+    "marketRefreshDays": [1, 78],
+    "sellShare": 0.6
+  },
+  "morale": {
+    "unpaid": [0, 10, 20, 30, 30],
+    "unpaidPerf": [0, 0, 0.10, 0.25, 0.40],
+    "paidBonus": 2,
+    "dailyDrift": 0.5,
+    "teammateDeath": 8
+  },
+  "unrest": {
+    "desertBase": 0.08,
+    "revoltPerMoralePerWeek": 0.005,
+    "agitatorBonus": 0.05,
+    "guardReduction": 0.03,
+    "loyalReduction": 0.03
+  },
+  "training": {
+    "dailyBase": 0.05,
+    "ageMult": { "youth": 1.6, "growth": 1.5, "prime": 0.6, "decline": -0.35 },
+    "intensity": {
+      "low": { "growth": 0.6, "fatigue": 1, "injury": 0.0007 },
+      "normal": { "growth": 1.0, "fatigue": 2, "injury": 0.0015 },
+      "high": { "growth": 1.4, "fatigue": 4, "injury": 0.004 },
+      "extreme": { "growth": 1.8, "fatigue": 6, "injury": 0.009 }
+    },
+    "facilityBonus": 0.1,
+    "fatigueRecoveryBase": 6,
+    "fatigueRecoveryPerRec": 0.4,
+    "restRecoveryBonus": 8,
+    "familiarityPerDay": 3,
+    "fightFatigue": 25
+  },
+  "events": {
+    "ludusPerDay": 0.12,
+    "gladiatorPerDay": 0.006,
+    "worldPerDay": 0.023,
+    "disasterCooldownDays": 28
   }
 }
