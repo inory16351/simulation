@@ -159,7 +159,8 @@ describe("용병·전쟁", () => {
     const s = newGame(5, "karsea");
     s.relations.aurelia.grommar = -100;
     s.relations.grommar.aurelia = -100;
-    autoplay(s, 40);
+    // 전쟁은 확률로 터진다. 열흘씩 넘기며 기다린다
+    for (let i = 0; i < 12 && !s.contracts.some((x) => x.status === "open" && x.type !== "duel"); i++) autoplay(s, 10);
     expect(s.wars.length).toBeGreaterThan(0);
     const me = s.ludi[s.playerLudusId];
     const c = s.contracts.find((x) => x.status === "open" && x.type !== "duel")
