@@ -1,4 +1,6 @@
 import { getNation, getRace, getStyle } from "../../core/data";
+import { paintedSpec } from "../../core/portrait2";
+import { PaintedAvatar } from "./PaintedAvatar";
 import { avatarOf } from "../../core/avatar";
 import { TIER_NAMES, getInjury } from "../../core/injuries";
 import { AvatarSvg } from "./Avatar";
@@ -40,9 +42,13 @@ export function attrClass(v: number): string {
 export function Portrait({ g, size = 40, painted }: { g: Gladiator; size?: number; painted?: boolean }) {
   const fights = g.record.wins + g.record.losses;
   const scars = Math.floor(fights / 6) + (g.traits.includes("scarred") ? 2 : 0);
+  // 그림 파츠가 있는 종족은 그림 초상화, 아직 없는 종족은 코드로 그린 초상화
+  const spec2 = paintedSpec(g);
   return (
     <div className={`portrait ${g.alive ? "" : "dead"}`} style={{ width: size, height: size }}>
-      <AvatarSvg spec={avatarOf(g)} bg={getNation(g.nation).color} scars={scars} injured={g.injury?.severity} dead={!g.alive} seed={g.portraitSeed % 997} painted={painted} />
+      {spec2
+        ? <PaintedAvatar spec={spec2} bg={getNation(g.nation).color} seed={g.portraitSeed % 997} />
+        : <AvatarSvg spec={avatarOf(g)} bg={getNation(g.nation).color} scars={scars} injured={g.injury?.severity} dead={!g.alive} seed={g.portraitSeed % 997} painted={painted} />}
     </div>
   );
 }

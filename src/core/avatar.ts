@@ -73,7 +73,8 @@ export function makeAvatar(g: Gladiator, seed = g.portraitSeed): AvatarSpec {
     eyes: g.race === "orc" || g.race === "minotaur" ? (r.chance(0.6) ? "fierce" : "round") : old ? "sleepy" : r.pick(EYE_STYLES),
     eyeColor: r.pick(EYE_COLORS),
     mouth: NO_MOUTH.has(g.race) ? null : r.pick(MOUTH_STYLES),
-    beard: g.race === "dwarf" && !female ? r.pick(["full", "braided"] as const)
+    // 수염은 남자만. 드워프 남자도 가끔은 깔끔하게 민다
+    beard: g.race === "dwarf" && !female ? (r.chance(0.85) ? r.pick(["full", "braided"] as const) : null)
       : canBeard && r.chance(old ? 0.8 : 0.4) ? r.pick(BEARD_STYLES) : null,
     helmet: g.equipment.helmet && !NO_HELMET.has(g.race) && r.chance(0.3) ? r.pick(HELMET_STYLES) : null,
     armor,
@@ -89,7 +90,10 @@ export function avatarOf(g: Gladiator): AvatarSpec {
   const base = makeAvatar(g);
   const o = g.portrait;
   if (!o) return base;
-  return { ...base, ...(o as Partial<AvatarSpec>) };
+  const spec = { ...base, ...(o as Partial<AvatarSpec>) };
+  // 예전 저장본에 남은 값이라도 여성에게 수염은 붙이지 않는다
+  if (spec.female) spec.beard = null;
+  return spec;
 }
 
 /** (개발용) 고를 수 있는 항목 */

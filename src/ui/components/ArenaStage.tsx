@@ -5,6 +5,11 @@ import { getArmor, getWeapon } from "../../core/data";
 import type { Gladiator, Id } from "../../core/types";
 import { asset } from "../assets";
 import { AvatarSvg } from "./Avatar";
+import { PaintedAvatar } from "./PaintedAvatar";
+import { PORTRAIT_CELL, hasPainted, paintedSpec, sideNeck } from "../../core/portrait2";
+
+/** 그림 머리 크기: 512 셀을 전투 장면 단위로 줄이는 배율 */
+const HEAD_S = 0.088;
 
 const INK = "#1a120e";
 const GROUND = 128;
@@ -136,6 +141,9 @@ function HitFx({ x, hit, dir }: { x: number; hit: Hit; dir: number }) {
 
 function Fighter({ v, x, facing }: { v: FighterView; x: number; facing: 1 | -1 }) {
   const s = avatarOf(v.g);
+  // 그림 옆모습이 있는 종족은 그 머리를 쓴다
+  const painted = hasPainted(v.g.race, "side") ? paintedSpec(v.g) : null;
+  const neck = painted ? sideNeck(painted) : null;
   const weapon = getWeapon(v.g.equipment.main);
   const off = v.g.equipment.off;
   const shield = off ? getArmor(off)?.slot === "shield" : false;
@@ -164,9 +172,16 @@ function Fighter({ v, x, facing }: { v: FighterView; x: number; facing: 1 | -1 }
           <path d="M-9 -28 L9 -20" stroke="#5a3b22" strokeWidth="3" opacity={s.armor === "light" ? 1 : 0} />
           {/* 머리 */}
           <g className="head">
-            <svg x="-25" y="-75" width="50" height="50" viewBox="0 0 100 100" overflow="visible">
-              <AvatarSvg spec={s} bg="none" headOnly injured={v.hpRatio < 0.35 ? "serious" : v.hpRatio < 0.7 ? "light" : undefined} seed={v.g.portraitSeed % 997} />
-            </svg>
+            {painted && neck ? (
+              // 그림 옆모습: 목 끝을 몸통 위(0, -40)에 맞춘다
+              <svg x={-neck.x * HEAD_S} y={-40 - neck.y * HEAD_S} width={PORTRAIT_CELL * HEAD_S} height={PORTRAIT_CELL * HEAD_S} viewBox={`0 0 ${PORTRAIT_CELL} ${PORTRAIT_CELL}`} overflow="visible">
+                <PaintedAvatar spec={painted} view="side" seed={v.g.portraitSeed % 997} />
+              </svg>
+            ) : (
+              <svg x="-25" y="-75" width="50" height="50" viewBox="0 0 100 100" overflow="visible">
+                <AvatarSvg spec={s} bg="none" headOnly injured={v.hpRatio < 0.35 ? "serious" : v.hpRatio < 0.7 ? "light" : undefined} seed={v.g.portraitSeed % 997} />
+              </svg>
+            )}
           </g>
           {/* 앞팔 + 무기 */}
           <g transform="translate(7 -34)">
