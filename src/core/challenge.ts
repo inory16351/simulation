@@ -8,6 +8,7 @@ import { ageStage, computeCA } from "./gladiator";
 import { josa } from "./josa";
 import { applyMatchResult, type MatchSummary } from "./match";
 import type { Rng } from "./rng";
+import { rulesOfNation } from "./nationRules";
 import { pushMessage } from "./state";
 import type { Challenge, DeathRule, GameState, Gladiator, Ludus } from "./types";
 
@@ -48,6 +49,7 @@ export function createChallenge(
 ): Challenge | string {
   const err = canChallenge(state, from, to);
   if (err) return err;
+  if (rule === "sudden" && rulesOfNation(from.nation).suddenBanned) return "이 나라 리그에서는 사투가 금지돼 있다";
   const g = state.gladiators[fromGladiator];
   const busy = availability(state, g);
   if (busy) return `${g.name}: ${busy}`;
@@ -148,7 +150,9 @@ function pickRule(rng: Rng, ludus: Ludus): DeathRule {
     merchant: { training: 4, missio: 5, sudden: 0.5 },
     developer: { training: 8, missio: 2, sudden: 0.1 },
   }[p];
-  return rng.weighted<DeathRule>(w);
+  const nr = rulesOfNation(ludus.nation);
+  const sudden = nr.suddenBanned ? 0 : w.sudden * nr.aiSuddenMult;
+  return rng.weighted<DeathRule>({ ...w, sudden });
 }
 
 /** 매일: AI 응답, 기한 지난 도전 처리, AI의 도전, AI끼리의 경기 */
@@ -196,7 +200,7 @@ export function dailyChallenges(state: GameState, rng: Rng): void {
       const ga = pickFighter(state, a, rule, t);
       const gb = pickFighter(state, b, rule, t);
       if (!ga || !gb) continue;
-      const r = simulateMatch(ga, gb, { rule, seed: rng.int(0, 2 ** 31 - 1) });
+      const r = simulateMatch(ga, gb, { rule, seed: rng.int(0, 2 ** 31 - 1), missioDeathMult: rulesOfNation(a.nation).missioDeathMult });
       applyMatchResult(state, r, { rule, ranked: true, homeLudusId: b.id }, rng);
     }
   }
@@ -241,7 +245,7 @@ export function playChallenge(state: GameState, c: Challenge, rng: Rng): PlayedM
   }
   const snapA = structuredClone(a);
   const snapB = structuredClone(b);
-  const result = simulateMatch(a, b, { rule: c.rule, seed: rng.int(0, 2 ** 31 - 1) });
+  const result = simulateMatch(a, b, { rule: c.rule, seed: rng.int(0, 2 ** 31 - 1), missioDeathMult: rulesOfNation(to.nation).missioDeathMult });
   const summary = applyMatchResult(state, result, { rule: c.rule, ranked: true, homeLudusId: to.id }, rng);
   return { challenge: c, result, a: snapA, b: snapB, summary };
 }

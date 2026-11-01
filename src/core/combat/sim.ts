@@ -39,6 +39,8 @@ export interface MatchOptions {
   /** 지정하지 않으면 각 검투사의 교범을 쓴다 */
   doctrines?: [Doctrine | undefined, Doctrine | undefined];
   medicalLevel?: [number, number];
+  /** 나라 리그 특징: 미시오 사망 확률 배율 */
+  missioDeathMult?: number;
 }
 
 export interface MatchResult {
@@ -635,7 +637,7 @@ export function simulateMatch(a: Gladiator, b: Gladiator, opt: MatchOptions): Ma
     else if (opt.rule === "missio") {
       deathChance = D.missioBase - loser.g.popularity * D.missioPerPopularity - Math.max(0, loser.crowdContribution) * D.missioPerCrowd;
       if (loser.hasPassive("skill.crowd_hand")) deathChance -= D.missioCrowdHand;
-      deathChance = Math.max(D.missioMin, Math.min(D.missioMax, deathChance));
+      deathChance = Math.max(D.missioMin, Math.min(D.missioMax, deathChance)) * (opt.missioDeathMult ?? 1);
       emit({ t: "highlight", kind: "missio", actors: [loser.g.id] });
     } else {
       deathChance = Math.max(D.suddenMin, D.suddenBase - medical * D.suddenPerMedical);

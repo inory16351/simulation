@@ -6,6 +6,7 @@ import { dailyCondition } from "./condition";
 import { BALANCE } from "./data";
 import { payday, payDividend, refreshMarket, tierRanking } from "./economy";
 import { rollDailyEvents } from "./events";
+import { rulesOfNation } from "./nationRules";
 import { generateGladiator } from "./generators/gladiator";
 import { computeCA } from "./gladiator";
 import { josa } from "./josa";
@@ -53,7 +54,7 @@ export function advanceDay(state: GameState): string[] {
       const g = state.gladiators[id];
       if (!g.alive) continue;
       if (!l.isPlayer) aiTrainingPlan(g);
-      const injured = dailyTraining(g, rng, l.facilities.training);
+      const injured = dailyTraining(g, rng, l.facilities.training, rulesOfNation(l.nation).growthMult);
       dailyCondition(g, at, l.facilities.medical);
       if (injured && l.isPlayer) {
         seasonRecord(state, g).injuries++;
@@ -177,6 +178,17 @@ function endSeason(state: GameState, rng: Rng): void {
   }
 
   const t1 = tierRanking(state, 1);
+  // 신전 후원 (케메르)
+  const subsidy = rulesOfNation(state.nation).templeSubsidy;
+  if (subsidy) {
+    for (const l of t1.slice(0, 3)) {
+      l.treasury += subsidy;
+      if (l.isPlayer) {
+        state.ledger.unshift({ at: absDay(state.season, state.day), amount: subsidy, desc: "신전 후원금" });
+        pushMessage(state, { kind: "info", title: "신전이 금을 내렸다", body: `1부 상위 루두스에 신전 후원금 ${subsidy.toLocaleString()} D가 내려왔다.` });
+      }
+    }
+  }
   const t2 = tierRanking(state, 2);
   const promoted = t2.slice(0, L.promote);
   const relegated = t1.slice(-L.relegate);

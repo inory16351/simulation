@@ -95,12 +95,13 @@ export function newGame(seed: number, nation: NationId = "aurelia", ludusName = 
     season: 1,
     day: 1,
     kind: "info",
-    title: `${nationDef.short} 2부 리그 입성`,
+    title: `${nationDef.league} 2부 입성`,
     body:
       `라니스타, ${ludusName}의 문이 열렸다.\n\n` +
       `금고엔 ${BALANCE.economy.startTreasury.toLocaleString()} 데나리, 막사엔 검투사 ${BALANCE.economy.startRoster}명. ` +
       `다들 급료 날만 기다린다. 돈줄이 끊기면 저 칼끝이 누구를 향할지 잊지 마라.\n\n` +
-      `이번 시즌 목표: 2부 리그 2위 안에 들어 승격.`,
+      `이번 시즌 목표: 2부 리그 2위 안에 들어 승격.\n\n` +
+      `${nationDef.name}의 ${nationDef.league} 특징:\n${nationDef.ruleText.map((t) => `· ${t}`).join("\n")}`,
     read: false,
   });
 

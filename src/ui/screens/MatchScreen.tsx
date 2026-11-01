@@ -9,6 +9,7 @@ import { availability, playChallenge, todaysPlayerMatches } from "../../core/cha
 import { Rng } from "../../core/rng";
 import { pushMessage } from "../../core/state";
 import type { DeathRule, GameState, Gladiator, Id } from "../../core/types";
+import { leagueRules } from "../../core/nationRules";
 import type { Ctx, Nav } from "../App";
 import { Portrait, Stars } from "../components/common";
 
@@ -112,7 +113,7 @@ export function MatchScreen({ state, update, replace, nav }: Ctx) {
     const seed = r.int(0, 2 ** 31 - 1);
     update((d) => { d.rngState = r.state; });
     const myDoctrine = stanceOverride ? { ...a.doctrine, stance: stanceOverride } : a.doctrine;
-    const result = simulateMatch(a, b, { rule, seed, doctrines: [myDoctrine, undefined] });
+    const result = simulateMatch(a, b, { rule, seed, doctrines: [myDoctrine, undefined], missioDeathMult: leagueRules(state).missioDeathMult });
     setLive({ result, items: buildItems(result, a, b, seed), a: structuredClone(a), b: structuredClone(b), seed, rule });
   };
 
@@ -212,7 +213,7 @@ export function MatchScreen({ state, update, replace, nav }: Ctx) {
               <label>생사 규칙</label>
               <div className="seg">
                 {(["training", "missio", "sudden"] as DeathRule[]).map((r) => (
-                  <button key={r} className={rule === r ? "on" : ""} onClick={() => setRule(r)}>{BALANCE.rules[r].name}</button>
+                  <button key={r} className={rule === r ? "on" : ""} disabled={r === "sudden" && leagueRules(state).suddenBanned} onClick={() => setRule(r)}>{BALANCE.rules[r].name}</button>
                 ))}
               </div>
               <div style={{ color: "var(--text-faint)", fontSize: 11, marginTop: 4 }}>

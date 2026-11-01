@@ -5,6 +5,7 @@ import { logCareer, seasonRecord } from "./career";
 import { computeCA } from "./gladiator";
 import { generateGladiator } from "./generators/gladiator";
 import { modifierMult } from "./modifiers";
+import { rulesOfNation } from "./nationRules";
 import type { Rng } from "./rng";
 import { pushMessage } from "./state";
 import type { GameState, Gladiator, Ludus } from "./types";
@@ -15,7 +16,7 @@ const E = BALANCE.economy;
 export function addMoney(state: GameState, ludus: Ludus, amount: number, desc: string): void {
   if (amount === 0) return;
   // 수입에는 세금이 붙는다
-  const net = amount > 0 ? Math.round(amount * (1 - E.taxRate)) : amount;
+  const net = amount > 0 ? Math.round(amount * (1 - rulesOfNation(ludus.nation).taxRate)) : amount;
   ludus.treasury += net;
   if (ludus.isPlayer) {
     state.ledger.unshift({ at: absDay(state.season, state.day), amount: net, desc: amount > 0 ? `${desc} (세금 공제)` : desc });
@@ -119,7 +120,7 @@ export function refreshMarket(state: GameState, rng: Rng): void {
       usedNames: new Set(Object.values(state.gladiators).map((x) => x.name)),
     });
     state.gladiators[g.id] = g;
-    state.market.push({ gladiatorId: g.id, price: Math.round(marketValue(g) * rng.range(0.85, 1.2) * modifierMult(state, "market") / 10) * 10 });
+    state.market.push({ gladiatorId: g.id, price: Math.round(marketValue(g) * rng.range(0.85, 1.2) * modifierMult(state, "market") * rulesOfNation(state.nation).marketMult / 10) * 10 });
   }
 }
 

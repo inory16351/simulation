@@ -2,7 +2,8 @@ import { absDay } from "./calendar";
 import { logCareer, ludusOf, seasonRecord } from "./career";
 import type { MatchResult } from "./combat/sim";
 import { afterMatch } from "./condition";
-import { BALANCE } from "./data";
+import { BALANCE, getSkill } from "./data";
+import { rulesOfNation } from "./nationRules";
 import { addMoney } from "./economy";
 import { modifierMult } from "./modifiers";
 import type { Rng } from "./rng";
@@ -31,6 +32,7 @@ export interface MatchSummary {
 /** 경기 결과를 게임 상태에 반영한다 */
 export function applyMatchResult(state: GameState, r: MatchResult, opt: ApplyOptions, rng: Rng): MatchSummary {
   const rule = BALANCE.rules[opt.rule];
+  const nr = rulesOfNation(ludusOf(state, r.winnerId)?.nation ?? state.nation);
   const w = state.gladiators[r.winnerId];
   const l = state.gladiators[r.loserId];
   const wl = ludusOf(state, w.id);
@@ -44,8 +46,10 @@ export function applyMatchResult(state: GameState, r: MatchResult, opt: ApplyOpt
   l.morale = Math.max(0, l.morale - 5);
 
   // 명성(인기): 관중이 있어야 쌓인다. 사투일수록 크다
-  const wFame = Math.round((2 + Math.max(0, r.crowdContribution[w.id]) / 10) * rule.fameMult);
-  const lFame = Math.round((r.crowdContribution[l.id] / 15) * rule.fameMult);
+  // 주술 검투사를 떠받드는 나라도 있다
+  const magicMult = (g: Gladiator) => (g.skills.active.some((id) => getSkill(id)?.magic) ? nr.magicFameMult : 1);
+  const wFame = Math.round((2 + Math.max(0, r.crowdContribution[w.id]) / 10) * rule.fameMult * nr.fameMult * magicMult(w));
+  const lFame = Math.round((r.crowdContribution[l.id] / 15) * rule.fameMult * nr.fameMult * magicMult(l));
   w.popularity = Math.max(0, Math.min(100, w.popularity + wFame));
   l.popularity = Math.max(0, Math.min(100, l.popularity + lFame));
   summary.fame[w.id] = wFame;
@@ -55,7 +59,7 @@ export function applyMatchResult(state: GameState, r: MatchResult, opt: ApplyOpt
     afterMatch(g, at, opt.rule);
     // 실전 경험: 훈련전·미시오·사투 모두 성장한다 (진 쪽도 배운다)
     const home = ludusOf(state, g.id);
-    grow(g, rng, "match", rule.growthDays * (g === w ? 1 : 0.8), 1, home?.facilities.training ?? 1);
+    grow(g, rng, "match", rule.growthDays * (g === w ? 1 : 0.8) * nr.growthMult, 1, home?.facilities.training ?? 1);
     const rec = seasonRecord(state, g);
     rec.apps++;
     if (g === w) rec.wins++;
@@ -102,13 +106,20 @@ export function applyMatchResult(state: GameState, r: MatchResult, opt: ApplyOpt
       ll.rp += dl;
       summary.rpChange[wl.id] = dw;
       summary.rpChange[ll.id] = dl;
+      // 항복을 수치로 여기는 나라: 항복한 쪽은 인기와 RP를 더 잃는다
+      if (nr.surrenderShame && r.reason === "surrender") {
+        l.popularity = Math.max(0, l.popularity - 10);
+        ll.rp -= 5;
+        summary.rpChange[ll.id] -= 5;
+        logCareer(state, l, "항복했다. 사람들이 등을 돌린다", "other");
+      }
 
       // 상금과 관중 수입. 훈련전은 관중이 없어 둘 다 없다
       const E = BALANCE.economy;
       const tier = String(Math.min(wl.tier, ll.tier)) as "1" | "2";
-      const purse = Math.round(E.purse[tier] * rule.purseMult);
+      const purse = Math.round(E.purse[tier] * rule.purseMult * nr.purseMult * (opt.rule === "sudden" ? nr.suddenPurseMult : 1));
       const crowdFactor = 0.5 + (w.popularity + l.popularity) / 200 + r.crowd / 200;
-      const tickets = Math.round(E.ticketIncome[tier] * rule.ticketMult * crowdFactor * modifierMult(state, "ticket"));
+      const tickets = Math.round(E.ticketIncome[tier] * rule.ticketMult * crowdFactor * modifierMult(state, "ticket") * nr.ticketMult);
       const homeId = opt.homeLudusId ?? ll.id;
       for (const lu of [wl, ll]) {
         const won = lu === wl;

@@ -69,3 +69,15 @@ describe("이벤트 데이터", () => {
     for (const e of EVENTS) expect(e.choices.some((c) => !c.cost), e.id).toBe(true);
   });
 });
+
+describe("나라별 리그", () => {
+  it("여섯 나라 모두 새 게임과 60일 진행이 된다", async () => {
+    const { NATIONS } = await import("./data");
+    for (const n of NATIONS) {
+      const s = newGame(11, n.id, "시험 루두스");
+      expect(Object.values(s.ludi).every((l) => l.nation === n.id)).toBe(true);
+      autoplay(s, 60, { challenge: true });
+      if (n.rules.suddenBanned) expect(s.challenges.some((c) => c.rule === "sudden")).toBe(false);
+    }
+  });
+});

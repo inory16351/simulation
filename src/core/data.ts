@@ -21,13 +21,39 @@ export interface RaceDef {
   raceSkill: string;
 }
 
+export interface NationRules {
+  ticketMult?: number;
+  fameMult?: number;
+  taxRate?: number;
+  growthMult?: number;
+  surrenderShame?: boolean;
+  marketMult?: number;
+  purseMult?: number;
+  suddenPurseMult?: number;
+  aiSuddenMult?: number;
+  templeSubsidy?: number;
+  suddenBanned?: boolean;
+  missioDeathMult?: number;
+  magicFameMult?: number;
+}
+
 export interface NationDef {
   id: NationId;
   name: string;
   short: string;
+  /** 역사 모티브 */
+  motif: string;
   color: string;
   races: Partial<Record<RaceId, number>>;
+  capital: string;
+  arena: string;
+  /** 국내 리그 이름 */
+  league: string;
+  lore: string;
   culture: string;
+  styles: string[];
+  rules: NationRules;
+  ruleText: string[];
   relations: Partial<Record<NationId, number>>;
 }
 

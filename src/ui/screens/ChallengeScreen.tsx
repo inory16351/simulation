@@ -4,6 +4,7 @@ import { availability, canChallenge, createChallenge, now, respond } from "../..
 import { BALANCE, getStyle } from "../../core/data";
 import { computeCA } from "../../core/gladiator";
 import type { DeathRule, Gladiator } from "../../core/types";
+import { leagueRules } from "../../core/nationRules";
 import type { Ctx } from "../App";
 import { Portrait, Stars } from "../components/common";
 
@@ -121,7 +122,7 @@ export function ChallengeScreen({ state, act, nav }: Ctx) {
             <div className="field">
               <label>생사 규칙</label>
               <div className="seg">
-                {RULES.map((r) => <button key={r} className={rule === r ? "on" : ""} onClick={() => setRule(r)}>{BALANCE.rules[r].name}</button>)}
+                {RULES.map((r) => <button key={r} className={rule === r ? "on" : ""} disabled={r === "sudden" && leagueRules(state).suddenBanned} title={r === "sudden" && leagueRules(state).suddenBanned ? "이 나라 리그는 사투를 금한다" : undefined} onClick={() => setRule(r)}>{BALANCE.rules[r].name}</button>)}
               </div>
               <span className="hint">{RULE_HINT[rule]}</span>
             </div>

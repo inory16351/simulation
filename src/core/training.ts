@@ -98,7 +98,7 @@ function accumulate(g: Gladiator, rng: Rng, targets: Record<Key, number>, amount
 }
 
 /** 하루치 훈련. 훈련 중 부상이 나면 설명을 돌려준다 */
-export function dailyTraining(g: Gladiator, rng: Rng, facilityLevel: number): string | undefined {
+export function dailyTraining(g: Gladiator, rng: Rng, facilityLevel: number, nationGrowth = 1): string | undefined {
   const plan = g.training;
   // 급료가 세 번 넘게 밀리면 태업한다
   if (plan.focus === "rest" || g.injury?.severity === "serious" || g.unpaidWeeks >= 3) return undefined;
@@ -108,7 +108,7 @@ export function dailyTraining(g: Gladiator, rng: Rng, facilityLevel: number): st
   } else {
     // 교범 숙련은 평소 훈련으로도 조금씩 오른다
     g.doctrine.familiarity = Math.min(100, g.doctrine.familiarity + 0.3);
-    grow(g, rng, plan.focus, 1, intensity.growth, facilityLevel);
+    grow(g, rng, plan.focus, 1, intensity.growth * nationGrowth, facilityLevel);
   }
   if (plan.intensity === "extreme") g.morale = Math.max(0, g.morale - 0.4);
   const injuryChance = intensity.injury * (g.traits.includes("injury_prone") ? 1.5 : 1) * (1 - (facilityLevel - 1) * 0.05);

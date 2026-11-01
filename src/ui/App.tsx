@@ -19,7 +19,9 @@ import { MarketScreen } from "./screens/MarketScreen";
 import { MatchScreen } from "./screens/MatchScreen";
 import { OverviewScreen } from "./screens/OverviewScreen";
 import { RosterScreen } from "./screens/RosterScreen";
+import { NewGameScreen } from "./screens/NewGameScreen";
 import { TrainingScreen } from "./screens/TrainingScreen";
+import { WorldScreen } from "./screens/WorldScreen";
 
 export type ScreenId =
   | "inbox" | "overview" | "roster" | "gladiator" | "training" | "challenge" | "match" | "league"
@@ -52,20 +54,36 @@ const MENU: { id: ScreenId; label: string; ready: boolean }[] = [
   { id: "staff", label: "식솔", ready: false },
   { id: "facilities", label: "증축", ready: false },
   { id: "finance", label: "금고", ready: true },
-  { id: "world", label: "대륙 정세", ready: false },
+  { id: "world", label: "대륙 정세", ready: true },
   { id: "hall", label: "비석의 언덕", ready: false },
 ];
 
 export function App() {
-  const [state, setState] = useState<GameState>(() => loadGame() ?? newGame(Date.now() % 2 ** 31));
+  const [state, setState] = useState<GameState | null>(() => loadGame());
+  const [choosing, setChoosing] = useState(false);
+
+  useEffect(() => { if (state) saveGame(state); }, [state]);
+
+  if (!state || choosing) {
+    return (
+      <div className="app-setup">
+        <NewGameScreen
+          onStart={(nation, name) => { clearSave(); setState(newGame(Date.now() % 2 ** 31, nation, name)); setChoosing(false); }}
+          onCancel={state ? () => setChoosing(false) : undefined}
+        />
+      </div>
+    );
+  }
+  return <Game state={state} setState={setState} onRestart={() => setChoosing(true)} />;
+}
+
+function Game({ state, setState, onRestart }: { state: GameState; setState: (s: GameState | ((p: GameState | null) => GameState | null)) => void; onRestart: () => void }) {
   const [screen, setScreen] = useState<ScreenId>("inbox");
   const [selected, setSelected] = useState<Id | null>(null);
 
-  useEffect(() => saveGame(state), [state]);
-
   const update = (fn: (draft: GameState) => void) => {
     setState((prev) => {
-      const draft = structuredClone(prev);
+      const draft = structuredClone(prev!);
       fn(draft);
       return draft;
     });
@@ -121,9 +139,7 @@ export function App() {
 
   const restart = () => {
     if (!confirm("새 루두스를 세울까요? 지금 루두스는 사라집니다.")) return;
-    clearSave();
-    setState(newGame(Date.now() % 2 ** 31));
-    setScreen("inbox");
+    onRestart();
   };
 
   const unpaid = player.gladiators.filter((id) => state.gladiators[id].unpaidWeeks > 0).length;
@@ -140,7 +156,7 @@ export function App() {
         <div>
           <div className="club">{player.name}</div>
           <div className="sub">
-            {nation.short} {player.tier}부 · {rank}위 · RP {player.rp}
+            {nation.league} {player.tier}부 · {rank}위 · RP {player.rp}
           </div>
         </div>
         <div className="spacer" />
@@ -204,6 +220,7 @@ export function App() {
           {screen === "match" && <MatchScreen {...ctx} />}
           {screen === "market" && <MarketScreen {...ctx} />}
           {screen === "finance" && <FinanceScreen {...ctx} />}
+          {screen === "world" && <WorldScreen {...ctx} />}
           {!MENU.find((m) => m.id === screen)?.ready && screen !== "gladiator" && (
             <div className="empty-state" style={{ backgroundImage: `linear-gradient(rgba(20,17,15,0.35), rgba(20,17,15,0.9)), url(${asset("ui/empty.webp")})` }}>
               <h2>{MENU.find((m) => m.id === screen)?.label}</h2>
