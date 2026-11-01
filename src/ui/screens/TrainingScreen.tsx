@@ -3,7 +3,7 @@ import { getStyle } from "../../core/data";
 import { FOCUS_DESC, FOCUS_NAMES, INTENSITY_NAMES } from "../../core/training";
 import type { TrainingFocus, TrainingIntensity } from "../../core/types";
 import type { Ctx } from "../App";
-import { Bar, Portrait } from "../components/common";
+import { Bar, InjuryTag, Portrait } from "../components/common";
 
 const FOCI = Object.keys(FOCUS_NAMES) as TrainingFocus[];
 const INTENSITIES = Object.keys(INTENSITY_NAMES) as TrainingIntensity[];
@@ -84,7 +84,7 @@ export function TrainingScreen({ state, update, nav }: Ctx) {
                     {Math.round(perf.total * 100)}%
                   </td>
                   <td>
-                    {g.injury ? <span className="tag inj">{g.injury.desc} {Math.ceil(g.injury.daysLeft)}일</span>
+                    {g.injury ? <InjuryTag g={g} />
                       : g.wear >= 85 ? <span className="tag neg">탈진 — 쉬게 하라</span>
                       : g.unpaidWeeks >= 3 ? <span className="tag neg">태업</span>
                       : <span style={{ color: "var(--good)" }}>정상</span>}

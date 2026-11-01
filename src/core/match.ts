@@ -4,6 +4,7 @@ import type { MatchResult } from "./combat/sim";
 import { afterMatch } from "./condition";
 import { BALANCE, getSkill } from "./data";
 import { arenaTicketMult } from "./facilities";
+import { aggravate } from "./injuries";
 import { rulesOfNation } from "./nationRules";
 import { coachMult, ratingOf } from "./staff";
 import { addMoney } from "./economy";
@@ -66,6 +67,7 @@ export function applyMatchResult(state: GameState, r: MatchResult, opt: ApplyOpt
     rec.apps++;
     if (g === w) rec.wins++;
     else rec.losses++;
+    if (g.injury) aggravate(state, g, rng);
     const inj = r.injuries[g.id];
     if (inj && (!g.injury || g.injury.daysLeft < inj.daysLeft)) {
       g.injury = inj;

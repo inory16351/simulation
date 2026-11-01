@@ -10,7 +10,7 @@ import { CareerPanel } from "../components/CareerPanel";
 import { paSpread } from "../../core/staff";
 import { DoctrinePanel } from "../components/DoctrinePanel";
 import { performance } from "../../core/condition";
-import { Bar, Portrait, RaceTag, Stars, StyleTag, attrClass } from "../components/common";
+import { Bar, InjuryTag, Portrait, RaceTag, Stars, StyleTag, attrClass } from "../components/common";
 
 const STATUS_NAMES = { slave: "노예", free: "자유민", freedman: "해방민" };
 
@@ -91,7 +91,7 @@ export function GladiatorScreen({ state, id, nav, update }: { state: GameState; 
                 {!g.alive
                   ? <span className="tag neg">사망 — 시즌 {g.diedAt?.season} {dateLabel(g.diedAt?.day ?? 1)}, {g.diedAt?.cause}</span>
                   : g.injury
-                    ? <span className="tag inj">{g.injury.desc} ({g.injury.severity === "serious" ? "중상" : "경상"}, {g.injury.daysLeft}일)</span>
+                    ? <InjuryTag g={g} />
                     : "출전 가능"}
               </dd>
               <dt>전적</dt><dd>{g.record.wins}승 {g.record.losses}패 · 살해 {g.record.kills}</dd>

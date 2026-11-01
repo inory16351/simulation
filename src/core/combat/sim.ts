@@ -1,5 +1,6 @@
 import { BALANCE, getArmor, getRace, getSkill, getStyle, getWeapon, type ArmorDef, type SkillDef, type WeaponDef } from "../data";
 import { performance } from "../condition";
+import { areaOf, makeInjury } from "../injuries";
 import { effectiveAttr } from "../gladiator";
 import { Rng } from "../rng";
 import { defaultDoctrine, type Doctrine, type Focus, type RuleAction, type Stance } from "../tactics";
@@ -92,6 +93,9 @@ interface Fighter {
   hasPassive: (id: string) => boolean;
   /** 컨디션(사기·감각·혹사·피로·미납)을 모은 경기력 배율 */
   perf: number;
+  /** 가장 크게 맞은 부위 (부상 부위) */
+  worstPart?: BodyPart;
+  worstHit: number;
 }
 
 const PART_WEIGHTS: Record<BodyPart, number> = {
@@ -135,6 +139,7 @@ function makeFighter(g: Gladiator, idx: 0 | 1, doctrine: Doctrine): Fighter {
     damageDealt: 0, damageTaken: 0, crowdContribution: 0,
     hasPassive: (id) => g.skills.passive.includes(id),
     perf: performance(g).total,
+    worstHit: 0,
   };
 }
 
@@ -303,6 +308,7 @@ export function simulateMatch(a: Gladiator, b: Gladiator, opt: MatchOptions): Ma
     if (part === "head" || part === "neck") dmg *= 1.2;
     dmg *= att.perf;
     const dealt = dealDamage(att, def, Math.max(1, Math.round(dmg)));
+    if (dealt > def.worstHit) { def.worstHit = dealt; def.worstPart = part; }
 
     emit({ t: "attack", actor: att.g.id, target: def.g.id, skill: spec.skill?.id, hit: true, blocked, crit, damage: dealt, part, hpAfter: Math.max(0, def.hp), maxHp: def.maxHp, magic });
     att.momentum = Math.min(100, att.momentum + (crit ? 12 : blocked ? 2 : 6));
@@ -672,19 +678,16 @@ export function simulateMatch(a: Gladiator, b: Gladiator, opt: MatchOptions): Ma
   };
 }
 
-const INJURY_DESC = {
-  light: ["타박상", "베인 상처", "삔 발목", "갈라진 입술", "멍든 갈비뼈"],
-  serious: ["부러진 팔", "깊게 베인 허벅지", "금 간 두개골", "찢어진 어깨 근육", "부러진 갈비뼈"],
-};
 
 function rollInjury(rng: Rng, f: Fighter, knockedOut: boolean, mult: number): Injury | undefined {
   const proneMult = f.g.hidden.injuryProne / 10 * (f.g.traits.includes("injury_prone") ? 1.5 : 1);
   const p = ((f.damageTaken / f.maxHp) * 0.35 * proneMult + (knockedOut ? 0.25 : 0)) * mult;
   if (!rng.chance(p)) return undefined;
-  let seriousChance = 0.2 + (knockedOut ? 0.2 : 0);
-  if (getRace(f.g.race).id === "dwarf") seriousChance *= 0.6;
-  const serious = rng.chance(seriousChance);
-  return serious
-    ? { severity: "serious", daysLeft: rng.int(28, 56), desc: rng.pick(INJURY_DESC.serious) }
-    : { severity: "light", daysLeft: rng.int(4, 12), desc: rng.pick(INJURY_DESC.light) };
+  // 드워프는 강철 뼈 덕에 크게 다치는 일이 적다
+  const tough = getRace(f.g.race).id === "dwarf" ? 0.6 : 1;
+  const severe = (0.05 + (knockedOut ? 0.08 : 0)) * tough;
+  const moderate = (0.2 + (knockedOut ? 0.15 : 0)) * tough;
+  const roll = rng.next();
+  const tier = roll < severe ? "severe" : roll < severe + moderate ? "moderate" : "minor";
+  return makeInjury(rng, tier, areaOf(f.worstPart));
 }

@@ -81,3 +81,19 @@ describe("나라별 리그", () => {
     }
   });
 });
+
+describe("부상", () => {
+  it("부상 중에는 능력치가 떨어지고, 영구 손상은 다 나은 뒤 남는다", async () => {
+    const { makeInjury, onHealed } = await import("./injuries");
+    const { effectiveAttr } = await import("./gladiator");
+    const s = newGame(3);
+    const g = s.gladiators[s.ludi[s.playerLudusId].gladiators[0]];
+    const rng = new Rng(1);
+    g.injury = { ...makeInjury(rng, "severe", "arm"), type: "severed_fingers", desc: "손가락이 잘림" };
+    const accInjured = effectiveAttr(g, "acc");
+    const accBase = g.attrs.acc;
+    expect(accInjured).toBeLessThan(Math.min(20, accBase + 5));
+    onHealed(s, g, rng, 1, 0, true);
+    expect(g.attrs.acc).toBe(Math.max(1, accBase - 2));
+  });
+});

@@ -1,6 +1,7 @@
 // 연무장 훈련과 성장. 하루치 훈련, 실전 경험치를 같은 성장 함수로 처리한다.
 import { BALANCE, getRace, getStyle } from "./data";
 import { ageStage, computeCA } from "./gladiator";
+import { makeInjury } from "./injuries";
 import type { Rng } from "./rng";
 import { MENTAL, PHYSICAL, type Gladiator, type TrainingFocus, type TrainingIntensity, type WeaponClassId } from "./types";
 
@@ -113,9 +114,8 @@ export function dailyTraining(g: Gladiator, rng: Rng, facilityLevel: number, nat
   if (plan.intensity === "extreme") g.morale = Math.max(0, g.morale - 0.4);
   const injuryChance = intensity.injury * (g.traits.includes("injury_prone") ? 1.5 : 1) * (1 - (facilityLevel - 1) * 0.05);
   if (!g.injury && rng.chance(injuryChance)) {
-    const desc = rng.pick(["훈련 중 삔 발목", "목검에 맞은 갈비뼈", "찢어진 손바닥", "결린 허리"]);
-    g.injury = { severity: "light", daysLeft: rng.int(3, 9), desc };
-    return desc;
+    g.injury = makeInjury(rng, "minor", rng.pick(["arm", "leg", "torso"] as const));
+    return g.injury.desc;
   }
   return undefined;
 }

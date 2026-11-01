@@ -2,7 +2,7 @@ import { useState } from "react";
 import { AGE_STAGE_NAMES, ageStage, computeCA } from "../../core/gladiator";
 import type { GameState, Gladiator } from "../../core/types";
 import type { Nav } from "../App";
-import { Bar, Portrait, RaceTag, Stars, StyleTag } from "../components/common";
+import { Bar, InjuryTag, Portrait, RaceTag, Stars, StyleTag } from "../components/common";
 import { paSpread } from "../../core/staff";
 
 type SortKey = "ca" | "age" | "wage" | "morale" | "name";
@@ -71,7 +71,7 @@ export function GladiatorTable({ list, nav, state, showPa = true }: { list: Glad
               <td><Bar value={g.wear} color={g.wear >= 85 ? "var(--blood)" : g.wear >= 50 ? "var(--torch)" : "var(--good)"} /></td>
               <td>
                 {!g.alive ? <span className="tag neg">사망</span>
-                  : g.injury ? <span className="tag inj">{g.injury.desc} {g.injury.daysLeft}일</span>
+                  : g.injury ? <InjuryTag g={g} />
                   : <span style={{ color: "var(--good)" }}>출전 가능</span>}
               </td>
               <td className="num">{g.record.wins}-{g.record.losses}</td>
@@ -97,6 +97,23 @@ export function RosterScreen({ state, nav }: { state: GameState; nav: Nav }) {
       <div className="panel">
         <GladiatorTable list={list} nav={nav} state={state} />
       </div>
+      {list.some((g) => g.injury) && (
+        <div className="panel">
+          <h3>의무실 — 부상자</h3>
+          <table className="t">
+            <tbody>
+              {list.filter((g) => g.injury).sort((a, b) => b.injury!.daysLeft - a.injury!.daysLeft).map((g) => (
+                <tr key={g.id} className="click" onClick={() => nav.openGladiator(g.id)}>
+                  <td><div className="name-cell"><Portrait g={g} size={26} /><span className="n">{g.name}</span></div></td>
+                  <td><InjuryTag g={g} /></td>
+                  <td><Bar value={(g.injury!.total ?? g.injury!.daysLeft) - g.injury!.daysLeft} max={g.injury!.total ?? g.injury!.daysLeft} color="var(--good)" /></td>
+                  <td className="hint">{g.injury!.severity === "serious" ? "출전 불가" : "출전 가능 (무리)"} · {g.training.focus === "rest" ? "휴식 중 (회복 1.5배)" : "연무장에서 휴식으로 바꾸면 빨리 낫는다"}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
       {fallen.length > 0 && (
         <div className="panel">
           <h3>모래에 묻힌 자들</h3>

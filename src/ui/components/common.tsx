@@ -1,5 +1,6 @@
 import { getNation, getRace, getStyle } from "../../core/data";
 import { avatarOf } from "../../core/avatar";
+import { TIER_NAMES, getInjury } from "../../core/injuries";
 import { AvatarSvg } from "./Avatar";
 import { Crest } from "./Icons";
 import { stars } from "../../core/gladiator";
@@ -69,4 +70,18 @@ export function StyleTag({ style }: { style: string }) {
   const s = getStyle(style);
   const strong = s.counters.map((c) => getStyle(c).name).join(", ");
   return <span className="tip-inline" data-tip={`${s.desc}${strong ? `\n유리한 상대: ${strong}` : ""}`}>{s.name}</span>;
+}
+
+/** 부상 표시. 마우스를 올리면 능력치 저하와 영구 손상 위험이 보인다 */
+export function InjuryTag({ g }: { g: Gladiator }) {
+  const inj = g.injury;
+  if (!inj) return null;
+  const def = getInjury(inj.type);
+  const tier = inj.tier ? TIER_NAMES[inj.tier] : inj.severity === "serious" ? "중상" : "경상";
+  const pen = def ? Object.entries(def.penalty).map(([k, v]) => `${ATTR_SHORT[k]} ${v}`).join(", ") : "";
+  const tip = `${inj.desc} (${tier})\n남은 회복 ${Math.ceil(inj.daysLeft)}일${inj.total ? ` / ${inj.total}일` : ""}` +
+    (pen ? `\n부상 중: ${pen}` : "") +
+    (def?.permanent ? `\n영구 손상 위험 ${Math.round(def.permanent * 100)}% (의무실·메디쿠스가 줄여 준다)` : "") +
+    (inj.severity === "light" ? "\n출전할 수는 있지만 경기력 -15%, 상처가 덧날 수 있다" : "\n출전 불가");
+  return <span className="tag inj tip" data-tip={tip}>✚ {inj.desc} {Math.ceil(inj.daysLeft)}일</span>;
 }

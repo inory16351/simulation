@@ -43,6 +43,11 @@ export interface Injury {
   severity: "light" | "serious";
   daysLeft: number;
   desc: string;
+  /** data/injuries.json의 종류 (이벤트 부상은 없을 수 있다) */
+  type?: string;
+  tier?: "minor" | "moderate" | "severe";
+  /** 처음 진단받은 회복 기간 */
+  total?: number;
 }
 
 export interface Gladiator {

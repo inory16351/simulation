@@ -1,6 +1,6 @@
 // 검투사 컨디션: 사기·피로(체력)·경기감각·혹사도·급료 미납을 경기력 배율 하나로 모은다.
 import { BALANCE } from "./data";
-import type { DeathRule, Gladiator } from "./types";
+import type { DeathRule, Gladiator, Injury } from "./types";
 
 const M = BALANCE.morale;
 
@@ -41,7 +41,9 @@ export function afterMatch(g: Gladiator, at: number, rule: DeathRule): void {
 }
 
 /** 하루치 회복과 감각 변화 */
-export function dailyCondition(g: Gladiator, at: number, medicalLevel: number, bathLevel = 0, healMult = 1): void {
+/** 부상이 다 나은 날이면 그 부상을 돌려준다 (영구 손상 판정용) */
+export function dailyCondition(g: Gladiator, at: number, medicalLevel: number, bathLevel = 0, healMult = 1): Injury | undefined {
+  let healed: Injury | undefined;
   const T = BALANCE.training;
   const resting = g.training.focus === "rest";
   const recover = T.fatigueRecoveryBase + g.attrs.rec * T.fatigueRecoveryPerRec + (resting ? T.restRecoveryBonus : 0) + bathLevel * 2;
@@ -52,12 +54,13 @@ export function dailyCondition(g: Gladiator, at: number, medicalLevel: number, b
   if (idle > 5) g.sharpness = Math.max(0, g.sharpness - 1.2);
   else if (!resting) g.sharpness = Math.min(100, g.sharpness + 0.1);
   if (g.injury) {
-    const speed = (g.race === "lizardfolk" ? 2 : 1) * (1 + (medicalLevel - 1) * 0.2) * healMult;
+    const speed = (g.race === "lizardfolk" ? 2 : 1) * (1 + (medicalLevel - 1) * 0.2) * healMult * (resting ? 1.5 : 1);
     g.injury.daysLeft -= speed;
-    if (g.injury.daysLeft <= 0) g.injury = undefined;
+    if (g.injury.daysLeft <= 0) { healed = g.injury; g.injury = undefined; }
   }
   // 사기는 평소 수준(60) 쪽으로 천천히 돌아간다
   const drift = BALANCE.morale.dailyDrift * (g.race === "lizardfolk" ? 0.5 : 1);
   if (g.morale > 62) g.morale -= drift;
   else if (g.morale < 58 && g.unpaidWeeks === 0) g.morale += drift;
+  return healed;
 }

@@ -1,9 +1,14 @@
+import injuriesJson from "../../data/injuries.json";
 import { getRace, getStyle, getTrait } from "./data";
 import { ATTRS, type AttrId, type Gladiator } from "./types";
 
-/** 특성 보정을 포함한 실제 능력치 (1~20으로 제한) */
+/** 부상 종류별 능력치 저하 */
+const INJURY_PENALTY = Object.fromEntries((injuriesJson as { id: string; penalty: Partial<Record<AttrId, number>> }[]).map((i) => [i.id, i.penalty]));
+
+/** 특성·부상 보정을 포함한 실제 능력치 (1~20으로 제한) */
 export function effectiveAttr(g: Gladiator, a: AttrId): number {
   let v = g.attrs[a];
+  if (g.injury?.type) v += INJURY_PENALTY[g.injury.type]?.[a] ?? 0;
   for (const t of g.traits) v += getTrait(t)?.attrMods?.[a] ?? 0;
   return Math.max(1, Math.min(20, v));
 }

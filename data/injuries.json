@@ -1,0 +1,20 @@
+[
+  { "id": "bruise", "name": "타박상", "part": "torso", "tier": "minor", "days": [3, 6], "penalty": {}, "permanent": 0 },
+  { "id": "cut_arm", "name": "팔이 베임", "part": "arm", "tier": "minor", "days": [4, 8], "penalty": { "acc": -1 }, "permanent": 0 },
+  { "id": "sprain", "name": "발목 삠", "part": "leg", "tier": "minor", "days": [5, 10], "penalty": { "agi": -2, "eva": -1 }, "permanent": 0 },
+  { "id": "split_brow", "name": "찢어진 눈썹", "part": "head", "tier": "minor", "days": [3, 7], "penalty": { "acc": -1 }, "permanent": 0.03, "perm": { "trait": "scarred" } },
+  { "id": "cracked_rib", "name": "금 간 갈비뼈", "part": "torso", "tier": "minor", "days": [7, 12], "penalty": { "end": -2 }, "permanent": 0 },
+
+  { "id": "broken_ribs", "name": "갈비뼈 골절", "part": "torso", "tier": "moderate", "days": [21, 35], "penalty": { "end": -3, "tou": -2 }, "permanent": 0.06, "perm": { "attrs": { "end": -1 } } },
+  { "id": "deep_thigh", "name": "깊게 베인 허벅지", "part": "leg", "tier": "moderate", "days": [18, 30], "penalty": { "agi": -3, "eva": -2 }, "permanent": 0.08, "perm": { "attrs": { "agi": -1 } } },
+  { "id": "broken_arm", "name": "팔 골절", "part": "arm", "tier": "moderate", "days": [28, 42], "penalty": { "str": -3, "acc": -2, "blk": -2 }, "permanent": 0.1, "perm": { "attrs": { "str": -1 } } },
+  { "id": "concussion", "name": "뇌진탕", "part": "head", "tier": "moderate", "days": [10, 20], "penalty": { "dec": -3, "comp": -2, "rea": -2 }, "permanent": 0.05, "perm": { "attrs": { "dec": -1 } } },
+  { "id": "dislocated", "name": "어깨 탈구", "part": "arm", "tier": "moderate", "days": [14, 24], "penalty": { "str": -2, "blk": -3 }, "permanent": 0.05, "perm": { "attrs": { "blk": -1 } } },
+  { "id": "gashed_face", "name": "얼굴이 찢어짐", "part": "head", "tier": "moderate", "days": [12, 20], "penalty": { "show": -2 }, "permanent": 0.35, "perm": { "trait": "scarred" } },
+
+  { "id": "skull", "name": "두개골 골절", "part": "head", "tier": "severe", "days": [40, 70], "penalty": { "rea": -3, "dec": -3, "comp": -3 }, "permanent": 0.3, "perm": { "attrs": { "rea": -2, "dec": -1 } } },
+  { "id": "torn_knee", "name": "무릎 인대 파열", "part": "leg", "tier": "severe", "days": [50, 90], "penalty": { "agi": -5, "eva": -3, "end": -2 }, "permanent": 0.45, "perm": { "trait": "lame" } },
+  { "id": "eye", "name": "눈을 다침", "part": "eye", "tier": "severe", "days": [30, 50], "penalty": { "acc": -4 }, "permanent": 0.4, "perm": { "trait": "one_eyed" } },
+  { "id": "severed_fingers", "name": "손가락이 잘림", "part": "arm", "tier": "severe", "days": [30, 45], "penalty": { "acc": -3, "str": -2 }, "permanent": 1, "perm": { "attrs": { "acc": -2 } } },
+  { "id": "gut_wound", "name": "배를 찔림", "part": "torso", "tier": "severe", "days": [35, 60], "penalty": { "end": -4, "tou": -3 }, "permanent": 0.2, "perm": { "attrs": { "end": -1, "tou": -1 } } }
+]

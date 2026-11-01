@@ -7,6 +7,7 @@ import { BALANCE } from "./data";
 import { payday, payDividend, refreshMarket, tierRanking } from "./economy";
 import { rollDailyEvents } from "./events";
 import { dailyConstruction } from "./facilities";
+import { onHealed } from "./injuries";
 import { coachMult, healMult, ratingOf, refreshStaffMarket } from "./staff";
 import { rulesOfNation } from "./nationRules";
 import { generateGladiator } from "./generators/gladiator";
@@ -59,7 +60,13 @@ export function advanceDay(state: GameState): string[] {
       if (!g.alive) continue;
       if (!l.isPlayer) aiTrainingPlan(g);
       const injured = dailyTraining(g, rng, l.facilities.training, rulesOfNation(l.nation).growthMult * coachMult(ratingOf(state, l, "doctore")));
-      dailyCondition(g, at, l.facilities.medical, l.facilities.bath, healMult(ratingOf(state, l, "medicus")));
+      const healed = dailyCondition(g, at, l.facilities.medical, l.facilities.bath, healMult(ratingOf(state, l, "medicus")));
+      if (healed) {
+        g.injury = healed;
+        onHealed(state, g, rng, l.facilities.medical, ratingOf(state, l, "medicus"), l.isPlayer);
+        g.injury = undefined;
+        if (l.isPlayer && healed.severity === "serious") pushMessage(state, { kind: "info", title: `${g.name} 복귀`, body: `${healed.desc}에서 회복했다. 다시 싸울 수 있다.` });
+      }
       if (injured && l.isPlayer) {
         seasonRecord(state, g).injuries++;
         logCareer(state, g, `훈련 중 다쳤다: ${injured}`, "injury");
