@@ -12,6 +12,8 @@ import { rulesOfNation } from "./nationRules";
 import { pushMessage } from "./state";
 import { ratingOf } from "./staff";
 import type { Challenge, DeathRule, GameState, Gladiator, Ludus } from "./types";
+import { autoLineup, FORMAT_MULT, FORMAT_NAMES, runSeries, type Format, type Series } from "./series";
+import { settle } from "./match";
 
 const L = BALANCE.league;
 const RULE_NAME = (r: DeathRule) => BALANCE.rules[r].name;
@@ -50,7 +52,7 @@ export function canChallenge(state: GameState, from: Ludus, to: Ludus): string |
 }
 
 export function createChallenge(
-  state: GameState, from: Ludus, to: Ludus, fromGladiator: string, rule: DeathRule, toGladiator?: string, stake = 0,
+  state: GameState, from: Ludus, to: Ludus, fromGladiator: string, rule: DeathRule, toGladiator?: string, stake = 0, format: Format = 1,
 ): Challenge | string {
   const err = canChallenge(state, from, to);
   if (err) return err;
@@ -58,9 +60,11 @@ export function createChallenge(
   const g = state.gladiators[fromGladiator];
   const busy = availability(state, g);
   if (busy) return `${g.name}: ${busy}`;
+  if (format > 1 && autoLineup(state, from, format, now(state) + L.matchDelayMin).length < format) return `${FORMAT_NAMES[format]}에 내보낼 검투사가 ${format}명이 안 된다`;
   const c: Challenge = {
     id: `C${state.nextId++}`, from: from.id, to: to.id, fromGladiator, toGladiator, rule, stake,
     createdAt: now(state), respondBy: now(state) + L.respondDays, status: "pending",
+    ...(format > 1 ? { format } : {}),
   };
   state.challenges.push(c);
   return c;
@@ -103,7 +107,7 @@ export function respond(state: GameState, c: Challenge, accept: boolean, rng: Rn
       const theirs = from.isPlayer ? defender : state.gladiators[c.fromGladiator];
       pushMessage(state, {
         kind: "match",
-        title: `${RULE_NAME(c.rule)} 확정: ${mine.name} vs ${theirs.name}`,
+        title: c.format ? `${FORMAT_NAMES[c.format]} ${RULE_NAME(c.rule)} 확정: ${from.isPlayer ? to.name : from.name}` : `${RULE_NAME(c.rule)} 확정: ${mine.name} vs ${theirs.name}`,
         body: `상대 루두스: ${from.isPlayer ? to.name : from.name}\n날짜: ${dateLabel(fromAbs(c.matchAt!).day)}\n우리: ${mine.name} / 상대: ${theirs.name}`,
       });
     }
@@ -184,24 +188,41 @@ export function dailyChallenges(state: GameState, rng: Rng): void {
     const rule = pickRule(rng, ai);
     const g = pickFighter(state, ai, rule, t);
     if (!g) continue;
-    const c = createChallenge(state, ai, player, g.id, rule);
+    const roll = rng.next();
+    const format: Format = roll < 0.08 ? 5 : roll < 0.25 ? 3 : 1;
+    let c = createChallenge(state, ai, player, g.id, rule, undefined, 0, format);
+    if (typeof c === "string" && format > 1) c = createChallenge(state, ai, player, g.id, rule);
     if (typeof c === "string") continue;
+    const fmt = c.format ? `${FORMAT_NAMES[c.format]} ` : "";
     pushMessage(state, {
       kind: "match",
-      title: `${ai.name}의 도전장 (${RULE_NAME(rule)})`,
-      body: `${ai.name}의 ${josa(g.name, "이/가")} ${RULE_NAME(rule)}을 걸어왔다.\n${dateLabel(fromAbs(c.respondBy).day)}까지 답하지 않으면 거절한 것으로 친다.\n\n도전장 화면에서 받을지 정하라.`,
+      title: `${ai.name}의 도전장 (${fmt}${RULE_NAME(rule)})`,
+      body: `${c.format ? `${ai.name}이(가) ${FORMAT_NAMES[c.format]}을 걸어왔다. 선봉은 ${g.name}.` : `${ai.name}의 ${josa(g.name, "이/가")} ${RULE_NAME(rule)}을 걸어왔다.`}\n${dateLabel(fromAbs(c.respondBy).day)}까지 답하지 않으면 거절한 것으로 친다.\n\n도전장 화면에서 받을지 정하라.`,
     });
     break;
   }
 
   // AI 루두스끼리의 경기 (바로 치르고 결과만 반영)
-  for (const tier of [1, 2] as const) {
-    const ludi = Object.values(state.ludi).filter((l) => !l.isPlayer && l.tier === tier);
+  const groups = new Map<string, Ludus[]>();
+  for (const l of Object.values(state.ludi)) {
+    if (l.isPlayer) continue;
+    const key = `${l.nation}-${l.tier}`;
+    groups.set(key, [...(groups.get(key) ?? []), l]);
+  }
+  for (const ludi of groups.values()) {
     for (const a of ludi) {
       if (!rng.chance(L.aiMatchChancePerDay)) continue;
       const opponents = ludi.filter((b) => b !== a);
       const b = rng.pick(opponents);
       const rule = pickRule(rng, a);
+      if (rng.chance(0.15)) {
+        const la = autoLineup(state, a, 3, t);
+        const lb = autoLineup(state, b, 3, t);
+        if (la.length === 3 && lb.length === 3) {
+          teamSettle(state, a, b, runSeries(state, [a, b], [la, lb], { rule, mode: "winner_stays", homeLudusId: b.id }, rng), rule, 3, b.id);
+          continue;
+        }
+      }
       const ga = pickFighter(state, a, rule, t);
       const gb = pickFighter(state, b, rule, t);
       if (!ga || !gb) continue;
@@ -226,6 +247,20 @@ export interface PlayedMatch {
   b: Gladiator;
   summary?: MatchSummary;
   forfeit?: string;
+  /** 단체전 */
+  series?: Series;
+}
+
+/** 단체전 결과를 루두스끼리 정산한다 */
+export function teamSettle(state: GameState, a: Ludus, b: Ludus, s: Series, rule: DeathRule, format: Format, homeId: string): MatchSummary {
+  const summary: MatchSummary = { rpChange: {}, money: {}, fame: {} };
+  const [wl, ll] = s.winner === 0 ? [a, b] : [b, a];
+  const crowd = s.bouts.reduce((x, bt) => x + bt.result.crowd, 0) / Math.max(1, s.bouts.length);
+  const pop = s.bouts.reduce((x, bt) => x + bt.a.popularity + bt.b.popularity, 0) / Math.max(1, s.bouts.length);
+  wl.record.wins++;
+  ll.record.losses++;
+  settle(state, wl, ll, rule, { homeLudusId: homeId, crowd, popularity: pop, rpMult: FORMAT_MULT[format].rp, moneyMult: FORMAT_MULT[format].money }, summary);
+  return summary;
 }
 
 /** 예정된 경기를 치른다. 출전자가 못 나오면 대체 선수, 그마저 없으면 기권패 */
@@ -238,6 +273,21 @@ export function playChallenge(state: GameState, c: Challenge, rng: Rng): PlayedM
     if (g && g.alive && ludusOf(state, g.id) === ludus && g.injury?.severity !== "serious") return g;
     return pickFighter(state, ludus, c.rule, t);
   };
+  if (c.format && c.format > 1) {
+    c.status = "done";
+    const la = autoLineup(state, from, c.format, t, c.fromLineup ?? [c.fromGladiator]);
+    const lb = autoLineup(state, to, c.format, t, c.toLineup ?? (c.toGladiator ? [c.toGladiator] : []));
+    if (!la.length || !lb.length) {
+      const loser = !la.length ? from : to;
+      loser.rp -= 25;
+      loser.matchesThisSeason++;
+      return { challenge: c, result: null, a: la[0] ?? lb[0], b: lb[0] ?? la[0], forfeit: `${loser.name} 기권 (출전 가능한 검투사가 없다)` };
+    }
+    const snaps = [structuredClone(la[0]), structuredClone(lb[0])];
+    const series = runSeries(state, [from, to], [la, lb], { rule: c.rule, mode: "winner_stays", homeLudusId: to.id }, rng);
+    const summary = teamSettle(state, from, to, series, c.rule, c.format, to.id);
+    return { challenge: c, result: series.bouts[series.bouts.length - 1]?.result ?? null, a: snaps[0], b: snaps[1], summary, series };
+  }
   const a = resolve(from, c.fromGladiator);
   const b = resolve(to, c.toGladiator);
   c.status = "done";

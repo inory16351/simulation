@@ -11,7 +11,7 @@ import { addMoney } from "./economy";
 import { modifierMult } from "./modifiers";
 import type { Rng } from "./rng";
 import { grow } from "./training";
-import type { DeathRule, GameState, Gladiator, Id } from "./types";
+import type { DeathRule, GameState, Gladiator, Id, Ludus } from "./types";
 
 export function eloDelta(myRp: number, oppRp: number, won: boolean, k: number): number {
   const expected = 1 / (1 + Math.pow(10, (oppRp - myRp) / 400));
@@ -101,15 +101,9 @@ export function applyMatchResult(state: GameState, r: MatchResult, opt: ApplyOpt
     wl.record.wins++;
     ll.record.losses++;
     if (opt.ranked) {
-      wl.matchesThisSeason++;
-      ll.matchesThisSeason++;
-      const k = BALANCE.league.eloK * rule.rpMult * (wl.tier === 2 && ll.tier === 1 ? 1.25 : 1);
-      const dw = eloDelta(wl.rp, ll.rp, true, k);
-      const dl = eloDelta(ll.rp, wl.rp, false, k);
-      wl.rp += dw;
-      ll.rp += dl;
-      summary.rpChange[wl.id] = dw;
-      summary.rpChange[ll.id] = dl;
+      settle(state, wl, ll, opt.rule, { homeLudusId: opt.homeLudusId, crowd: r.crowd, popularity: w.popularity + l.popularity }, summary);
+      seasonRecord(state, w).earnings += summary.money[wl.id] ?? 0;
+      seasonRecord(state, l).earnings += summary.money[ll.id] ?? 0;
       // 항복을 수치로 여기는 나라: 항복한 쪽은 인기와 RP를 더 잃는다
       if (nr.surrenderShame && r.reason === "surrender") {
         l.popularity = Math.max(0, l.popularity - 10);
@@ -117,26 +111,55 @@ export function applyMatchResult(state: GameState, r: MatchResult, opt: ApplyOpt
         summary.rpChange[ll.id] -= 5;
         logCareer(state, l, "항복했다. 사람들이 등을 돌린다", "other");
       }
-
-      // 상금과 관중 수입. 훈련전은 관중이 없어 둘 다 없다
-      const E = BALANCE.economy;
-      const tier = String(Math.min(wl.tier, ll.tier)) as "1" | "2";
-      const purse = Math.round(E.purse[tier] * rule.purseMult * nr.purseMult * (opt.rule === "sudden" ? nr.suddenPurseMult : 1));
-      const crowdFactor = 0.5 + (w.popularity + l.popularity) / 200 + r.crowd / 200;
-      const baseTickets = Math.round(E.ticketIncome[tier] * rule.ticketMult * crowdFactor * modifierMult(state, "ticket") * nr.ticketMult);
-      const homeId = opt.homeLudusId ?? ll.id;
-      // 홈 경기장이 클수록 관중 수입이 늘어난다
-      const tickets = Math.round(baseTickets * arenaTicketMult(state.ludi[homeId]?.facilities.arena ?? 1));
-      for (const lu of [wl, ll]) {
-        const won = lu === wl;
-        const share = (won ? purse : Math.round(purse * E.loserPurseShare)) + Math.round(tickets * (lu.id === homeId ? E.homeShare : 1 - E.homeShare));
-        if (share > 0) addMoney(state, lu, share, `${rule.name} ${won ? "승리" : "패배"} 상금·관중 수입`);
-        summary.money[lu.id] = share;
-        seasonRecord(state, won ? w : l).earnings += share;
-      }
     }
   }
   return summary;
+}
+
+export interface SettleOptions {
+  homeLudusId?: Id;
+  /** 경기의 관중 열기 (0~100) */
+  crowd: number;
+  /** 두 쪽 검투사 인기 합 */
+  popularity: number;
+  /** 단체전: 판이 클수록 RP와 돈이 커진다 */
+  rpMult?: number;
+  moneyMult?: number;
+  /** 컵처럼 리그 경기 수에 안 들어가는 경기 */
+  noLeague?: boolean;
+}
+
+/** 루두스끼리 RP·상금·관중 수입을 정산한다 (1:1, 단체전, 컵 모두) */
+export function settle(state: GameState, wl: Ludus, ll: Ludus, ruleId: DeathRule, o: SettleOptions, summary: MatchSummary): void {
+  const rule = BALANCE.rules[ruleId];
+  const nr = rulesOfNation(ll.nation);
+  if (!o.noLeague) {
+    wl.matchesThisSeason++;
+    ll.matchesThisSeason++;
+    const k = BALANCE.league.eloK * rule.rpMult * (o.rpMult ?? 1) * (wl.tier === 2 && ll.tier === 1 ? 1.25 : 1);
+    const dw = eloDelta(wl.rp, ll.rp, true, k);
+    const dl = eloDelta(ll.rp, wl.rp, false, k);
+    wl.rp += dw;
+    ll.rp += dl;
+    summary.rpChange[wl.id] = dw;
+    summary.rpChange[ll.id] = dl;
+  }
+  // 상금과 관중 수입. 훈련전은 관중이 없어 둘 다 없다
+  const E = BALANCE.economy;
+  const tier = String(Math.min(wl.tier, ll.tier)) as "1" | "2";
+  const mult = o.moneyMult ?? 1;
+  const purse = Math.round(E.purse[tier] * rule.purseMult * nr.purseMult * (ruleId === "sudden" ? nr.suddenPurseMult : 1) * mult);
+  const crowdFactor = 0.5 + o.popularity / 200 + o.crowd / 200;
+  const baseTickets = Math.round(E.ticketIncome[tier] * rule.ticketMult * crowdFactor * modifierMult(state, "ticket") * nr.ticketMult * mult);
+  const homeId = o.homeLudusId ?? ll.id;
+  // 홈 경기장이 클수록 관중 수입이 늘어난다
+  const tickets = Math.round(baseTickets * arenaTicketMult(state.ludi[homeId]?.facilities.arena ?? 1));
+  for (const lu of [wl, ll]) {
+    const won = lu === wl;
+    const share = (won ? purse : Math.round(purse * E.loserPurseShare)) + Math.round(tickets * (lu.id === homeId ? E.homeShare : 1 - E.homeShare));
+    if (share > 0) addMoney(state, lu, share, `${rule.name} ${won ? "승리" : "패배"} 상금·관중 수입`);
+    summary.money[lu.id] = (summary.money[lu.id] ?? 0) + share;
+  }
 }
 
 function opponentName(state: GameState, r: MatchResult, g: Gladiator): string {

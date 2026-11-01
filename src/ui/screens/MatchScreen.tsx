@@ -5,7 +5,8 @@ import { simulateMatch, type HighlightKind, type MatchResult } from "../../core/
 import { FOCUS_NAMES, RANGE_NAMES, STANCE_NAMES, type Stance } from "../../core/tactics";
 import { canFight, computeCA } from "../../core/gladiator";
 import { applyMatchResult } from "../../core/match";
-import { availability, playChallenge, todaysPlayerMatches } from "../../core/challenge";
+import { availability, now, playChallenge, todaysPlayerMatches } from "../../core/challenge";
+import { autoLineup, FORMAT_NAMES, type Series } from "../../core/series";
 import { Rng } from "../../core/rng";
 import { pushMessage } from "../../core/state";
 import type { DeathRule, GameState, Gladiator, Id } from "../../core/types";
@@ -27,13 +28,17 @@ const CUT_LABEL: Record<HighlightKind, string> = {
 };
 
 
-const SPEEDS = [
+export const SPEEDS = [
   { id: "normal", label: "보통", ms: 650 },
   { id: "fast", label: "빠르게", ms: 220 },
   { id: "instant", label: "결과만", ms: 0 },
 ] as const;
 
-interface Live {
+export interface Live {
+  /** 단체전·컵: 시작 체력 비율 [왼쪽, 오른쪽] */
+  startHp?: [number, number];
+  title?: string;
+  sub?: string;
   result: MatchResult;
   items: Item[];
   a: Gladiator;
@@ -44,10 +49,53 @@ interface Live {
   commit?: GameState;
 }
 
+function buildItems(result: MatchResult, a: Gladiator, b: Gladiator, seed: number): Item[] {
+  const lines = buildCommentary(result.events, { [a.id]: a, [b.id]: b }, seed);
+  const items: Item[] = [];
+  for (const e of result.events) {
+    if (e.t === "highlight") items.push({ kind: "cut", cut: e.kind });
+    else for (const l of lines) if (l.event === e) items.push({ kind: "line", line: l });
+  }
+  return items;
+}
+
+/** 여러 판짜리 경기를 중계용으로 바꾼다. 우리 쪽이 늘 왼쪽 */
+export function seriesLives(series: Series, mineIsSide0: boolean, rule: DeathRule, title: string): Live[] {
+  let s0 = 0, s1 = 0;
+  return series.bouts.map((bt, i) => {
+    if (bt.result.winnerId === bt.a.id) s0++; else s1++;
+    const [a, b] = mineIsSide0 ? [bt.a, bt.b] : [bt.b, bt.a];
+    const hp: [number, number] = mineIsSide0 ? bt.startHp : [bt.startHp[1], bt.startHp[0]];
+    const score = mineIsSide0 ? `${s0}:${s1}` : `${s1}:${s0}`;
+    return {
+      result: bt.result, a, b, seed: 0, rule, startHp: hp,
+      items: buildItems(bt.result, bt.a, bt.b, bt.result.rounds + i),
+      title, sub: `${i + 1}번째 판 · 이 판까지 ${score}`,
+    };
+  });
+}
+
+/** 공식 경기 중계: 판을 차례로 보여 주고, 마지막 판이 끝나면 미리 계산한 상태를 반영한다 */
+export function SeriesRunner({ lives, commit, speedMs, replace, onExit, nav }: { lives: Live[]; commit: GameState; speedMs: number; replace: (s: GameState) => void; onExit: () => void; nav: Nav }) {
+  const [idx, setIdx] = useState(0);
+  const last = idx >= lives.length - 1;
+  return (
+    <Playback
+      key={idx}
+      live={lives[idx]}
+      speedMs={speedMs}
+      closeLabel={last ? "돌아간다" : "다음 판"}
+      onDone={() => { if (last) replace(commit); }}
+      onClose={() => (last ? onExit() : setIdx(idx + 1))}
+      nav={nav}
+    />
+  );
+}
+
 export function MatchScreen({ state, update, replace, nav }: Ctx) {
   const player = state.ludi[state.playerLudusId];
   const mine = player.gladiators.map((id) => state.gladiators[id]).filter((g) => canFight(g) && !availability(state, g));
-  const others = Object.values(state.ludi).filter((l) => !l.isPlayer).sort((x, y) => y.rp - x.rp);
+  const others = Object.values(state.ludi).filter((l) => !l.isPlayer && l.nation === state.nation).sort((x, y) => y.rp - x.rp);
   const official = todaysPlayerMatches(state);
 
   const [myId, setMyId] = useState<Id | undefined>(mine[0]?.id);
@@ -59,32 +107,48 @@ export function MatchScreen({ state, update, replace, nav }: Ctx) {
   const [stanceOverride, setStanceOverride] = useState<Stance | "">("");
   const [speed, setSpeed] = useState<(typeof SPEEDS)[number]["id"]>("normal");
   const [live, setLive] = useState<Live | null>(null);
+  const [series, setSeries] = useState<{ lives: Live[]; commit: GameState } | null>(null);
+  /** 단체전 출전 순서 (경기별) */
+  const [lineups, setLineups] = useState<Record<string, Id[]>>({});
 
   useEffect(() => {
     if (!oppList.find((g) => g.id === oppId)) setOppId(oppList[0]?.id);
   }, [oppLudus]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  const buildItems = (result: MatchResult, a: Gladiator, b: Gladiator, seed: number): Item[] => {
-    const lines = buildCommentary(result.events, { [a.id]: a, [b.id]: b }, seed);
-    const items: Item[] = [];
-    for (const e of result.events) {
-      if (e.t === "highlight") items.push({ kind: "cut", cut: e.kind });
-      else for (const l of lines) if (l.event === e) items.push({ kind: "line", line: l });
-    }
-    return items;
-  };
 
   /** 공식 경기: 결과를 미리 계산해 두고, 중계가 끝나면 반영한다 */
   const playOfficial = (challengeId: string) => {
     const draft = structuredClone(state);
     const rng = new Rng(draft.rngState);
     const c = draft.challenges.find((x) => x.id === challengeId)!;
+    const meFirst = draft.ludi[c.from].isPlayer;
+    const order = lineups[challengeId];
+    if (c.format && order) {
+      if (meFirst) c.fromLineup = order; else c.toLineup = order;
+    }
     const played = playChallenge(draft, c, rng);
     draft.rngState = rng.state;
-    const meFirst = draft.ludi[c.from].isPlayer;
     if (!played.result) {
       pushMessage(draft, { kind: "match", title: "기권", body: played.forfeit ?? "" });
       replace(draft);
+      return;
+    }
+    if (played.series && c.format) {
+      const s = played.series;
+      const myLudus = draft.playerLudusId;
+      const mineSide0 = meFirst;
+      const won = (s.winner === 0) === mineSide0;
+      const opp = draft.ludi[meFirst ? c.to : c.from];
+      const rp = played.summary?.rpChange[myLudus] ?? 0;
+      const money = played.summary?.money[myLudus] ?? 0;
+      const dead = s.bouts.filter((b) => b.result.died).map((b) => draft.gladiators[b.result.died!].name);
+      pushMessage(draft, {
+        kind: dead.length ? "death" : "match",
+        title: `${FORMAT_NAMES[c.format]} ${won ? "승리" : "패배"}: ${opp.name}`,
+        body: s.bouts.map((b, i) => `${i + 1}. ${draft.gladiators[b.result.winnerId].name} > ${draft.gladiators[b.result.loserId].name}`).join("\n") +
+          `\nRP ${rp >= 0 ? "+" : ""}${rp} · 수입 ${money.toLocaleString()} D (세전)` +
+          (dead.length ? `\n\n죽은 자: ${dead.join(", ")}` : ""),
+      });
+      setSeries({ lives: seriesLives(s, mineSide0, c.rule, `${FORMAT_NAMES[c.format]} · ${BALANCE.rules[c.rule].name}`), commit: draft });
       return;
     }
     const r = played.result;
@@ -103,7 +167,7 @@ export function MatchScreen({ state, update, replace, nav }: Ctx) {
     });
     setLive({
       result: r, a: meFirst ? played.a : played.b, b: meFirst ? played.b : played.a,
-      items: buildItems(r, played.a, played.b, r.rounds), seed: 0, rule: c.rule, commit: draft,
+      items: buildItems(r, played.a, played.b, r.rounds), seed: 0, rule: c.rule, commit: draft, sub: "공식 경기",
     });
   };
 
@@ -117,6 +181,10 @@ export function MatchScreen({ state, update, replace, nav }: Ctx) {
     const result = simulateMatch(a, b, { rule, seed, doctrines: [myDoctrine, undefined], missioDeathMult: leagueRules(state).missioDeathMult });
     setLive({ result, items: buildItems(result, a, b, seed), a: structuredClone(a), b: structuredClone(b), seed, rule });
   };
+
+  if (series) {
+    return <SeriesRunner lives={series.lives} commit={series.commit} speedMs={SPEEDS.find((s) => s.id === speed)!.ms} replace={replace} onExit={() => setSeries(null)} nav={nav} />;
+  }
 
   if (live) {
     return (
@@ -155,7 +223,39 @@ export function MatchScreen({ state, update, replace, nav }: Ctx) {
         <div className="panel official">
           <h3>오늘의 공식 경기</h3>
           <div className="pad">
-            {official.map((c) => {
+            {official.filter((c) => c.format).map((c) => {
+              const iAmFrom = state.ludi[c.from].isPlayer;
+              const opp = state.ludi[iAmFrom ? c.to : c.from];
+              const n = c.format!;
+              const pool = player.gladiators.map((id) => state.gladiators[id]).filter((g) => canFight(g) && !availability(state, g));
+              const order = lineups[c.id] ?? autoLineup(state, player, n, now(state), [iAmFrom ? c.fromGladiator : c.toGladiator!].filter(Boolean)).map((g) => g.id);
+              return (
+                <div key={c.id} className="official-row team">
+                  <div>
+                    <span className={`tag ${c.rule === "sudden" ? "neg" : ""}`}>{FORMAT_NAMES[n]} · {BALANCE.rules[c.rule].name}</span>
+                    <div className="hint">상대: {opp.name} — 이긴 사람이 남아 다음 상대와 싸운다. 체력은 조금만 돌아온다</div>
+                  </div>
+                  <div className="lineup">
+                    {Array.from({ length: n }, (_, i) => (
+                      <label key={i}>{i === 0 ? "선봉" : i === n - 1 ? "대장" : `${i + 1}번`}
+                        <select value={order[i] ?? ""} onChange={(e) => {
+                          const next = [...order];
+                          const j = next.indexOf(e.target.value);
+                          if (j >= 0) next[j] = next[i];
+                          next[i] = e.target.value;
+                          setLineups({ ...lineups, [c.id]: next.filter(Boolean) });
+                        }}>
+                          <option value="">—</option>
+                          {pool.map((g) => <option key={g.id} value={g.id}>{g.name} · CA {computeCA(g)}</option>)}
+                        </select>
+                      </label>
+                    ))}
+                  </div>
+                  <button className={`btn ${c.rule === "sudden" ? "danger" : "primary"}`} onClick={() => playOfficial(c.id)}>경기장에 들어간다</button>
+                </div>
+              );
+            })}
+            {official.filter((c) => !c.format).map((c) => {
               const iAmFrom = state.ludi[c.from].isPlayer;
               const me = state.gladiators[iAmFrom ? c.fromGladiator : c.toGladiator!];
               const them = state.gladiators[iAmFrom ? c.toGladiator! : c.fromGladiator];
@@ -287,7 +387,7 @@ function FighterPicker({ list, value, onChange }: { list: Gladiator[]; value?: I
   );
 }
 
-function Playback({ live, speedMs, onDone, onClose, nav }: { live: Live; speedMs: number; onDone: () => void; onClose: () => void; nav: Nav }) {
+export function Playback({ live, speedMs, onDone, onClose, nav, closeLabel = "한 판 더" }: { live: Live; speedMs: number; onDone: () => void; onClose: () => void; nav: Nav; closeLabel?: string }) {
   const [shown, setShown] = useState(speedMs === 0 ? live.items.length : 0);
   const [cut, setCut] = useState<{ kind: HighlightKind; key: number } | null>(null);
   const [flash, setFlash] = useState(0);
@@ -329,6 +429,10 @@ function Playback({ live, speedMs, onDone, onClose, nav }: { live: Live; speedMs
   }, [visible, live.result.events]);
   const hp = useMemo(() => {
     const h: Record<Id, { hp: number; max: number }> = {};
+    if (live.startHp) {
+      h[live.a.id] = { hp: live.startHp[0] * 100, max: 100 };
+      h[live.b.id] = { hp: live.startHp[1] * 100, max: 100 };
+    }
     for (const it of visible) {
       if (it.kind !== "line") continue;
       const e = it.line.event;
@@ -336,7 +440,7 @@ function Playback({ live, speedMs, onDone, onClose, nav }: { live: Live; speedMs
       if (e.t === "poison") h[e.target] = { hp: e.hpAfter, max: h[e.target]?.max ?? e.hpAfter };
     }
     return h;
-  }, [visible]);
+  }, [visible, live.startHp, live.a.id, live.b.id]);
   const crowd = [...visible].reverse().find((i) => i.kind === "line" && i.line.event.t === "crowd");
   const crowdValue = crowd && crowd.kind === "line" && crowd.line.event.t === "crowd" ? crowd.line.event.value : BALANCE.combat.crowdStart;
   const dead = finished ? live.result.died : null;
@@ -358,8 +462,8 @@ function Playback({ live, speedMs, onDone, onClose, nav }: { live: Live; speedMs
 
   return (
     <>
-      <h1 className="screen-title">{BALANCE.rules[live.rule].name}</h1>
-      <div className="screen-sub">모래 마당 연습 시합</div>
+      <h1 className="screen-title">{live.title ?? BALANCE.rules[live.rule].name}</h1>
+      <div className="screen-sub">{live.sub ?? "모래 마당 연습 시합"}</div>
       <div className="arena">
         <div className="arena-head">
           {fighterBox(live.a, false)}
@@ -393,7 +497,7 @@ function Playback({ live, speedMs, onDone, onClose, nav }: { live: Live; speedMs
       </div>
       <div style={{ marginTop: 12, display: "flex", gap: 8 }}>
         {!finished && <button className="btn" onClick={() => setShown(live.items.length)}>결과 보기</button>}
-        {finished && <button className="btn primary" onClick={onClose}>한 판 더</button>}
+        {finished && <button className="btn primary" onClick={onClose}>{closeLabel}</button>}
         {finished && <button className="btn" onClick={() => nav.go("roster")}>막사로</button>}
       </div>
     </>

@@ -4,6 +4,7 @@ import { availability, canChallenge, createChallenge, now, respond } from "../..
 import { BALANCE, getStyle } from "../../core/data";
 import { computeCA } from "../../core/gladiator";
 import type { DeathRule, Gladiator } from "../../core/types";
+import { autoLineup, FORMAT_MULT, FORMAT_NAMES, type Format } from "../../core/series";
 import { leagueRules } from "../../core/nationRules";
 import type { Ctx } from "../App";
 import { Portrait, Stars } from "../components/common";
@@ -24,12 +25,13 @@ export function ChallengeScreen({ state, act, nav }: Ctx) {
     .sort((a, b) => a.matchAt! - b.matchAt!);
   const L = BALANCE.league;
 
-  const targets = Object.values(state.ludi).filter((l) => !l.isPlayer).sort((a, b) => b.rp - a.rp);
+  const targets = Object.values(state.ludi).filter((l) => !l.isPlayer && l.nation === state.nation).sort((a, b) => b.rp - a.rp);
   const [targetId, setTargetId] = useState(targets.find((l) => !canChallenge(state, player, l))?.id ?? targets[0].id);
   const target = state.ludi[targetId];
   const [myId, setMyId] = useState<string | undefined>(mine.find((g) => !availability(state, g))?.id);
   const [theirId, setTheirId] = useState<string>("");
   const [rule, setRule] = useState<DeathRule>("training");
+  const [format, setFormat] = useState<Format>(1);
   const [error, setError] = useState<string | null>(null);
   const [defenders, setDefenders] = useState<Record<string, string>>({});
   const blockReason = canChallenge(state, player, target);
@@ -37,9 +39,10 @@ export function ChallengeScreen({ state, act, nav }: Ctx) {
   // 상태 갱신 함수 안에서 화면 상태를 바꾸지 않도록, 검증은 먼저 한다
   const send = () => {
     const busy = myId ? availability(state, state.gladiators[myId]) : "출전자를 고르라";
-    const err = blockReason ?? busy;
+    const short = format > 1 && autoLineup(state, player, format, now(state) + L.matchDelayMin).length < format ? `${format}명을 내보낼 수 없다` : null;
+    const err = blockReason ?? busy ?? short;
     setError(err);
-    if (!err) act((d) => { createChallenge(d, d.ludi[player.id], d.ludi[targetId], myId!, rule, theirId || undefined); });
+    if (!err) act((d) => { createChallenge(d, d.ludi[player.id], d.ludi[targetId], myId!, rule, theirId || undefined, 0, format); });
   };
 
   const fighterLabel = (g: Gladiator) => `${g.name} · ${getStyle(g.style).name} · CA ${computeCA(g)}`;
@@ -67,7 +70,7 @@ export function ChallengeScreen({ state, act, nav }: Ctx) {
                   <tr key={c.id}>
                     <td>{from.name} <span className="hint">RP {from.rp}</span></td>
                     <td><div className="name-cell"><Portrait g={their} size={26} /><span className="n">{their.name}</span> <Stars value={computeCA(their)} /></div></td>
-                    <td><span className={`tag ${c.rule === "sudden" ? "neg" : ""}`}>{BALANCE.rules[c.rule].name}</span></td>
+                    <td><span className={`tag ${c.rule === "sudden" ? "neg" : ""}`}>{c.format ? `${FORMAT_NAMES[c.format]} · ` : ""}{BALANCE.rules[c.rule].name}</span></td>
                     <td>{dateLabel(fromAbs(c.respondBy).day)}</td>
                     <td>
                       <select value={pick} onChange={(e) => setDefenders({ ...defenders, [c.id]: e.target.value })}>
@@ -102,7 +105,7 @@ export function ChallengeScreen({ state, act, nav }: Ctx) {
               {blockReason && <span className="hint">{blockReason}</span>}
             </div>
             <div className="field">
-              <label>우리 출전자</label>
+              <label>{format > 1 ? "선봉 (나머지 순서는 경기 날 정한다)" : "우리 출전자"}</label>
               <select value={myId ?? ""} onChange={(e) => setMyId(e.target.value)}>
                 {mine.map((g) => {
                   const busy = availability(state, g);
@@ -118,6 +121,13 @@ export function ChallengeScreen({ state, act, nav }: Ctx) {
                   <option key={g.id} value={g.id}>{g.name} · {getStyle(g.style).name}</option>
                 ))}
               </select>
+            </div>
+            <div className="field">
+              <label>형식</label>
+              <div className="seg">
+                {([1, 3, 5] as Format[]).map((f) => <button key={f} className={format === f ? "on" : ""} onClick={() => setFormat(f)}>{FORMAT_NAMES[f]}</button>)}
+              </div>
+              <span className="hint">{format === 1 ? "한 명씩 한 판" : `${format}명씩. 이긴 사람이 남아 다음 상대와 싸운다. RP ×${FORMAT_MULT[format].rp}, 돈 ×${FORMAT_MULT[format].money}`}</span>
             </div>
             <div className="field">
               <label>생사 규칙</label>
@@ -146,8 +156,8 @@ export function ChallengeScreen({ state, act, nav }: Ctx) {
                   return (
                     <tr key={c.id} className={today ? "me" : ""}>
                       <td>{today ? <b style={{ color: "var(--torch)" }}>오늘</b> : dateLabel(fromAbs(c.matchAt!).day)}</td>
-                      <td><span className={`tag ${c.rule === "sudden" ? "neg" : ""}`}>{BALANCE.rules[c.rule].name}</span></td>
-                      <td>{me?.name} vs {them?.name}</td>
+                      <td><span className={`tag ${c.rule === "sudden" ? "neg" : ""}`}>{c.format ? `${FORMAT_NAMES[c.format]} · ` : ""}{BALANCE.rules[c.rule].name}</span></td>
+                      <td>{c.format ? `${opp.name}와 단체전 (선봉 ${me?.name ?? "미정"})` : `${me?.name} vs ${them?.name}`}</td>
                       <td className="hint">{opp.name}</td>
                       <td>{today && <button className="btn primary" onClick={() => nav.go("match")}>모래 마당으로</button>}</td>
                     </tr>

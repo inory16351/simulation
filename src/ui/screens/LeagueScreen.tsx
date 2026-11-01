@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { computeCA } from "../../core/gladiator";
-import type { GameState } from "../../core/types";
+import { NATIONS } from "../../core/data";
+import type { GameState, NationId } from "../../core/types";
 import { Stars } from "../components/common";
 
 const PERSONALITY_NAMES = { aggressive: "공격형", stable: "안정형", grudge: "원한형", merchant: "상인형", developer: "육성형" };
@@ -8,22 +9,28 @@ const PERSONALITY_NAMES = { aggressive: "공격형", stable: "안정형", grudge
 export function LeagueScreen({ state }: { state: GameState }) {
   const player = state.ludi[state.playerLudusId];
   const [tier, setTier] = useState<1 | 2>(player.tier);
-  const ludi = Object.values(state.ludi).filter((l) => l.tier === tier).sort((a, b) => b.rp - a.rp);
+  const [nation, setNation] = useState<NationId>(state.nation);
+  const foreign = nation !== state.nation;
+  const ludi = Object.values(state.ludi).filter((l) => l.tier === (foreign ? 1 : tier) && l.nation === nation).sort((a, b) => b.rp - a.rp);
 
   const zone = (i: number) => {
-    if (tier === 2) return i < 2 ? "zone-up" : i === 2 ? "zone-po" : "";
-    return i >= 8 ? "zone-down" : i === 7 ? "zone-po" : "";
+    if (foreign) return "";
+    if (tier === 2) return i < 2 ? "zone-up" : "";
+    return i >= 8 ? "zone-down" : "";
   };
 
   return (
     <>
       <h1 className="screen-title">서열표</h1>
       <div className="screen-sub">
-        RP 순위로 승강이 결정된다. 2부 1·2위 자동 승격, 3위 승강전 / 1부 8위 승강전, 9·10위 강등.
+        시즌이 끝날 때 RP 순위로 오르내린다. 2부 1·2위는 1부로 올라가고, 1부 9·10위는 2부로 떨어진다. 다른 나라는 1부만 볼 수 있다.
       </div>
       <div style={{ marginBottom: 12 }} className="seg">
-        <button className={tier === 1 ? "on" : ""} onClick={() => setTier(1)}>1부 리그</button>
-        <button className={tier === 2 ? "on" : ""} onClick={() => setTier(2)}>2부 리그</button>
+        <button className={tier === 1 || foreign ? "on" : ""} onClick={() => setTier(1)}>1부 리그</button>
+        <button className={tier === 2 && !foreign ? "on" : ""} disabled={foreign} onClick={() => setTier(2)}>2부 리그</button>
+        <select value={nation} onChange={(e) => setNation(e.target.value as NationId)} style={{ marginLeft: 10 }}>
+          {NATIONS.map((n) => <option key={n.id} value={n.id}>{n.name}{n.id === state.nation ? " (우리 나라)" : ""}</option>)}
+        </select>
       </div>
       <div className="panel">
         <table className="t">

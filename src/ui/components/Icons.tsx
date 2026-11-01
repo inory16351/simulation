@@ -36,6 +36,8 @@ const MENU: Record<string, ReactElement> = {
   facilities: <g {...ink}><rect x="4" y="9" width="7" height="11" fill="#b8a58a" /><path d="M3 9 H12 M3 20 H12" /><path d="M14 4 L20 10" stroke={WOOD} strokeWidth={2.4} /><rect x="15" y="3" width="7" height="4" rx="1" fill={IRON} transform="rotate(45 18.5 5)" /></g>,
   // 금고: 상자
   finance: <g {...ink}><rect x="4" y="10" width="16" height="10" rx="1.5" fill={WOOD} /><path d="M4 10 C4 5 20 5 20 10 Z" fill="#a8703a" /><rect x="10.5" y="11.5" width="3" height="4" rx="0.8" fill={BRONZE} /></g>,
+  // 판테온 컵: 손잡이 둘 달린 잔
+  cup: <g {...ink}><path d="M7 4 H17 V9 C17 13 14.5 15 12 15 C9.5 15 7 13 7 9 Z" fill={BRONZE} /><path d="M7 6 C3 6 3 11 7.5 11.5 M17 6 C21 6 21 11 16.5 11.5" fill="none" strokeWidth={1.6} /><path d="M12 15 V18 M8 20 H16 L15 18 H9 Z" fill={BRONZE} /></g>,
   // 대륙 정세: 지도
   world: <g {...ink}><path d="M3 6 L9 4 L15 6 L21 4 V18 L15 20 L9 18 L3 20 Z" fill={PARCH} /><path d="M9 4 V18 M15 6 V20" strokeWidth={1} /><circle cx="12" cy="11" r="2" fill={RED} strokeWidth={1} /></g>,
   // 비석의 언덕: 비석

@@ -27,13 +27,14 @@ export function addMoney(state: GameState, ludus: Ludus, amount: number, desc: s
   }
 }
 
-export function tierRanking(state: GameState, tier: 1 | 2): Ludus[] {
-  return Object.values(state.ludi).filter((l) => l.tier === tier).sort((a, b) => b.rp - a.rp);
+/** 한 나라 한 리그의 RP 순위 (나라를 안 주면 플레이어 나라) */
+export function tierRanking(state: GameState, tier: 1 | 2, nation = state.nation): Ludus[] {
+  return Object.values(state.ludi).filter((l) => l.tier === tier && l.nation === nation).sort((a, b) => b.rp - a.rp);
 }
 
 /** 시즌 배당금 지급. coef가 없으면 현재 순위로 계산 */
 export function payDividend(state: GameState, ludus: Ludus, coef?: number): void {
-  const rank = tierRanking(state, ludus.tier).findIndex((l) => l.id === ludus.id) + 1;
+  const rank = tierRanking(state, ludus.tier, ludus.nation).findIndex((l) => l.id === ludus.id) + 1;
   const c = coef ?? 1.5 - rank / BALANCE.league.teamsPerTier;
   const amount = Math.round(E.dividendBase[String(ludus.tier) as "1" | "2"] * c);
   ludus.treasury += amount;

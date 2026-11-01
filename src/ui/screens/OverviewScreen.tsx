@@ -9,7 +9,7 @@ export function OverviewScreen({ state, nav }: { state: GameState; nav: Nav }) {
   const wages = roster.reduce((s, g) => s + g.wage, 0);
   const avgMorale = roster.length ? Math.round(roster.reduce((s, g) => s + g.morale, 0) / roster.length) : 0;
   const best = [...roster].sort((a, b) => computeCA(b) - computeCA(a)).slice(0, 3);
-  const tier = Object.values(state.ludi).filter((l) => l.tier === player.tier).sort((a, b) => b.rp - a.rp);
+  const tier = Object.values(state.ludi).filter((l) => l.tier === player.tier && l.nation === state.nation).sort((a, b) => b.rp - a.rp);
   const rank = tier.findIndex((l) => l.id === player.id);
   const weeksOfCash = wages > 0 ? Math.floor(player.treasury / wages) : 99;
 

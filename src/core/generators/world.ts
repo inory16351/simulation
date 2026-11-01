@@ -6,12 +6,15 @@ import { Rng } from "../rng";
 import type { GameState, Ludus, NationId } from "../types";
 import { generateGladiator } from "./gladiator";
 
+/** 시작 국가 계수 (판테온 컵 성적 3시즌치를 가정) */
+export const INITIAL_COEFFICIENT: Record<NationId, number> = { aurelia: 11, grommar: 9.5, dolgar: 9, karsea: 8, kemer: 7, sylvaren: 6 };
+
 const PERSONALITIES: NonNullable<Ludus["aiPersonality"]>[] = ["aggressive", "stable", "grudge", "merchant", "developer"];
 
 export function newGame(seed: number, nation: NationId = "aurelia", ludusName = "모래의 집"): GameState {
   const rng = new Rng(seed);
   const state: GameState = {
-    version: 8,
+    version: 9,
     seed,
     rngState: 0,
     season: 1,
@@ -35,6 +38,7 @@ export function newGame(seed: number, nation: NationId = "aurelia", ludusName = 
     lastDisasterAt: -999,
     luckStreak: 0,
     modifiers: [],
+    coefficients: {} as GameState["coefficients"],
     nextId: 1,
   };
   const newId = (prefix: string) => `${prefix}${state.nextId++}`;
@@ -42,11 +46,11 @@ export function newGame(seed: number, nation: NationId = "aurelia", ludusName = 
   const usedGladiatorNames = new Set<string>();
   const L = BALANCE.league;
 
-  const addLudus = (tier: 1 | 2, isPlayer: boolean, name: string, rp: number, rosterSize: number, target: number) => {
+  const addLudus = (tier: 1 | 2, isPlayer: boolean, name: string, rp: number, rosterSize: number, target: number, ludusNation: NationId = nation) => {
     const ludus: Ludus = {
       id: newId("L"),
       name,
-      nation,
+      nation: ludusNation,
       tier,
       rp: Math.round(rp),
       treasury: isPlayer ? BALANCE.economy.startTreasury : rng.int(3000, tier === 1 ? 15000 : 7000),
@@ -63,7 +67,7 @@ export function newGame(seed: number, nation: NationId = "aurelia", ludusName = 
     for (let i = 0; i < rosterSize; i++) {
       const g = generateGladiator(rng, {
         id: newId("G"),
-        nation,
+        nation: ludusNation,
         target: target + rng.range(-1.5, 1.5),
         usedNames: usedGladiatorNames,
         // 플레이어 시작 로스터는 노예 위주
@@ -97,6 +101,16 @@ export function newGame(seed: number, nation: NationId = "aurelia", ludusName = 
   }
   const player = addLudus(2, true, ludusName, L.rpTier2 - 60, BALANCE.economy.startRoster, 6.5);
   state.playerLudusId = player.id;
+
+  // 다른 나라: 1부 리그만 실제로 돌린다 (판테온 컵 상대). 국가 계수가 높은 나라일수록 조금 더 강하다
+  for (const other of NATIONS) {
+    if (other.id === nation) continue;
+    const strength = (INITIAL_COEFFICIENT[other.id] - 8) * 0.12;
+    for (let i = 0; i < L.teamsPerTier; i++) {
+      addLudus(1, false, ludusNameGen(), L.rpTier1 + rng.normal(0, 60), BALANCE.economy.aiRoster, 11 + strength - i * 0.15, other.id);
+    }
+  }
+  state.coefficients = Object.fromEntries(NATIONS.map((n) => [n.id, [INITIAL_COEFFICIENT[n.id], INITIAL_COEFFICIENT[n.id], INITIAL_COEFFICIENT[n.id]]])) as GameState["coefficients"];
 
   const nationDef = getNation(nation);
   state.inbox.push({

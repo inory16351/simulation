@@ -434,3 +434,17 @@ body {
 .search-filters input[type="number"] { width: 70px; background: var(--bg-2); color: var(--parchment); border: 1px solid var(--line); padding: 4px 6px; border-radius: 3px; }
 .negotiate { display: inline-flex; gap: 6px; align-items: center; flex-wrap: wrap; }
 .negotiate input[type="number"] { width: 80px; background: var(--bg-2); color: var(--parchment); border: 1px solid var(--line); padding: 4px 6px; border-radius: 3px; }
+
+/* 단체전·컵 출전 순서 */
+.lineup { display: flex; gap: 10px; flex-wrap: wrap; }
+.lineup label { display: flex; flex-direction: column; gap: 3px; font-size: 12px; color: var(--text-dim); }
+.official-row.team { display: grid; grid-template-columns: 1fr 2fr auto; gap: 12px; align-items: center; }
+@media (max-width: 760px) { .official-row.team { grid-template-columns: 1fr; } }
+.cup-groups { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 12px; margin-top: 12px; }
+.bracket { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+@media (max-width: 760px) { .bracket { grid-template-columns: 1fr; } }
+.bracket-col { display: flex; flex-direction: column; gap: 8px; }
+.bracket-tie { border: 1px solid var(--line, #3a2f27); border-radius: 6px; padding: 6px 8px; display: flex; flex-direction: column; gap: 4px; }
+.bracket-tie > div { display: flex; justify-content: space-between; align-items: center; }
+.bracket-tie .won { color: var(--parchment); font-weight: 700; }
+.bracket-tie .lost { opacity: 0.5; }

@@ -10,6 +10,8 @@ import { clearSave, loadGame, saveGame } from "../core/state";
 import type { GameState, Id } from "../core/types";
 import { asset } from "./assets";
 import { MenuIcon } from "./components/Icons";
+import { CupScreen } from "./screens/CupScreen";
+import { todaysPlayerTie } from "../core/cup";
 import { NationCrest } from "./components/common";
 import { ChallengeScreen } from "./screens/ChallengeScreen";
 import { FinanceScreen } from "./screens/FinanceScreen";
@@ -29,7 +31,7 @@ import { FacilitiesScreen } from "./screens/FacilitiesScreen";
 
 export type ScreenId =
   | "inbox" | "overview" | "roster" | "gladiator" | "training" | "challenge" | "match" | "league"
-  | "market" | "staff" | "facilities" | "finance" | "world" | "hall" | "youth";
+  | "market" | "staff" | "facilities" | "finance" | "world" | "hall" | "youth" | "cup";
 
 export interface Nav {
   go: (s: ScreenId) => void;
@@ -54,6 +56,7 @@ const MENU: { id: ScreenId; label: string; ready: boolean }[] = [
   { id: "challenge", label: "도전장", ready: true },
   { id: "match", label: "모래 마당", ready: true },
   { id: "league", label: "서열표", ready: true },
+  { id: "cup", label: "판테온 컵", ready: true },
   { id: "market", label: "이적 시장", ready: true },
   { id: "youth", label: "유소년 학당", ready: true },
   { id: "staff", label: "식솔", ready: true },
@@ -110,7 +113,7 @@ function Game({ state, setState, onRestart }: { state: GameState; setState: (s: 
   const ctx: Ctx = { state, update, act, replace: setState, nav };
 
   const player = state.ludi[state.playerLudusId];
-  const tierLudi = Object.values(state.ludi).filter((l) => l.tier === player.tier).sort((a, b) => b.rp - a.rp);
+  const tierLudi = Object.values(state.ludi).filter((l) => l.tier === player.tier && l.nation === state.nation).sort((a, b) => b.rp - a.rp);
   const rank = tierLudi.findIndex((l) => l.id === player.id) + 1;
   const unread = state.inbox.filter((m) => !m.read).length;
   const incoming = state.challenges.filter((c) => c.status === "pending" && c.to === player.id).length;
@@ -120,6 +123,7 @@ function Game({ state, setState, onRestart }: { state: GameState; setState: (s: 
   /** 막힌 일이 있으면 그 화면으로 안내한다 */
   const goToBlocker = (s: GameState) => {
     if (todaysPlayerMatches(s).length) setScreen("match");
+    else if (todaysPlayerTie(s)) setScreen("cup");
     else if (s.pendingEvents.length) setScreen("inbox");
   };
 
@@ -226,6 +230,7 @@ function Game({ state, setState, onRestart }: { state: GameState; setState: (s: 
           {screen === "market" && <MarketScreen {...ctx} />}
           {screen === "finance" && <FinanceScreen {...ctx} />}
           {screen === "world" && <WorldScreen {...ctx} />}
+          {screen === "cup" && <CupScreen {...ctx} />}
           {screen === "staff" && <StaffScreen {...ctx} />}
           {screen === "youth" && <YouthScreen {...ctx} />}
           {screen === "facilities" && <FacilitiesScreen {...ctx} />}

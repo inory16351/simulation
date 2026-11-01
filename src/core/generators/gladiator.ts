@@ -37,6 +37,12 @@ function uniqueName(rng: Rng, raceId: RaceId, gender: "m" | "f", used?: Set<stri
   for (let i = 0; used?.has(name) && i < 30; i++) {
     name = `${rng.pick(pool)} ${rng.pick(NAMES.surname[raceId])}`;
   }
+  // 이름이 바닥나면 남은 조합을 훑고, 그래도 없으면 몇 세를 붙인다
+  if (used?.has(name)) {
+    const combos = pool.flatMap((p) => NAMES.surname[raceId].map((sn) => `${p} ${sn}`)).filter((n) => !used.has(n));
+    if (combos.length) name = rng.pick(combos);
+    else for (let k = 2; used.has(name); k++) name = `${rng.pick(pool)} ${k}세`;
+  }
   used?.add(name);
   return name;
 }

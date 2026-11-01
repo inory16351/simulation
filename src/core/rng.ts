@@ -50,6 +50,15 @@ export class Rng {
   }
 
   /** 정규분포 (Box-Muller) */
+  shuffle<T>(arr: readonly T[]): T[] {
+    const out = [...arr];
+    for (let i = out.length - 1; i > 0; i--) {
+      const j = this.int(0, i);
+      [out[i], out[j]] = [out[j], out[i]];
+    }
+    return out;
+  }
+
   normal(mean: number, sd: number): number {
     const u = 1 - this.next();
     const v = this.next();

@@ -4,6 +4,7 @@ import { closeSeason, logCareer, seasonRecord } from "./career";
 import { dailyChallenges, inRegularPeriod, playAiScheduled, todaysPlayerMatches } from "./challenge";
 import { dailyCondition } from "./condition";
 import { BALANCE } from "./data";
+import { closeCupSeason, dailyCup, todaysPlayerTie } from "./cup";
 import { payday, payDividend, refreshFreeAgents, tierRanking, weeklyFreeAgents } from "./economy";
 import { rollDailyEvents } from "./events";
 import { dailyConstruction } from "./facilities";
@@ -29,6 +30,7 @@ export function blockers(state: GameState): string[] {
   if (state.pendingEvents.length) out.push(`결정할 사건 ${state.pendingEvents.length}건`);
   const matches = todaysPlayerMatches(state);
   if (matches.length) out.push(`오늘 치를 경기 ${matches.length}건`);
+  if (todaysPlayerTie(state)) out.push("오늘 판테온 컵 경기");
   return out;
 }
 
@@ -94,6 +96,7 @@ export function advanceDay(state: GameState): string[] {
 
   // 4. 도전과 경기
   dailyChallenges(state, rng);
+  dailyCup(state, rng);
   dailyWar(state, rng);
   dailyTransfers(state, rng);
   dailyScouting(state);
@@ -237,6 +240,7 @@ function endSeason(state: GameState, rng: Rng): void {
       `\n승격: ${promoted.map((l) => l.name).join(", ")}\n강등: ${relegated.map((l) => l.name).join(", ")}`,
   });
 
+  closeCupSeason(state);
   state.season++;
   state.day = 1;
   for (const l of Object.values(state.ludi)) {
@@ -244,8 +248,10 @@ function endSeason(state: GameState, rng: Rng): void {
     l.rp = Math.round(l.rp - (l.rp - base) * L.seasonRegression);
     l.matchesThisSeason = 0;
     l.refusalsUsed = 0;
-    const rank = finalRank.get(l.id)!;
-    const coef = promoted.includes(l) ? BALANCE.economy.promotedDividendCoef
+    const rank = finalRank.get(l.id);
+    // 다른 나라 루두스는 자기 나라 순위대로 배당을 받는다
+    const coef = rank === undefined ? undefined
+      : promoted.includes(l) ? BALANCE.economy.promotedDividendCoef
       : relegated.includes(l) ? BALANCE.economy.relegatedDividendCoef
       : 1.5 - rank / L.teamsPerTier;
     payDividend(state, l, coef);

@@ -44,6 +44,8 @@ export interface MatchOptions {
   noDeath?: boolean;
   /** 나라 리그 특징: 미시오 사망 확률 배율 */
   missioDeathMult?: number;
+  /** 단체전 연속 대결: 앞 판에서 남은 체력 비율 */
+  startHp?: [number | undefined, number | undefined];
 }
 
 export interface MatchResult {
@@ -57,6 +59,8 @@ export interface MatchResult {
   damageDealt: Record<Id, number>;
   crowdContribution: Record<Id, number>;
   injuries: Record<Id, Injury | undefined>;
+  /** 끝났을 때 남은 체력 비율 (0~1) */
+  hpLeft: Record<Id, number>;
 }
 
 const C = BALANCE.combat;
@@ -163,6 +167,10 @@ export function simulateMatch(a: Gladiator, b: Gladiator, opt: MatchOptions): Ma
     makeFighter(a, 0, docs[0]),
     makeFighter(b, 1, docs[1]),
   ];
+  F.forEach((f, i) => {
+    const r = opt.startHp?.[i];
+    if (r !== undefined) f.hp = Math.max(1, Math.round(f.maxHp * r));
+  });
   const events: CombatEvent[] = [];
   const emit = (e: CombatEvent) => events.push(e);
   let dist = 2;
@@ -677,6 +685,7 @@ export function simulateMatch(a: Gladiator, b: Gladiator, opt: MatchOptions): Ma
     damageDealt: { [a.id]: F[0].damageDealt, [b.id]: F[1].damageDealt },
     crowdContribution: { [a.id]: F[0].crowdContribution, [b.id]: F[1].crowdContribution },
     injuries,
+    hpLeft: { [a.id]: Math.max(0, F[0].hp / F[0].maxHp), [b.id]: Math.max(0, F[1].hp / F[1].maxHp) },
   };
 }
 

@@ -205,6 +205,11 @@ export interface Challenge {
   status: "pending" | "scheduled" | "declined" | "done" | "cancelled";
   /** 경기 날짜 (절대 일수) */
   matchAt?: number;
+  /** 1:1(기본), 3:3, 5:5 단체전 */
+  format?: 1 | 3 | 5;
+  /** 단체전 출전 순서 (비면 경기 날 자동으로 짠다) */
+  fromLineup?: Id[];
+  toLineup?: Id[];
 }
 
 export interface LedgerEntry {
@@ -310,6 +315,9 @@ export interface GameState {
   transfer?: import("./transfers").TransferState;
   /** 관심 명단 */
   shortlist?: Id[];
+  /** 국가 계수: 최근 3시즌 판테온 컵 점수 (오래된 것부터) */
+  coefficients: Record<NationId, number[]>;
+  cup?: import("./cup").Cup;
   market: MarketListing[];
   ledger: LedgerEntry[];
   /** 플레이어가 골라야 하는 이벤트 선택지 */

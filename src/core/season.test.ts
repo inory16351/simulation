@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { createChallenge, playChallenge, respond, todaysPlayerMatches } from "./challenge";
+import { todaysPlayerTie, playTie } from "./cup";
 import { advanceDay } from "./day";
 import { getEvent, resolveEvent } from "./events";
 import { newGame } from "./generators/world";
@@ -18,6 +19,8 @@ function autoplay(state: GameState, days: number, opts: { challenge?: boolean } 
     }
     for (const c of state.challenges.filter((x) => x.status === "pending" && state.ludi[x.to].isPlayer)) respond(state, c, true, rng);
     for (const c of todaysPlayerMatches(state)) playChallenge(state, c, rng);
+    const tie = todaysPlayerTie(state);
+    if (tie) playTie(state, tie.id, rng);
     if (opts.challenge && state.day % 4 === 0) {
       const me = state.ludi[state.playerLudusId];
       const target = Object.values(state.ludi).find((l) => !l.isPlayer && l.tier === me.tier);
@@ -34,7 +37,7 @@ describe("시즌 진행", () => {
     const s = newGame(2024);
     autoplay(s, 170, { challenge: true });
     expect(s.season).toBe(2);
-    const tiers = Object.values(s.ludi).map((l) => l.tier);
+    const tiers = Object.values(s.ludi).filter((l) => l.nation === s.nation).map((l) => l.tier);
     expect(tiers.filter((t) => t === 1)).toHaveLength(10);
     // AI 루두스끼리도 경기를 치러 RP가 움직였다
     const rps = Object.values(s.ludi).map((l) => l.rp);
@@ -63,6 +66,34 @@ describe("시즌 진행", () => {
   });
 });
 
+describe("판테온 컵", () => {
+  it("16팀이 조별 리그와 토너먼트를 거쳐 우승팀이 나오고, 시즌이 끝나면 나라 계수가 바뀐다", () => {
+    const s = newGame(77);
+    const before = JSON.stringify(s.coefficients);
+    autoplay(s, 151);
+    const cup = s.cup!;
+    expect(cup.teams).toHaveLength(16);
+    expect(new Set(cup.teams.map((id) => s.ludi[id].nation)).size).toBe(6);
+    expect(cup.ties.filter((t) => t.stage === "group")).toHaveLength(48);
+    expect(cup.ties.every((t) => t.winner)).toBe(true);
+    expect(cup.champion).toBeDefined();
+    autoplay(s, 20);
+    expect(s.season).toBe(2);
+    expect(JSON.stringify(s.coefficients)).not.toBe(before);
+  });
+
+  it("단체전은 승자가 남아 다음 상대와 싸우고, 한쪽 명단이 다 쓰러지면 끝난다", async () => {
+    const { runSeries, autoLineup } = await import("./series");
+    const s = newGame(5);
+    const [a, b] = Object.values(s.ludi).filter((l) => l.nation === s.nation && l.tier === 1);
+    const la = autoLineup(s, a, 3, 1), lb = autoLineup(s, b, 3, 1);
+    const r = runSeries(s, [a, b], [la, lb], { rule: "training", mode: "winner_stays" }, new Rng(1));
+    expect(r.score[r.winner]).toBe(3);
+    expect(r.bouts.length).toBeGreaterThanOrEqual(3);
+    expect(r.bouts.length).toBeLessThanOrEqual(5);
+  });
+});
+
 describe("이벤트 데이터", () => {
   it("모든 이벤트에 돈 없이 고를 수 있는 선택지가 있다 (진행이 막히지 않게)", async () => {
     const { EVENTS } = await import("./events");
@@ -75,7 +106,7 @@ describe("나라별 리그", () => {
     const { NATIONS } = await import("./data");
     for (const n of NATIONS) {
       const s = newGame(11, n.id, "시험 루두스");
-      expect(Object.values(s.ludi).every((l) => l.nation === n.id)).toBe(true);
+      expect(Object.values(s.ludi).filter((l) => l.nation === n.id)).toHaveLength(20);
       autoplay(s, 60, { challenge: true });
       if (n.rules.suddenBanned) expect(s.challenges.some((c) => c.rule === "sudden")).toBe(false);
     }

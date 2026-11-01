@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { ludusOf } from "../../core/career";
-import { RACES, STYLES } from "../../core/data";
+import { NATIONS, RACES, STYLES } from "../../core/data";
 import { marketValue, releaseGladiator, rosterCapacity } from "../../core/economy";
 import { ageStage } from "../../core/gladiator";
 import { ludusReputation, REPUTATION_NAMES } from "../../core/reputation";
@@ -59,14 +59,16 @@ function Search(ctx: Ctx) {
   const [minPa, setMinPa] = useState(0);
   const [maxWage, setMaxWage] = useState("");
   const [name, setName] = useState("");
+  const [nation, setNation] = useState<string>(state.nation);
 
   const pool = useMemo(() => {
     const me = state.ludi[state.playerLudusId];
     const free = state.freeAgents.map((id) => state.gladiators[id]).filter(Boolean);
-    const clubs = Object.values(state.ludi).filter((l) => !l.isPlayer).flatMap((l) => l.gladiators.map((id) => state.gladiators[id]));
+    // 다른 나라 루두스도 찾아볼 수 있다
+    const clubs = Object.values(state.ludi).filter((l) => !l.isPlayer && (!nation || l.nation === nation)).flatMap((l) => l.gladiators.map((id) => state.gladiators[id]));
     const all = scope === "free" ? free : scope === "clubs" ? clubs : [...free, ...clubs];
     return all.filter((g) => g?.alive && !me.gladiators.includes(g.id) && ageStage(g) !== "youth");
-  }, [state, scope]);
+  }, [state, scope, nation]);
 
   const results = pool
     .filter((g) => !race || g.race === race)
@@ -86,6 +88,9 @@ function Search(ctx: Ctx) {
         <div className="pad search-filters">
           <label>대상 <select value={scope} onChange={(e) => setScope(e.target.value as typeof scope)}>
             <option value="all">전체</option><option value="free">무소속만</option><option value="clubs">다른 루두스만</option>
+          </select></label>
+          <label>나라 <select value={nation} onChange={(e) => setNation(e.target.value)}>
+            <option value="">전부</option>{NATIONS.map((n) => <option key={n.id} value={n.id}>{n.name}</option>)}
           </select></label>
           <label>종족 <select value={race} onChange={(e) => setRace(e.target.value as RaceId | "")}>
             <option value="">전부</option>{RACES.map((r) => <option key={r.id} value={r.id}>{r.name}</option>)}

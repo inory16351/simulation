@@ -53,8 +53,10 @@ describe("검투사 생성", () => {
 describe("새 게임", () => {
   it("1부 10팀 + 2부 10팀, 플레이어는 2부", () => {
     const s = newGame(123);
-    const ludi = Object.values(s.ludi);
+    const ludi = Object.values(s.ludi).filter((l) => l.nation === s.nation);
     expect(ludi.filter((l) => l.tier === 1)).toHaveLength(10);
+    // 다른 다섯 나라는 1부만 10팀씩
+    expect(Object.values(s.ludi).filter((l) => l.nation !== s.nation && l.tier === 1)).toHaveLength(50);
     expect(ludi.filter((l) => l.tier === 2)).toHaveLength(10);
     expect(s.ludi[s.playerLudusId].tier).toBe(2);
     expect(s.ludi[s.playerLudusId].gladiators).toHaveLength(6);
