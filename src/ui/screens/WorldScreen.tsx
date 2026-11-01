@@ -3,18 +3,27 @@ import { NATIONS, getNation, getStyle } from "../../core/data";
 import type { NationId } from "../../core/types";
 import type { Ctx } from "../App";
 import { NationCrest } from "../components/common";
+import { WarPanel } from "../components/WarPanel";
+import { activeWars, relation } from "../../core/war";
 
 const relColor = (v: number) => (v <= -50 ? "#e06a5a" : v < 0 ? "#c9a07a" : v >= 30 ? "var(--good)" : "var(--text)");
 const relLabel = (v: number) => (v <= -50 ? "적대" : v < 0 ? "긴장" : v >= 30 ? "우호" : "중립");
 
-export function WorldScreen({ state }: Ctx) {
+export function WorldScreen(ctx: Ctx) {
+  const { state } = ctx;
   const [sel, setSel] = useState<NationId>(state.nation);
+  const [tab, setTab] = useState<"nations" | "war">("nations");
   const n = getNation(sel);
 
   return (
     <>
       <h1 className="screen-title">대륙 정세</h1>
       <div className="screen-sub">베르시아 대륙의 여섯 나라. 지금 우리 루두스는 {getNation(state.nation).name}의 {getNation(state.nation).league}에서 싸운다.</div>
+      <div className="seg" style={{ marginBottom: 12 }}>
+        <button className={tab === "nations" ? "on" : ""} onClick={() => setTab("nations")}>나라</button>
+        <button className={tab === "war" ? "on" : ""} onClick={() => setTab("war")}>전쟁·용병{activeWars(state).length ? ` (${activeWars(state).length})` : ""}</button>
+      </div>
+      {tab === "war" ? <WarPanel {...ctx} /> : <>
       <div className="nation-pick compact">
         {NATIONS.map((x) => (
           <button key={x.id} className={`nation-card ${x.id === sel ? "on" : ""}`} style={{ ["--nc" as string]: x.color }} onClick={() => setSel(x.id)}>
@@ -48,7 +57,7 @@ export function WorldScreen({ state }: Ctx) {
             <table className="t">
               <tbody>
                 {NATIONS.filter((x) => x.id !== sel).map((x) => {
-                  const v = n.relations[x.id] ?? 0;
+                  const v = relation(state, sel, x.id);
                   return (
                     <tr key={x.id}>
                       <td>{x.short}</td>
@@ -62,6 +71,7 @@ export function WorldScreen({ state }: Ctx) {
           </div>
         </div>
       </div>
+      </>}
     </>
   );
 }

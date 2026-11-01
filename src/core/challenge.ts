@@ -27,6 +27,7 @@ export const inRegularPeriod = (state: GameState) => state.day >= 15 && state.da
 /** 오늘 출전할 수 있는가 (쉬는 기간·부상·예약된 경기 확인) */
 export function availability(state: GameState, g: Gladiator, at = now(state)): string | null {
   if (!g.alive) return "사망";
+  if (g.deployment) return "용병 파견 중";
   if (ageStage(g) === "youth") return "아직 어리다";
   if (g.injury?.severity === "serious") return "중상";
   if (g.lastFightAt !== undefined && at - g.lastFightAt < L.restDays) return `휴식 중 (${L.restDays - (at - g.lastFightAt)}일)`;

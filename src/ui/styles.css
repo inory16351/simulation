@@ -411,3 +411,19 @@ body {
 .fac-effect.next { color: var(--text-dim); margin-bottom: 10px; }
 .facility.building { border-color: var(--torch); }
 .staff-card { display: flex; gap: 12px; align-items: center; }
+
+/* ── 전쟁·용병 ── */
+.war-row { display: grid; grid-template-columns: 140px 1fr 140px 110px; gap: 10px; align-items: center; padding: 6px 0; }
+.war-side { display: flex; align-items: center; gap: 6px; color: var(--parchment); font-weight: 700; }
+.war-side.right { justify-content: flex-end; }
+.war-bar { display: flex; height: 12px; border: 1px solid var(--line); border-radius: 3px; overflow: hidden; }
+.war-bar i { display: block; height: 100%; }
+.contract { border: 1px solid var(--line); border-radius: 4px; padding: 10px; margin-bottom: 10px; background: var(--bg-2); }
+.contract.levy { border-color: var(--blood); }
+.contract-head { display: flex; gap: 10px; align-items: center; margin-bottom: 8px; }
+.contract-terms { text-align: right; }
+.contract-pick { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+.pick { display: inline-flex; align-items: center; gap: 6px; padding: 3px 8px; border: 1px solid var(--line); border-radius: 3px; cursor: pointer; }
+.pick.on { border-color: var(--torch); background: rgba(227, 154, 59, 0.1); }
+.pick.off { opacity: 0.4; cursor: not-allowed; }
+.pick input { display: none; }

@@ -8,6 +8,7 @@ import { payday, payDividend, refreshMarket, tierRanking } from "./economy";
 import { rollDailyEvents } from "./events";
 import { dailyConstruction } from "./facilities";
 import { onHealed } from "./injuries";
+import { dailyWar } from "./war";
 import { apprenticeBouts, dailyYouth, intake, isApprenticeDay, seasonEndYouth } from "./youth";
 import { coachMult, healMult, ratingOf, refreshStaffMarket } from "./staff";
 import { rulesOfNation } from "./nationRules";
@@ -60,6 +61,8 @@ export function advanceDay(state: GameState): string[] {
     for (const id of l.gladiators) {
       const g = state.gladiators[id];
       if (!g.alive) continue;
+      // 전장에 나간 검투사는 루두스에서 훈련하지 않는다
+      if (g.deployment) continue;
       if (!l.isPlayer) aiTrainingPlan(g);
       const injured = dailyTraining(g, rng, l.facilities.training, rulesOfNation(l.nation).growthMult * coachMult(ratingOf(state, l, "doctore")));
       const healed = dailyCondition(g, at, l.facilities.medical, l.facilities.bath, healMult(ratingOf(state, l, "medicus")));
@@ -86,6 +89,7 @@ export function advanceDay(state: GameState): string[] {
 
   // 4. 도전과 경기
   dailyChallenges(state, rng);
+  dailyWar(state, rng);
   playAiScheduled(state, rng);
 
   // 5. 급료일 다음 날: 탈주와 반란

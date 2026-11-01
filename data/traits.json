@@ -212,5 +212,16 @@
     "cat": "personality",
     "desc": "루두스 학당에서 자랐다. 충성 +3, 사기가 쉽게 꺾이지 않는다",
     "spawn": 0
+  },
+  {
+    "id": "war_hero",
+    "name": "전쟁 영웅",
+    "cat": "combat",
+    "desc": "전장에서 이름을 떨쳤다. 리더십 +2, 투지 +1",
+    "attrMods": {
+      "lead": 2,
+      "grit": 1
+    },
+    "spawn": 0
   }
 ]

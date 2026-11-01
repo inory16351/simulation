@@ -85,6 +85,8 @@ export interface Gladiator {
   growth: Partial<Record<string, number>>;
   /** 마지막 경기 날짜 (절대 일수) */
   lastFightAt?: number;
+  /** 용병 파견 중이면 의뢰 id와 돌아오는 날 */
+  deployment?: { contractId: Id; until: number };
   /** 경기감각 0~100. 경기를 뛰면 오르고 쉬면 떨어진다 */
   sharpness: number;
   /** 혹사도 0~100. 체력(피로)과 별개로 경기 간격이 짧을수록 쌓인다 */
@@ -148,6 +150,8 @@ export interface Ludus {
   staff: Id[];
   /** 유소년 학당 학생 */
   youth: Id[];
+  /** 나라별 호감도 (-100~100) */
+  favor?: Partial<Record<NationId, number>>;
   /** 금고가 마이너스가 된 날 (절대 일수) */
   bankruptSince?: number;
 }
@@ -210,6 +214,43 @@ export interface MarketListing {
   price: number;
 }
 
+export interface War {
+  id: Id;
+  a: NationId;
+  b: NationId;
+  startedAt: number;
+  endsAt: number;
+  /** 전황: 양수면 a가 이기고 있다 (-100~100) */
+  front: number;
+  over: boolean;
+  winner?: NationId;
+}
+
+export type ContractType = "escort" | "front" | "siege" | "raid" | "duel" | "levy";
+
+export interface Contract {
+  id: Id;
+  warId: Id;
+  employer: NationId;
+  enemy: NationId;
+  type: ContractType;
+  slots: number;
+  minCA: number;
+  days: number;
+  /** 1인당 총보수 */
+  pay: number;
+  /** 기간 전체 기본 사망률 */
+  risk: number;
+  postedAt: number;
+  expiresAt: number;
+  status: "open" | "active" | "done" | "expired";
+  assigned: Id[];
+  startedAt?: number;
+  endsAt?: number;
+  /** 전공 점수 */
+  merit: number;
+}
+
 export interface Modifier {
   kind: "ticket" | "food" | "market";
   mult: number;
@@ -251,6 +292,12 @@ export interface GameState {
   fallen: Id[];
   challenges: Challenge[];
   staff: Record<Id, Staff>;
+  /** 나라 사이 관계 (-100~100) */
+  relations: Record<NationId, Partial<Record<NationId, number>>>;
+  wars: War[];
+  contracts: Contract[];
+  /** 패전국 포로가 다음 경매에 나온다 */
+  powPending?: NationId;
   /** 고용할 수 있는 식솔 후보 */
   staffMarket: Id[];
   market: MarketListing[];

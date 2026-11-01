@@ -51,7 +51,8 @@ export function weeklyFood(state: GameState, ludus: Ludus): number {
 
 /** 급료일 처리. 돈이 모자라면 주급이 높은 순으로 주고, 못 받은 검투사는 미납이 쌓인다 */
 export function payday(state: GameState, ludus: Ludus): void {
-  const roster = [...ludus.gladiators, ...(ludus.youth ?? [])].map((id) => state.gladiators[id]).filter((g) => g?.alive);
+  // 파견 중인 검투사의 주급은 고용국이 낸다
+  const roster = [...ludus.gladiators, ...(ludus.youth ?? [])].map((id) => state.gladiators[id]).filter((g) => g?.alive && !g.deployment);
   if (!ludus.isPlayer) {
     // AI 루두스는 추상적으로 처리: 급료와 식비를 내고, 상금 외 부수입을 조금 번다
     ludus.treasury += ludus.tier === 1 ? 400 : 150;
@@ -117,6 +118,18 @@ export function refreshMarket(state: GameState, rng: Rng): void {
   state.market = [];
   const player = state.ludi[state.playerLudusId];
   const base = player.tier === 1 ? 9 : 6.5;
+  // 전쟁 포로: 패전국 출신이 싼값에 나온다
+  if (state.powPending) {
+    const pow = state.powPending;
+    state.powPending = undefined;
+    for (let i = 0; i < 4; i++) {
+      const g = generateGladiator(rng, { id: `G${state.nextId++}`, nation: pow, target: base + rng.range(-1, 2), status: "slave" });
+      g.morale = rng.int(15, 35);
+      if (!g.traits.includes("homesick")) g.traits.push("homesick");
+      state.gladiators[g.id] = g;
+      state.market.push({ gladiatorId: g.id, price: Math.round(marketValue(g) * 0.5 / 10) * 10 });
+    }
+  }
   for (let i = 0; i < E.marketSize; i++) {
     const g = generateGladiator(rng, {
       id: `G${state.nextId++}`,

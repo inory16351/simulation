@@ -120,3 +120,28 @@ describe("유소년 학당", () => {
     expect(me.gladiators).toContain(k.id);
   });
 });
+
+describe("용병·전쟁", () => {
+  it("관계가 나쁘면 전쟁이 나고, 의뢰를 받아 파견하면 보수를 받고 돌아온다", async () => {
+    const { takeContract, CONTRACT_TYPES } = await import("./war");
+    const { computeCA } = await import("./gladiator");
+    const s = newGame(5, "karsea");
+    s.relations.aurelia.grommar = -100;
+    s.relations.grommar.aurelia = -100;
+    autoplay(s, 40);
+    expect(s.wars.length).toBeGreaterThan(0);
+    const me = s.ludi[s.playerLudusId];
+    const c = s.contracts.find((x) => x.status === "open" && x.type !== "duel")
+      ?? (() => { throw new Error("의뢰 없음"); })();
+    c.minCA = 1;
+    const g = me.gladiators.map((id) => s.gladiators[id]).sort((a, b) => computeCA(b) - computeCA(a))[0];
+    const before = me.treasury;
+    expect(takeContract(s, c.id, [g.id])).toBeNull();
+    expect(g.deployment).toBeDefined();
+    expect(me.treasury).toBeGreaterThan(before);
+    autoplay(s, c.days + 2);
+    expect(c.status).toBe("done");
+    expect(g.deployment).toBeUndefined();
+    expect(CONTRACT_TYPES[c.type].name.length).toBeGreaterThan(0);
+  });
+});

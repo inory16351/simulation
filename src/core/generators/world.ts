@@ -1,5 +1,5 @@
 import { logCareer, seasonRecord } from "../career";
-import { BALANCE, NAMES, getNation } from "../data";
+import { BALANCE, NAMES, NATIONS, getNation } from "../data";
 import { payDividend, refreshMarket } from "../economy";
 import { refreshStaffMarket, startingStaff } from "../staff";
 import { Rng } from "../rng";
@@ -11,7 +11,7 @@ const PERSONALITIES: NonNullable<Ludus["aiPersonality"]>[] = ["aggressive", "sta
 export function newGame(seed: number, nation: NationId = "aurelia", ludusName = "모래의 집"): GameState {
   const rng = new Rng(seed);
   const state: GameState = {
-    version: 6,
+    version: 7,
     seed,
     rngState: 0,
     season: 1,
@@ -24,6 +24,9 @@ export function newGame(seed: number, nation: NationId = "aurelia", ludusName = 
     fallen: [],
     challenges: [],
     staff: {},
+    relations: Object.fromEntries(NATIONS.map((n) => [n.id, { ...n.relations }])) as GameState["relations"],
+    wars: [],
+    contracts: [],
     staffMarket: [],
     market: [],
     ledger: [],
