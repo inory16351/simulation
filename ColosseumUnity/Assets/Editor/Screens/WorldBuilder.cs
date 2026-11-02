@@ -104,8 +104,8 @@ namespace Colosseum.EditorTools
             root.gameObject.SetActive(false);
 
             // 진행 중인 전쟁 (웹판 .war-row: 140px 1fr 140px 110px)
-            var wp = TitledPanel("Wars", root, "진행 중인 전쟁", 6);
-            Set(s, "warEmpty", Text("Empty", wp, "대륙은 지금 잠잠하다. 관계가 -50 아래로 떨어진 나라끼리는 언제든 전쟁이 날 수 있다.", 13, Theme.TextFaint).gameObject);
+            var wp = TitledPanel("Wars", root, "벌어지고 있는 전쟁", 6);
+            Set(s, "warEmpty", Text("Empty", wp, "대륙은 지금 잠잠합니다. 관계가 -50 아래로 떨어진 나라끼리는 언제든 전쟁이 날 수 있습니다.", 13, Theme.TextFaint).gameObject);
             var war = Rect("WarTemplate", wp).Layout(minH: 36, prefH: 36);
             HRow(war, 10);
             var sideA = Rect("SideA", war).Layout(minW: 140, prefW: 140, flexW: 0);
@@ -148,7 +148,7 @@ namespace Colosseum.EditorTools
 
             // 용병 의뢰 게시판
             var bp = TitledPanel("Board", root, "용병 의뢰 게시판", 10);
-            Set(s, "boardEmpty", Text("Empty", bp, "지금 올라온 의뢰가 없다. 전쟁이 나면 양국이 의뢰를 붙인다.", 13, Theme.TextFaint).gameObject);
+            Set(s, "boardEmpty", Text("Empty", bp, "지금 올라온 의뢰가 없습니다. 전쟁이 나면 두 나라가 의뢰를 붙입니다.", 13, Theme.TextFaint).gameObject);
             Set(s, "contractTemplate", ContractCard(bp));
 
             // 나라별 호감도
@@ -211,7 +211,7 @@ namespace Colosseum.EditorTools
             Text("Err", card.transform, "", 13, Neg);
             var sendRow = Rect("SendRow", card.transform);
             HRow(sendRow, 0);
-            Button("Send", sendRow, "0명 파견", true, 14).Layout(prefW: 130, prefH: 32);
+            Button("Send", sendRow, "0명 보내기", true, 14).Layout(prefW: 130, prefH: 32);
 
             card.gameObject.SetActive(false);
             return card.rectTransform;

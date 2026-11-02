@@ -23,7 +23,7 @@ namespace Colosseum.UI
 
         [Tooltip("시즌 줄 원본: Season, Ludus, Apps, Wins, Losses, Kills, Injuries, Ca, Pop, Earnings")]
         [SerializeField] RectTransform seasonTemplate;
-        [Tooltip("통산 줄 (칸 이름은 시즌 줄과 같다)")]
+        [Tooltip("통산 줄 (칸 이름은 시즌 줄과 같습니다)")]
         [SerializeField] RectTransform totalRow;
         [SerializeField] TMP_Text log;
         [SerializeField] GameObject logEmpty;

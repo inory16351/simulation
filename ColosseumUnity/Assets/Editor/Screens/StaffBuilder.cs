@@ -59,7 +59,7 @@ namespace Colosseum.EditorTools
             Head(sp);
             var content = ScrollView("Scroll", sp, out var scroll);
             scroll.Layout(flexH: 1);
-            Set(s, "empty", Text("Empty", content, "조건에 맞는 사람이 없다. 후보는 이적 시장이 열릴 때 바뀐다.", 14, Theme.TextDim).Layout(prefH: 36).gameObject);
+            Set(s, "empty", Text("Empty", content, "조건에 맞는 사람이 없습니다. 후보는 이적 시장이 열릴 때 바뀝니다.", 14, Theme.TextDim).Layout(prefH: 36).gameObject);
 
             // 후보 줄 원본
             var row = Row("CandidateTemplate", content, 44);
@@ -78,7 +78,7 @@ namespace Colosseum.EditorTools
             var nego = Rect("Nego", row);
             Cell(nego, Cols[3].w);
             HRow(nego, 6);
-            Text("Want", nego, "원함 0 D", 13, Theme.TextDim).Layout(minW: 100, prefW: 100, flexW: 0);
+            Text("Want", nego, "요구 주급 0 D", 13, Theme.TextDim).Layout(minW: 100, prefW: 100, flexW: 0);
             Input(nego, 90).name = "Wage";
             Button("Offer", nego, "고용 제안", true, 14).Layout(minW: 110, prefW: 110, prefH: 30, flexW: 0);
             var refuse = Text("Refuse", nego, "", 13, Neg);
@@ -110,9 +110,9 @@ namespace Colosseum.EditorTools
             Bar("Bar", rr);
             Text("Value", rr, "", 14);
             Text("Hint", info, "", 13, Theme.TextDim);
-            var fire = Button("Fire", card, "내보낸다", false, 14).Layout(minW: 170, prefW: 170, prefH: 32, flexW: 0);
+            var fire = Button("Fire", card, "내보내기", false, 14).Layout(minW: 170, prefW: 170, prefH: 32, flexW: 0);
             fire.GetComponent<Image>().color = Theme.Blood;
-            Text("Empty", pad, "비어 있다.", 14, Theme.TextDim);
+            Text("Empty", pad, "비어 있습니다.", 14, Theme.TextDim);
             return pad;
         }
 

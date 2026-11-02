@@ -180,7 +180,7 @@ namespace Colosseum.Core
             else
             {
                 state.pendingEvents.Add(pending);
-                Msg(state, "event", $"{def.title} — 결정이 필요하다", pending.text);
+                Msg(state, "event", $"{def.title} — 어떻게 할지 정해야 합니다", pending.text);
             }
         }
 
@@ -192,12 +192,12 @@ namespace Colosseum.Core
             var def = ById[p.eventId];
             var choice = def.choices[choiceIdx];
             var player = state.ludi[state.playerLudusId];
-            if (choice.cost.HasValue && choice.cost.Value != 0 && player.treasury < choice.cost.Value) return "금고가 모자란다.";
+            if (choice.cost.HasValue && choice.cost.Value != 0 && player.treasury < choice.cost.Value) return "금고에 돈이 모자랍니다.";
             state.pendingEvents = state.pendingEvents.Where(x => x != p).ToList();
             Gladiator target = null;
             if (!string.IsNullOrEmpty(p.targetId)) state.gladiators.TryGetValue(p.targetId, out target);
             string result = ApplyEffects(state, rng, choice.effects, target);
-            Msg(state, "event", $"{def.title}: {choice.label}", string.IsNullOrEmpty(result) ? "별일 없이 지나갔다." : result);
+            Msg(state, "event", $"{def.title}: {choice.label}", string.IsNullOrEmpty(result) ? "별일 없이 지나갔습니다." : result);
             return result;
         }
 
@@ -263,16 +263,16 @@ namespace Colosseum.Core
                         if (g != null)
                         {
                             Training.Grow(g, rng, "match", (int)e.days.Value, 1, player.facilities.training);
-                            lines.Add($"{Josa.J(g.name, "이/가")} 한층 성장했다");
-                            Career.LogCareer(state, g, "깨달음을 얻었다", "milestone");
+                            lines.Add($"{Josa.J(g.name, "이/가")} 한층 성장했습니다");
+                            Career.LogCareer(state, g, "깨달음을 얻었습니다", "milestone");
                         }
                         break;
                     case "pa":
                         if (g != null)
                         {
                             g.hidden.pa = Math.Min(200, g.hidden.pa + rng.Int((int)e.min.Value, (int)e.max.Value));
-                            lines.Add($"{g.name}의 그릇이 커졌다");
-                            Career.LogCareer(state, g, "숨은 재능이 깨어났다", "milestone");
+                            lines.Add($"{g.name}의 그릇이 커졌습니다");
+                            Career.LogCareer(state, g, "숨은 재능이 깨어났습니다", "milestone");
                         }
                         break;
                     case "popularity":
@@ -283,14 +283,14 @@ namespace Colosseum.Core
                         break;
                     case "fatigueAll":
                         foreach (var x in Roster(state)) x.fatigue = Math.Min(100, x.fatigue + e.value.Value);
-                        lines.Add($"모두 지쳤다 (피로 +{Num(e.value)})");
+                        lines.Add($"모두 지쳤습니다 (피로 +{Num(e.value)})");
                         break;
                     case "injury":
                         if (g != null && g.injury == null)
                         {
                             g.injury = new Injury { severity = e.serious ? "serious" : "light", daysLeft = e.days.Value, desc = e.desc };
                             lines.Add($"{g.name}: {e.desc} ({Num(e.days)}일)");
-                            Career.LogCareer(state, g, $"{Josa.J(e.desc, "으로/로")} 앓아누웠다", "injury");
+                            Career.LogCareer(state, g, $"{Josa.J(e.desc, "으로/로")} 앓아누웠습니다", "injury");
                         }
                         break;
                     case "deathChance":
@@ -301,8 +301,8 @@ namespace Colosseum.Core
                             var gid = g.id;
                             player.gladiators = player.gladiators.Where(x => x != gid).ToList();
                             state.fallen.Add(g.id);
-                            Career.LogCareer(state, g, $"{Josa.J(e.cause, "으로/로")} 죽었다", "death");
-                            lines.Add($"{Josa.J(g.name, "이/가")} 끝내 숨을 거뒀다.");
+                            Career.LogCareer(state, g, $"{Josa.J(e.cause, "으로/로")} 죽었습니다", "death");
+                            lines.Add($"{Josa.J(g.name, "이/가")} 끝내 숨을 거뒀습니다.");
                         }
                         break;
                     case "loyalty":
@@ -315,11 +315,11 @@ namespace Colosseum.Core
                     case "gamble":
                         if (rng.Chance(e.chance.Value))
                         {
-                            if (e.win.HasValue && e.win.Value != 0) { Economy.AddMoney(state, player, e.win.Value, "사건"); lines.Add($"운이 따랐다. +{Num(e.win)} D"); }
-                            else lines.Add("무사히 넘어갔다.");
+                            if (e.win.HasValue && e.win.Value != 0) { Economy.AddMoney(state, player, e.win.Value, "사건"); lines.Add($"운이 따랐습니다. +{Num(e.win)} D"); }
+                            else lines.Add("무사히 넘어갔습니다.");
                         }
-                        else if (e.lose.HasValue && e.lose.Value != 0) { Economy.AddMoney(state, player, e.lose.Value, "사건"); lines.Add($"운이 없었다. {Num(e.lose)} D"); }
-                        else lines.Add("헛돈만 썼다.");
+                        else if (e.lose.HasValue && e.lose.Value != 0) { Economy.AddMoney(state, player, e.lose.Value, "사건"); lines.Add($"운이 없었습니다. {Num(e.lose)} D"); }
+                        else lines.Add("헛돈만 썼습니다.");
                         break;
                     case "modifier":
                         state.modifiers.Add(new Modifier { kind = e.kind, mult = e.mult.Value, until = now + e.days.Value });

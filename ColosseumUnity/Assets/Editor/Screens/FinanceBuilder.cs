@@ -16,7 +16,7 @@ namespace Colosseum.EditorTools
         {
             var rt = Rect("Screen_finance", main).Stretch(26, 20, 26, 20);
             VCol(rt, 14);
-            ScreenHeader(rt, "금고", "급료는 7일마다 나간다. 수입에는 세금 10%가 붙는다.");
+            ScreenHeader(rt, "금고", "급료는 7일마다 나갑니다. 수입에는 세금 10%가 붙습니다.");
 
             var s = rt.gameObject.AddComponent<FinanceScreen>();
             s.screenId = "finance";
@@ -34,7 +34,7 @@ namespace Colosseum.EditorTools
             var up = TitledPanel("Unpaid", rt, "밀린 급료", 6);
             Set(s, "unpaidRoot", up.parent.gameObject);
             Set(s, "unpaidTags", Text("Tags", up, "", 13));
-            Text("Hint", up, "다음 급료일에 금고가 넉넉하면 밀린 몫까지 한꺼번에 나간다.", 13, Theme.TextDim);
+            Text("Hint", up, "다음 급료일에 금고가 넉넉하면 밀린 몫까지 한꺼번에 나갑니다.", 13, Theme.TextDim);
 
             // 장부
             var lp = TitledPanel("Ledger", rt, "장부", 0);
@@ -47,7 +47,7 @@ namespace Colosseum.EditorTools
                     id == "Amount" ? TextAlignmentOptions.MidlineRight : TextAlignmentOptions.MidlineLeft).rectTransform, w);
             var content = ScrollView("Scroll", lp, out var scroll);
             scroll.Layout(flexH: 1);
-            Set(s, "empty", Text("Empty", content, "장부가 비었다.", 14, Theme.TextDim).Layout(prefH: 36).gameObject);
+            Set(s, "empty", Text("Empty", content, "장부가 비었습니다.", 14, Theme.TextDim).Layout(prefH: 36).gameObject);
 
             var row = Box("EntryTemplate", content, new Color(0, 0, 0, 0)).Layout(minH: 34, prefH: 34);
             HRow(row.transform, 8, 8, 8);

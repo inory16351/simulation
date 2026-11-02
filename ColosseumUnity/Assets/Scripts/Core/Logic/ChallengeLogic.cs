@@ -42,7 +42,7 @@ namespace Colosseum.Core
             double at = atOpt ?? Now(state);
             if (!g.alive) return "사망";
             if (g.deployment != null) return g.deployment.kind == "dungeon" ? "던전 원정 중" : "용병 파견 중";
-            if (GladiatorRules.AgeStage(g) == "youth") return "아직 어리다";
+            if (GladiatorRules.AgeStage(g) == "youth") return "아직 어립니다";
             if (g.injury?.severity == "serious") return "중상";
             double rest = L("restDays");
             if (g.lastFightAt.HasValue && at - g.lastFightAt.Value < rest) return $"휴식 중 ({N(rest - (at - g.lastFightAt.Value))}일)";
@@ -56,13 +56,13 @@ namespace Colosseum.Core
         {
             if (from.id == to.id) return "자기 자신";
             if (from.nation != to.nation) return "다른 나라";
-            if (!InRegularPeriod(state)) return "정규 기간(서리달 15일 ~ 그림자달 14일)이 아니다";
+            if (!InRegularPeriod(state)) return "정규 기간(서리달 15일 ~ 그림자달 14일)이 아닙니다";
             double range = L("challengeRange");
             if (from.tier != to.tier && Math.Abs(from.rp - to.rp) > range) return $"다른 리그는 RP ±{N(range)} 안에서만";
             int week = Now(state) - 6;
             int sent = state.challenges.Count(c => c.from == from.id && c.createdAt >= week);
             double perWeek = L("challengesPerWeek");
-            if (sent >= perWeek) return $"일주일에 {N(perWeek)}번까지만 신청할 수 있다";
+            if (sent >= perWeek) return $"일주일에 {N(perWeek)}번까지만 신청할 수 있습니다";
             if (state.challenges.Any(c => c.from == from.id && c.to == to.id && (c.status == "pending" || c.status == "scheduled"))) return "이미 도전 중";
             return null;
         }
@@ -76,13 +76,13 @@ namespace Colosseum.Core
         {
             error = CanChallenge(state, from, to);
             if (error != null) return null;
-            if (rule == "sudden" && NationRules.RulesOfNation(from.nation).suddenBanned) { error = "이 나라 리그에서는 사투가 금지돼 있다"; return null; }
+            if (rule == "sudden" && NationRules.RulesOfNation(from.nation).suddenBanned) { error = "이 나라 리그에서는 사투를 금합니다"; return null; }
             var g = state.gladiators[fromGladiator];
             var busy = Availability(state, g);
             if (busy != null) { error = $"{g.name}: {busy}"; return null; }
             if (format > 1 && SeriesLogic.AutoLineup(state, from, format, Now(state) + L("matchDelayMin")).Count < format)
             {
-                error = $"{SeriesLogic.FormatNames[format]}에 내보낼 검투사가 {format}명이 안 된다";
+                error = $"{SeriesLogic.FormatNames[format]}에 내보낼 검투사가 {format}명이 안 됩니다";
                 return null;
             }
             var c = new Challenge
@@ -128,7 +128,7 @@ namespace Colosseum.Core
             if (accept)
             {
                 var defender = !string.IsNullOrEmpty(defenderId) ? (state.gladiators.TryGetValue(defenderId, out var dg) ? dg : null) : PickFighter(state, to, c.rule, Now(state) + L("matchDelayMin"));
-                if (defender == null) return "내보낼 검투사가 없다";
+                if (defender == null) return "내보낼 검투사가 없습니다";
                 var busy = Availability(state, defender);
                 if (busy != null) return $"{defender.name}: {busy}";
                 Schedule(state, c, rng, defender);
@@ -163,8 +163,8 @@ namespace Colosseum.Core
                 StateUtil.PushMessage(state, new InboxMessage
                 {
                     kind = "info",
-                    title = $"{Josa.J(to.name, "이/가")} 도전을 거절했다",
-                    body = $"{RuleName(c.rule)} 신청이 거절됐다.{(penalty != 0 ? $" 상대는 RP를 {N(JsMath.Round(penalty))} 잃었다." : "")}",
+                    title = $"{Josa.J(to.name, "이/가")} 도전을 거절했습니다",
+                    body = $"상대가 {RuleName(c.rule)} 신청을 거절했습니다.{(penalty != 0 ? $" 상대는 RP를 {N(JsMath.Round(penalty))} 잃었습니다." : "")}",
                 });
             }
             if (to.isPlayer)
@@ -172,8 +172,8 @@ namespace Colosseum.Core
                 StateUtil.PushMessage(state, new InboxMessage
                 {
                     kind = "warning",
-                    title = "도전을 거절했다",
-                    body = $"{from.name}의 {RuleName(c.rule)} 도전을 거절했다. 이번 시즌 거절 {N(to.refusalsUsed)}회 (무료 {N(free)}회).{(penalty != 0 ? $"\nRP -{N(JsMath.Round(penalty))}. 관중이 '겁쟁이 루두스'라고 수군댄다." : "")}",
+                    title = "도전을 거절했습니다",
+                    body = $"{from.name}의 {RuleName(c.rule)} 도전을 거절했습니다. 이번 시즌에 {N(to.refusalsUsed)}번 거절했습니다. {N(free)}번까지는 불이익이 없습니다.{(penalty != 0 ? $"\nRP -{N(JsMath.Round(penalty))}. 관중이 '겁쟁이 루두스'라고 수군댑니다." : "")}",
                 });
             }
             return null;
@@ -260,13 +260,13 @@ namespace Colosseum.Core
                 if (c == null) continue;
                 string fmt = HasFormat(c) ? $"{SeriesLogic.FormatNames[c.format.Value]} " : "";
                 string intro = HasFormat(c)
-                    ? $"{Josa.J(ai.name, "이/가")} {Josa.J(SeriesLogic.FormatNames[c.format.Value], "을/를")} 걸어왔다. 선봉은 {g.name}."
-                    : $"{ai.name}의 {Josa.J(g.name, "이/가")} {Josa.J(RuleName(rule), "을/를")} 걸어왔다.";
+                    ? $"{Josa.J(ai.name, "이/가")} {Josa.J(SeriesLogic.FormatNames[c.format.Value], "을/를")} 걸어왔습니다. 선봉은 {g.name}."
+                    : $"{ai.name}의 {Josa.J(g.name, "이/가")} {Josa.J(RuleName(rule), "을/를")} 걸어왔습니다.";
                 StateUtil.PushMessage(state, new InboxMessage
                 {
                     kind = "match",
                     title = $"{ai.name}의 도전장 ({fmt}{RuleName(rule)})",
-                    body = $"{intro}\n{DateOf(c.respondBy)}까지 답하지 않으면 거절한 것으로 친다.\n\n도전장 화면에서 받을지 정하라.",
+                    body = $"{intro}\n{DateOf(c.respondBy)}까지 답하지 않으면 거절한 것으로 칩니다.\n\n도전장 화면에서 받을지 정하십시오.",
                 });
                 break;
             }
@@ -368,7 +368,7 @@ namespace Colosseum.Core
                     {
                         challenge = c, result = null,
                         a = la.FirstOrDefault() ?? lb.FirstOrDefault(), b = lb.FirstOrDefault() ?? la.FirstOrDefault(),
-                        forfeit = $"{loser.name} 기권 (출전 가능한 검투사가 없다)",
+                        forfeit = $"{loser.name} 기권 (출전 가능한 검투사가 없습니다)",
                     };
                 }
                 var snaps = new[] { MatchLogic.CloneGladiator(la[0]), MatchLogic.CloneGladiator(lb[0]) };
@@ -389,7 +389,7 @@ namespace Colosseum.Core
                 var loser = a == null ? from : to;
                 loser.rp -= 15;
                 loser.matchesThisSeason++;
-                return new PlayedMatch { challenge = c, result = null, a = a ?? b, b = b ?? a, forfeit = $"{loser.name} 기권 (출전 가능한 검투사가 없다)" };
+                return new PlayedMatch { challenge = c, result = null, a = a ?? b, b = b ?? a, forfeit = $"{loser.name} 기권 (출전 가능한 검투사가 없습니다)" };
             }
             var snapA = MatchLogic.CloneGladiator(a);
             var snapB = MatchLogic.CloneGladiator(b);

@@ -65,7 +65,7 @@ export function aggravate(state: GameState, g: Gladiator, rng: Rng): void {
   if (!inj || !rng.chance(0.3)) return;
   inj.daysLeft = Math.round(inj.daysLeft * 1.6 + 3);
   inj.total = Math.max(inj.total ?? 0, inj.daysLeft);
-  logCareer(state, g, `부상(${inj.desc})을 안고 싸우다 상처가 덧났다`, "injury");
+  logCareer(state, g, `부상(${inj.desc})을 안고 싸우다 상처가 덧났습니다`, "injury");
 }
 
 /**
@@ -89,12 +89,12 @@ export function onHealed(state: GameState, g: Gladiator, rng: Rng, medicalLevel:
     parts.push(getTrait(def.perm.trait)?.name ?? def.perm.trait);
   }
   seasonRecord(state, g);
-  logCareer(state, g, `${def.name}의 후유증이 남았다 (${parts.join(", ")})`, "injury");
+  logCareer(state, g, `${def.name}의 후유증이 남았습니다 (${parts.join(", ")})`, "injury");
   if (mine) {
     pushMessage(state, {
       kind: "warning",
-      title: `${g.name}: 영구 손상`,
-      body: `${g.name}의 부상(${def.name})은 나았지만 후유증이 남았다.\n${def.perm.trait ? `새 특성: 「${getTrait(def.perm.trait)?.name}」` : "능력치가 영구히 떨어졌다."}`,
+      title: `${g.name}: 부상 후유증`,
+      body: `${g.name}의 부상(${def.name})은 나았지만 후유증이 남았습니다.\n${def.perm.trait ? `새 특성: 「${getTrait(def.perm.trait)?.name}」` : "능력치가 영구히 떨어졌습니다."}`,
     });
   }
 }

@@ -93,7 +93,7 @@ namespace Colosseum.UI
 
             var st = row.Find("Status").GetComponent<TMP_Text>();
             if (g.injury != null) { st.text = GladiatorTable.InjuryLabel(g); st.color = new Color32(0xf0, 0xb3, 0xaa, 0xff); }
-            else if (g.wear >= 85) { st.text = "탈진 — 쉬게 하라"; st.color = Neg; }
+            else if (g.wear >= 85) { st.text = "탈진 — 휴식 필요"; st.color = Neg; }
             else if (g.unpaidWeeks >= 3) { st.text = "태업"; st.color = Neg; }
             else { st.text = "정상"; st.color = Theme.Good; }
         }

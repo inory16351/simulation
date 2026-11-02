@@ -154,7 +154,7 @@ export interface PlayedTie { tie: CupTie; series: Series; summary: MatchSummary 
 export function playTie(state: GameState, tieId: Id, rng: Rng, lineup?: Id[]): PlayedTie | string {
   const cup = state.cup;
   const tie = cup?.ties.find((t) => t.id === tieId);
-  if (!cup || !tie) return "그런 경기가 없다";
+  if (!cup || !tie) return "그런 경기가 없습니다";
   if (tie.winner) return "이미 치른 경기";
   const home = state.ludi[tie.home];
   const away = state.ludi[tie.away];
@@ -179,7 +179,7 @@ export function playTie(state: GameState, tieId: Id, rng: Rng, lineup?: Id[]): P
     pushMessage(state, {
       kind: "info",
       title: `판테온 컵 우승: ${w.name}`,
-      body: `${getNation(w.nation).name}의 ${josa(w.name, "이/가")} 결승에서 ${josa(l.name, "을/를")} 꺾고 판테온 컵을 들어 올렸다 (${Math.max(...series.score)}:${Math.min(...series.score)}).`,
+      body: `${getNation(w.nation).name}의 ${josa(w.name, "이/가")} 결승에서 ${josa(l.name, "을/를")} 꺾고 판테온 컵을 들어 올렸습니다 (${Math.max(...series.score)}:${Math.min(...series.score)}).`,
     });
   }
   const me = state.playerLudusId;
@@ -191,7 +191,7 @@ export function playTie(state: GameState, tieId: Id, rng: Rng, lineup?: Id[]): P
       title: `판테온 컵 ${STAGE_NAMES[tie.stage]}: ${won ? "승리" : "패배"}`,
       body: `상대 ${opp.name}(${getNation(opp.nation).name}) · ${series.score[home.id === me ? 0 : 1]}:${series.score[home.id === me ? 1 : 0]}` +
         `\n수입 ${(summary.money[me] ?? 0).toLocaleString()} D (세전)` +
-        (tie.stage !== "group" && !won ? "\n여기서 탈락했다." : ""),
+        (tie.stage !== "group" && !won ? "\n여기서 탈락했습니다." : ""),
     });
   }
   advanceBracket(state, cup);
@@ -211,10 +211,10 @@ export function dailyCup(state: GameState, rng: Rng): void {
     const mine = state.cup.teams.includes(state.playerLudusId);
     pushMessage(state, {
       kind: "info",
-      title: mine ? "판테온 컵에 나간다!" : "판테온 컵 조 추첨",
-      body: (mine ? `우리 루두스가 판테온 컵 출전권을 얻었다. 출전 수당 ${CUP.prize.entry.toLocaleString()} D가 들어왔다.\n` : "") +
-        `여섯 나라 1부 상위 16곳이 네 조로 나뉘었다. 조별 리그는 ${CUP.groupDays.length}라운드, 상위 두 팀이 8강에 오른다.` +
-        `\n대결마다 세 명씩 나와 미시오로 한 판씩 붙고, 두 판을 먼저 따면 이긴다.`,
+      title: mine ? "판테온 컵에 나갑니다!" : "판테온 컵 조 추첨",
+      body: (mine ? `우리 루두스가 판테온 컵 출전권을 얻었습니다. 출전 수당 ${CUP.prize.entry.toLocaleString()} D가 들어왔습니다.\n` : "") +
+        `여섯 나라 1부 상위 16곳이 네 조로 나뉘었습니다. 조별 리그는 ${CUP.groupDays.length}라운드, 상위 두 팀이 8강에 오릅니다.` +
+        `\n대결마다 세 명씩 나와 미시오로 한 판씩 붙고, 두 판을 먼저 따면 이깁니다.`,
     });
   }
   const cup = state.cup;

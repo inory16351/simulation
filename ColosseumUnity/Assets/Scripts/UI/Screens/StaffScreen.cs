@@ -48,7 +48,7 @@ namespace Colosseum.UI
         public override void Refresh()
         {
             var me = Player;
-            sub.text = $"자리마다 한 명씩 둔다. 식솔 급료는 급료일에 함께 나간다 (지금 주 {StateUtil.Num(StaffLogic.StaffWages(S, me))} D). 후보는 이적 시장이 열릴 때 바뀐다.";
+            sub.text = $"자리마다 한 명씩 둡니다. 식솔 급료도 급료일에 함께 나가며, 지금은 매주 {StateUtil.Num(StaffLogic.StaffWages(S, me))} D가 나갑니다. 후보는 이적 시장이 열릴 때마다 바뀝니다.";
             for (int i = 0; i < rolePads.Count && i < StaffLogic.Roles.Length; i++)
                 BindRole(rolePads[i], StaffLogic.StaffOf(S, me, StaffLogic.Roles[i]));
             DrawMarket();
@@ -71,7 +71,7 @@ namespace Colosseum.UI
             string id = st.id;
             bool asking = confirmFire == id;
             var b = card.Find("Fire").GetComponent<Button>();
-            b.GetComponentInChildren<TMP_Text>().text = asking ? $"정말 {Josa.J(st.name, "을/를")} 내보낼까?" : "내보낸다";
+            b.GetComponentInChildren<TMP_Text>().text = asking ? $"정말 {Josa.J(st.name, "을/를")} 내보내겠습니까?" : "내보내기";
             b.onClick.RemoveAllListeners();
             b.onClick.AddListener(() =>
             {
@@ -88,7 +88,7 @@ namespace Colosseum.UI
         {
             var me = Player;
             double rep = Reputation.LudusReputation(S, me);
-            repHint.text = $"우리 명성 {StateUtil.Num(rep)} ({Reputation.ReputationNames(rep)}). 실력 좋은 사람일수록 이름난 루두스를 원한다";
+            repHint.text = $"우리 명성 {StateUtil.Num(rep)} ({Reputation.ReputationNames(rep)}). 실력 좋은 사람일수록 이름난 루두스를 원합니다";
             willingToggle.GetComponentInChildren<TMP_Text>().text = $"{(onlyWilling ? "◆" : "◇")} 올 마음이 있는 사람만";
             Seg(willingToggle, onlyWilling);
 
@@ -129,13 +129,13 @@ namespace Colosseum.UI
 
             var mood = T(row, "Mood");
             string line = Widgets.HaggleLine(S, key);
-            mood.text = d.refuse ? $"<color={Theme.Hex(Theme.TextFaint)}>루두스 명성을 올리면 마음이 바뀔 수 있다</color>"
-                : taken ? $"<color={Theme.Hex(Theme.TextDim)}>그 자리는 이미 차 있다. 먼저 내보내라</color>"
+            mood.text = d.refuse ? $"<color={Theme.Hex(Theme.TextFaint)}>루두스 명성이 오르면 협상에 응합니다</color>"
+                : taken ? $"<color={Theme.Hex(Theme.TextDim)}>이미 사람이 있는 자리입니다. 지금 있는 식솔을 먼저 내보내야 합니다</color>"
                 : line ?? $"<color={Theme.Hex(Theme.TextDim)}>{d.reason}</color>";
             if (d.refuse) return;
 
             if (!offers.ContainsKey(id)) offers[id] = d.wage;
-            T(nego, "Want").text = $"원함 {StateUtil.Num(d.wage)} D";
+            T(nego, "Want").text = $"요구 주급 {StateUtil.Num(d.wage)} D";
             var input = nego.Find("Wage").GetComponent<TMP_InputField>();
             input.onEndEdit.RemoveAllListeners();
             input.SetTextWithoutNotify(StateUtil.Num(offers[id]));
@@ -150,7 +150,7 @@ namespace Colosseum.UI
                 HaggleResult res = null;
                 G.Act((s, rng) => res = StaffLogic.HaggleStaff(s, rng, id, w));
                 msgGood = res.Accepted;
-                if (res.Accepted) { msg = $"{Josa.J(name, "을/를")} 들였다. {res.line}"; offers.Remove(id); }
+                if (res.Accepted) { msg = $"{Josa.J(name, "을/를")} 고용했습니다. {res.line}"; offers.Remove(id); }
                 else
                 {
                     msg = res.line;

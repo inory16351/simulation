@@ -37,12 +37,12 @@ namespace Colosseum.Core
 
         public static readonly Dictionary<string, ContractSpec> ContractTypes = new()
         {
-            ["escort"] = new ContractSpec { name = "호위", desc = "보급 행렬과 귀족을 지킨다. 위험이 낮다", slots = new[] { 1, 2 }, days = new[] { 14, 21 }, minCA = 40, pay = 400, risk = 0.02 },
-            ["front"] = new ContractSpec { name = "전선 파견", desc = "군단과 함께 전선에 선다", slots = new[] { 3, 5 }, days = new[] { 28, 42 }, minCA = 60, pay = 900, risk = 0.08 },
-            ["siege"] = new ContractSpec { name = "공성전", desc = "성벽을 오른다. 죽기 쉽지만 보수가 크다", slots = new[] { 3, 6 }, days = new[] { 21, 21 }, minCA = 70, pay = 1400, risk = 0.15 },
-            ["raid"] = new ContractSpec { name = "정찰·암습", desc = "적진에 숨어들어 지휘관을 노린다", slots = new[] { 1, 2 }, days = new[] { 14, 14 }, minCA = 55, pay = 1100, risk = 0.1 },
-            ["duel"] = new ContractSpec { name = "대리 결투", desc = "양국 대표가 1:1 사투로 전황을 가른다. 이기면 영웅, 지면 거의 죽는다", slots = new[] { 1, 1 }, days = new[] { 7, 7 }, minCA = 120, pay = 5000, risk = 0 },
-            ["levy"] = new ContractSpec { name = "징발령", desc = "조국이 루두스에 검투사를 내놓으라 한다. 보수는 적고, 거부하면 대가가 크다", slots = new[] { 2, 2 }, days = new[] { 28, 28 }, minCA = 30, pay = 450, risk = 0.06 },
+            ["escort"] = new ContractSpec { name = "호위", desc = "보급 행렬과 귀족을 지킵니다. 위험이 낮습니다", slots = new[] { 1, 2 }, days = new[] { 14, 21 }, minCA = 40, pay = 400, risk = 0.02 },
+            ["front"] = new ContractSpec { name = "전선 파견", desc = "군단과 함께 전선에 섭니다", slots = new[] { 3, 5 }, days = new[] { 28, 42 }, minCA = 60, pay = 900, risk = 0.08 },
+            ["siege"] = new ContractSpec { name = "공성전", desc = "성벽을 오릅니다. 죽기 쉽지만 보수가 큽니다", slots = new[] { 3, 6 }, days = new[] { 21, 21 }, minCA = 70, pay = 1400, risk = 0.15 },
+            ["raid"] = new ContractSpec { name = "정찰·암습", desc = "적진에 숨어들어 지휘관을 노립니다", slots = new[] { 1, 2 }, days = new[] { 14, 14 }, minCA = 55, pay = 1100, risk = 0.1 },
+            ["duel"] = new ContractSpec { name = "대리 결투", desc = "양국 대표가 1:1 사투로 전황을 가릅니다. 이기면 영웅, 지면 거의 죽습니다", slots = new[] { 1, 1 }, days = new[] { 7, 7 }, minCA = 120, pay = 5000, risk = 0 },
+            ["levy"] = new ContractSpec { name = "징발령", desc = "조국이 루두스에 검투사를 내놓으라 합니다. 보수는 적고, 거부하면 대가가 큽니다", slots = new[] { 2, 2 }, days = new[] { 28, 28 }, minCA = 30, pay = 450, risk = 0.06 },
         };
 
         public static double Relation(GameState s, string a, string b) =>
@@ -110,7 +110,7 @@ namespace Colosseum.Core
                         // 징발령을 무시하면 조국이 등을 돌린다
                         AddFavor(s, c.employer, -30);
                         s.ludi[s.playerLudusId].rp -= 50;
-                        Msg(s, "warning", "징발령을 거부했다", $"{Josa.J(Data.Nation(c.employer).name, "이/가")} 분노했다. 호감도 -30, RP -50. 사람들은 우리를 매국 루두스라 부른다.");
+                        Msg(s, "warning", "징발령을 거부했습니다", $"{Josa.J(Data.Nation(c.employer).name, "이/가")} 분노했습니다. 호감도 -30, RP -50. 사람들은 우리를 매국 루두스라 부릅니다.");
                     }
                 }
                 if (c.status != "active") continue;
@@ -127,8 +127,8 @@ namespace Colosseum.Core
             var nb = Data.Nation(b);
             bool ours = s.nation == a || s.nation == b;
             Msg(s, "warning", $"전쟁: {na.@short} ↔ {nb.@short}",
-                $"{Josa.J(na.name, "과/와")} {nb.name} 사이에 전쟁이 터졌다. 양국이 루두스마다 용병을 구하러 다닌다.\n대륙 정세 → 전쟁·용병에서 의뢰를 볼 수 있다." +
-                (ours ? "\n\n조국이 전쟁에 휘말렸다. 적국의 의뢰는 받을 수 없고, 징발령이 내려올 수 있다." : ""));
+                $"{Josa.J(na.name, "과/와")} {nb.name} 사이에 전쟁이 터졌습니다. 양국이 루두스마다 용병을 구하러 다닙니다.\n대륙 정세 → 전쟁·용병에서 의뢰를 볼 수 있습니다." +
+                (ours ? "\n\n조국이 전쟁에 휘말렸습니다. 적국의 의뢰는 받을 수 없고, 징발령이 내려올 수 있습니다." : ""));
             PostContracts(s, rng, w);
             // 조국이 참전하면 1부 상위 루두스에 징발령
             var me = s.ludi[s.playerLudusId];
@@ -174,8 +174,8 @@ namespace Colosseum.Core
         /// <summary>의뢰를 받을 수 있는가 (조국의 적국 의뢰 금지). 되면 null</summary>
         public static string CanTake(GameState s, Contract c)
         {
-            if (c.status != "open") return "이미 마감됐다";
-            if (c.enemy == s.nation) return "조국을 치는 의뢰는 받을 수 없다";
+            if (c.status != "open") return "이미 마감됐습니다";
+            if (c.enemy == s.nation) return "조국을 치는 의뢰는 받을 수 없습니다";
             return null;
         }
 
@@ -186,7 +186,7 @@ namespace Colosseum.Core
             if (g.deployment != null) return "이미 파견 중";
             if (g.injury?.severity == "serious") return "중상";
             if (GladiatorRules.ComputeCA(g) < c.minCA) return $"능력 부족 (CA {Num(c.minCA)} 필요)";
-            if (s.challenges.Any(x => x.status == "scheduled" && (x.fromGladiator == g.id || x.toGladiator == g.id))) return "경기가 잡혀 있다";
+            if (s.challenges.Any(x => x.status == "scheduled" && (x.fromGladiator == g.id || x.toGladiator == g.id))) return "경기가 잡혀 있습니다";
             return null;
         }
 
@@ -194,10 +194,10 @@ namespace Colosseum.Core
         public static string TakeContract(GameState s, string contractId, List<string> ids)
         {
             var c = s.contracts.FirstOrDefault(x => x.id == contractId);
-            if (c == null) return "의뢰가 없다";
+            if (c == null) return "의뢰가 없습니다";
             var no = CanTake(s, c);
             if (no != null) return no;
-            if (ids.Count == 0 || ids.Count > c.slots) return $"1~{Num(c.slots)}명을 보내라";
+            if (ids.Count == 0 || ids.Count > c.slots) return $"1~{Num(c.slots)}명을 보내십시오";
             foreach (var id in ids)
             {
                 var why = Eligible(s, s.gladiators[id], c);
@@ -212,7 +212,7 @@ namespace Colosseum.Core
             {
                 var g = s.gladiators[id];
                 g.deployment = new Deployment { contractId = c.id, until = c.endsAt.Value };
-                Career.LogCareer(s, g, $"{Data.Nation(c.employer).@short}의 {ContractTypes[c.type].name} 의뢰로 전장에 나갔다", "other");
+                Career.LogCareer(s, g, $"{Data.Nation(c.employer).@short}의 {ContractTypes[c.type].name} 의뢰로 전장에 나갔습니다", "other");
                 // 노예는 끌려가니 사기가 떨어진다
                 if (g.status == "slave") g.morale = Math.Max(0, g.morale - 10);
             }
@@ -251,8 +251,8 @@ namespace Colosseum.Core
                     me.gladiators = me.gladiators.Where(x => x != id).ToList();
                     s.fallen.Add(id);
                     c.assigned = c.assigned.Where(x => x != id).ToList();
-                    Career.LogCareer(s, g, "전장에서 쓰러져 돌아오지 못했다", "death");
-                    lines.Add($"{Josa.J(g.name, "이/가")} 전사했다.");
+                    Career.LogCareer(s, g, "전장에서 쓰러져 돌아오지 못했습니다", "death");
+                    lines.Add($"{Josa.J(g.name, "이/가")} 전사했습니다.");
                     foreach (var other in me.gladiators) s.gladiators[other].morale = Math.Max(0, s.gladiators[other].morale - 5);
                 }
                 else if (roll < death + 0.12)
@@ -264,7 +264,7 @@ namespace Colosseum.Core
                 else if (rng.Chance(0.25 + margin))
                 {
                     c.merit++;
-                    lines.Add($"{g.name}: 전공을 세웠다");
+                    lines.Add($"{g.name}: 전공을 세웠습니다");
                     if (war != null) war.front += (war.a == c.employer ? 1 : -1) * 4;
                 }
             }
@@ -290,10 +290,10 @@ namespace Colosseum.Core
                         if (war != null) war.front += (war.a == c.employer ? 1 : -1) * 40;
                         AddTrait(champ, "war_hero");
                         champ.popularity = Math.Min(100, champ.popularity + 15);
-                        Career.LogCareer(s, champ, $"대리 결투에서 {Josa.J(foe.name, "을/를")} 꺾고 영웅이 됐다", "milestone");
+                        Career.LogCareer(s, champ, $"대리 결투에서 {Josa.J(foe.name, "을/를")} 꺾고 영웅이 됐습니다", "milestone");
                         AddFavor(s, c.employer, 25);
                         AddFavor(s, c.enemy, -25);
-                        Msg(s, "match", $"대리 결투 승리: {champ.name}", $"{Josa.J(champ.name, "이/가")} {Josa.J(foe.name, "을/를")} 쓰러뜨렸다. 전황이 크게 기울었다.");
+                        Msg(s, "match", $"대리 결투 승리: {champ.name}", $"{Josa.J(champ.name, "이/가")} {Josa.J(foe.name, "을/를")} 쓰러뜨렸습니다. 전황이 크게 기울었습니다.");
                     }
                     else if (!string.IsNullOrEmpty(r.died))
                     {
@@ -303,8 +303,8 @@ namespace Colosseum.Core
                         me.gladiators = me.gladiators.Where(x => x != cid).ToList();
                         s.fallen.Add(champ.id);
                         c.assigned = new List<string>();
-                        Career.LogCareer(s, champ, $"대리 결투에서 {foe.name}에게 졌다", "death");
-                        Msg(s, "death", $"대리 결투 패배: {champ.name}", $"{Josa.J(champ.name, "이/가")} 돌아오지 못했다.");
+                        Career.LogCareer(s, champ, $"대리 결투에서 {foe.name}에게 졌습니다", "death");
+                        Msg(s, "death", $"대리 결투 패배: {champ.name}", $"{Josa.J(champ.name, "이/가")} 돌아오지 못했습니다.");
                     }
                 }
             }
@@ -318,7 +318,7 @@ namespace Colosseum.Core
                 var g = s.gladiators[id];
                 g.deployment = null;
                 if (c.merit >= 3 && rng.Chance(0.3)) AddTrait(g, "war_hero");
-                Career.LogCareer(s, g, $"{Data.Nation(c.employer).@short}의 전장에서 돌아왔다", "other");
+                Career.LogCareer(s, g, $"{Data.Nation(c.employer).@short}의 전장에서 돌아왔습니다", "other");
             }
             if (c.type != "levy") AddFavor(s, c.employer, 10);
             Msg(s, "info", $"{ContractTypes[c.type].name} 의뢰 완료",
@@ -340,7 +340,7 @@ namespace Colosseum.Core
             if (loser != s.nation) s.powPending = loser;
             foreach (var c in s.contracts) if (c.warId == w.id && c.status == "open") c.status = "expired";
             Msg(s, "info", $"종전: {Data.Nation(w.winner).@short} 승리",
-                $"{Josa.J(Data.Nation(w.winner).name, "이/가")} {Josa.J(Data.Nation(loser).name, "을/를")} 꺾었다. {(loser != s.nation ? "곧 포로들이 무소속 명단에 헐값으로 나온다." : "조국이 졌다. 다음 시즌 살림이 빠듯해질 것이다.")}");
+                $"{Josa.J(Data.Nation(w.winner).name, "이/가")} {Josa.J(Data.Nation(loser).name, "을/를")} 꺾었습니다. {(loser != s.nation ? "곧 포로들이 무소속 명단에 헐값으로 나옵니다." : "조국이 졌습니다. 다음 시즌 살림이 빠듯해질 것입니다.")}");
         }
     }
 }

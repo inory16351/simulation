@@ -13,7 +13,7 @@
     "id": "coward",
     "name": "겁쟁이",
     "cat": "personality",
-    "desc": "투지 -4, 궁지에 몰리면 쉽게 항복",
+    "desc": "투지 -4, 궁지에 몰리면 쉽게 항복합니다",
     "attrMods": {
       "grit": -4
     },
@@ -46,7 +46,7 @@
     "id": "greedy",
     "name": "탐욕스러운 자",
     "cat": "personality",
-    "desc": "급료 인상 요구 2배, 미납 시 사기 하락 1.5배",
+    "desc": "급료를 2배로 올려 달라고 요구합니다. 급료가 밀리면 사기가 1.5배 더 떨어집니다",
     "spawn": 3,
     "hidden": true,
     "negative": true
@@ -55,14 +55,14 @@
     "id": "loyal_hound",
     "name": "충견",
     "cat": "personality",
-    "desc": "충성 최대, 반란 가담 불가",
+    "desc": "충성 최대, 반란에 끼지 않습니다",
     "spawn": 2
   },
   {
     "id": "agitator",
     "name": "선동가",
     "cat": "personality",
-    "desc": "사기 30 이하일 때 반란 확률 증가",
+    "desc": "사기가 30 이하면 반란을 일으킬 확률이 오릅니다",
     "spawn": 2,
     "hidden": true,
     "negative": true
@@ -71,14 +71,14 @@
     "id": "ambitious",
     "name": "야심가",
     "cat": "personality",
-    "desc": "성장 +15%, 이적·해방 요구",
+    "desc": "성장 +15%, 이적이나 해방을 요구합니다",
     "spawn": 3
   },
   {
     "id": "late_bloomer",
     "name": "늦게 피는 꽃",
     "cat": "personality",
-    "desc": "전성기가 3년 늦게 시작하고 늦게 끝남",
+    "desc": "전성기가 3년 늦게 시작하고 늦게 끝납니다",
     "spawn": 2,
     "hidden": true
   },
@@ -86,7 +86,7 @@
     "id": "prodigy",
     "name": "조숙",
     "cat": "personality",
-    "desc": "성장기 성장 +30%, 전성기가 짧음",
+    "desc": "성장기에는 성장 +30%, 대신 전성기가 짧습니다",
     "spawn": 2,
     "hidden": true
   },
@@ -94,14 +94,14 @@
     "id": "open_minded",
     "name": "편견 없음",
     "cat": "personality",
-    "desc": "다른 종족을 가리지 않음",
+    "desc": "다른 종족을 가리지 않습니다",
     "spawn": 3
   },
   {
     "id": "homesick",
     "name": "향수병",
     "cat": "personality",
-    "desc": "출신국 밖에서 주간 사기 -2",
+    "desc": "출신국 밖에서는 매주 사기 -2",
     "spawn": 3,
     "negative": true
   },
@@ -109,7 +109,7 @@
     "id": "crowd_darling",
     "name": "관중의 총아",
     "cat": "combat",
-    "desc": "쇼맨십 +3, 인기 성장 2배",
+    "desc": "쇼맨십 +3, 인기가 2배 빨리 오릅니다",
     "attrMods": {
       "show": 3
     },
@@ -119,14 +119,14 @@
     "id": "executioner",
     "name": "처형자",
     "cat": "combat",
-    "desc": "사투 승리 시 관중 열광 증가",
+    "desc": "사투에서 이기면 관중이 더 크게 열광합니다",
     "spawn": 0
   },
   {
     "id": "deathless",
     "name": "불사신",
     "cat": "combat",
-    "desc": "시즌당 1회 사망 판정 무효",
+    "desc": "시즌당 1회, 죽을 고비를 넘기고 살아남습니다",
     "spawn": 0
   },
   {
@@ -140,7 +140,7 @@
     "id": "iron_jaw",
     "name": "강철 턱",
     "cat": "combat",
-    "desc": "기절 면역",
+    "desc": "기절하지 않습니다",
     "spawn": 2
   },
   {
@@ -156,7 +156,7 @@
     "id": "ambidextrous",
     "name": "양손잡이",
     "cat": "combat",
-    "desc": "쌍수 무기 페널티 없음",
+    "desc": "쌍수 무기를 써도 불이익이 없습니다",
     "spawn": 2
   },
   {
@@ -191,14 +191,14 @@
     "id": "ironman",
     "name": "철인",
     "cat": "body",
-    "desc": "피로 누적 절반",
+    "desc": "피로가 절반만 쌓입니다",
     "spawn": 2
   },
   {
     "id": "lame",
     "name": "절름발이",
     "cat": "body",
-    "desc": "민첩 -3, 회피 -2 (무릎 부상 후유증)",
+    "desc": "무릎 부상 후유증이 남았습니다. 민첩 -3, 회피 -2",
     "attrMods": {
       "agi": -3,
       "eva": -2
@@ -210,14 +210,14 @@
     "id": "academy",
     "name": "학당 출신",
     "cat": "personality",
-    "desc": "루두스 학당에서 자랐다. 충성 +3, 사기가 쉽게 꺾이지 않는다",
+    "desc": "루두스 학당에서 자랐습니다. 충성 +3, 사기가 쉽게 꺾이지 않습니다",
     "spawn": 0
   },
   {
     "id": "war_hero",
     "name": "전쟁 영웅",
     "cat": "combat",
-    "desc": "전장에서 이름을 떨쳤다. 리더십 +2, 투지 +1",
+    "desc": "전장에서 이름을 떨쳤습니다. 리더십 +2, 투지 +1",
     "attrMods": {
       "lead": 2,
       "grit": 1

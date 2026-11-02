@@ -30,7 +30,7 @@ export const inRegularPeriod = (state: GameState) => state.day >= 15 && state.da
 export function availability(state: GameState, g: Gladiator, at = now(state)): string | null {
   if (!g.alive) return "사망";
   if (g.deployment) return g.deployment.kind === "dungeon" ? "던전 원정 중" : "용병 파견 중";
-  if (ageStage(g) === "youth") return "아직 어리다";
+  if (ageStage(g) === "youth") return "아직 어립니다";
   if (g.injury?.severity === "serious") return "중상";
   if (g.lastFightAt !== undefined && at - g.lastFightAt < L.restDays) return `휴식 중 (${L.restDays - (at - g.lastFightAt)}일)`;
   const booked = state.challenges.find((c) => c.status === "scheduled" && (c.fromGladiator === g.id || c.toGladiator === g.id) && c.matchAt !== at);
@@ -42,11 +42,11 @@ export function availability(state: GameState, g: Gladiator, at = now(state)): s
 export function canChallenge(state: GameState, from: Ludus, to: Ludus): string | null {
   if (from.id === to.id) return "자기 자신";
   if (from.nation !== to.nation) return "다른 나라";
-  if (!inRegularPeriod(state)) return "정규 기간(서리달 15일 ~ 그림자달 14일)이 아니다";
+  if (!inRegularPeriod(state)) return "정규 기간(서리달 15일 ~ 그림자달 14일)이 아닙니다";
   if (from.tier !== to.tier && Math.abs(from.rp - to.rp) > L.challengeRange) return `다른 리그는 RP ±${L.challengeRange} 안에서만`;
   const week = now(state) - 6;
   const sent = state.challenges.filter((c) => c.from === from.id && c.createdAt >= week).length;
-  if (sent >= L.challengesPerWeek) return `일주일에 ${L.challengesPerWeek}번까지만 신청할 수 있다`;
+  if (sent >= L.challengesPerWeek) return `일주일에 ${L.challengesPerWeek}번까지만 신청할 수 있습니다`;
   if (state.challenges.some((c) => c.from === from.id && c.to === to.id && (c.status === "pending" || c.status === "scheduled"))) return "이미 도전 중";
   return null;
 }
@@ -56,11 +56,11 @@ export function createChallenge(
 ): Challenge | string {
   const err = canChallenge(state, from, to);
   if (err) return err;
-  if (rule === "sudden" && rulesOfNation(from.nation).suddenBanned) return "이 나라 리그에서는 사투가 금지돼 있다";
+  if (rule === "sudden" && rulesOfNation(from.nation).suddenBanned) return "이 나라 리그에서는 사투를 금합니다";
   const g = state.gladiators[fromGladiator];
   const busy = availability(state, g);
   if (busy) return `${g.name}: ${busy}`;
-  if (format > 1 && autoLineup(state, from, format, now(state) + L.matchDelayMin).length < format) return `${FORMAT_NAMES[format]}에 내보낼 검투사가 ${format}명이 안 된다`;
+  if (format > 1 && autoLineup(state, from, format, now(state) + L.matchDelayMin).length < format) return `${FORMAT_NAMES[format]}에 내보낼 검투사가 ${format}명이 안 됩니다`;
   const c: Challenge = {
     id: `C${state.nextId++}`, from: from.id, to: to.id, fromGladiator, toGladiator, rule, stake,
     createdAt: now(state), respondBy: now(state) + L.respondDays, status: "pending",
@@ -97,7 +97,7 @@ export function respond(state: GameState, c: Challenge, accept: boolean, rng: Rn
   const from = state.ludi[c.from];
   if (accept) {
     const defender = defenderId ? state.gladiators[defenderId] : pickFighter(state, to, c.rule, now(state) + L.matchDelayMin);
-    if (!defender) return "내보낼 검투사가 없다";
+    if (!defender) return "내보낼 검투사가 없습니다";
     const busy = availability(state, defender);
     if (busy) return `${defender.name}: ${busy}`;
     schedule(state, c, rng, defender);
@@ -122,13 +122,13 @@ export function respond(state: GameState, c: Challenge, accept: boolean, rng: Rn
     to.rp -= Math.round(penalty);
   }
   if (from.isPlayer) {
-    pushMessage(state, { kind: "info", title: `${josa(to.name, "이/가")} 도전을 거절했다`, body: `${RULE_NAME(c.rule)} 신청이 거절됐다.${penalty ? ` 상대는 RP를 ${Math.round(penalty)} 잃었다.` : ""}` });
+    pushMessage(state, { kind: "info", title: `${josa(to.name, "이/가")} 도전을 거절했습니다`, body: `상대가 ${RULE_NAME(c.rule)} 신청을 거절했습니다.${penalty ? ` 상대는 RP를 ${Math.round(penalty)} 잃었습니다.` : ""}` });
   }
   if (to.isPlayer) {
     pushMessage(state, {
       kind: "warning",
-      title: "도전을 거절했다",
-      body: `${from.name}의 ${RULE_NAME(c.rule)} 도전을 거절했다. 이번 시즌 거절 ${to.refusalsUsed}회 (무료 ${L.freeRefusals}회).${penalty ? `\nRP -${Math.round(penalty)}. 관중이 '겁쟁이 루두스'라고 수군댄다.` : ""}`,
+      title: "도전을 거절했습니다",
+      body: `${from.name}의 ${RULE_NAME(c.rule)} 도전을 거절했습니다. 이번 시즌에 ${to.refusalsUsed}번 거절했습니다. ${L.freeRefusals}번까지는 불이익이 없습니다.${penalty ? `\nRP -${Math.round(penalty)}. 관중이 '겁쟁이 루두스'라고 수군댑니다.` : ""}`,
     });
   }
   return null;
@@ -197,7 +197,7 @@ export function dailyChallenges(state: GameState, rng: Rng): void {
     pushMessage(state, {
       kind: "match",
       title: `${ai.name}의 도전장 (${fmt}${RULE_NAME(rule)})`,
-      body: `${c.format ? `${josa(ai.name, "이/가")} ${josa(FORMAT_NAMES[c.format], "을/를")} 걸어왔다. 선봉은 ${g.name}.` : `${ai.name}의 ${josa(g.name, "이/가")} ${josa(RULE_NAME(rule), "을/를")} 걸어왔다.`}\n${dateLabel(fromAbs(c.respondBy).day)}까지 답하지 않으면 거절한 것으로 친다.\n\n도전장 화면에서 받을지 정하라.`,
+      body: `${c.format ? `${josa(ai.name, "이/가")} ${josa(FORMAT_NAMES[c.format], "을/를")} 걸어왔습니다. 선봉은 ${g.name}.` : `${ai.name}의 ${josa(g.name, "이/가")} ${josa(RULE_NAME(rule), "을/를")} 걸어왔습니다.`}\n${dateLabel(fromAbs(c.respondBy).day)}까지 답하지 않으면 거절한 것으로 칩니다.\n\n도전장 화면에서 받을지 정하십시오.`,
     });
     break;
   }
@@ -281,7 +281,7 @@ export function playChallenge(state: GameState, c: Challenge, rng: Rng): PlayedM
       const loser = !la.length ? from : to;
       loser.rp -= 25;
       loser.matchesThisSeason++;
-      return { challenge: c, result: null, a: la[0] ?? lb[0], b: lb[0] ?? la[0], forfeit: `${loser.name} 기권 (출전 가능한 검투사가 없다)` };
+      return { challenge: c, result: null, a: la[0] ?? lb[0], b: lb[0] ?? la[0], forfeit: `${loser.name} 기권 (출전 가능한 검투사가 없습니다)` };
     }
     const snaps = [structuredClone(la[0]), structuredClone(lb[0])];
     const series = runSeries(state, [from, to], [la, lb], { rule: c.rule, mode: "winner_stays", homeLudusId: to.id }, rng);
@@ -296,7 +296,7 @@ export function playChallenge(state: GameState, c: Challenge, rng: Rng): PlayedM
     const loser = !a ? from : to;
     loser.rp -= 15;
     loser.matchesThisSeason++;
-    return { challenge: c, result: null, a: a ?? b!, b: b ?? a!, forfeit: `${loser.name} 기권 (출전 가능한 검투사가 없다)` };
+    return { challenge: c, result: null, a: a ?? b!, b: b ?? a!, forfeit: `${loser.name} 기권 (출전 가능한 검투사가 없습니다)` };
   }
   const snapA = structuredClone(a);
   const snapB = structuredClone(b);

@@ -67,7 +67,7 @@ namespace Colosseum.UI
             var c = r > 0.65 ? Theme.Good : r > 0.35 ? Theme.Torch : Theme.Blood;
             int filled = (int)Math.Ceiling(r * 10);
             return $"인내심 <color={Theme.Hex(c)}>{new string('■', filled)}</color><color={Theme.Hex(Theme.TextFaint)}>{new string('□', 10 - filled)}</color>" +
-                (h.counter > 0 ? $"  역제안 {h.counter:N0} D" : "");
+                (h.counter > 0 ? $"  다시 부른 값 {h.counter:N0} D" : "");
         }
 
         /// <summary>막대(Bar 오브젝트 아래 Fill)를 값에 맞춰 채운다</summary>

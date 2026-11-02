@@ -62,9 +62,9 @@ namespace Colosseum.Core
                 Economy.RefreshFreeAgents(state, rng);
                 StaffLogic.RefreshStaffMarket(state, rng);
                 ReplenishAi(state, rng);
-                Msg(state, "info", "이적 시장이 열렸다", "앞으로 14일 동안 다른 루두스와 검투사를 사고팔 수 있다. 무소속 검투사 명단도 새로 바뀌었다.");
+                Msg(state, "info", "이적 시장이 열렸습니다", "앞으로 14일 동안 다른 루두스와 검투사를 사고팔 수 있습니다. 무소속 검투사 명단도 새로 바뀌었습니다.");
             }
-            if (state.day == 15) Msg(state, "info", "정규 기간 시작", "오늘부터 도전장을 주고받을 수 있다. 시즌 동안 최소 8경기는 치러야 한다.");
+            if (state.day == 15) Msg(state, "info", "정규 기간 시작", "오늘부터 도전장을 주고받을 수 있습니다. 시즌 동안 최소 8경기는 치러야 합니다.");
 
             // 2. 급료일 (무소속 명단도 이때 조금씩 바뀐다)
             if (Calendar.IsPayday(state.day))
@@ -94,13 +94,13 @@ namespace Colosseum.Core
                         g.injury = healed;
                         Injuries.OnHealed(state, g, rng, l.facilities.medical, StaffLogic.RatingOf(state, l, "medicus"), l.isPlayer);
                         g.injury = null;
-                        if (l.isPlayer && healed.severity == "serious") Msg(state, "info", $"{g.name} 복귀", $"부상({healed.desc})이 다 나았다. 다시 싸울 수 있다.");
+                        if (l.isPlayer && healed.severity == "serious") Msg(state, "info", $"{g.name} 복귀", $"부상({healed.desc})이 다 나았습니다. 다시 싸울 수 있습니다.");
                     }
                     if (!string.IsNullOrEmpty(injured) && l.isPlayer)
                     {
                         Career.SeasonRecord(state, g).injuries++;
-                        Career.LogCareer(state, g, $"훈련 중 다쳤다: {injured}", "injury");
-                        Msg(state, "warning", $"훈련 중 부상: {g.name}", $"{injured}. {Num(g.injury?.daysLeft)}일 정도 쉬어야 한다.");
+                        Career.LogCareer(state, g, $"훈련 중 다쳤습니다: {injured}", "injury");
+                        Msg(state, "warning", $"훈련 중 부상: {g.name}", $"{injured}. {Num(g.injury?.daysLeft)}일 정도 쉬어야 합니다.");
                     }
                 }
             }
@@ -133,8 +133,8 @@ namespace Colosseum.Core
                 player.bankruptSince ??= at;
                 double days = at - player.bankruptSince.Value;
                 double bankruptDays = (double)Bal.Economy["bankruptDays"];
-                if (days >= bankruptDays) state.gameOver = "파산: 채권자들이 루두스를 압류했다.";
-                else if (days == 0) Msg(state, "warning", "금고가 바닥났다", $"{Num(bankruptDays)}일 안에 빚을 갚지 못하면 루두스를 압류당한다. 검투사를 팔거나 경기로 돈을 벌어라.");
+                if (days >= bankruptDays) state.gameOver = "파산: 채권자들이 루두스를 압류했습니다.";
+                else if (days == 0) Msg(state, "warning", "금고가 바닥났습니다", $"{Num(bankruptDays)}일 안에 빚을 갚지 못하면 루두스를 압류당합니다. 검투사를 팔거나 경기로 돈을 버십시오.");
             }
             else player.bankruptSince = null;
 
@@ -184,8 +184,8 @@ namespace Colosseum.Core
                 {
                     var gid = g.id;
                     player.gladiators = player.gladiators.Where(x => x != gid).ToList();
-                    Career.LogCareer(state, g, $"급료가 {Num(g.unpaidWeeks)}번 밀리자 {player.name}에서 달아났다", "other");
-                    Msg(state, "warning", $"{Josa.J(g.name, "이/가")} 달아났다", $"급료가 {Num(g.unpaidWeeks)}번 밀리자 밤사이 담을 넘었다.");
+                    Career.LogCareer(state, g, $"급료가 {Num(g.unpaidWeeks)}번 밀리자 {player.name}에서 달아났습니다", "other");
+                    Msg(state, "warning", $"{Josa.J(g.name, "이/가")} 달아났습니다", $"급료가 {Num(g.unpaidWeeks)}번 밀리자 밤사이 담을 넘었습니다.");
                 }
             }
 
@@ -212,8 +212,8 @@ namespace Colosseum.Core
             double loyalPower = (Power(loyal) + guardPower) * rng.Range(0.8, 1.2);
             if (rebelPower > loyalPower)
             {
-                state.gameOver = $"반란: {string.Join(", ", rebels.Select(g => g.name))} 일당이 루두스를 장악했다.";
-                Msg(state, "death", "반란 — 루두스를 빼앗겼다", state.gameOver);
+                state.gameOver = $"반란: {string.Join(", ", rebels.Select(g => g.name))} 일당이 루두스를 장악했습니다.";
+                Msg(state, "death", "반란 — 루두스를 빼앗겼습니다", state.gameOver);
                 return;
             }
             // 진압 성공: 반란자 중 일부가 죽고 금고가 털린다
@@ -227,19 +227,19 @@ namespace Colosseum.Core
                     var gid = g.id;
                     player.gladiators = player.gladiators.Where(x => x != gid).ToList();
                     state.fallen.Add(g.id);
-                    Career.LogCareer(state, g, "반란을 일으켰다가 진압 중 죽었다", "death");
+                    Career.LogCareer(state, g, "반란을 일으켰다가 진압 중 죽었습니다", "death");
                     dead.Add(g.name);
                 }
                 else
                 {
                     g.morale = Math.Max(0, g.morale - 10);
-                    Career.LogCareer(state, g, "반란에 가담했다가 진압당했다", "other");
+                    Career.LogCareer(state, g, "반란에 가담했다가 진압당했습니다", "other");
                 }
             }
             double lost = JsMath.Round(Math.Max(0, player.treasury) * 0.1);
             player.treasury -= lost;
-            Msg(state, "death", "반란을 진압했다",
-                $"{Josa.J(string.Join(", ", rebels.Select(g => g.name)), "이/가")} 들고일어났지만 진압됐다.{(dead.Count > 0 ? $"\n죽은 자: {string.Join(", ", dead)}" : "")}\n금고 {Num(lost)} D를 잃었다.");
+            Msg(state, "death", "반란을 진압했습니다",
+                $"{Josa.J(string.Join(", ", rebels.Select(g => g.name)), "이/가")} 들고일어났지만 진압됐습니다.{(dead.Count > 0 ? $"\n죽은 자: {string.Join(", ", dead)}" : "")}\n금고에서 {Num(lost)} D를 잃었습니다.");
         }
 
         /// <summary>시즌 종료: 승강, 페널티, 나이, RP 회귀, 배당금</summary>
@@ -266,7 +266,7 @@ namespace Colosseum.Core
                     if (l.isPlayer)
                     {
                         state.ledger.Insert(0, new LedgerEntry { at = Calendar.AbsDay(state.season, state.day), amount = subsidy, desc = "신전 후원금" });
-                        Msg(state, "info", "신전이 금을 내렸다", $"1부 상위 루두스에 신전 후원금 {Loc(subsidy)} D가 내려왔다.");
+                        Msg(state, "info", "신전이 금을 내렸습니다", $"1부 상위 루두스에 신전 후원금 {Loc(subsidy)} D가 내려왔습니다.");
                     }
                 }
             }
@@ -286,7 +286,7 @@ namespace Colosseum.Core
             bool wasRelegated = relegated.Contains(player);
             Msg(state, "info",
                 $"시즌 {state.season} 종료 — {(wasPromoted ? "승격!" : wasRelegated ? "강등" : $"{playerRank}위")}",
-                $"{Josa.J(player.name, "은/는")} {(wasPromoted ? "2부" : wasRelegated ? "1부" : $"{player.tier}부")} {playerRank}위로 시즌을 마쳤다." +
+                $"{Josa.J(player.name, "은/는")} {(wasPromoted ? "2부" : wasRelegated ? "1부" : $"{player.tier}부")} {playerRank}위로 시즌을 마쳤습니다." +
                 $"\n승격: {string.Join(", ", promoted.Select(l => l.name))}\n강등: {string.Join(", ", relegated.Select(l => l.name))}");
 
             CupLogic.CloseCupSeason(state);
@@ -323,13 +323,13 @@ namespace Colosseum.Core
                     {
                         g.wage = JsMath.Round(g.wage * 1.1);
                         g.contract.untilSeason = state.season;
-                        Msg(state, "info", $"{g.name} 재계약", $"계약이 끝났지만 남기로 했다. 주급이 {Num(g.wage)} D로 올랐다 (1시즌).");
+                        Msg(state, "info", $"{g.name} 재계약", $"계약이 끝났지만 1시즌 더 남기로 했습니다. 주급은 {Num(g.wage)} D로 올랐습니다.");
                     }
                     else
                     {
                         me.gladiators = me.gladiators.Where(x => x != id).ToList();
-                        Career.LogCareer(state, g, $"계약이 끝나 {Josa.J(me.name, "을/를")} 떠났다", "other");
-                        Msg(state, "warning", $"{g.name} 떠남", "계약이 끝났다. 사기가 떨어져 재계약을 거절했다.");
+                        Career.LogCareer(state, g, $"계약이 끝나 {Josa.J(me.name, "을/를")} 떠났습니다", "other");
+                        Msg(state, "warning", $"{g.name} 떠남", "계약이 끝났습니다. 사기가 떨어져 재계약을 거절했습니다.");
                     }
                 }
             }

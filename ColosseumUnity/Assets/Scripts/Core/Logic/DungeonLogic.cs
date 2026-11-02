@@ -72,15 +72,15 @@ namespace Colosseum.Core
 
         public static readonly List<DungeonDef> Dungeons = new()
         {
-            new DungeonDef { id = "sewer", name = "쥐굴 하수도", desc = "도시 밑 하수도. 쥐인간과 도적 떼가 산다. 처음 가 보기 좋다", tier = 1, floors = 3, days = 7, level = 5, death = 0.04, loot = new double[] { 60, 32, 8, 0 },
+            new DungeonDef { id = "sewer", name = "쥐굴 하수도", desc = "도시 밑 하수도. 쥐인간과 도적 떼가 삽니다. 처음 가 보기 좋습니다", tier = 1, floors = 3, days = 7, level = 5, death = 0.04, loot = new double[] { 60, 32, 8, 0 },
                 foes = new() { new("beastkin", "쥐인간"), new("human", "하수도 도적") }, boss = new("beastkin", "쥐왕") },
-            new DungeonDef { id = "mine", name = "버려진 은광", desc = "무너진 갱도에 오크 약탈자와 광부 망령이 숨어 있다", tier = 2, floors = 3, days = 10, level = 7, death = 0.07, loot = new double[] { 45, 38, 15, 2 },
+            new DungeonDef { id = "mine", name = "버려진 은광", desc = "무너진 갱도에 오크 약탈자와 광부 망령이 숨어 있습니다", tier = 2, floors = 3, days = 10, level = 7, death = 0.07, loot = new double[] { 45, 38, 15, 2 },
                 foes = new() { new("orc", "오크 약탈자"), new("dwarf", "광부 망령") }, boss = new("orc", "갱도 두목") },
-            new DungeonDef { id = "catacomb", name = "망자의 지하묘지", desc = "옛 검투사들이 묻힌 묘지. 죽은 자들이 아직 싸운다", tier = 3, floors = 4, days = 14, level = 9, death = 0.1, loot = new double[] { 30, 40, 24, 6 },
+            new DungeonDef { id = "catacomb", name = "망자의 지하묘지", desc = "옛 검투사들이 묻힌 묘지. 죽은 자들이 아직 싸웁니다", tier = 3, floors = 4, days = 14, level = 9, death = 0.1, loot = new double[] { 30, 40, 24, 6 },
                 foes = new() { new("human", "해골 검투사"), new("elf", "묘지 사령술사") }, boss = new("human", "무덤의 챔피언") },
-            new DungeonDef { id = "magma", name = "용암 동굴", desc = "불타는 동굴. 도마뱀 부족과 미노타우로스 광전사가 지킨다", tier = 4, floors = 4, days = 18, level = 11, death = 0.13, loot = new double[] { 20, 38, 32, 10 },
+            new DungeonDef { id = "magma", name = "용암 동굴", desc = "불타는 동굴. 도마뱀 부족과 미노타우로스 광전사가 지킵니다", tier = 4, floors = 4, days = 18, level = 11, death = 0.13, loot = new double[] { 20, 38, 32, 10 },
                 foes = new() { new("lizardfolk", "화염 도마뱀 전사"), new("minotaur", "용암 광전사") }, boss = new("minotaur", "불의 미궁 주인") },
-            new DungeonDef { id = "abyss", name = "심연의 신전", desc = "가장 깊은 곳. 살아 돌아온 자가 드물다", tier = 5, floors = 5, days = 21, level = 13, death = 0.17, loot = new double[] { 10, 32, 40, 18 },
+            new DungeonDef { id = "abyss", name = "심연의 신전", desc = "가장 깊은 곳. 살아 돌아온 자가 드뭅니다", tier = 5, floors = 5, days = 21, level = 13, death = 0.17, loot = new double[] { 10, 32, 40, 18 },
                 foes = new() { new("elf", "심연의 사제"), new("orc", "타락한 전사"), new("minotaur", "심연의 수문장") }, boss = new("elf", "잊힌 신의 대리인") },
         };
 
@@ -90,10 +90,10 @@ namespace Colosseum.Core
         /// <summary>5:5 진형 (docs/13_tactics.md)</summary>
         public static readonly Dictionary<string, FormationDef> Formations = new()
         {
-            ["shieldwall"] = new FormationDef { name = "방패벽", desc = "전열 3·후열 2. 받는 피해가 줄지만 느리게 이긴다", dealt = 0.9, taken = 0.8, ranged = 1, focus = "front" },
-            ["wedge"] = new FormationDef { name = "쐐기", desc = "중앙 돌파. 약한 적부터 몰아친다. 받는 피해도 늘어난다", dealt = 1.2, taken = 1.1, ranged = 1, focus = "weakest" },
-            ["flank"] = new FormationDef { name = "포위", desc = "양 날개 전진. 수가 많을수록 강하다", dealt = 1, taken = 1, ranged = 1, focus = "strongest" },
-            ["spread"] = new FormationDef { name = "산개", desc = "흩어져 싸운다. 투척·창·주술이 강해지고 근접은 약해진다", dealt = 0.95, taken = 1, ranged = 1.3, focus = "front" },
+            ["shieldwall"] = new FormationDef { name = "방패벽", desc = "전열 3·후열 2. 받는 피해가 줄지만 느리게 이깁니다", dealt = 0.9, taken = 0.8, ranged = 1, focus = "front" },
+            ["wedge"] = new FormationDef { name = "쐐기", desc = "중앙 돌파. 약한 적부터 몰아칩니다. 받는 피해도 늘어납니다", dealt = 1.2, taken = 1.1, ranged = 1, focus = "weakest" },
+            ["flank"] = new FormationDef { name = "포위", desc = "양 날개 전진. 수가 많을수록 강합니다", dealt = 1, taken = 1, ranged = 1, focus = "strongest" },
+            ["spread"] = new FormationDef { name = "산개", desc = "흩어져 싸웁니다. 투척·창·주술이 강해지고 근접은 약해집니다", dealt = 0.95, taken = 1, ranged = 1.3, focus = "front" },
         };
 
         static double Now(GameState s) => Calendar.AbsDay(s.season, s.day);
@@ -106,24 +106,24 @@ namespace Colosseum.Core
             if (!g.alive) return "사망";
             if (g.deployment != null) return g.deployment.kind == "dungeon" ? "원정 중" : "파견 중";
             if (g.injury?.severity == "serious") return "중상";
-            if (s.challenges.Any(x => x.status == "scheduled" && (x.fromGladiator == g.id || x.toGladiator == g.id))) return "경기가 잡혀 있다";
+            if (s.challenges.Any(x => x.status == "scheduled" && (x.fromGladiator == g.id || x.toGladiator == g.id))) return "경기가 잡혀 있습니다";
             return null;
         }
 
         /// <summary>되면 null</summary>
         public static string StartExpedition(GameState s, string dungeon, List<string> ids, string formation, string questId = null)
         {
-            if (ids.Count == 0 || ids.Count > MaxParty) return $"1~{MaxParty}명을 보내라";
+            if (ids.Count == 0 || ids.Count > MaxParty) return $"1~{MaxParty}명을 보내십시오";
             var me = s.ludi[s.playerLudusId];
             foreach (var id in ids)
             {
                 var g = Glad(s, id);
-                if (!me.gladiators.Contains(id)) return "우리 검투사가 아니다";
+                if (!me.gladiators.Contains(id)) return "우리 검투사가 아닙니다";
                 var why = CannotSend(s, g);
                 if (why != null) return $"{g.name}: {why}";
             }
             var q = !string.IsNullOrEmpty(questId) ? QuestsOf(s).FirstOrDefault(x => x.id == questId) : null;
-            if (!string.IsNullOrEmpty(questId) && (q == null || q.status != "open")) return "의뢰가 마감됐다";
+            if (!string.IsNullOrEmpty(questId) && (q == null || q.status != "open")) return "의뢰가 마감됐습니다";
             var d = GetDungeon(q?.dungeon ?? dungeon);
             double t = Now(s);
             var hp = new Dictionary<string, double>();
@@ -139,7 +139,7 @@ namespace Colosseum.Core
             {
                 var g = s.gladiators[id];
                 g.deployment = new Deployment { contractId = ex.id, until = ex.endsAt, kind = "dungeon" };
-                Career.LogCareer(s, g, $"{d.name}{(q != null ? " 토벌" : "")} 원정을 떠났다", "other");
+                Career.LogCareer(s, g, $"{d.name}{(q != null ? " 토벌" : "")} 원정을 떠났습니다", "other");
             }
             return null;
         }
@@ -195,7 +195,7 @@ namespace Colosseum.Core
                 if (rng.Chance(p))
                 {
                     KillInDungeon(s, g, d);
-                    lines.Add($"{Josa.J(g.name, "이/가")} 쓰러져 다시 일어나지 못했다.");
+                    lines.Add($"{Josa.J(g.name, "이/가")} 쓰러져 다시 일어나지 못했습니다.");
                 }
                 else
                 {
@@ -218,11 +218,11 @@ namespace Colosseum.Core
             }
             else
             {
-                lines.Add("패퇴. 남은 자들이 동료를 메고 물러났다.");
+                lines.Add("패퇴. 남은 자들이 동료를 메고 물러났습니다.");
                 ex.status = "failed";
             }
             ex.log.AddRange(lines);
-            Msg(s, lines.Any(l => l.Contains("일어나지 못했다")) ? "death" : "info",
+            Msg(s, lines.Any(l => l.Contains("일어나지 못했습니다")) ? "death" : "info",
                 $"원정 소식: {d.name} {Num(ex.floor + (res.won ? 0 : 1))}층",
                 string.Join("\n", lines));
         }
@@ -360,7 +360,7 @@ namespace Colosseum.Core
             var gid = g.id;
             me.gladiators = me.gladiators.Where(x => x != gid).ToList();
             s.fallen.Add(g.id);
-            Career.LogCareer(s, g, $"{d.name} 깊은 곳에서 쓰러져 돌아오지 못했다", "death");
+            Career.LogCareer(s, g, $"{d.name} 깊은 곳에서 쓰러져 돌아오지 못했습니다", "death");
             foreach (var other in me.gladiators) s.gladiators[other].morale = Math.Max(0, s.gladiators[other].morale - 5);
         }
 
@@ -382,8 +382,8 @@ namespace Colosseum.Core
             var q = !string.IsNullOrEmpty(ex.questId) ? QuestsOf(s).FirstOrDefault(x => x.id == ex.questId) : null;
             var lines = new List<string>
             {
-                $"{d.floors}층 중 {Num(ex.floor)}층을 깼다.",
-                ex.loot.Count > 0 ? $"가져온 장비: {string.Join(", ", ex.loot.Select(x => GearLogic.ItemName(x)))}" : "가져온 장비가 없다.",
+                $"{d.floors}층 중 {Num(ex.floor)}층을 깼습니다.",
+                ex.loot.Count > 0 ? $"가져온 장비: {string.Join(", ", ex.loot.Select(x => GearLogic.ItemName(x)))}" : "가져온 장비가 없습니다.",
             };
             if (q != null)
             {
@@ -397,17 +397,17 @@ namespace Colosseum.Core
                     foreach (var id in ex.party)
                     {
                         var g = Glad(s, id);
-                        if (g != null && g.alive) { g.popularity = Math.Min(100, g.popularity + 6); Career.LogCareer(s, g, $"{d.name} 토벌에 성공했다", "milestone"); }
+                        if (g != null && g.alive) { g.popularity = Math.Min(100, g.popularity + 6); Career.LogCareer(s, g, $"{d.name} 토벌에 성공했습니다", "milestone"); }
                     }
                     lines.Add($"토벌 성공! 현상금 {Loc(q.bounty)} D, RP +{Num(q.rp)}, {Data.Nation(q.nation).@short} 호감 +10.");
                 }
                 else
                 {
                     q.status = "failed";
-                    lines.Add("토벌에 실패했다.");
+                    lines.Add("토벌에 실패했습니다.");
                 }
             }
-            Msg(s, "info", $"원정 귀환: {d.name}", string.Join("\n", lines) + "\n\n장비는 막사 → 검투사 화면에서 착용할 수 있다.");
+            Msg(s, "info", $"원정 귀환: {d.name}", string.Join("\n", lines) + "\n\n장비는 막사 → 검투사 화면에서 착용할 수 있습니다.");
         }
 
         /// <summary>급료일마다: 가끔 나라가 던전 토벌 의뢰를 낸다 (어렵다)</summary>
@@ -425,7 +425,7 @@ namespace Colosseum.Core
             };
             QuestsOf(s).Add(quest);
             Msg(s, "warning", $"토벌 의뢰: {d.name}",
-                $"{Josa.J(Data.Nation(nation).name, "이/가")} {d.name}의 괴물을 소탕할 루두스를 찾는다. 평소보다 훨씬 강한 놈들이 들끓는다.\n현상금 {Loc(quest.bounty)} D · RP +{Num(quest.rp)} · 14일 안에 떠나야 한다.\n\n던전 화면에서 받을 수 있다.");
+                $"{Josa.J(Data.Nation(nation).name, "이/가")} {d.name}의 괴물을 소탕할 루두스를 찾습니다. 평소보다 훨씬 강한 놈들이 들끓습니다.\n현상금은 {Loc(quest.bounty)} D이고 RP도 {Num(quest.rp)} 오릅니다. 14일 안에 떠나야 합니다.\n\n던전 화면에서 받을 수 있습니다.");
         }
     }
 }

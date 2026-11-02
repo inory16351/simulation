@@ -23,7 +23,7 @@ namespace Colosseum.UI
         public override void Refresh()
         {
             var me = S.ludi[S.playerLudusId];
-            sub.text = $"한 번에 한 곳만 공사할 수 있다. 시설마다 급료일에 유지비가 나간다 (지금 주 {StateUtil.Num(FacilitiesLogic.WeeklyUpkeep(me))} D).";
+            sub.text = $"공사는 한 번에 한 곳만 할 수 있습니다. 시설마다 급료일에 유지비가 나가며, 지금은 매주 {StateUtil.Num(FacilitiesLogic.WeeklyUpkeep(me))} D가 나갑니다.";
             string building = FacilitiesLogic.ConstructionLabel(S, me);
             buildingRoot.SetActive(building != null);
             buildingText.text = building != null ? "■ " + building : "";
@@ -54,7 +54,7 @@ namespace Colosseum.UI
                 pip.Find("Fill").GetComponent<Image>().color = on ? Theme.Torch : Theme.Panel2;
             }
             T(pad, "Levels/Level").text = $"{lvl}단계";
-            T(pad, "Now").text = "지금: " + (lvl > 0 ? f.effect(lvl) : "아직 없다");
+            T(pad, "Now").text = "지금: " + (lvl > 0 ? f.effect(lvl) : "아직 없습니다");
             var next = T(pad, "Next");
             next.gameObject.SetActive(hasNext);
             next.text = hasNext ? "다음: " + f.effect(lvl + 1) : "";

@@ -39,14 +39,14 @@ export function intake(state: GameState, rng: Rng, ludus: Ludus): Gladiator[] {
     state.gladiators[g.id] = g;
     ludus.youth.push(g.id);
     seasonRecord(state, g);
-    logCareer(state, g, `${ludus.name} 유소년 학당에 들어왔다 (${g.age}세)`, "join");
+    logCareer(state, g, `${ludus.name} 유소년 학당에 들어왔습니다 (${g.age}세)`, "join");
     out.push(g);
   }
   if (ludus.isPlayer && out.length) {
     pushMessage(state, {
       kind: "info",
-      title: golden ? "황금 세대가 입학했다!" : `유소년 학당 입학생 ${out.length}명`,
-      body: `${out.map((g) => `${g.name} (${getRace(g.race).name}, ${g.age}세)`).join("\n")}\n\n${golden ? "교관들이 술렁인다. 올해 아이들은 그릇이 다르다." : "유소년 학당 화면에서 볼 수 있다."}`,
+      title: golden ? "황금 세대가 입학했습니다!" : `유소년 학당 입학생 ${out.length}명`,
+      body: `${out.map((g) => `${g.name} (${getRace(g.race).name}, ${g.age}세)`).join("\n")}\n\n${golden ? "교관들이 술렁입니다. 올해 아이들은 그릇이 다릅니다." : "유소년 학당 화면에서 볼 수 있습니다."}`,
     });
   }
   return out;
@@ -88,7 +88,7 @@ export function apprenticeBouts(state: GameState, rng: Rng, ludus: Ludus): void 
     pushMessage(state, {
       kind: "match",
       title: `견습 투기 ${wins}승 ${kids.length - wins}패`,
-      body: `${lines.join("\n")}\n\n가장 눈에 띈 아이: ${star.name}. ${star.popularity >= 15 ? "다른 루두스에서도 이름을 묻기 시작했다." : ""}`,
+      body: `${lines.join("\n")}\n\n가장 눈에 띈 아이: ${star.name}. ${star.popularity >= 15 ? "다른 루두스에서도 이름을 묻기 시작했습니다." : ""}`,
     });
   }
 }
@@ -96,21 +96,21 @@ export function apprenticeBouts(state: GameState, rng: Rng, ludus: Ludus): void 
 /** 데뷔 나이가 된 유소년을 1군으로 올린다 */
 export function promoteYouth(state: GameState, ludus: Ludus, id: string): string | null {
   const g = state.gladiators[id];
-  if (ageStage(g) === "youth") return "아직 어리다";
+  if (ageStage(g) === "youth") return "아직 어립니다";
   ludus.youth = ludus.youth.filter((x) => x !== id);
   ludus.gladiators.push(id);
   g.wage = Math.max(8, Math.round(computeCA(g) * 0.5));
   // 학당에서 자란 아이는 루두스에 대한 정이 깊다
   g.hidden.loyalty = Math.min(20, g.hidden.loyalty + 3);
   if (!g.traits.includes("academy")) g.traits.push("academy");
-  logCareer(state, g, `${ludus.name} 1군으로 올라갔다`, "milestone");
+  logCareer(state, g, `${ludus.name} 1군으로 올라갔습니다`, "milestone");
   return null;
 }
 
 export function releaseYouth(state: GameState, ludus: Ludus, id: string): void {
   ludus.youth = ludus.youth.filter((x) => x !== id);
   const g = state.gladiators[id];
-  logCareer(state, g, `${ludus.name} 학당에서 내보내졌다`, "other");
+  logCareer(state, g, `${ludus.name} 학당에서 쫓겨났습니다`, "other");
 }
 
 /** 시즌 끝: 데뷔 나이가 된 아이들을 알린다 (AI는 자동 승격) */
@@ -124,7 +124,7 @@ export function seasonEndYouth(state: GameState, ludus: Ludus): void {
   pushMessage(state, {
     kind: "info",
     title: `졸업할 나이가 된 아이 ${ready.length}명`,
-    body: `${ready.map((g) => `${josa(g.name, "이/가")} 데뷔할 나이가 됐다`).join("\n")}\n\n유소년 학당 화면에서 1군으로 올리거나 내보내라.`,
+    body: `${ready.map((g) => `${josa(g.name, "이/가")} 데뷔할 나이가 됐습니다`).join("\n")}\n\n유소년 학당 화면에서 1군으로 올리거나 내보내십시오.`,
   });
 }
 

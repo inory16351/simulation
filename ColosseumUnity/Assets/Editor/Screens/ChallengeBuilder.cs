@@ -33,7 +33,7 @@ namespace Colosseum.EditorTools
             Cell(Text("RespondBy", inc, "", 14).rectTransform, 100);
             var def = Dropdown("Defender", inc, 0);
             Cell((RectTransform)def.transform, 0);
-            Button("Accept", inc, "받는다", true, 14).Layout(minW: 84, prefW: 84, prefH: 30, flexW: 0);
+            Button("Accept", inc, "받기", true, 14).Layout(minW: 84, prefW: 84, prefH: 30, flexW: 0);
             Button("Decline", inc, "거절", false, 14).Layout(minW: 76, prefW: 76, prefH: 30, flexW: 0);
             inc.gameObject.SetActive(false);
 
@@ -50,7 +50,7 @@ namespace Colosseum.EditorTools
             var mineF = Field(sendPad, "우리 출전자", out var myLabel);
             var mineDd = Dropdown("Mine", mineF, 0);
             mineDd.Layout(minH: 30, prefH: 30);
-            var theirF = Field(sendPad, "상대 지명 (선택)", out _);
+            var theirF = Field(sendPad, "맞붙을 상대 (안 골라도 됩니다)", out _);
             var theirDd = Dropdown("Theirs", theirF, 0);
             theirDd.Layout(minH: 30, prefH: 30);
             var fmtF = Field(sendPad, "형식", out _);
@@ -62,12 +62,12 @@ namespace Colosseum.EditorTools
             var err = Text("Error", sendPad, "", 14, Neg);
             var sendRow = Rect("SendRow", sendPad);
             HRow(sendRow, 0);
-            var send = Button("Send", sendRow, "도전장을 보낸다", true, 15).Layout(prefW: 200, prefH: 38);
+            var send = Button("Send", sendRow, "도전장 보내기", true, 15).Layout(prefW: 200, prefH: 38);
 
             var right = Rect("Right", cols).Layout(minW: 0, prefW: 0, flexW: 1);
             VCol(right, 14);
             var schPad = TitledPanel("Scheduled", right, "잡힌 경기", 0);
-            var schEmpty = Text("Empty", schPad, "아직 잡힌 경기가 없다.", 14, Theme.TextDim);
+            var schEmpty = Text("Empty", schPad, "아직 잡힌 경기가 없습니다.", 14, Theme.TextDim);
             var sch = Row("ScheduledTemplate", schPad);
             Cell(Text("Date", sch, "", 14).rectTransform, 90);
             Cell(Text("Rule", sch, "", 13).rectTransform, 130);
@@ -77,12 +77,12 @@ namespace Colosseum.EditorTools
             sch.gameObject.SetActive(false);
 
             var outPad = TitledPanel("Outgoing", right, "답을 기다리는 도전장", 0);
-            var outEmpty = Text("Empty", outPad, "없다.", 14, Theme.TextDim);
+            var outEmpty = Text("Empty", outPad, "없습니다.", 14, Theme.TextDim);
             var outRow = Row("OutgoingTemplate", outPad);
             Cell(Text("Opp", outRow, "", 14).rectTransform, 0);
             Cell(Text("Rule", outRow, "", 13).rectTransform, 90);
             Cell(Text("Fighter", outRow, "", 14).rectTransform, 140);
-            Cell(Text("Hint", outRow, "내일 답이 온다", 13, Theme.TextDim).rectTransform, 110);
+            Cell(Text("Hint", outRow, "내일 답이 옵니다", 13, Theme.TextDim).rectTransform, 110);
             outRow.gameObject.SetActive(false);
 
             var s = rt.gameObject.AddComponent<ChallengeScreen>();

@@ -20,9 +20,9 @@ namespace Colosseum.EditorTools
         {
             var rt = Rect("Screen_training", main).Stretch(26, 20, 26, 20);
             VCol(rt, 14);
-            ScreenHeader(rt, "연무장", "훈련은 매일 조금씩 쌓인다. 강하게 굴릴수록 빨리 크지만 지치고 다친다. 실전(훈련전·미시오·사투)도 성장시킨다.");
+            ScreenHeader(rt, "연무장", "훈련 성과는 매일 조금씩 쌓입니다. 강도를 높이면 빨리 성장하지만 쉽게 지치고 다칩니다. 훈련전과 미시오, 사투 같은 실전에서도 능력치가 오릅니다.");
 
-            var bulk = TitledPanel("Bulk", rt, "일괄 지시");
+            var bulk = TitledPanel("Bulk", rt, "한꺼번에 지시");
             var br = Rect("Row", bulk);
             HRow(br, 10);
             Text("Hint", br, "모두에게", 14, Theme.TextDim).Layout(prefW: 70, flexW: 0);

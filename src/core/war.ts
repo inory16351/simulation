@@ -26,12 +26,12 @@ export interface ContractSpec {
 }
 
 export const CONTRACT_TYPES: Record<ContractType, ContractSpec> = {
-  escort: { name: "호위", desc: "보급 행렬과 귀족을 지킨다. 위험이 낮다", slots: [1, 2], days: [14, 21], minCA: 40, pay: 400, risk: 0.02 },
-  front: { name: "전선 파견", desc: "군단과 함께 전선에 선다", slots: [3, 5], days: [28, 42], minCA: 60, pay: 900, risk: 0.08 },
-  siege: { name: "공성전", desc: "성벽을 오른다. 죽기 쉽지만 보수가 크다", slots: [3, 6], days: [21, 21], minCA: 70, pay: 1400, risk: 0.15 },
-  raid: { name: "정찰·암습", desc: "적진에 숨어들어 지휘관을 노린다", slots: [1, 2], days: [14, 14], minCA: 55, pay: 1100, risk: 0.1 },
-  duel: { name: "대리 결투", desc: "양국 대표가 1:1 사투로 전황을 가른다. 이기면 영웅, 지면 거의 죽는다", slots: [1, 1], days: [7, 7], minCA: 120, pay: 5000, risk: 0 },
-  levy: { name: "징발령", desc: "조국이 루두스에 검투사를 내놓으라 한다. 보수는 적고, 거부하면 대가가 크다", slots: [2, 2], days: [28, 28], minCA: 30, pay: 450, risk: 0.06 },
+  escort: { name: "호위", desc: "보급 행렬과 귀족을 지킵니다. 위험이 낮습니다", slots: [1, 2], days: [14, 21], minCA: 40, pay: 400, risk: 0.02 },
+  front: { name: "전선 파견", desc: "군단과 함께 전선에 섭니다", slots: [3, 5], days: [28, 42], minCA: 60, pay: 900, risk: 0.08 },
+  siege: { name: "공성전", desc: "성벽을 오릅니다. 죽기 쉽지만 보수가 큽니다", slots: [3, 6], days: [21, 21], minCA: 70, pay: 1400, risk: 0.15 },
+  raid: { name: "정찰·암습", desc: "적진에 숨어들어 지휘관을 노립니다", slots: [1, 2], days: [14, 14], minCA: 55, pay: 1100, risk: 0.1 },
+  duel: { name: "대리 결투", desc: "양국 대표가 1:1 사투로 전황을 가릅니다. 이기면 영웅, 지면 거의 죽습니다", slots: [1, 1], days: [7, 7], minCA: 120, pay: 5000, risk: 0 },
+  levy: { name: "징발령", desc: "조국이 루두스에 검투사를 내놓으라 합니다. 보수는 적고, 거부하면 대가가 큽니다", slots: [2, 2], days: [28, 28], minCA: 30, pay: 450, risk: 0.06 },
 };
 
 export const relation = (s: GameState, a: NationId, b: NationId) => s.relations[a]?.[b] ?? 0;
@@ -83,7 +83,7 @@ export function dailyWar(s: GameState, rng: Rng): void {
         // 징발령을 무시하면 조국이 등을 돌린다
         addFavor(s, c.employer, -30);
         s.ludi[s.playerLudusId].rp -= 50;
-        pushMessage(s, { kind: "warning", title: "징발령을 거부했다", body: `${josa(getNation(c.employer).name, "이/가")} 분노했다. 호감도 -30, RP -50. 사람들은 우리를 매국 루두스라 부른다.` });
+        pushMessage(s, { kind: "warning", title: "징발령을 거부했습니다", body: `${josa(getNation(c.employer).name, "이/가")} 분노했습니다. 호감도 -30, RP -50. 사람들은 우리를 매국 루두스라 부릅니다.` });
       }
     }
     if (c.status !== "active") continue;
@@ -100,8 +100,8 @@ function startWar(s: GameState, rng: Rng, a: NationId, b: NationId): void {
   pushMessage(s, {
     kind: "warning",
     title: `전쟁: ${na.short} ↔ ${nb.short}`,
-    body: `${josa(na.name, "과/와")} ${nb.name} 사이에 전쟁이 터졌다. 양국이 루두스마다 용병을 구하러 다닌다.\n대륙 정세 → 전쟁·용병에서 의뢰를 볼 수 있다.` +
-      (ours ? "\n\n조국이 전쟁에 휘말렸다. 적국의 의뢰는 받을 수 없고, 징발령이 내려올 수 있다." : ""),
+    body: `${josa(na.name, "과/와")} ${nb.name} 사이에 전쟁이 터졌습니다. 양국이 루두스마다 용병을 구하러 다닙니다.\n대륙 정세 → 전쟁·용병에서 의뢰를 볼 수 있습니다.` +
+      (ours ? "\n\n조국이 전쟁에 휘말렸습니다. 적국의 의뢰는 받을 수 없고, 징발령이 내려올 수 있습니다." : ""),
   });
   postContracts(s, rng, w);
   // 조국이 참전하면 1부 상위 루두스에 징발령
@@ -138,8 +138,8 @@ function postContracts(s: GameState, rng: Rng, w: War): void {
 
 /** 의뢰를 받을 수 있는가 (조국의 적국 의뢰 금지) */
 export function canTake(s: GameState, c: Contract): string | null {
-  if (c.status !== "open") return "이미 마감됐다";
-  if (c.enemy === s.nation) return "조국을 치는 의뢰는 받을 수 없다";
+  if (c.status !== "open") return "이미 마감됐습니다";
+  if (c.enemy === s.nation) return "조국을 치는 의뢰는 받을 수 없습니다";
   return null;
 }
 
@@ -149,17 +149,17 @@ export function eligible(s: GameState, g: Gladiator, c: Contract): string | null
   if (g.deployment) return "이미 파견 중";
   if (g.injury?.severity === "serious") return "중상";
   if (computeCA(g) < c.minCA) return `능력 부족 (CA ${c.minCA} 필요)`;
-  if (s.challenges.some((x) => x.status === "scheduled" && (x.fromGladiator === g.id || x.toGladiator === g.id))) return "경기가 잡혀 있다";
+  if (s.challenges.some((x) => x.status === "scheduled" && (x.fromGladiator === g.id || x.toGladiator === g.id))) return "경기가 잡혀 있습니다";
   return null;
 }
 
 /** 의뢰 수락: 선금 30%, 파견 기간 주급은 고용국이 낸다 */
 export function takeContract(s: GameState, contractId: string, ids: string[]): string | null {
   const c = s.contracts.find((x) => x.id === contractId);
-  if (!c) return "의뢰가 없다";
+  if (!c) return "의뢰가 없습니다";
   const no = canTake(s, c);
   if (no) return no;
-  if (!ids.length || ids.length > c.slots) return `1~${c.slots}명을 보내라`;
+  if (!ids.length || ids.length > c.slots) return `1~${c.slots}명을 보내십시오`;
   for (const id of ids) {
     const why = eligible(s, s.gladiators[id], c);
     if (why) return `${s.gladiators[id].name}: ${why}`;
@@ -172,7 +172,7 @@ export function takeContract(s: GameState, contractId: string, ids: string[]): s
   for (const id of ids) {
     const g = s.gladiators[id];
     g.deployment = { contractId: c.id, until: c.endsAt };
-    logCareer(s, g, `${getNation(c.employer).short}의 ${CONTRACT_TYPES[c.type].name} 의뢰로 전장에 나갔다`, "other");
+    logCareer(s, g, `${getNation(c.employer).short}의 ${CONTRACT_TYPES[c.type].name} 의뢰로 전장에 나갔습니다`, "other");
     // 노예는 끌려가니 사기가 떨어진다
     if (g.status === "slave") g.morale = Math.max(0, g.morale - 10);
   }
@@ -205,8 +205,8 @@ function weeklyResolve(s: GameState, rng: Rng, c: Contract): void {
       me.gladiators = me.gladiators.filter((x) => x !== id);
       s.fallen.push(id);
       c.assigned = c.assigned.filter((x) => x !== id);
-      logCareer(s, g, "전장에서 쓰러져 돌아오지 못했다", "death");
-      lines.push(`${josa(g.name, "이/가")} 전사했다.`);
+      logCareer(s, g, "전장에서 쓰러져 돌아오지 못했습니다", "death");
+      lines.push(`${josa(g.name, "이/가")} 전사했습니다.`);
       for (const other of me.gladiators) s.gladiators[other].morale = Math.max(0, s.gladiators[other].morale - 5);
     } else if (roll < death + 0.12) {
       g.injury = makeInjury(rng, rng.chance(0.3) ? "moderate" : "minor", rng.pick(["arm", "leg", "torso", "head"] as const));
@@ -214,7 +214,7 @@ function weeklyResolve(s: GameState, rng: Rng, c: Contract): void {
       lines.push(`${g.name}: ${g.injury.desc}`);
     } else if (rng.chance(0.25 + margin)) {
       c.merit++;
-      lines.push(`${g.name}: 전공을 세웠다`);
+      lines.push(`${g.name}: 전공을 세웠습니다`);
       if (war) war.front += (war.a === c.employer ? 1 : -1) * 4;
     }
   }
@@ -236,18 +236,18 @@ function finishContract(s: GameState, rng: Rng, c: Contract): void {
         if (war) war.front += (war.a === c.employer ? 1 : -1) * 40;
         addTrait(champ, "war_hero");
         champ.popularity = Math.min(100, champ.popularity + 15);
-        logCareer(s, champ, `대리 결투에서 ${josa(foe.name, "을/를")} 꺾고 영웅이 됐다`, "milestone");
+        logCareer(s, champ, `대리 결투에서 ${josa(foe.name, "을/를")} 꺾고 영웅이 됐습니다`, "milestone");
         addFavor(s, c.employer, 25);
         addFavor(s, c.enemy, -25);
-        pushMessage(s, { kind: "match", title: `대리 결투 승리: ${champ.name}`, body: `${josa(champ.name, "이/가")} ${josa(foe.name, "을/를")} 쓰러뜨렸다. 전황이 크게 기울었다.` });
+        pushMessage(s, { kind: "match", title: `대리 결투 승리: ${champ.name}`, body: `${josa(champ.name, "이/가")} ${josa(foe.name, "을/를")} 쓰러뜨렸습니다. 전황이 크게 기울었습니다.` });
       } else if (r.died) {
         champ.alive = false;
         champ.diedAt = { season: s.season, day: s.day, cause: `대리 결투에서 ${foe.name}에게 패배` };
         me.gladiators = me.gladiators.filter((x) => x !== champ.id);
         s.fallen.push(champ.id);
         c.assigned = [];
-        logCareer(s, champ, `대리 결투에서 ${foe.name}에게 졌다`, "death");
-        pushMessage(s, { kind: "death", title: `대리 결투 패배: ${champ.name}`, body: `${josa(champ.name, "이/가")} 돌아오지 못했다.` });
+        logCareer(s, champ, `대리 결투에서 ${foe.name}에게 졌습니다`, "death");
+        pushMessage(s, { kind: "death", title: `대리 결투 패배: ${champ.name}`, body: `${josa(champ.name, "이/가")} 돌아오지 못했습니다.` });
       }
     }
   }
@@ -260,7 +260,7 @@ function finishContract(s: GameState, rng: Rng, c: Contract): void {
     const g = s.gladiators[id];
     g.deployment = undefined;
     if (c.merit >= 3 && rng.chance(0.3)) addTrait(g, "war_hero");
-    logCareer(s, g, `${getNation(c.employer).short}의 전장에서 돌아왔다`, "other");
+    logCareer(s, g, `${getNation(c.employer).short}의 전장에서 돌아왔습니다`, "other");
   }
   if (c.type !== "levy") addFavor(s, c.employer, 10);
   pushMessage(s, {
@@ -285,7 +285,7 @@ function endWar(s: GameState, rng: Rng, w: War): void {
   pushMessage(s, {
     kind: "info",
     title: `종전: ${getNation(w.winner).short} 승리`,
-    body: `${josa(getNation(w.winner).name, "이/가")} ${josa(getNation(loser).name, "을/를")} 꺾었다. ${loser !== s.nation ? "곧 포로들이 무소속 명단에 헐값으로 나온다." : "조국이 졌다. 다음 시즌 살림이 빠듯해질 것이다."}`,
+    body: `${josa(getNation(w.winner).name, "이/가")} ${josa(getNation(loser).name, "을/를")} 꺾었습니다. ${loser !== s.nation ? "곧 포로들이 무소속 명단에 헐값으로 나옵니다." : "조국이 졌습니다. 다음 시즌 살림이 빠듯해질 것입니다."}`,
   });
   void rng;
 }

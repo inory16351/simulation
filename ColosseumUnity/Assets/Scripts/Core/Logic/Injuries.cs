@@ -35,7 +35,7 @@ namespace Colosseum.Core
             if (inj == null || !rng.Chance(0.3)) return;
             inj.daysLeft = JsMath.Round(inj.daysLeft * 1.6 + 3);
             inj.total = Math.Max(inj.total ?? 0, inj.daysLeft);
-            Career.LogCareer(state, g, $"부상({inj.desc})을 안고 싸우다 상처가 덧났다", "injury");
+            Career.LogCareer(state, g, $"부상({inj.desc})을 안고 싸우다 상처가 덧났습니다", "injury");
         }
 
         /// <summary>부상이 다 나을 때: 영구 손상 판정. 의무실 단계와 메디쿠스 실력이 확률을 낮춘다.</summary>
@@ -63,11 +63,11 @@ namespace Colosseum.Core
                 parts.Add(Data.Trait(def.perm.trait)?.name ?? def.perm.trait);
             }
             Career.SeasonRecord(state, g);
-            Career.LogCareer(state, g, $"{def.name}의 후유증이 남았다 ({string.Join(", ", parts)})", "injury");
+            Career.LogCareer(state, g, $"{def.name}의 후유증이 남았습니다 ({string.Join(", ", parts)})", "injury");
             if (mine)
             {
-                string tail = !string.IsNullOrEmpty(def.perm.trait) ? $"새 특성: 「{Data.Trait(def.perm.trait)?.name ?? "undefined"}」" : "능력치가 영구히 떨어졌다.";
-                StateUtil.PushMessage(state, "warning", $"{g.name}: 영구 손상", $"{g.name}의 부상({def.name})은 나았지만 후유증이 남았다.\n{tail}");
+                string tail = !string.IsNullOrEmpty(def.perm.trait) ? $"새 특성: 「{Data.Trait(def.perm.trait)?.name ?? "undefined"}」" : "능력치가 영구히 떨어졌습니다.";
+                StateUtil.PushMessage(state, "warning", $"{g.name}: 부상 후유증", $"{g.name}의 부상({def.name})은 나았지만 후유증이 남았습니다.\n{tail}");
             }
         }
 

@@ -1,6 +1,6 @@
 [
   {
-    "id": "murmillo", "name": "무르밀로", "desc": "중장 검사. 버티고 받아친다",
+    "id": "murmillo", "name": "무르밀로", "desc": "중장 검사. 버티고 받아칩니다",
     "weights": { "tou": 3, "blk": 3, "str": 2, "end": 1, "grit": 1 },
     "loadout": { "main": "gladius", "off": "scutum", "armor": "muscle_cuirass", "helmet": "brimmed_helm" },
     "profs": ["sword", "shield"], "preferredRange": 0, "aggression": 0.45,
@@ -8,7 +8,7 @@
     "skills": ["skill.power_strike", "skill.iron_wall", "skill.shield_bash"]
   },
   {
-    "id": "secutor", "name": "세쿠토르", "desc": "추격자. 쫓아가서 몰아붙인다",
+    "id": "secutor", "name": "세쿠토르", "desc": "추격자. 쫓아가서 몰아붙입니다",
     "weights": { "end": 3, "str": 2, "blk": 2, "tou": 2, "grit": 1 },
     "loadout": { "main": "gladius", "off": "scutum", "armor": "chainmail", "helmet": "sealed_helm" },
     "profs": ["sword", "shield"], "preferredRange": 0, "aggression": 0.6,
@@ -16,7 +16,7 @@
     "skills": ["skill.charge", "skill.power_strike", "skill.shield_bash"]
   },
   {
-    "id": "retiarius", "name": "레티아리우스", "desc": "그물투사. 거리를 벌리고 묶는다",
+    "id": "retiarius", "name": "레티아리우스", "desc": "그물투사. 거리를 벌리고 묶습니다",
     "weights": { "agi": 3, "grp": 2, "acc": 2, "eva": 2, "rea": 1 },
     "loadout": { "main": "trident", "off": "net", "armor": "leather", "helmet": null },
     "profs": ["trident_net", "dagger"], "preferredRange": 1, "aggression": 0.5,
@@ -24,7 +24,7 @@
     "skills": ["skill.net_throw", "skill.pierce", "skill.disengage"]
   },
   {
-    "id": "thraex", "name": "트라키아", "desc": "곡검사. 방패 너머를 찌른다",
+    "id": "thraex", "name": "트라키아", "desc": "곡검사. 방패 너머를 찌릅니다",
     "weights": { "agi": 3, "acc": 3, "rea": 2, "eva": 1, "blk": 1 },
     "loadout": { "main": "sica", "off": "parmula", "armor": "leather", "helmet": "crested_helm" },
     "profs": ["sword", "shield"], "preferredRange": 0, "aggression": 0.55,
@@ -32,7 +32,7 @@
     "skills": ["skill.flurry", "skill.parry", "skill.riposte"]
   },
   {
-    "id": "hoplomachus", "name": "호플로마쿠스", "desc": "창과 방패. 중거리에서 견제한다",
+    "id": "hoplomachus", "name": "호플로마쿠스", "desc": "창과 방패. 중거리에서 견제합니다",
     "weights": { "rea": 3, "blk": 2, "acc": 2, "end": 1, "tou": 1 },
     "loadout": { "main": "hasta", "off": "aspis", "armor": "chainmail", "helmet": "brimmed_helm" },
     "profs": ["spear", "shield"], "preferredRange": 1, "aggression": 0.45,
@@ -40,7 +40,7 @@
     "skills": ["skill.pierce", "skill.iron_wall", "skill.disengage"]
   },
   {
-    "id": "dimachaerus", "name": "디마카이루스", "desc": "쌍검. 쉴 새 없이 몰아친다",
+    "id": "dimachaerus", "name": "디마카이루스", "desc": "쌍검. 쉴 새 없이 몰아칩니다",
     "weights": { "agi": 3, "agg": 2, "acc": 2, "end": 1, "rea": 1 },
     "loadout": { "main": "gladius", "off": "gladius", "armor": "leather", "helmet": "open_helm" },
     "profs": ["sword", "dagger"], "preferredRange": 0, "aggression": 0.75,
@@ -48,7 +48,7 @@
     "skills": ["skill.flurry", "skill.parry", "skill.power_strike"]
   },
   {
-    "id": "pankratiast", "name": "판크라티아스트", "desc": "격투가. 붙잡고 넘어뜨린다",
+    "id": "pankratiast", "name": "판크라티아스트", "desc": "격투가. 붙잡고 넘어뜨립니다",
     "weights": { "grp": 3, "str": 2, "rea": 2, "tou": 1, "grit": 1 },
     "loadout": { "main": "cestus", "off": null, "armor": "loincloth", "helmet": null },
     "profs": ["unarmed"], "preferredRange": 0, "aggression": 0.65,
@@ -64,7 +64,7 @@
     "skills": ["skill.javelin", "skill.pierce", "skill.disengage"]
   },
   {
-    "id": "crusher", "name": "파쇄자", "desc": "양손 무기. 한 방에 끝낸다",
+    "id": "crusher", "name": "파쇄자", "desc": "양손 무기. 한 방에 끝냅니다",
     "weights": { "str": 4, "end": 2, "tou": 1, "agg": 1 },
     "loadout": { "main": "greataxe", "off": null, "armor": "chainmail", "helmet": "brimmed_helm" },
     "profs": ["axe", "greatsword", "mace"], "preferredRange": 0, "aggression": 0.7,
@@ -72,7 +72,7 @@
     "skills": ["skill.power_strike", "skill.armor_break", "skill.execute"]
   },
   {
-    "id": "runeblade", "name": "룬블레이드", "desc": "마검사. 무기에 주술을 싣는다",
+    "id": "runeblade", "name": "룬블레이드", "desc": "마검사. 무기에 주술을 싣습니다",
     "weights": { "mag": 3, "acc": 2, "agi": 2, "comp": 1 },
     "loadout": { "main": "longsword", "off": "rune_charm", "armor": "scale", "helmet": "open_helm" },
     "profs": ["sword", "focus"], "preferredRange": 0, "aggression": 0.55,
@@ -80,7 +80,7 @@
     "skills": ["skill.flame_weapon", "skill.ward_rune", "skill.power_strike"]
   },
   {
-    "id": "sorcerer", "name": "주술투사", "desc": "저주를 걸고 멀리서 주술을 쏜다",
+    "id": "sorcerer", "name": "주술투사", "desc": "저주를 걸고 멀리서 주술을 쏩니다",
     "weights": { "mag": 4, "comp": 2, "dec": 2 },
     "loadout": { "main": "staff", "off": null, "armor": "leather", "helmet": null },
     "profs": ["focus", "dagger"], "preferredRange": 1, "aggression": 0.5,

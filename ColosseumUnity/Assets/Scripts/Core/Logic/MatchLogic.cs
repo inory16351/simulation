@@ -121,8 +121,8 @@ namespace Colosseum.Core
                 dead.diedAt = new DiedAt { season = state.season, day = state.day, cause = $"{w.name}에게 패배" };
                 w.record.kills++;
                 Career.SeasonRecord(state, w).kills++;
-                Career.LogCareer(state, w, $"{ruleName}에서 {dead.name}의 목숨을 거뒀다", "milestone");
-                Career.LogCareer(state, dead, $"{ruleName}에서 {w.name}에게 패해 모래 위에서 죽었다", "death");
+                Career.LogCareer(state, w, $"{ruleName}에서 {dead.name}의 목숨을 거뒀습니다", "milestone");
+                Career.LogCareer(state, dead, $"{ruleName}에서 {w.name}에게 패해 모래 위에서 죽었습니다", "death");
                 // 사투에서 우리 검투사가 적을 죽이면 그 장비를 거둔다
                 if (opt.rule == "sudden" && wl?.isPlayer == true && !(ll?.isPlayer == true)) GearLogic.LootFallen(state, w, dead);
                 var home = Career.LudusOf(state, dead.id);
@@ -153,7 +153,7 @@ namespace Colosseum.Core
                         l.popularity = Math.Max(0, l.popularity - 10);
                         ll.rp -= 5;
                         summary.rpChange[ll.id] -= 5;
-                        Career.LogCareer(state, l, "항복했다. 사람들이 등을 돌린다", "other");
+                        Career.LogCareer(state, l, "항복했습니다. 사람들이 등을 돌립니다", "other");
                     }
                 }
             }
@@ -206,7 +206,7 @@ namespace Colosseum.Core
         static void Milestones(GameState state, Gladiator w)
         {
             int wins = w.record.wins;
-            if (wins == 1) Career.LogCareer(state, w, "첫 승리를 거뒀다", "milestone");
+            if (wins == 1) Career.LogCareer(state, w, "첫 승리를 거뒀습니다", "milestone");
             else if (wins % 10 == 0) Career.LogCareer(state, w, $"통산 {wins}승", "milestone");
         }
     }

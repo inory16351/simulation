@@ -48,7 +48,7 @@ namespace Colosseum.Core
         {
             var sc = ScoutingOf(s);
             if (sc.assignments.Contains(id)) return null;
-            if (sc.assignments.Count >= ScoutSlots(s)) return $"정찰은 동시에 {Num(ScoutSlots(s))}명까지 맡길 수 있다";
+            if (sc.assignments.Count >= ScoutSlots(s)) return $"정찰은 동시에 {Num(ScoutSlots(s))}명까지 맡길 수 있습니다";
             sc.assignments.Add(id);
             return null;
         }
@@ -72,7 +72,7 @@ namespace Colosseum.Core
                 if (sc.knowledge[id] >= 100)
                 {
                     UnassignScout(s, id);
-                    Msg(s, "info", $"정찰 보고서: {g.name}", $"{g.name} 정찰이 끝났다. 이제 능력과 잠재력이 꽤 정확히 보인다.");
+                    Msg(s, "info", $"정찰 보고서: {g.name}", $"{g.name} 정찰이 끝났습니다. 이제 능력과 잠재력이 꽤 정확히 보입니다.");
                 }
             }
         }

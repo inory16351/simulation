@@ -126,8 +126,8 @@ namespace Colosseum.UI
 
             // 우리 루두스
             var mine = cup?.ties.Where(t => t.home == player.id || t.away == player.id).ToList() ?? new List<CupTie>();
-            string hint = cup == null || cup.season != S.season ? $"이번 시즌 조 추첨은 {Calendar.DateLabel(CupConst.DrawDay)}에 한다. 그날 자기 나라 1부 순위가 출전권 안에 들어야 나간다."
-                : !cup.teams.Contains(player.id) ? "이번 시즌에는 출전권이 없다. 1부에 올라 상위권에 들어야 한다." : null;
+            string hint = cup == null || cup.season != S.season ? $"이번 시즌 조 추첨은 {Calendar.DateLabel(CupConst.DrawDay)}에 합니다. 그날까지 우리 나라 1부에서 출전권 순위 안에 들어야 나갈 수 있습니다."
+                : !cup.teams.Contains(player.id) ? "이번 시즌에는 출전권이 없습니다. 1부에 올라 상위권에 들어야 합니다." : null;
             ourHint.gameObject.SetActive(hint != null);
             ourHint.text = hint ?? "";
             ourRows.Sync(hint == null ? mine.Count : 0, (row, i) =>

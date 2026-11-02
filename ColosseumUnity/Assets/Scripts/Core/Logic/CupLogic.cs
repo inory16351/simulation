@@ -224,7 +224,7 @@ namespace Colosseum.Core
         {
             var cup = state.cup;
             var tie = cup?.ties.FirstOrDefault(t => t.id == tieId);
-            if (cup == null || tie == null) return new PlayedTie { error = "그런 경기가 없다" };
+            if (cup == null || tie == null) return new PlayedTie { error = "그런 경기가 없습니다" };
             if (Truthy(tie.winner)) return new PlayedTie { error = "이미 치른 경기" };
             var home = state.ludi[tie.home];
             var away = state.ludi[tie.away];
@@ -253,7 +253,7 @@ namespace Colosseum.Core
                 {
                     kind = "info",
                     title = $"판테온 컵 우승: {w.name}",
-                    body = $"{Data.Nation(w.nation).name}의 {Josa.J(w.name, "이/가")} 결승에서 {Josa.J(l.name, "을/를")} 꺾고 판테온 컵을 들어 올렸다 ({N(series.score.Max())}:{N(series.score.Min())}).",
+                    body = $"{Data.Nation(w.nation).name}의 {Josa.J(w.name, "이/가")} 결승에서 {Josa.J(l.name, "을/를")} 꺾고 판테온 컵을 들어 올렸습니다 ({N(series.score.Max())}:{N(series.score.Min())}).",
                 });
             }
             string me = state.playerLudusId;
@@ -267,7 +267,7 @@ namespace Colosseum.Core
                     title = $"판테온 컵 {StageNames[tie.stage]}: {(won ? "승리" : "패배")}",
                     body = $"상대 {opp.name}({Data.Nation(opp.nation).name}) · {N(series.score[home.id == me ? 0 : 1])}:{N(series.score[home.id == me ? 1 : 0])}" +
                         $"\n수입 {N0(summary.money.TryGetValue(me, out var mm) ? mm : 0)} D (세전)" +
-                        (tie.stage != "group" && !won ? "\n여기서 탈락했다." : ""),
+                        (tie.stage != "group" && !won ? "\n여기서 탈락했습니다." : ""),
                 });
             }
             AdvanceBracket(state, cup);
@@ -291,10 +291,10 @@ namespace Colosseum.Core
                 StateUtil.PushMessage(state, new InboxMessage
                 {
                     kind = "info",
-                    title = mine ? "판테온 컵에 나간다!" : "판테온 컵 조 추첨",
-                    body = (mine ? $"우리 루두스가 판테온 컵 출전권을 얻었다. 출전 수당 {N0(CupConst.Prize.Entry)} D가 들어왔다.\n" : "") +
-                        $"여섯 나라 1부 상위 16곳이 네 조로 나뉘었다. 조별 리그는 {CupConst.GroupDays.Length}라운드, 상위 두 팀이 8강에 오른다." +
-                        "\n대결마다 세 명씩 나와 미시오로 한 판씩 붙고, 두 판을 먼저 따면 이긴다.",
+                    title = mine ? "판테온 컵에 나갑니다!" : "판테온 컵 조 추첨",
+                    body = (mine ? $"우리 루두스가 판테온 컵 출전권을 얻었습니다. 출전 수당 {N0(CupConst.Prize.Entry)} D가 들어왔습니다.\n" : "") +
+                        $"여섯 나라 1부 상위 16곳이 네 조로 나뉘었습니다. 조별 리그는 {CupConst.GroupDays.Length}라운드, 상위 두 팀이 8강에 오릅니다." +
+                        "\n대결마다 세 명씩 나와 미시오로 한 판씩 붙고, 두 판을 먼저 따면 이깁니다.",
                 });
             }
             var cup = state.cup;

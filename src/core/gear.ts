@@ -68,35 +68,35 @@ export function cannotEquip(g: Gladiator, slot: Slot, id: string): string | null
   const a = getArmor(id);
   switch (slot) {
     case "main":
-      if (!w) return "무기가 아니다";
-      if (w.offhandOnly) return "보조 손 전용이다";
+      if (!w) return "무기가 아닙니다";
+      if (w.offhandOnly) return "보조 무기로만 쓸 수 있습니다";
       return null;
     case "off": {
-      if (getWeapon(g.equipment.main)?.twoHanded) return "양손 무기를 들고 있다";
+      if (getWeapon(g.equipment.main)?.twoHanded) return "양손 무기를 들고 있습니다";
       if (a?.slot === "shield") return null;
       if (w && (w.offhandOnly || w.class === "dagger")) return null;
-      return "방패나 보조 무기만 된다";
+      return "방패나 보조 무기만 됩니다";
     }
     case "armor":
-      if (a?.slot !== "armor") return "갑옷이 아니다";
-      if (g.race === "minotaur" && a.weight === "light") return "미노타우로스 몸에 맞지 않는다";
+      if (a?.slot !== "armor") return "갑옷이 아닙니다";
+      if (g.race === "minotaur" && a.weight === "light") return "미노타우로스 몸에 맞지 않습니다";
       return null;
     case "helmet":
-      return a?.slot === "helmet" ? null : "투구가 아니다";
+      return a?.slot === "helmet" ? null : "투구가 아닙니다";
   }
 }
 
 /** 장비 착용: 창고에서 꺼내 끼고, 원래 것은 창고로. item이 null이면 벗기만 한다 */
 export function equipItem(s: GameState, gId: Id, slot: Slot, item: string | null): string | null {
   const g = s.gladiators[gId];
-  if (!g?.alive) return "검투사가 없다";
-  if (g.deployment) return "파견 중이라 장비를 바꿀 수 없다";
+  if (!g?.alive) return "검투사가 없습니다";
+  if (g.deployment) return "파견 중이라 장비를 바꿀 수 없습니다";
   const armory = armoryOf(s);
   if (item !== null) {
     const why = cannotEquip(g, slot, item);
     if (why) return why;
     const at = armory.indexOf(item);
-    if (at < 0) return "창고에 없는 장비다";
+    if (at < 0) return "창고에 없는 장비입니다";
     armory.splice(at, 1);
   }
   const stash = (old: string | null) => { if (old && !BASIC.has(old)) armory.push(old); };
@@ -116,7 +116,7 @@ export function equipItem(s: GameState, gId: Id, slot: Slot, item: string | null
 export function sellItem(s: GameState, item: string): string | null {
   const armory = armoryOf(s);
   const at = armory.indexOf(item);
-  if (at < 0) return "창고에 없다";
+  if (at < 0) return "창고에 없습니다";
   armory.splice(at, 1);
   addMoney(s, s.ludi[s.playerLudusId], Math.round(itemPrice(item) * 0.35), `${itemName(item)} 판매`);
   return null;
@@ -127,9 +127,9 @@ export const gearMarketOf = (s: GameState) => (s.gearMarket ??= []);
 export function buyListing(s: GameState, listingId: Id): string | null {
   const market = gearMarketOf(s);
   const l = market.find((x) => x.id === listingId);
-  if (!l) return "이미 팔린 매물이다";
+  if (!l) return "이미 팔린 매물입니다";
   const me = s.ludi[s.playerLudusId];
-  if (me.treasury < l.price) return "금고가 모자란다";
+  if (me.treasury < l.price) return "금고에 돈이 모자랍니다";
   addMoney(s, me, -l.price, `${itemName(l.item)} 구입 (${l.seller})`);
   armoryOf(s).push(l.item);
   s.gearMarket = market.filter((x) => x !== l);
@@ -178,7 +178,7 @@ export function lootFallen(s: GameState, killer: Gladiator, dead: Gladiator): st
   pushMessage(s, {
     kind: "info",
     title: `전리품: ${dead.name}의 장비`,
-    body: `${josa(killer.name, "이/가")} 쓰러뜨린 ${dead.name}의 장비를 거뒀다.\n${got.map(itemName).join(", ")}\n\n막사 → 검투사 화면에서 착용하거나, 이적 시장 → 창고에서 팔 수 있다.`,
+    body: `${josa(killer.name, "이/가")} 쓰러뜨린 ${dead.name}의 장비를 거뒀습니다.\n${got.map(itemName).join(", ")}\n\n막사 → 검투사 화면에서 착용하거나, 이적 시장 → 창고에서 팔 수 있습니다.`,
   });
   return got;
 }

@@ -26,13 +26,13 @@ namespace Colosseum.EditorTools
             var sub = content.Find("Sub").GetComponent<TMP_Text>();
 
             // 나라의 토벌 의뢰
-            var qp = TitledPanel("Quests", content, "나라의 토벌 의뢰 — 아주 어렵다", 6);
+            var qp = TitledPanel("Quests", content, "나라의 토벌 의뢰 — 아주 어렵습니다", 6);
             var quest = Card("QuestTemplate", qp, QuestLine, new Color(0, 0, 0, 0), 2, true);
             var qinfo = Rect("Info", quest.transform).Layout(minW: 0, flexW: 1);
             VCol(qinfo, 2);
             Text("Title", qinfo, "", 15, Theme.Parchment, false, FontStyles.Bold);
             Text("Hint", qinfo, "", 13, Theme.TextDim);
-            Button("Pick", quest.transform, "이 의뢰로 꾸리기", true, 14).Layout(minW: 150, prefW: 150, prefH: 32, flexW: 0);
+            Button("Pick", quest.transform, "이 의뢰 맡기", true, 14).Layout(minW: 150, prefW: 150, prefH: 32, flexW: 0);
             quest.gameObject.SetActive(false);
 
             // 던전 카드
@@ -52,7 +52,7 @@ namespace Colosseum.EditorTools
             HRow(cols, 14, 0, 0, 0, 0, TextAnchor.UpperLeft);
             var partyPad = TitledPanel("Party", cols, "원정대", 0);
             partyPad.parent.Layout(minW: 0, prefW: 0, flexW: 1);
-            var partyEmpty = Text("Empty", partyPad, "보낼 검투사가 없다.", 14, Theme.TextDim).Layout(prefH: 36);
+            var partyEmpty = Text("Empty", partyPad, "보낼 검투사가 없습니다.", 14, Theme.TextDim).Layout(prefH: 36);
             var prow = Box("RowTemplate", partyPad, new Color(0, 0, 0, 0)).Layout(minH: 38, prefH: 38);
             prow.gameObject.AddComponent<Button>().targetGraphic = prow;
             prow.gameObject.AddComponent<CanvasGroup>();

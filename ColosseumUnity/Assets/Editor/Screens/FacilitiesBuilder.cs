@@ -83,7 +83,7 @@ namespace Colosseum.EditorTools
             Text("Next", pad, "", 14, Theme.TextDim);
             var br = Rect("Buttons", pad);
             HRow(br, 8);
-            Button("Upgrade", br, "건설", true, 14).Layout(minW: 240, prefW: 240, prefH: 32, flexW: 0);
+            Button("Upgrade", br, "짓기", true, 14).Layout(minW: 240, prefW: 240, prefH: 32, flexW: 0);
             Text("Max", br, "최고 단계", 13, Theme.Text);
             return pad;
         }

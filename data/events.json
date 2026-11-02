@@ -4,11 +4,11 @@
     "scope": "ludus",
     "grade": "luck",
     "weight": 3,
-    "title": "익명의 후원자",
-    "text": "아침에 문 앞에 묵직한 돈주머니가 놓여 있었다. 쪽지 한 장 없이.",
+    "title": "이름 모를 후원자",
+    "text": "아침에 나가 보니 문 앞에 묵직한 돈주머니가 놓여 있었습니다. 쪽지 한 장도 없습니다.",
     "choices": [
       {
-        "label": "받는다",
+        "label": "받기",
         "effects": [
           {
             "type": "gold",
@@ -18,7 +18,7 @@
         ]
       },
       {
-        "label": "신전에 바친다",
+        "label": "신전에 바치기",
         "effects": [
           {
             "type": "moraleAll",
@@ -34,10 +34,10 @@
     "grade": "opportunity",
     "weight": 3,
     "title": "떠돌이 무기상",
-    "text": "무기상이 남은 물건을 헐값에 넘기겠단다. 칼날은 무뎌도 쓸 만하다.",
+    "text": "무기상이 남은 물건을 헐값에 넘기겠다고 합니다. 칼날은 무뎌도 쓸 만합니다.",
     "choices": [
       {
-        "label": "산다 (400 D)",
+        "label": "사기 (400 D)",
         "cost": 400,
         "effects": [
           {
@@ -59,7 +59,7 @@
         ]
       },
       {
-        "label": "돌려보낸다",
+        "label": "돌려보내기",
         "effects": []
       }
     ]
@@ -70,10 +70,10 @@
     "grade": "opportunity",
     "weight": 2,
     "title": "떠돌이 고수",
-    "text": "낡은 망토를 두른 노인이 문 앞에 섰다. 손바닥 굳은살이 예사롭지 않다. 하루만 가르쳐 줄 수 있다고 한다.",
+    "text": "낡은 망토를 두른 노인이 문 앞에 섰습니다. 손바닥 굳은살이 예사롭지 않습니다. 하루만 가르쳐 줄 수 있다고 합니다.",
     "choices": [
       {
-        "label": "가장 어린 검투사를 맡긴다 (300 D)",
+        "label": "가장 어린 검투사 맡기기 (300 D)",
         "cost": 300,
         "effects": [
           {
@@ -88,7 +88,7 @@
         ]
       },
       {
-        "label": "돌려보낸다",
+        "label": "돌려보내기",
         "effects": []
       }
     ]
@@ -99,10 +99,10 @@
     "grade": "opportunity",
     "weight": 3,
     "title": "유랑 극단의 제안",
-    "text": "광장 공연에 검투사 하나를 빌려 달란다. 칼 쓰는 시늉만 하면 된다고.",
+    "text": "광장 공연에 검투사 하나를 빌려 달라고 합니다. 칼 쓰는 시늉만 하면 된다고 합니다.",
     "choices": [
       {
-        "label": "빌려준다",
+        "label": "빌려주기",
         "effects": [
           {
             "type": "gold",
@@ -121,7 +121,7 @@
         ]
       },
       {
-        "label": "거절한다",
+        "label": "거절하기",
         "effects": []
       }
     ]
@@ -132,10 +132,10 @@
     "grade": "opportunity",
     "weight": 2,
     "title": "도박꾼의 귀띔",
-    "text": "투기장 뒷골목 도박꾼이 돈을 걸 만한 정보를 판다. 믿을 만한지는 모른다.",
+    "text": "투기장 뒷골목 도박꾼이 돈을 걸 만한 정보를 팝니다. 믿을 만한지는 모릅니다.",
     "choices": [
       {
-        "label": "산다 (200 D)",
+        "label": "사기 (200 D)",
         "cost": 200,
         "effects": [
           {
@@ -150,7 +150,7 @@
         ]
       },
       {
-        "label": "무시한다",
+        "label": "무시하기",
         "effects": []
       }
     ]
@@ -160,11 +160,11 @@
     "scope": "ludus",
     "grade": "trial",
     "weight": 2,
-    "title": "막사에 열병이 돈다",
-    "text": "밤새 기침 소리가 끊이지 않았다. 몇 놈은 이미 이마가 불덩이다.",
+    "title": "막사에 열병이 돕니다",
+    "text": "밤새 기침 소리가 끊이지 않았습니다. 몇 놈은 이미 이마가 불덩이입니다.",
     "choices": [
       {
-        "label": "의원을 부른다 (350 D)",
+        "label": "의원 부르기 (350 D)",
         "cost": 350,
         "effects": [
           {
@@ -178,7 +178,7 @@
         ]
       },
       {
-        "label": "격리한다",
+        "label": "격리하기",
         "effects": [
           {
             "type": "injury",
@@ -195,7 +195,7 @@
         ]
       },
       {
-        "label": "버티라고 한다",
+        "label": "버티게 하기",
         "effects": [
           {
             "type": "attr",
@@ -228,11 +228,11 @@
     "scope": "ludus",
     "grade": "trial",
     "weight": 2,
-    "title": "도둑이 들었다",
-    "text": "밤사이 금고 자물쇠가 뜯겨 있었다.",
+    "title": "도둑이 들었습니다",
+    "text": "밤사이 금고 자물쇠가 뜯겨 있었습니다.",
     "choices": [
       {
-        "label": "어쩔 수 없다",
+        "label": "받아들이기",
         "effects": [
           {
             "type": "goldPercent",
@@ -247,11 +247,11 @@
     "scope": "ludus",
     "grade": "trial",
     "weight": 2,
-    "title": "세무관이 찾아왔다",
-    "text": "장부를 보자고 한다. 눈빛이 돈 냄새를 맡은 사냥개 같다.",
+    "title": "세무관이 찾아왔습니다",
+    "text": "장부를 보자고 합니다. 눈빛이 돈 냄새를 맡은 사냥개 같습니다.",
     "choices": [
       {
-        "label": "뇌물을 쥐여 준다 (400 D)",
+        "label": "뇌물 쥐여 주기 (400 D)",
         "cost": 400,
         "effects": [
           {
@@ -261,7 +261,7 @@
         ]
       },
       {
-        "label": "정직하게 장부를 연다",
+        "label": "있는 그대로 장부 보여 주기",
         "effects": [
           {
             "type": "gamble",
@@ -278,11 +278,11 @@
     "scope": "ludus",
     "grade": "trial",
     "weight": 2,
-    "title": "우물이 썩었다",
-    "text": "물에서 비린내가 난다. 이대로면 다들 배탈이 난다.",
+    "title": "우물이 썩었습니다",
+    "text": "물에서 비린내가 납니다. 이대로면 다들 배탈이 납니다.",
     "choices": [
       {
-        "label": "고친다 (300 D)",
+        "label": "고치기 (300 D)",
         "cost": 300,
         "effects": [
           {
@@ -292,7 +292,7 @@
         ]
       },
       {
-        "label": "그냥 마시게 한다",
+        "label": "그냥 마시게 하기",
         "effects": [
           {
             "type": "fatigueAll",
@@ -312,11 +312,11 @@
     "grade": "disaster",
     "weight": 3,
     "condition": "lowMorale",
-    "title": "밤의 비밀 회합",
-    "text": "막사 뒤에서 수군거리는 소리가 들린다. 선동하는 놈이 있다.",
+    "title": "한밤중 비밀 모임",
+    "text": "막사 뒤에서 수군거리는 소리가 들립니다. 선동하는 놈이 있습니다.",
     "choices": [
       {
-        "label": "주동자를 매질한다",
+        "label": "주동자 매질하기",
         "effects": [
           {
             "type": "moraleAll",
@@ -331,7 +331,7 @@
         ]
       },
       {
-        "label": "급료를 올려 주겠다고 약속한다",
+        "label": "급료를 올려 주겠다고 약속하기",
         "effects": [
           {
             "type": "wageRaise",
@@ -344,7 +344,7 @@
         ]
       },
       {
-        "label": "못 들은 척한다",
+        "label": "못 들은 척하기",
         "effects": [
           {
             "type": "moraleAll",
@@ -360,10 +360,10 @@
     "grade": "luck",
     "weight": 4,
     "title": "깨달음",
-    "text": "{name}이(가) 새벽 수련 중에 무언가를 붙잡은 얼굴로 서 있다.",
+    "text": "{name}이(가) 새벽 수련 중에 무언가 깨달은 얼굴로 서 있습니다.",
     "choices": [
       {
-        "label": "좋다",
+        "label": "확인",
         "effects": [
           {
             "type": "growth",
@@ -380,11 +380,11 @@
     "grade": "luck",
     "weight": 1,
     "condition": "growthStage",
-    "title": "잠재력이 터졌다",
-    "text": "{name}의 움직임이 하루아침에 달라졌다. 교관들이 서로 눈을 마주친다.",
+    "title": "잠재력이 터졌습니다",
+    "text": "{name}의 움직임이 하루아침에 달라졌습니다. 교관들이 서로 눈을 마주칩니다.",
     "choices": [
       {
-        "label": "좋다",
+        "label": "확인",
         "effects": [
           {
             "type": "pa",
@@ -403,10 +403,10 @@
     "weight": 2,
     "condition": "popular",
     "title": "귀부인의 선물",
-    "text": "귀족 부인이 {name}에게 비단 주머니를 보냈다. 안에는 금화가 들어 있다.",
+    "text": "귀족 부인이 {name}에게 비단 주머니를 보냈습니다. 안에는 금화가 들어 있습니다.",
     "choices": [
       {
-        "label": "루두스 금고에 넣는다",
+        "label": "루두스 금고에 넣기",
         "effects": [
           {
             "type": "gold",
@@ -420,7 +420,7 @@
         ]
       },
       {
-        "label": "본인이 갖게 한다",
+        "label": "그냥 갖게 두기",
         "effects": [
           {
             "type": "morale",
@@ -442,10 +442,10 @@
     "grade": "opportunity",
     "weight": 3,
     "title": "고향에서 온 편지",
-    "text": "{name}의 가족이 굶고 있다는 소식이 왔다.",
+    "text": "{name}의 가족이 굶고 있다는 소식이 왔습니다.",
     "choices": [
       {
-        "label": "송금해 준다 (200 D)",
+        "label": "돈 보내 주기 (200 D)",
         "cost": 200,
         "effects": [
           {
@@ -465,7 +465,7 @@
         ]
       },
       {
-        "label": "모른 척한다",
+        "label": "모른 척하기",
         "effects": [
           {
             "type": "morale",
@@ -483,10 +483,10 @@
     "weight": 3,
     "condition": "lowDiscipline",
     "title": "술집 난투",
-    "text": "{name}이(가) 밤에 몰래 나가 술집에서 주먹을 휘둘렀다. 경비대가 끌고 왔다.",
+    "text": "{name}이(가) 밤에 몰래 나가 술집에서 주먹을 휘둘렀습니다. 경비대가 끌고 왔습니다.",
     "choices": [
       {
-        "label": "벌금을 내고 벌한다 (200 D)",
+        "label": "벌금 내고 벌도 주기 (200 D)",
         "cost": 200,
         "effects": [
           {
@@ -501,7 +501,7 @@
         ]
       },
       {
-        "label": "벌금만 낸다 (200 D)",
+        "label": "벌금만 내기 (200 D)",
         "cost": 200,
         "effects": [
           {
@@ -517,7 +517,7 @@
         ]
       },
       {
-        "label": "벌금을 못 낸다. 매질로 대신한다",
+        "label": "벌금 대신 매질하기",
         "effects": [
           {
             "type": "injury",
@@ -541,10 +541,10 @@
     "weight": 1,
     "condition": "popular",
     "title": "독이 든 음식",
-    "text": "{name}이(가) 저녁을 먹고 피를 토하며 쓰러졌다. 누군가 음식에 손을 댔다.",
+    "text": "{name}이(가) 저녁을 먹고 피를 토하며 쓰러졌습니다. 누군가 음식에 손을 댔습니다.",
     "choices": [
       {
-        "label": "의원을 부른다",
+        "label": "의원 부르기",
         "effects": [
           {
             "type": "injury",
@@ -569,10 +569,10 @@
     "grade": "luck",
     "weight": 2,
     "title": "황제의 축제",
-    "text": "제국 전역에 축제가 선포됐다. 앞으로 28일간 투기장마다 사람이 넘친다.",
+    "text": "황제가 제국 곳곳에 축제를 열었습니다. 앞으로 28일간 투기장마다 사람이 넘칩니다.",
     "choices": [
       {
-        "label": "좋다",
+        "label": "확인",
         "effects": [
           {
             "type": "modifier",
@@ -590,10 +590,10 @@
     "grade": "luck",
     "weight": 2,
     "title": "풍년",
-    "text": "곡물 값이 떨어졌다. 한동안 식비 걱정은 덜었다.",
+    "text": "곡물 값이 떨어졌습니다. 한동안 식비 걱정은 덜었습니다.",
     "choices": [
       {
-        "label": "좋다",
+        "label": "확인",
         "effects": [
           {
             "type": "modifier",
@@ -611,10 +611,10 @@
     "grade": "trial",
     "weight": 2,
     "title": "흉년",
-    "text": "가뭄이 들어 곡물 값이 치솟는다.",
+    "text": "가뭄이 들어 곡물 값이 치솟습니다.",
     "choices": [
       {
-        "label": "버틴다",
+        "label": "버티기",
         "effects": [
           {
             "type": "modifier",
@@ -632,10 +632,10 @@
     "grade": "opportunity",
     "weight": 2,
     "title": "노예선 난파",
-    "text": "카르세아 노예선이 해안에 좌초했다. 살아남은 자들이 헐값에 팔려 나온다.",
+    "text": "카르세아 노예선이 해안에 좌초했습니다. 살아남은 자들이 헐값에 팔려 나옵니다.",
     "choices": [
       {
-        "label": "좋다",
+        "label": "확인",
         "effects": [
           {
             "type": "modifier",
@@ -656,10 +656,10 @@
     "grade": "disaster",
     "weight": 1,
     "title": "역병",
-    "text": "대륙에 역병이 돈다. 사람들이 모이는 곳을 피한다.",
+    "text": "대륙에 역병이 돕니다. 다들 사람 모이는 곳을 피합니다.",
     "choices": [
       {
-        "label": "버틴다",
+        "label": "버티기",
         "effects": [
           {
             "type": "modifier",

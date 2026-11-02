@@ -97,7 +97,7 @@ namespace Colosseum.UI
             var blocked = Day.Blockers(s);
             skipButton.interactable = blocked.Count == 0;
             nextButton.interactable = s.gameOver == null;
-            nextLabel.text = blocked.Count > 0 ? "처리할 일이 있다" : "다음 날로 ▶";
+            nextLabel.text = blocked.Count > 0 ? "처리할 일이 있습니다" : "다음 날로 ▶";
 
             var alerts = G.Alerts();
             alertBar.SetActive(alerts.Count > 0);

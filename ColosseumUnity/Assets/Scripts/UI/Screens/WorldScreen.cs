@@ -71,7 +71,7 @@ namespace Colosseum.UI
         {
             sel ??= S.nation;
             var home = Data.Nation(S.nation);
-            sub.text = $"베르시아 대륙의 여섯 나라. 지금 우리 루두스는 {home.name}의 {home.league}에서 싸운다.";
+            sub.text = $"베르시아 대륙의 여섯 나라입니다. 지금 우리 루두스는 {home.name}의 {home.league}에서 싸웁니다.";
             int wars = WarLogic.ActiveWars(S).Count;
             Seg(tabNations, tab == "nations");
             Seg(tabWar, tab == "war");
@@ -150,7 +150,7 @@ namespace Colosseum.UI
                 b.anchorMin = new Vector2(pct, 0);
                 b.GetComponent<Image>().color = NationColor(w.b);
                 double left = w.endsAt - t;
-                T(row, "Remain").text = left > 0 ? $"최대 {N(left)}일 더" : "곧 끝난다";
+                T(row, "Remain").text = left > 0 ? $"최대 {N(left)}일 더" : "곧 끝납니다";
             });
 
             // 전장에 나간 검투사
@@ -189,7 +189,7 @@ namespace Colosseum.UI
                 var val = T(row, "Value");
                 val.text = f > 0 ? $"+{N(f)}" : N(f);
                 val.color = f >= 30 ? Theme.Good : f <= -30 ? Warn : Theme.Text;
-                T(row, "Hint").text = f <= -60 ? "적대: 그 나라 관중이 야유한다" : f >= 50 ? "우호: 의뢰를 먼저 받는다" : "";
+                T(row, "Hint").text = f <= -60 ? "적대: 그 나라 관중이 야유합니다" : f >= 50 ? "우호: 의뢰를 먼저 받습니다" : "";
             });
         }
 
@@ -245,7 +245,7 @@ namespace Colosseum.UI
             });
 
             var send = card.Find("SendRow/Send").GetComponent<Button>();
-            send.GetComponentInChildren<TMP_Text>().text = $"{pick.Count}명 파견";
+            send.GetComponentInChildren<TMP_Text>().text = $"{pick.Count}명 보내기";
             send.interactable = pick.Count > 0;
             // 대리 결투는 웹판 .btn.danger
             bool duel = c.type == "duel";
@@ -262,7 +262,7 @@ namespace Colosseum.UI
             foreach (var id in pick)
             {
                 var g = Glad(id);
-                string why = g == null ? "검투사가 없다" : WarLogic.Eligible(S, g, c);
+                string why = g == null ? "검투사가 없습니다" : WarLogic.Eligible(S, g, c);
                 if (why != null) { errs[cid] = $"{g?.name ?? id}: {why}"; Refresh(); return; }
             }
             errs.Remove(cid);

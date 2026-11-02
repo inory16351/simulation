@@ -107,7 +107,7 @@ namespace Colosseum.EditorTools
             screens.Add(GladiatorBuilder.Build(main));
             var gameOver = Panel("GameOver", main, Theme.Panel);
             ((RectTransform)gameOver.transform).Anchor(new Vector2(0, 1), new Vector2(1, 1), new Vector2(26, -140), new Vector2(-26, -20));
-            var goText = Text("Text", gameOver.transform, "루두스를 잃었다", 18, Theme.Parchment);
+            var goText = Text("Text", gameOver.transform, "루두스를 잃었습니다", 18, Theme.Parchment);
             ((RectTransform)goText.transform).Stretch(16, 12, 16, 12);
             gameOver.gameObject.SetActive(false);
 
@@ -218,7 +218,7 @@ namespace Colosseum.EditorTools
             var rt = Rect("Screen_" + id, main).Stretch(26, 22, 26, 22);
             var title = Text("Title", rt, label, 26, Theme.Parchment, true, FontStyles.Bold, TextAlignmentOptions.TopLeft);
             ((RectTransform)title.transform).Anchor(new Vector2(0, 1), new Vector2(1, 1), new Vector2(0, -40), Vector2.zero);
-            var note = Text("Note", rt, "이 화면은 아직 옮기는 중이다.", 16, Theme.TextDim, false, FontStyles.Normal, TextAlignmentOptions.TopLeft);
+            var note = Text("Note", rt, "준비 중인 화면입니다.", 16, Theme.TextDim, false, FontStyles.Normal, TextAlignmentOptions.TopLeft);
             ((RectTransform)note.transform).Anchor(new Vector2(0, 1), new Vector2(1, 1), new Vector2(0, -80), new Vector2(0, -46));
             var p = rt.gameObject.AddComponent<PlaceholderScreen>();
             p.screenId = id;
@@ -232,7 +232,7 @@ namespace Colosseum.EditorTools
             var root = Rect("NewGameRoot", canvas).Stretch(40, 34, 40, 34);
             var title = Text("Title", root, "새 루두스 세우기", 30, Theme.Parchment, true, FontStyles.Bold, TextAlignmentOptions.TopLeft);
             ((RectTransform)title.transform).Anchor(new Vector2(0, 1), new Vector2(1, 1), new Vector2(0, -44), Vector2.zero);
-            var sub = Text("Sub", root, "어느 나라에 루두스를 세울지 고르라. 나라마다 리그의 규칙과 관중, 돈의 흐름이 다르다.", 16, Theme.TextDim, false, FontStyles.Normal, TextAlignmentOptions.TopLeft);
+            var sub = Text("Sub", root, "루두스를 세울 나라를 고릅니다. 나라마다 리그 규칙과 관중 열기, 자금 흐름이 다릅니다.", 16, Theme.TextDim, false, FontStyles.Normal, TextAlignmentOptions.TopLeft);
             ((RectTransform)sub.transform).Anchor(new Vector2(0, 1), new Vector2(1, 1), new Vector2(0, -76), new Vector2(0, -48));
 
             var grid = Rect("NationPick", root).Anchor(new Vector2(0, 1), new Vector2(1, 1), new Vector2(0, -276), new Vector2(0, -90));
@@ -300,7 +300,7 @@ namespace Colosseum.EditorTools
             foreach (var t in inputGo.GetComponentsInChildren<TextMeshProUGUI>(true)) { t.font = Sans; t.fontSize = 18; t.color = Theme.Parchment; }
             inputGo.AddComponent<LayoutElement>().preferredWidth = 280;
             inputGo.GetComponent<LayoutElement>().preferredHeight = 44;
-            var start = Button("StartButton", bottom, "루두스를 세운다", true, 17).Layout(prefW: 300, prefH: 48);
+            var start = Button("StartButton", bottom, "루두스 세우기", true, 17).Layout(prefW: 300, prefH: 48);
             var cancel = Button("CancelButton", bottom, "돌아가기").Layout(prefW: 140, prefH: 44);
 
             void S(string p, Object v) => so.FindProperty(p).objectReferenceValue = v;

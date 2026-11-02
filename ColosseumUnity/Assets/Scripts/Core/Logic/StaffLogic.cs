@@ -14,10 +14,10 @@ namespace Colosseum.Core
         };
         public static readonly Dictionary<string, string> RoleDesc = new()
         {
-            ["doctore"] = "수석 교관. 훈련·실전 성장과 교범 숙련을 끌어올린다",
-            ["medicus"] = "의원. 부상을 빨리 낫게 하고, 사투에서 목숨을 건질 확률을 높인다",
-            ["scout"] = "정찰꾼. 검투사의 숨은 그릇(잠재력)을 더 정확히 본다",
-            ["agent"] = "중개인. 이적료를 깎아 사고, 팔 때는 더 받아 낸다",
+            ["doctore"] = "수석 교관. 검투사가 훈련과 실전에서 더 빨리 크고, 교범도 더 빨리 익힙니다",
+            ["medicus"] = "의원. 부상을 빨리 낫게 하고, 사투에서 목숨을 건질 확률을 높입니다",
+            ["scout"] = "정찰꾼. 검투사의 숨은 그릇(잠재력)을 더 정확히 봅니다",
+            ["agent"] = "중개인. 이적료를 깎아 사고, 팔 때는 더 받아 냅니다",
         };
 
         /// <summary>역할마다 한 명만 둔다</summary>
@@ -121,14 +121,14 @@ namespace Colosseum.Core
         {
             var player = state.ludi[state.playerLudusId];
             state.staff.TryGetValue(id, out var s);
-            if (!state.staffMarket.Contains(id)) return "이미 떠난 사람이다";
-            if (StaffOf(state, player, s.role) != null) return $"{RoleNames[s.role]} 자리가 이미 차 있다. 먼저 내보내라";
+            if (!state.staffMarket.Contains(id)) return "이미 떠난 사람입니다";
+            if (StaffOf(state, player, s.role) != null) return $"{RoleNames[s.role]} 자리가 이미 차 있습니다. 먼저 내보내십시오";
             var d = StaffDemand(state, s);
             if (d.refuse) return $"{s.name}: {d.reason}";
             if (!Reputation.AcceptsOffer(offer, d, roll))
             {
                 state.staffMarket = state.staffMarket.Where(x => x != id).ToList();
-                return $"{Josa.J(s.name, "이/가")} 제안을 거절하고 떠났다 (원한 주급 {StateUtil.Num(d.wage)} D)";
+                return $"{Josa.J(s.name, "이/가")} 제안을 거절하고 떠났습니다 (바라던 주급 {StateUtil.Num(d.wage)} D)";
             }
             JoinStaff(state, id, offer);
             return null;
@@ -140,8 +140,8 @@ namespace Colosseum.Core
             var player = state.ludi[state.playerLudusId];
             state.staff.TryGetValue(id, out var s);
             HaggleResult Err(string line) => new HaggleResult { status = "error", line = line };
-            if (!state.staffMarket.Contains(id)) return Err("이미 떠난 사람이다");
-            if (StaffOf(state, player, s.role) != null) return Err($"{RoleNames[s.role]} 자리가 이미 차 있다. 먼저 내보내라");
+            if (!state.staffMarket.Contains(id)) return Err("이미 떠난 사람입니다");
+            if (StaffOf(state, player, s.role) != null) return Err($"{RoleNames[s.role]} 자리가 이미 차 있습니다. 먼저 내보내십시오");
             var d = StaffDemand(state, s);
             if (d.refuse) return Err($"{s.name}: {d.reason}");
             string key = "staff:" + id;

@@ -86,8 +86,8 @@ export function applyMatchResult(state: GameState, r: MatchResult, opt: ApplyOpt
     dead.diedAt = { season: state.season, day: state.day, cause: `${w.name}에게 패배` };
     w.record.kills++;
     seasonRecord(state, w).kills++;
-    logCareer(state, w, `${rule.name}에서 ${dead.name}의 목숨을 거뒀다`, "milestone");
-    logCareer(state, dead, `${rule.name}에서 ${w.name}에게 패해 모래 위에서 죽었다`, "death");
+    logCareer(state, w, `${rule.name}에서 ${dead.name}의 목숨을 거뒀습니다`, "milestone");
+    logCareer(state, dead, `${rule.name}에서 ${w.name}에게 패해 모래 위에서 죽었습니다`, "death");
     // 사투에서 우리 검투사가 적을 죽이면 그 장비를 거둔다
     if (opt.rule === "sudden" && wl?.isPlayer && !ll?.isPlayer) lootFallen(state, w, dead);
     const home = ludusOf(state, dead.id);
@@ -113,7 +113,7 @@ export function applyMatchResult(state: GameState, r: MatchResult, opt: ApplyOpt
         l.popularity = Math.max(0, l.popularity - 10);
         ll.rp -= 5;
         summary.rpChange[ll.id] -= 5;
-        logCareer(state, l, "항복했다. 사람들이 등을 돌린다", "other");
+        logCareer(state, l, "항복했습니다. 사람들이 등을 돌립니다", "other");
       }
     }
   }
@@ -172,6 +172,6 @@ function opponentName(state: GameState, r: MatchResult, g: Gladiator): string {
 
 function milestones(state: GameState, w: Gladiator): void {
   const wins = w.record.wins;
-  if (wins === 1) logCareer(state, w, "첫 승리를 거뒀다", "milestone");
+  if (wins === 1) logCareer(state, w, "첫 승리를 거뒀습니다", "milestone");
   else if (wins % 10 === 0) logCareer(state, w, `통산 ${wins}승`, "milestone");
 }

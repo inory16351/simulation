@@ -65,15 +65,15 @@ namespace Colosseum.Core
         {
             var g = s.gladiators[gladiatorId];
             var owner = Career.LudusOf(s, gladiatorId);
-            if (owner == null || owner.isPlayer) return new BidResult { status = "rejected", reason = "소속 루두스가 없다" };
-            if (!InWindow(s)) return new BidResult { status = "rejected", reason = $"이적 시장 기간이 아니다 ({WindowLabel})" };
-            if (g.deployment != null) return new BidResult { status = "rejected", reason = g.deployment.kind == "dungeon" ? "던전 원정 중이다" : "전장에 나가 있다" };
-            if (fee > s.ludi[s.playerLudusId].treasury) return new BidResult { status = "rejected", reason = "금고에 그만한 돈이 없다" };
+            if (owner == null || owner.isPlayer) return new BidResult { status = "rejected", reason = "소속 루두스가 없습니다" };
+            if (!InWindow(s)) return new BidResult { status = "rejected", reason = $"이적 시장 기간이 아닙니다 ({WindowLabel})" };
+            if (g.deployment != null) return new BidResult { status = "rejected", reason = g.deployment.kind == "dungeon" ? "던전 원정 중입니다" : "전장에 나가 있습니다" };
+            if (fee > s.ludi[s.playerLudusId].treasury) return new BidResult { status = "rejected", reason = "금고에 그만한 돈이 없습니다" };
             // 중개인이 있으면 값을 조금 깎는다
             double asking = JsMath.Round(AskingPrice(s, g, owner) * StaffLogic.BuyMult(StaffLogic.RatingOf(s, s.ludi[s.playerLudusId], "agent")) / 50) * 50;
             if (fee >= asking) return new BidResult { status = "accepted", deal = MakeDeal(s, g, owner, fee) };
             if (fee >= asking * 0.7) return new BidResult { status = "countered", asking = asking };
-            return new BidResult { status = "rejected", reason = $"{Josa.J(owner.name, "이/가")} 코웃음을 쳤다. 이 정도로는 안 판다" };
+            return new BidResult { status = "rejected", reason = $"{Josa.J(owner.name, "이/가")} 코웃음을 쳤습니다. 이 정도로는 안 팝니다" };
         }
 
         static Deal MakeDeal(GameState s, Gladiator g, Ludus owner, double fee)
@@ -81,7 +81,7 @@ namespace Colosseum.Core
             var deal = new Deal { id = $"T{s.nextId++}", gladiatorId = g.id, fromLudus = owner.id, fee = fee, expiresAt = Now(s) + 7 };
             TransferOf(s).deals.Add(deal);
             Msg(s, "info", $"이적료 합의: {g.name}",
-                $"{Josa.J(owner.name, "이/가")} {Loc(fee)} D에 동의했다.\n{Calendar.DateLabel((int)Calendar.FromAbs(deal.expiresAt).day)}까지 {Josa.J(g.name, "과/와")} 개인 계약을 맺어라.");
+                $"{Josa.J(owner.name, "이/가")} 이적료 {Loc(fee)} D를 받아들였습니다.\n{Calendar.DateLabel((int)Calendar.FromAbs(deal.expiresAt).day)}까지 {Josa.J(g.name, "과/와")} 개인 계약을 맺으십시오.");
             return deal;
         }
 
@@ -102,11 +102,11 @@ namespace Colosseum.Core
             var g = s.gladiators[gladiatorId];
             var owner = Career.LudusOf(s, gladiatorId);
             HaggleResult Err(string line) => new HaggleResult { status = "error", line = line };
-            if (owner == null || owner.isPlayer) return Err("소속 루두스가 없다");
-            if (!InWindow(s)) return Err($"이적 시장 기간이 아니다 ({WindowLabel})");
-            if (g.deployment != null) return Err(g.deployment.kind == "dungeon" ? "던전 원정 중이다" : "전장에 나가 있다");
-            if (fee > s.ludi[s.playerLudusId].treasury) return Err("금고에 그만한 돈이 없다");
-            if (TransferOf(s).deals.Any(d => d.gladiatorId == gladiatorId)) return Err("이미 이적료에 합의했다");
+            if (owner == null || owner.isPlayer) return Err("소속 루두스가 없습니다");
+            if (!InWindow(s)) return Err($"이적 시장 기간이 아닙니다 ({WindowLabel})");
+            if (g.deployment != null) return Err(g.deployment.kind == "dungeon" ? "던전 원정 중입니다" : "전장에 나가 있습니다");
+            if (fee > s.ludi[s.playerLudusId].treasury) return Err("금고에 그만한 돈이 없습니다");
+            if (TransferOf(s).deals.Any(d => d.gladiatorId == gladiatorId)) return Err("이미 이적료에 합의했습니다");
             double r = StaffLogic.RatingOf(s, s.ludi[s.playerLudusId], "agent");
             double asking = JsMath.Round(AskingPrice(s, g, owner) * StaffLogic.BuyMult(r) / 50) * 50;
             string key = FeeKey(gladiatorId);
@@ -122,11 +122,11 @@ namespace Colosseum.Core
             var t = TransferOf(s);
             var deal = t.deals.FirstOrDefault(d => d.id == dealId);
             HaggleResult Err(string line) => new HaggleResult { status = "error", line = line };
-            if (deal == null) return Err("합의가 사라졌다");
+            if (deal == null) return Err("합의가 사라졌습니다");
             var me = s.ludi[s.playerLudusId];
             var g = s.gladiators[deal.gladiatorId];
-            if (me.gladiators.Count >= Economy.RosterCapacity(me)) return Err("막사에 빈자리가 없다");
-            if (me.treasury < deal.fee) return Err("이적료를 낼 돈이 없다");
+            if (me.gladiators.Count >= Economy.RosterCapacity(me)) return Err("막사에 빈자리가 없습니다");
+            if (me.treasury < deal.fee) return Err("이적료를 낼 돈이 없습니다");
             var d = TransferDemand(s, g);
             if (d.refuse) return Err($"{g.name}: {d.reason}");
             string key = DealKey(dealId);
@@ -136,7 +136,7 @@ namespace Colosseum.Core
             {
                 t.deals = t.deals.Where(x => x != deal).ToList();
                 Haggling.Forget(s, key);
-                res.line += $" — {Josa.J(g.name, "이/가")} 협상을 깨서 이적이 무산됐다";
+                res.line += $" — {Josa.J(g.name, "이/가")} 협상을 깨서 이적이 무산됐습니다";
             }
             if (res.Accepted) FinishTransfer(s, deal, wage, seasons);
             return res;
@@ -154,17 +154,17 @@ namespace Colosseum.Core
         {
             var t = TransferOf(s);
             var deal = t.deals.FirstOrDefault(d => d.id == dealId);
-            if (deal == null) return "합의가 사라졌다";
+            if (deal == null) return "합의가 사라졌습니다";
             var me = s.ludi[s.playerLudusId];
             var g = s.gladiators[deal.gladiatorId];
             var from = s.ludi[deal.fromLudus];
-            if (me.gladiators.Count >= Economy.RosterCapacity(me)) return "막사에 빈자리가 없다";
-            if (me.treasury < deal.fee) return "이적료를 낼 돈이 없다";
+            if (me.gladiators.Count >= Economy.RosterCapacity(me)) return "막사에 빈자리가 없습니다";
+            if (me.treasury < deal.fee) return "이적료를 낼 돈이 없습니다";
             var d = TransferDemand(s, g);
             if (d.refuse || !Reputation.AcceptsOffer(wage, d, roll))
             {
                 t.deals = t.deals.Where(x => x != deal).ToList();
-                return $"{Josa.J(g.name, "이/가")} 개인 조건에 동의하지 않아 이적이 무산됐다{(d.refuse ? $" ({d.reason})" : $" (원한 주급 {Num(d.wage)} D)")}";
+                return $"{Josa.J(g.name, "이/가")} 계약 조건을 거절해 이적이 무산됐습니다{(d.refuse ? $" ({d.reason})" : $" (바라던 주급 {Num(d.wage)} D)")}";
             }
             FinishTransfer(s, deal, wage, seasons);
             return null;
@@ -187,7 +187,7 @@ namespace Colosseum.Core
             g.morale = Math.Min(100, g.morale + 8);
             t.deals = t.deals.Where(x => x != deal).ToList();
             Career.SeasonRecord(s, g);
-            Career.LogCareer(s, g, $"{from.name}에서 {Josa.J(me.name, "으로/로")} 이적했다 ({Loc(deal.fee)} D)", "join");
+            Career.LogCareer(s, g, $"{from.name}에서 {Josa.J(me.name, "으로/로")} 이적했습니다 ({Loc(deal.fee)} D)", "join");
         }
 
         public static void CancelDeal(GameState s, string dealId)
@@ -218,7 +218,7 @@ namespace Colosseum.Core
             double fee = JsMath.Round(value * rng.Range(0.8, 1.35) / 50) * 50;
             t.offers.Add(new Offer { id = $"O{s.nextId++}", fromLudus = buyer.id, gladiatorId = target.id, fee = fee, expiresAt = n + 5 });
             Msg(s, "info", $"이적 제안: {target.name}",
-                $"{Josa.J(buyer.name, "이/가")} {target.name}에게 {Loc(fee)} D를 제시했다.\n이적 시장 화면에서 받을지 정하라. 5일 뒤에는 제안이 사라진다.");
+                $"{Josa.J(buyer.name, "이/가")} {target.name} 이적료로 {Loc(fee)} D를 제시했습니다.\n이적 시장 화면에서 받을지 정하십시오. 5일 뒤에는 제안이 사라집니다.");
         }
 
         /// <summary>받은 제안 수락: 검투사를 넘기고 이적료를 받는다 (중개인이 있으면 조금 더 받아 낸다)</summary>
@@ -226,7 +226,7 @@ namespace Colosseum.Core
         {
             var t = TransferOf(s);
             var o = t.offers.FirstOrDefault(x => x.id == offerId);
-            if (o == null) return "제안이 사라졌다";
+            if (o == null) return "제안이 사라졌습니다";
             var me = s.ludi[s.playerLudusId];
             var buyer = s.ludi[o.fromLudus];
             var g = s.gladiators[o.gladiatorId];
@@ -237,7 +237,7 @@ namespace Colosseum.Core
             buyer.treasury -= fee;
             Economy.AddMoney(s, me, fee, $"{g.name} 이적료 수입");
             t.offers = t.offers.Where(x => x != o).ToList();
-            Career.LogCareer(s, g, $"{me.name}에서 {Josa.J(buyer.name, "으로/로")} 팔려 갔다 ({Loc(fee)} D)", "other");
+            Career.LogCareer(s, g, $"{me.name}에서 {Josa.J(buyer.name, "으로/로")} 팔려 갔습니다 ({Loc(fee)} D)", "other");
             foreach (var id in me.gladiators) s.gladiators[id].morale = Math.Max(0, s.gladiators[id].morale - (g.popularity > 40 ? 4 : 1));
             return null;
         }

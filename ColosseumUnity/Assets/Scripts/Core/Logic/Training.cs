@@ -27,7 +27,7 @@ namespace Colosseum.Core
             ["magic"] = "마력·주술 촉매 숙련 (마력이 있어야 효과)",
             ["show"] = "쇼맨십",
             ["doctrine"] = "전투 교범 숙련도",
-            ["rest"] = "성장 없음. 피로·혹사 회복이 빠르다",
+            ["rest"] = "성장 없음. 피로·혹사 회복이 빠릅니다",
         };
         public static readonly Dictionary<string, string> IntensityNames = new() { ["low"] = "가볍게", ["normal"] = "보통", ["high"] = "강하게", ["extreme"] = "극한" };
 

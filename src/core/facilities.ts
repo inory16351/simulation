@@ -43,11 +43,11 @@ export function weeklyUpkeep(ludus: Ludus): number {
 }
 
 export function startUpgrade(state: GameState, ludus: Ludus, id: FacilityId): string | null {
-  if (ludus.construction) return "이미 공사 중인 시설이 있다";
+  if (ludus.construction) return "이미 공사 중인 시설이 있습니다";
   const lvl = ludus.facilities[id];
-  if (lvl >= MAX_LEVEL) return "이미 최고 단계다";
+  if (lvl >= MAX_LEVEL) return "이미 최고 단계입니다";
   const { cost, days } = upgradeCost(id, lvl + 1);
-  if (ludus.treasury < cost) return "금고가 모자란다";
+  if (ludus.treasury < cost) return "금고에 돈이 모자랍니다";
   addMoney(state, ludus, -cost, `${getFacility(id).name} 증축`);
   ludus.construction = { facility: id, toLevel: lvl + 1, doneAt: absDay(state.season, state.day) + days };
   return null;
@@ -65,7 +65,7 @@ export function dailyConstruction(state: GameState): { ludus: Ludus; facility: F
     done.push({ ludus: l, facility: c.facility, level: c.toLevel });
     if (l.isPlayer) {
       const f = getFacility(c.facility);
-      pushMessage(state, { kind: "info", title: `${f.name} ${c.toLevel}단계 완공`, body: `${f.name} 공사가 끝났다.\n${f.effect(c.toLevel)}` });
+      pushMessage(state, { kind: "info", title: `${f.name} ${c.toLevel}단계 완공`, body: `${f.name} 공사가 끝났습니다.\n${f.effect(c.toLevel)}` });
     }
   }
   return done;

@@ -14,7 +14,7 @@ namespace Colosseum.EditorTools
         static readonly (string id, string label, float w)[] Cols =
         {
             ("Name", "이름", 200), ("Race", "종족", 70), ("Age", "나이", 150), ("Style", "스타일", 0), ("Ca", "현재", 80),
-            ("Pa", "잠재 (추정)", 130), ("Focus", "훈련", 140), ("Intensity", "강도", 100), ("Act", "", 250),
+            ("Pa", "추정 잠재", 130), ("Focus", "훈련", 140), ("Intensity", "강도", 100), ("Act", "", 250),
         };
 
         public static ScreenBase Build(Transform main)
@@ -29,7 +29,7 @@ namespace Colosseum.EditorTools
             var none = Panel("None", rt);
             VCol(none.transform, 10, 14, 14, 14, 14);
             none.transform.Find("Fill").gameObject.AddComponent<LayoutElement>().ignoreLayout = true;
-            Text("Text", none.transform, "학당이 아직 없다. <b>증축</b>에서 유소년 학당을 지으면 매 시즌 서리달 1일에 아이들이 들어온다. 처음 지으면 바로 첫 입학생을 받는다.", 15);
+            Text("Text", none.transform, "학당이 아직 없습니다. <b>증축</b>에서 유소년 학당을 지으면 매 시즌 서리달 1일에 아이들이 들어옵니다. 처음 지으면 바로 첫 입학생을 받습니다.", 15);
             var goRow = Rect("Buttons", none.transform);
             HRow(goRow, 0);
             var goFac = Button("GoFacilities", goRow, "증축으로", true, 15).Layout(prefW: 140, prefH: 34);
@@ -47,7 +47,7 @@ namespace Colosseum.EditorTools
                 Cell(t.rectTransform, c.w);
             }
             Box("Line", table.transform, Theme.Line).Layout(minH: 1, prefH: 1);
-            var empty = Text("Empty", table.transform, "아직 학생이 없다. 다음 입학은 서리달 1일.", 14, Theme.TextDim);
+            var empty = Text("Empty", table.transform, "아직 학생이 없습니다. 다음 입학일은 서리달 1일입니다.", 14, Theme.TextDim);
             empty.margin = new Vector4(12, 0, 12, 0);
             empty.Layout(minH: 40, prefH: 40);
 
@@ -75,7 +75,7 @@ namespace Colosseum.EditorTools
                         var act = Rect("Act", row);
                         Cell(act, c.w);
                         HRow(act, 6);
-                        Button("Promote", act, "1군 승격", true, 14).Layout(minW: 96, prefW: 96, prefH: 30, flexW: 0);
+                        Button("Promote", act, "1군으로 올리기", true, 14).Layout(minW: 96, prefW: 96, prefH: 30, flexW: 0);
                         var rel = Button("Release", act, "내보내기", false, 14).Layout(minW: 140, prefW: 140, prefH: 30, flexW: 0);
                         rel.GetComponent<Image>().color = Theme.Blood;
                         break;

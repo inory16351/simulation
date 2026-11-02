@@ -14,9 +14,9 @@ namespace Colosseum.UI
         static readonly int[] Formats = { 1, 3, 5 };
         static readonly Dictionary<string, string> RuleHint = new()
         {
-            ["training"] = "관중 없음. 돈·명성 없이 성장만. RP 절반",
-            ["missio"] = "상금 ×3, 관중 수입, 명성. 지면 관중이 생사를 정한다",
-            ["sudden"] = "상금 ×6, 관중 수입 ×2.2, 명성 ×2. 지면 거의 죽는다",
+            ["training"] = "관중과 상금, 명성이 없습니다. 안전하게 실력을 키우지만 RP는 절반만 오르내립니다",
+            ["missio"] = "상금 ×3과 관중 수입, 명성을 얻습니다. 지면 관중이 살릴지 죽일지를 정합니다",
+            ["sudden"] = "상금 ×6, 관중 수입 ×2.2, 명성 ×2를 얻습니다. 지면 대부분 목숨을 잃습니다",
         };
         static readonly Color Neg = new Color32(0xd9, 0xa2, 0x9b, 0xff);
 
@@ -70,7 +70,7 @@ namespace Colosseum.UI
 
         void Send()
         {
-            if (myId == null) { errorText = "출전자를 고르라"; Refresh(); return; }
+            if (myId == null) { errorText = "출전자 고르기"; Refresh(); return; }
             string err = null;
             string pid = Player.id, tid = targetId, me = myId, them = theirId, r = rule;
             int f = format;
@@ -107,12 +107,12 @@ namespace Colosseum.UI
 
             myList = alive;
             if (myId == null || myList.All(g => g.id != myId)) myId = myList.FirstOrDefault(g => ChallengeLogic.Availability(S, g) == null)?.id;
-            myLabel.text = format > 1 ? "선봉 (나머지 순서는 경기 날 정한다)" : "우리 출전자";
+            myLabel.text = format > 1 ? "선봉 (나머지 순서는 경기 날 정합니다)" : "우리 출전자";
             Fill(mine, myList.Select(g => { var busy = ChallengeLogic.Availability(S, g); return FighterLabel(g) + (busy != null ? $" — {busy}" : ""); }),
                 myId == null ? 0 : myList.FindIndex(g => g.id == myId));
 
             theirList = tgt.gladiators.Select(id => S.gladiators[id]).Where(g => g.alive).ToList();
-            Fill(theirs, new[] { "상대가 고르게 둔다" }.Concat(theirList.Select(g => $"{g.name} · {Data.Style(g.style)?.name}")),
+            Fill(theirs, new[] { "상대에게 맡기기" }.Concat(theirList.Select(g => $"{g.name} · {Data.Style(g.style)?.name}")),
                 theirId == null ? 0 : theirList.FindIndex(g => g.id == theirId) + 1);
 
             for (int i = 0; i < formatButtons.Count; i++)
@@ -121,7 +121,7 @@ namespace Colosseum.UI
                 Seg(formatButtons[i], format == Formats[i]);
             }
             var fm = SeriesLogic.FormatMultTable.TryGetValue(format, out var m) ? m : null;
-            formatHint.text = format == 1 ? "한 명씩 한 판" : $"{format}명씩. 이긴 사람이 남아 다음 상대와 싸운다. RP ×{fm?.rp}, 돈 ×{fm?.money}";
+            formatHint.text = format == 1 ? "한 명씩 한 판" : $"{format}명씩 출전합니다. 이긴 검투사가 남아서 다음 상대와 싸웁니다. RP ×{fm?.rp}, 돈 ×{fm?.money}";
 
             bool suddenBanned = NationRules.RulesOfNation(S.nation).suddenBanned;
             for (int i = 0; i < ruleButtons.Count; i++)

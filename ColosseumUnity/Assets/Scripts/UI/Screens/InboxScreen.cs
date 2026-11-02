@@ -37,7 +37,7 @@ namespace Colosseum.UI
             {
                 var p = S.pendingEvents[i];
                 var def = Events.GetEvent(p.eventId);
-                card.Find("Title").GetComponent<TMP_Text>().text = $"결정이 필요하다 — {p.title}";
+                card.Find("Title").GetComponent<TMP_Text>().text = $"결정을 내려야 합니다 — {p.title}";
                 card.Find("Text").GetComponent<TMP_Text>().text = p.text;
                 var choiceTemplate = card.Find("Choices/ChoiceTemplate").GetComponent<Button>();
                 var choices = ChoiceList(card, choiceTemplate);
@@ -72,7 +72,7 @@ namespace Colosseum.UI
             var msg = S.inbox.FirstOrDefault(m => m.id == sel);
             readTitle.text = msg?.title ?? "";
             readMeta.text = msg != null ? $"시즌 {msg.season} · {Calendar.DateLabel(msg.day)}" : "";
-            readBody.text = msg?.body ?? "소식이 없다.";
+            readBody.text = msg?.body ?? "소식이 없습니다.";
         }
 
         void Open(string id)

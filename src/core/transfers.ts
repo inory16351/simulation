@@ -60,20 +60,20 @@ export type BidResult = { status: "accepted"; deal: Deal } | { status: "countere
 export function bid(s: GameState, gladiatorId: Id, fee: number): BidResult {
   const g = s.gladiators[gladiatorId];
   const owner = ludusOf(s, gladiatorId);
-  if (!owner || owner.isPlayer) return { status: "rejected", reason: "소속 루두스가 없다" };
-  if (!inWindow(s)) return { status: "rejected", reason: `이적 시장 기간이 아니다 (${windowLabel})` };
-  if (g.deployment) return { status: "rejected", reason: g.deployment.kind === "dungeon" ? "던전 원정 중이다" : "전장에 나가 있다" };
-  if (fee > s.ludi[s.playerLudusId].treasury) return { status: "rejected", reason: "금고에 그만한 돈이 없다" };
+  if (!owner || owner.isPlayer) return { status: "rejected", reason: "소속 루두스가 없습니다" };
+  if (!inWindow(s)) return { status: "rejected", reason: `이적 시장 기간이 아닙니다 (${windowLabel})` };
+  if (g.deployment) return { status: "rejected", reason: g.deployment.kind === "dungeon" ? "던전 원정 중입니다" : "전장에 나가 있습니다" };
+  if (fee > s.ludi[s.playerLudusId].treasury) return { status: "rejected", reason: "금고에 그만한 돈이 없습니다" };
   // 중개인이 있으면 값을 조금 깎는다
   const asking = Math.round(askingPrice(s, g, owner) * buyMult(ratingOf(s, s.ludi[s.playerLudusId], "agent")) / 50) * 50;
   if (fee >= asking) {
     const deal: Deal = { id: `T${s.nextId++}`, gladiatorId, fromLudus: owner.id, fee, expiresAt: now(s) + 7 };
     transferOf(s).deals.push(deal);
-    pushMessage(s, { kind: "info", title: `이적료 합의: ${g.name}`, body: `${josa(owner.name, "이/가")} ${fee.toLocaleString()} D에 동의했다.\n${dateLabel(fromAbs(deal.expiresAt).day)}까지 ${josa(g.name, "과/와")} 개인 계약을 맺어라.` });
+    pushMessage(s, { kind: "info", title: `이적료 합의: ${g.name}`, body: `${josa(owner.name, "이/가")} 이적료 ${fee.toLocaleString()} D를 받아들였습니다.\n${dateLabel(fromAbs(deal.expiresAt).day)}까지 ${josa(g.name, "과/와")} 개인 계약을 맺으십시오.` });
     return { status: "accepted", deal };
   }
   if (fee >= asking * 0.7) return { status: "countered", asking };
-  return { status: "rejected", reason: `${josa(owner.name, "이/가")} 코웃음을 쳤다. 이 정도로는 안 판다` };
+  return { status: "rejected", reason: `${josa(owner.name, "이/가")} 코웃음을 쳤습니다. 이 정도로는 안 팝니다` };
 }
 
 /** 개인 계약 조건: 지금 받는 주급보다 많이, 그리고 우리 명성에 맞춰 */
@@ -85,16 +85,16 @@ export function transferDemand(s: GameState, g: Gladiator): Demand {
 export function completeTransfer(s: GameState, dealId: Id, wage: number, seasons: number, roll: number): string | null {
   const t = transferOf(s);
   const deal = t.deals.find((d) => d.id === dealId);
-  if (!deal) return "합의가 사라졌다";
+  if (!deal) return "합의가 사라졌습니다";
   const me = s.ludi[s.playerLudusId];
   const g = s.gladiators[deal.gladiatorId];
   const from = s.ludi[deal.fromLudus];
-  if (me.gladiators.length >= rosterCapacity(me)) return "막사에 빈자리가 없다";
-  if (me.treasury < deal.fee) return "이적료를 낼 돈이 없다";
+  if (me.gladiators.length >= rosterCapacity(me)) return "막사에 빈자리가 없습니다";
+  if (me.treasury < deal.fee) return "이적료를 낼 돈이 없습니다";
   const d = transferDemand(s, g);
   if (d.refuse || !acceptsOffer(wage, d, roll)) {
     t.deals = t.deals.filter((x) => x !== deal);
-    return `${josa(g.name, "이/가")} 개인 조건에 동의하지 않아 이적이 무산됐다${d.refuse ? ` (${d.reason})` : ` (원한 주급 ${d.wage} D)`}`;
+    return `${josa(g.name, "이/가")} 계약 조건을 거절해 이적이 무산됐습니다${d.refuse ? ` (${d.reason})` : ` (바라던 주급 ${d.wage} D)`}`;
   }
   addMoney(s, me, -deal.fee, `${g.name} 이적료`);
   from.treasury += deal.fee;
@@ -106,7 +106,7 @@ export function completeTransfer(s: GameState, dealId: Id, wage: number, seasons
   g.morale = Math.min(100, g.morale + 8);
   t.deals = t.deals.filter((x) => x !== deal);
   seasonRecord(s, g);
-  logCareer(s, g, `${from.name}에서 ${josa(me.name, "으로/로")} 이적했다 (${deal.fee.toLocaleString()} D)`, "join");
+  logCareer(s, g, `${from.name}에서 ${josa(me.name, "으로/로")} 이적했습니다 (${deal.fee.toLocaleString()} D)`, "join");
   return null;
 }
 
@@ -138,7 +138,7 @@ export function dailyTransfers(s: GameState, rng: Rng): void {
   pushMessage(s, {
     kind: "info",
     title: `이적 제안: ${target.name}`,
-    body: `${josa(buyer.name, "이/가")} ${target.name}에게 ${fee.toLocaleString()} D를 제시했다.\n이적 시장 화면에서 받을지 정하라. 5일 뒤에는 제안이 사라진다.`,
+    body: `${josa(buyer.name, "이/가")} ${target.name} 이적료로 ${fee.toLocaleString()} D를 제시했습니다.\n이적 시장 화면에서 받을지 정하십시오. 5일 뒤에는 제안이 사라집니다.`,
   });
 }
 
@@ -146,7 +146,7 @@ export function dailyTransfers(s: GameState, rng: Rng): void {
 export function acceptOffer(s: GameState, offerId: Id): string | null {
   const t = transferOf(s);
   const o = t.offers.find((x) => x.id === offerId);
-  if (!o) return "제안이 사라졌다";
+  if (!o) return "제안이 사라졌습니다";
   const me = s.ludi[s.playerLudusId];
   const buyer = s.ludi[o.fromLudus];
   const g = s.gladiators[o.gladiatorId];
@@ -156,7 +156,7 @@ export function acceptOffer(s: GameState, offerId: Id): string | null {
   buyer.treasury -= fee;
   addMoney(s, me, fee, `${g.name} 이적료 수입`);
   t.offers = t.offers.filter((x) => x !== o);
-  logCareer(s, g, `${me.name}에서 ${josa(buyer.name, "으로/로")} 팔려 갔다 (${fee.toLocaleString()} D)`, "other");
+  logCareer(s, g, `${me.name}에서 ${josa(buyer.name, "으로/로")} 팔려 갔습니다 (${fee.toLocaleString()} D)`, "other");
   for (const id of me.gladiators) s.gladiators[id].morale = Math.max(0, s.gladiators[id].morale - (g.popularity > 40 ? 4 : 1));
   return null;
 }

@@ -13,12 +13,12 @@ namespace Colosseum.Core
         };
         public static readonly Dictionary<string, string> StanceDesc = new()
         {
-            ["assault"] = "쉴 새 없이 몰아친다. 방어는 뒷전",
-            ["balanced"] = "상황을 보며 싸운다",
-            ["bulwark"] = "막고 버티며 상대가 지치길 기다린다. 받는 피해 감소",
-            ["harass"] = "거리를 지키며 치고 빠진다",
-            ["showman"] = "관중을 홀린다. 미시오에서 목숨을 건질 보험",
-            ["blitz"] = "비싼 기술을 초반에 몰아 쓴다",
+            ["assault"] = "쉴 새 없이 몰아칩니다. 방어는 뒷전",
+            ["balanced"] = "상황을 보며 싸웁니다",
+            ["bulwark"] = "막고 버티며 상대가 지치길 기다립니다. 받는 피해 감소",
+            ["harass"] = "거리를 지키며 치고 빠집니다",
+            ["showman"] = "관중을 홀립니다. 미시오에서 목숨을 건질 보험",
+            ["blitz"] = "비싼 기술을 초반에 몰아 씁니다",
         };
         public static readonly Dictionary<string, string> RangeNames = new()
         {

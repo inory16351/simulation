@@ -71,7 +71,7 @@ namespace Colosseum.UI
             detailRules.text = string.Join("\n", n.ruleText.Select(t => "· " + t));
             detailCulture.text = n.culture;
             startButton.interactable = nameInput.text.Trim().Length > 0;
-            startLabel.text = $"{n.@short}에 루두스를 세운다";
+            startLabel.text = $"{n.@short}에 루두스 세우기";
             // 진행 중인 게임이 있을 때만 돌아갈 수 있다
             cancelButton.gameObject.SetActive(GameController.I != null && GameController.I.State != null);
         }

@@ -65,14 +65,14 @@ namespace Colosseum.UI
         [SerializeField] TMP_Text gearMsg;
         [SerializeField] GameObject gearEmpty;
         [SerializeField] RectTransform gearTemplate;
-        [Header("장비 흥정 (매물 줄의 흥정 버튼으로 연다)")]
+        [Header("장비 흥정 (매물 줄의 흥정 버튼으로 엽니다)")]
         [SerializeField] GameObject haggleRoot;
         [SerializeField] TMP_Text haggleTitle;
         [SerializeField] TMP_Text haggleStatus;
         [SerializeField] TMP_InputField haggleCash;
         [SerializeField] TMP_Text haggleTotal;
         [SerializeField] GameObject tradeEmpty;
-        [Tooltip("맞교환 장비 줄 원본 (누르면 넣고 뺀다)")]
+        [Tooltip("맞교환 장비 줄 원본 (누르면 넣고 뺍니다)")]
         [SerializeField] Button tradeTemplate;
         [SerializeField] Button haggleOffer;
         [SerializeField] Button haggleClose;
@@ -82,7 +82,7 @@ namespace Colosseum.UI
         [SerializeField] TMP_Text armoryMsg;
         [SerializeField] GameObject armoryEmpty;
         [SerializeField] RectTransform armoryTemplate;
-        [Header("위탁 판매")]
+        [Header("장비 내놓기")]
         [SerializeField] GameObject consignRoot;
         [SerializeField] TMP_Text consignTitle;
         [SerializeField] TMP_InputField consignPrice;
@@ -155,7 +155,7 @@ namespace Colosseum.UI
             var t = Transfers.TransferOf(S);
             double rep = Reputation.LudusReputation(S, me);
             sub.text = $"우리 명성 {rep} ({Reputation.ReputationNames(rep)}) · 막사 {me.gladiators.Count}/{Economy.RosterCapacity(me)}명 · " +
-                (Transfers.InWindow(S) ? $"<b><color={Theme.Hex(Theme.Good)}>이적 시장 열림</color></b>" : $"이적은 {Transfers.WindowLabel}에만 (무소속 영입은 언제든)");
+                (Transfers.InWindow(S) ? $"<b><color={Theme.Hex(Theme.Good)}>이적 시장 열림</color></b>" : $"다른 루두스 검투사는 {Transfers.WindowLabel}에만 데려올 수 있습니다. 무소속 검투사는 언제든 영입할 수 있습니다");
 
             string[] labels =
             {
@@ -308,7 +308,7 @@ namespace Colosseum.UI
             string did = deal.id;
             if (!offers.ContainsKey(did)) offers[did] = (demand.wage, 2);
             var (wage, years) = offers[did];
-            T(nego, "Want").text = $"원함 {demand.wage} D";
+            T(nego, "Want").text = $"요구 주급 {demand.wage} D";
             var mood = T(row, "Info/Mood");
             string line = Widgets.HaggleLine(S, Transfers.DealKey(did));
             mood.gameObject.SetActive(line != null);
@@ -352,7 +352,7 @@ namespace Colosseum.UI
                 bool asking = confirmRelease == id;
                 var b = row.Find("Release").GetComponent<Button>();
                 b.interactable = g.deployment == null;
-                b.GetComponentInChildren<TMP_Text>().text = asking ? $"정말 {Josa.J(g.name, "을/를")} 방출?" : "방출";
+                b.GetComponentInChildren<TMP_Text>().text = asking ? $"정말 {Josa.J(g.name, "을/를")} 방출하겠습니까?" : "방출";
                 b.onClick.RemoveAllListeners();
                 b.onClick.AddListener(() =>
                 {
@@ -384,7 +384,7 @@ namespace Colosseum.UI
                 : filtered.OrderByDescending(l => GearLogic.QualityOf(l.item)).ThenBy(l => l.price)).ToList();
 
             DrawHaggle();
-            gearTitle.text = $"◆  매물 {list.Count}개 · 금고 {me.treasury:N0} D · 매물은 급료일마다 바뀐다";
+            gearTitle.text = $"◆  매물 {list.Count}개 · 금고 {me.treasury:N0} D · 매물은 급료일마다 바뀝니다";
             ShowMsg(gearMsg);
             gearEmpty.SetActive(list.Count == 0);
             gearRows.Sync(list.Count, (row, i) =>
@@ -419,7 +419,7 @@ namespace Colosseum.UI
             tradePicks.RemoveAll(i => i >= armory.Count);
             haggleTitle.text = $"◆  흥정 — {Widgets.ItemLabel(l.item)}  {Widgets.GradeTag(l.item)}  · 부른 값 {l.price:N0} D · {l.seller}";
             string key = GearLogic.HaggleKey(l.id);
-            haggleStatus.text = Widgets.HaggleLine(S, key) ?? $"<color={Theme.Hex(Theme.TextDim)}>현금에 창고 장비를 얹어 값을 맞출 수 있다. 맞교환 장비는 기준가의 {GearLogic.TradeInRate * 100:0}%로 쳐 준다. 낮게 부를수록 상인의 인내심이 깎인다.</color>";
+            haggleStatus.text = Widgets.HaggleLine(S, key) ?? $"<color={Theme.Hex(Theme.TextDim)}>현금에 창고 장비를 보태 값을 맞춥니다. 맞교환 장비는 기준가의 {GearLogic.TradeInRate * 100:0}%로 쳐 줍니다. 값을 낮게 부를수록 상인이 짜증을 냅니다. 너무 깎으면 거래를 끊습니다.</color>";
 
             tradeEmpty.SetActive(armory.Count == 0);
             tradeRows.Sync(armory.Count, (b, i) =>
@@ -435,7 +435,7 @@ namespace Colosseum.UI
             double cash = Num(haggleCash) ?? 0;
             double trade = tradePicks.Sum(i => GearLogic.TradeInValue(S, armory[i]));
             haggleTotal.text = $"제안 합계 <b>{cash + trade:N0} D</b>  <color={Theme.Hex(Theme.TextDim)}>(현금 {cash:N0} + 장비 {trade:N0})</color>" +
-                (cash + trade > l.price ? $"  <color=#d9a29b>부른 값보다 {cash + trade - l.price:N0} D 많다. 거스름돈은 없다</color>" : "");
+                (cash + trade > l.price ? $"  <color=#d9a29b>부른 값보다 {cash + trade - l.price:N0} D 많습니다. 거스름돈은 없습니다</color>" : "");
             haggleOffer.interactable = !Haggling.IsLocked(S, key) && cash + trade > 0;
         }
 
@@ -479,11 +479,11 @@ namespace Colosseum.UI
                 consignTitle.text = $"◆  내놓기 — {Widgets.ItemLabel(consignItem)}  {Widgets.GradeTag(consignItem)} · 기준가 {GearLogic.ItemPrice(consignItem):N0} D";
                 var direct = new Consignment { item = consignItem, price = Math.Max(1, price) };
                 var agent = new Consignment { item = consignItem, price = Math.Max(1, price), viaAgent = true };
-                consignHint.text = price <= 0 ? "값을 정하라." :
+                consignHint.text = price <= 0 ? "내놓을 값을 정합니다." :
                     $"직접: 하루 팔릴 확률 {GearLogic.DailySaleChance(S, direct) * 100:0.#}% · 수수료 없음\n" +
                     (hasAgent ? $"중개인: 하루 {GearLogic.DailySaleChance(S, agent) * 100:0.#}% · 수수료 {GearLogic.AgentCommission * 100:0}% ({JsMath.Round(price * GearLogic.AgentCommission):N0} D)"
-                              : $"<color={Theme.Hex(Theme.TextFaint)}>중개인이 없다 (식솔에서 들인다)</color>") +
-                    $"\n<color={Theme.Hex(Theme.TextDim)}>싸게 내놓을수록 빨리 팔린다. 팔린 돈에는 세금이 붙는다.</color>";
+                              : $"<color={Theme.Hex(Theme.TextFaint)}>고용한 중개인이 없습니다. 식솔 화면에서 먼저 고용해야 합니다</color>") +
+                    $"\n<color={Theme.Hex(Theme.TextDim)}>싸게 내놓을수록 빨리 팔립니다. 판 돈에는 세금이 붙습니다.</color>";
                 consignAgent.interactable = hasAgent && price > 0;
                 consignSelf.interactable = price > 0;
             }
@@ -508,7 +508,7 @@ namespace Colosseum.UI
             DrawConsign();
             var items = GearLogic.ArmoryOf(S).ToList()
                 .OrderByDescending(GearLogic.QualityOf).ThenBy(GearLogic.ItemName, StringComparer.CurrentCulture).ToList();
-            armoryTitle.text = $"◆  창고 · {items.Count}점 (착용은 막사 → 검투사 화면에서)";
+            armoryTitle.text = $"◆  창고 · {items.Count}점 — 장비는 막사의 검투사 화면에서 입힙니다";
             ShowMsg(armoryMsg);
             armoryEmpty.SetActive(items.Count == 0);
             armoryRows.Sync(items.Count, (row, i) =>

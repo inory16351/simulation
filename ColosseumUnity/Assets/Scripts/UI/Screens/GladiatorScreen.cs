@@ -27,9 +27,9 @@ namespace Colosseum.UI
         [SerializeField] List<RectTransform> attrBlocks = new();
         [SerializeField] RectTransform profBlock;
         [SerializeField] TMP_Text skills;
-        [Tooltip("남의 검투사일 때만 보인다")]
+        [Tooltip("남의 검투사일 때만 보입니다")]
         [SerializeField] AcquirePanel acquire;
-        [Tooltip("우리 검투사(살아 있을 때)만 고칠 수 있다")]
+        [Tooltip("우리 검투사(살아 있을 때)만 고칠 수 있습니다")]
         [SerializeField] DoctrinePanel doctrine;
         [SerializeField] EquipPanel equip;
         [SerializeField] CareerPanel career;

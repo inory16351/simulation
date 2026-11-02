@@ -89,7 +89,7 @@ namespace Colosseum.UI
                 string slot = box.name;
                 string cur = SlotItem(g.equipment, slot);
                 bool has = !string.IsNullOrEmpty(cur);
-                T(box, "Item").text = has ? Widgets.ItemLabel(cur) : $"<color={faint}>비었다</color>";
+                T(box, "Item").text = has ? Widgets.ItemLabel(cur) : $"<color={faint}>비었습니다</color>";
                 var stats = T(box, "Stats");
                 stats.gameObject.SetActive(has);
                 stats.text = has ? GearLogic.ItemStats(cur) : "";

@@ -94,20 +94,20 @@ namespace Colosseum.Core
             switch (slot)
             {
                 case "main":
-                    if (w == null) return "무기가 아니다";
-                    if (w.offhandOnly) return "보조 손 전용이다";
+                    if (w == null) return "무기가 아닙니다";
+                    if (w.offhandOnly) return "보조 무기로만 쓸 수 있습니다";
                     return null;
                 case "off":
-                    if (Data.Weapon(g.equipment.main)?.twoHanded == true) return "양손 무기를 들고 있다";
+                    if (Data.Weapon(g.equipment.main)?.twoHanded == true) return "양손 무기를 들고 있습니다";
                     if (a?.slot == "shield") return null;
                     if (w != null && (w.offhandOnly || w.@class == "dagger")) return null;
-                    return "방패나 보조 무기만 된다";
+                    return "방패나 보조 무기만 됩니다";
                 case "armor":
-                    if (a?.slot != "armor") return "갑옷이 아니다";
-                    if (g.race == "minotaur" && a.weight == "light") return "미노타우로스 몸에 맞지 않는다";
+                    if (a?.slot != "armor") return "갑옷이 아닙니다";
+                    if (g.race == "minotaur" && a.weight == "light") return "미노타우로스 몸에 맞지 않습니다";
                     return null;
                 case "helmet":
-                    return a?.slot == "helmet" ? null : "투구가 아니다";
+                    return a?.slot == "helmet" ? null : "투구가 아닙니다";
             }
             return null;
         }
@@ -116,15 +116,15 @@ namespace Colosseum.Core
         public static string EquipItem(GameState s, string gId, string slot, string item)
         {
             s.gladiators.TryGetValue(gId, out var g);
-            if (g == null || !g.alive) return "검투사가 없다";
-            if (g.deployment != null) return "파견 중이라 장비를 바꿀 수 없다";
+            if (g == null || !g.alive) return "검투사가 없습니다";
+            if (g.deployment != null) return "파견 중이라 장비를 바꿀 수 없습니다";
             var armory = ArmoryOf(s);
             if (item != null)
             {
                 string why = CannotEquip(g, slot, item);
                 if (why != null) return why;
                 int at = armory.IndexOf(item);
-                if (at < 0) return "창고에 없는 장비다";
+                if (at < 0) return "창고에 없는 장비입니다";
                 armory.RemoveAt(at);
             }
             void Stash(string o) { if (!string.IsNullOrEmpty(o) && !Basic.Contains(o)) armory.Add(o); }
@@ -146,7 +146,7 @@ namespace Colosseum.Core
         {
             var armory = ArmoryOf(s);
             int at = armory.IndexOf(item);
-            if (at < 0) return "창고에 없다";
+            if (at < 0) return "창고에 없습니다";
             armory.RemoveAt(at);
             Economy.AddMoney(s, s.ludi[s.playerLudusId], JsMath.Round(ItemPrice(item) * 0.35), $"{ItemName(item)} 판매");
             return null;
@@ -158,9 +158,9 @@ namespace Colosseum.Core
         {
             var market = GearMarketOf(s);
             var l = market.Find(x => x.id == listingId);
-            if (l == null) return "이미 팔린 매물이다";
+            if (l == null) return "이미 팔린 매물입니다";
             var me = s.ludi[s.playerLudusId];
-            if (me.treasury < l.price) return "금고가 모자란다";
+            if (me.treasury < l.price) return "금고에 돈이 모자랍니다";
             Economy.AddMoney(s, me, -l.price, $"{ItemName(l.item)} 구입 ({l.seller})");
             ArmoryOf(s).Add(l.item);
             s.gearMarket = market.Where(x => x != l).ToList();
@@ -185,15 +185,15 @@ namespace Colosseum.Core
         {
             var market = GearMarketOf(s);
             var l = market.Find(x => x.id == listingId);
-            if (l == null) return new HaggleResult { status = "error", line = "이미 팔린 매물이다" };
+            if (l == null) return new HaggleResult { status = "error", line = "이미 팔린 매물입니다" };
             var me = s.ludi[s.playerLudusId];
             cash = Math.Max(0, cash);
-            if (cash > me.treasury) return new HaggleResult { status = "error", line = "금고가 모자란다" };
+            if (cash > me.treasury) return new HaggleResult { status = "error", line = "금고에 돈이 모자랍니다" };
             var armory = ArmoryOf(s);
             var left = armory.ToList();
             foreach (var t in tradeIns)
-                if (!left.Remove(t)) return new HaggleResult { status = "error", line = $"창고에 {Josa.J(ItemName(t), "이/가")} 없다" };
-            if (cash <= 0 && tradeIns.Count == 0) return new HaggleResult { status = "error", line = "아무것도 내놓지 않았다" };
+                if (!left.Remove(t)) return new HaggleResult { status = "error", line = $"창고에 {Josa.J(ItemName(t), "이/가")} 없습니다" };
+            if (cash <= 0 && tradeIns.Count == 0) return new HaggleResult { status = "error", line = "아무것도 내놓지 않았습니다" };
 
             double r = AgentRating(s);
             string key = HaggleKey(listingId);
@@ -206,7 +206,7 @@ namespace Colosseum.Core
             foreach (var t in tradeIns) armory.RemoveAt(armory.IndexOf(t));
             armory.Add(l.item);
             s.gearMarket = market.Where(x => x != l).ToList();
-            if (tradeIns.Count > 0) res.line += $" ({Josa.J(string.Join(", ", tradeIns.Select(ItemName)), "을/를")} 넘겼다)";
+            if (tradeIns.Count > 0) res.line += $" ({Josa.J(string.Join(", ", tradeIns.Select(ItemName)), "을/를")} 넘겼습니다)";
             return res;
         }
 
@@ -219,9 +219,9 @@ namespace Colosseum.Core
         public static string Consign(GameState s, string item, double price, bool viaAgent)
         {
             var armory = ArmoryOf(s);
-            if (!armory.Contains(item)) return "창고에 없다";
-            if (price <= 0) return "값을 정하라";
-            if (viaAgent && StaffLogic.StaffOf(s, s.ludi[s.playerLudusId], "agent") == null) return "중개인이 없다. 식솔에서 중개인을 들이거나 직접 내놓아라";
+            if (!armory.Contains(item)) return "창고에 없습니다";
+            if (price <= 0) return "값을 정하십시오";
+            if (viaAgent && StaffLogic.StaffOf(s, s.ludi[s.playerLudusId], "agent") == null) return "중개인이 없습니다. 식솔에서 중개인을 들이거나 직접 내놓으십시오";
             armory.RemoveAt(armory.IndexOf(item));
             ConsignmentsOf(s).Add(new Consignment { id = $"C{s.nextId++}", item = item, price = price, viaAgent = viaAgent, listedAt = Today(s) });
             return null;
@@ -256,8 +256,8 @@ namespace Colosseum.Core
                 s.consignments.Remove(c);
                 double fee = c.viaAgent ? JsMath.Round(c.price * AgentCommission) : 0;
                 Economy.AddMoney(s, me, c.price - fee, $"{ItemName(c.item)} 판매{(c.viaAgent ? " (중개인)" : "")}");
-                StateUtil.PushMessage(s, "info", $"장비가 팔렸다: {ItemName(c.item)}",
-                    $"{c.price:N0} D에 팔렸다.{(fee > 0 ? $" 중개인 수수료 {fee:N0} D를 뗐다." : "")}");
+                StateUtil.PushMessage(s, "info", $"장비가 팔렸습니다: {ItemName(c.item)}",
+                    $"{c.price:N0} D에 팔렸습니다.{(fee > 0 ? $" 중개인 수수료 {fee:N0} D를 뗐습니다." : "")}");
             }
         }
 
@@ -330,7 +330,7 @@ namespace Colosseum.Core
             if (got.Count == 0) return got;
             ArmoryOf(s).AddRange(got);
             StateUtil.PushMessage(s, "info", $"전리품: {dead.name}의 장비",
-                $"{Josa.J(killer.name, "이/가")} 쓰러뜨린 {dead.name}의 장비를 거뒀다.\n{string.Join(", ", got.Select(ItemName))}\n\n막사 → 검투사 화면에서 착용하거나, 이적 시장 → 창고에서 팔 수 있다.");
+                $"{Josa.J(killer.name, "이/가")} 쓰러뜨린 {dead.name}의 장비를 거뒀습니다.\n{string.Join(", ", got.Select(ItemName))}\n\n막사 → 검투사 화면에서 착용하거나, 이적 시장 → 창고에서 팔 수 있습니다.");
             return got;
         }
 

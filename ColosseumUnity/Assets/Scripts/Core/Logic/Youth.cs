@@ -43,7 +43,7 @@ namespace Colosseum.Core
                 state.gladiators[g.id] = g;
                 ludus.youth.Add(g.id);
                 Career.SeasonRecord(state, g);
-                Career.LogCareer(state, g, $"{ludus.name} 유소년 학당에 들어왔다 ({N(g.age)}세)", "join");
+                Career.LogCareer(state, g, $"{ludus.name} 유소년 학당에 들어왔습니다 ({N(g.age)}세)", "join");
                 output.Add(g);
             }
             if (ludus.isPlayer && output.Count > 0)
@@ -51,8 +51,8 @@ namespace Colosseum.Core
                 StateUtil.PushMessage(state, new InboxMessage
                 {
                     kind = "info",
-                    title = golden ? "황금 세대가 입학했다!" : $"유소년 학당 입학생 {output.Count}명",
-                    body = $"{string.Join("\n", output.Select(g => $"{g.name} ({Data.Race(g.race).name}, {N(g.age)}세)"))}\n\n{(golden ? "교관들이 술렁인다. 올해 아이들은 그릇이 다르다." : "유소년 학당 화면에서 볼 수 있다.")}",
+                    title = golden ? "황금 세대가 입학했습니다!" : $"유소년 학당 입학생 {output.Count}명",
+                    body = $"{string.Join("\n", output.Select(g => $"{g.name} ({Data.Race(g.race).name}, {N(g.age)}세)"))}\n\n{(golden ? "교관들이 술렁입니다. 올해 아이들은 그릇이 다릅니다." : "유소년 학당 화면에서 볼 수 있습니다.")}",
                 });
             }
             return output;
@@ -104,7 +104,7 @@ namespace Colosseum.Core
                 {
                     kind = "match",
                     title = $"견습 투기 {wins}승 {kids.Count - wins}패",
-                    body = $"{string.Join("\n", lines)}\n\n가장 눈에 띈 아이: {star.name}. {(star.popularity >= 15 ? "다른 루두스에서도 이름을 묻기 시작했다." : "")}",
+                    body = $"{string.Join("\n", lines)}\n\n가장 눈에 띈 아이: {star.name}. {(star.popularity >= 15 ? "다른 루두스에서도 이름을 묻기 시작했습니다." : "")}",
                 });
             }
         }
@@ -113,14 +113,14 @@ namespace Colosseum.Core
         public static string PromoteYouth(GameState state, Ludus ludus, string id)
         {
             var g = state.gladiators[id];
-            if (GladiatorRules.AgeStage(g) == "youth") return "아직 어리다";
+            if (GladiatorRules.AgeStage(g) == "youth") return "아직 어립니다";
             ludus.youth = ludus.youth.FindAll(x => x != id);
             ludus.gladiators.Add(id);
             g.wage = Math.Max(8, JsMath.Round(GladiatorRules.ComputeCA(g) * 0.5));
             // 학당에서 자란 아이는 루두스에 대한 정이 깊다
             g.hidden.loyalty = Math.Min(20, g.hidden.loyalty + 3);
             if (!g.traits.Contains("academy")) g.traits.Add("academy");
-            Career.LogCareer(state, g, $"{ludus.name} 1군으로 올라갔다", "milestone");
+            Career.LogCareer(state, g, $"{ludus.name} 1군으로 올라갔습니다", "milestone");
             return null;
         }
 
@@ -128,7 +128,7 @@ namespace Colosseum.Core
         {
             ludus.youth = ludus.youth.FindAll(x => x != id);
             var g = state.gladiators[id];
-            Career.LogCareer(state, g, $"{ludus.name} 학당에서 내보내졌다", "other");
+            Career.LogCareer(state, g, $"{ludus.name} 학당에서 쫓겨났습니다", "other");
         }
 
         /// <summary>시즌 끝: 데뷔 나이가 된 아이들을 알린다 (AI는 자동 승격)</summary>
@@ -146,7 +146,7 @@ namespace Colosseum.Core
             {
                 kind = "info",
                 title = $"졸업할 나이가 된 아이 {ready.Count}명",
-                body = $"{string.Join("\n", ready.Select(g => $"{Josa.J(g.name, "이/가")} 데뷔할 나이가 됐다"))}\n\n유소년 학당 화면에서 1군으로 올리거나 내보내라.",
+                body = $"{string.Join("\n", ready.Select(g => $"{Josa.J(g.name, "이/가")} 데뷔할 나이가 됐습니다"))}\n\n유소년 학당 화면에서 1군으로 올리거나 내보내십시오.",
             });
         }
 

@@ -41,8 +41,8 @@ namespace Colosseum.UI
                 double total = g.injury.total ?? g.injury.daysLeft;
                 Widgets.SetBar((RectTransform)t.Find("Bar"), total - g.injury.daysLeft, total, Theme.Good);
                 t.Find("Hint").GetComponent<TMP_Text>().text =
-                    (g.injury.severity == "serious" ? "출전 불가" : "출전 가능 (무리)") + " · " +
-                    (g.training.focus == "rest" ? "휴식 중 (회복 1.5배)" : "연무장에서 휴식으로 바꾸면 빨리 낫는다");
+                    (g.injury.severity == "serious" ? "출전 불가" : "무리하면 출전 가능") + " · " +
+                    (g.training.focus == "rest" ? "휴식 중 (회복 1.5배)" : "연무장에서 휴식으로 바꾸면 빨리 낫습니다");
                 row.onClick.RemoveAllListeners();
                 string id = g.id;
                 row.onClick.AddListener(() => G.OpenGladiator(id));

@@ -119,8 +119,8 @@ namespace Colosseum.Core
             }
             if (unpaidNames.Count > 0)
             {
-                StateUtil.PushMessage(state, "warning", "급료를 다 주지 못했다",
-                    $"금고가 바닥나 급료를 못 받은 자들이 있다: {string.Join(", ", unpaidNames)}.\n\n세 번 넘게 밀리면 훈련을 거부하고, 네 번째부터는 도망치거나 들고일어날 수 있다.");
+                StateUtil.PushMessage(state, "warning", "급료를 다 주지 못했습니다",
+                    $"금고가 바닥나 급료를 못 받은 자들이 있습니다: {string.Join(", ", unpaidNames)}.\n\n세 번 넘게 밀리면 훈련을 거부하고, 네 번째부터는 도망치거나 들고일어날 수 있습니다.");
             }
         }
 
@@ -207,7 +207,7 @@ namespace Colosseum.Core
             player.gladiators = player.gladiators.Where(x => x != id).ToList();
             g.contract = null;
             state.freeAgents.Add(id);
-            Career.LogCareer(state, g, $"{player.name}에서 방출됐다", "other");
+            Career.LogCareer(state, g, $"{player.name}에서 방출됐습니다", "other");
         }
 
         /// <summary>우리 명성에서 이 검투사가 원하는 주급</summary>
@@ -222,15 +222,15 @@ namespace Colosseum.Core
         {
             var player = state.ludi[state.playerLudusId];
             state.gladiators.TryGetValue(id, out var g);
-            if (!state.freeAgents.Contains(id)) return "이미 다른 곳과 계약했다";
-            if (player.gladiators.Count >= RosterCapacity(player)) return "막사에 빈자리가 없다";
+            if (!state.freeAgents.Contains(id)) return "이미 다른 곳과 계약했습니다";
+            if (player.gladiators.Count >= RosterCapacity(player)) return "막사에 빈자리가 없습니다";
             var d = FreeAgentDemand(state, g);
             if (d.refuse) return $"{g.name}: {d.reason}";
-            if (player.treasury < SigningFee(offer)) return "계약금이 모자란다";
+            if (player.treasury < SigningFee(offer)) return "계약금이 모자랍니다";
             if (!Reputation.AcceptsOffer(offer, d, roll))
             {
                 state.freeAgents = state.freeAgents.Where(x => x != id).ToList();
-                return $"{Josa.J(g.name, "이/가")} 제안을 거절하고 다른 루두스로 갔다 (원한 주급 {StateUtil.Num(d.wage)} D)";
+                return $"{Josa.J(g.name, "이/가")} 제안을 거절하고 다른 루두스로 갔습니다 (바라던 주급 {StateUtil.Num(d.wage)} D)";
             }
             JoinFreeAgent(state, id, offer, seasons);
             return null;
@@ -244,11 +244,11 @@ namespace Colosseum.Core
             var player = state.ludi[state.playerLudusId];
             state.gladiators.TryGetValue(id, out var g);
             HaggleResult Err(string line) => new HaggleResult { status = "error", line = line };
-            if (!state.freeAgents.Contains(id)) return Err("이미 다른 곳과 계약했다");
-            if (player.gladiators.Count >= RosterCapacity(player)) return Err("막사에 빈자리가 없다");
+            if (!state.freeAgents.Contains(id)) return Err("이미 다른 곳과 계약했습니다");
+            if (player.gladiators.Count >= RosterCapacity(player)) return Err("막사에 빈자리가 없습니다");
             var d = FreeAgentDemand(state, g);
             if (d.refuse) return Err($"{g.name}: {d.reason}");
-            if (player.treasury < SigningFee(offer)) return Err("계약금이 모자란다");
+            if (player.treasury < SigningFee(offer)) return Err("계약금이 모자랍니다");
             string key = WageKey(id);
             Haggling.Open(state, rng, key, d.wage, 0.03, 0.12);
             var res = Haggling.Offer(state, key, offer);
@@ -267,7 +267,7 @@ namespace Colosseum.Core
             state.freeAgents = state.freeAgents.Where(x => x != id).ToList();
             player.gladiators.Add(id);
             Career.SeasonRecord(state, g);
-            Career.LogCareer(state, g, $"자유민으로 {Josa.J(player.name, "과/와")} {seasons}시즌 계약했다 (주급 {StateUtil.Num(offer)} D)", "join");
+            Career.LogCareer(state, g, $"자유민으로 {Josa.J(player.name, "과/와")} {seasons}시즌 계약했습니다 (주급 {StateUtil.Num(offer)} D)", "join");
         }
     }
 }

@@ -76,3 +76,6 @@
   - 레이아웃 함정 하나 더: 고정 높이 줄(요약 패널, 자리 패널)을 담은 칸에는 `Layout(flexH: 0)`을 준다. 안 주면 자식 TitledPanel이 남는 높이를 다 먹는다.
 - 소리: `UI/GameAudio.cs` (효과음 12종을 웹판 Web Audio 레시피대로 처음 한 번 합성, 전투 음악은 `Resources/Audio/battle.mp3`), 상단 바 `AudioControl` (음소거, 효과음·음악 크기, PlayerPrefs). MatchScreen 중계 화면이 떠 있는 동안 음악, 문장마다 `PlaySound`.
 - 다음: 플레이 전체 흐름 점검(시즌 한 바퀴), 단체전·컵 중계 실제 확인, 던전 원정 실제 확인, Windows 빌드.
+- (2026-11-02 저녁) 말투: FM 한국어판처럼 합니다체로 통일. 화면 글·데이터(data/*.json)·서판 소식·경기 중계 전부. 버튼은 "~기"/짧은 명사, 따옴표 안 인물 대사는 그대로. 직역투도 함께 고침.
+  - Gemini 검수: Gemini CLI는 계정 문제로 막힘 → Antigravity CLI `agy --model gemini-4-argon-high --mode plan -p "..."`로 부른다. 지침·도구는 세션 스크래치(gem/style.md, textkit.mjs, jsonkit.cjs, gem2/kit.mjs: TS↔C# 문자열 짝 맞추기)에 있었다.
+  - 문장을 바꾸면 웹판·C# 둘 다 같은 글자로 바꾸고 `npx tsx tools/golden-dump.ts` + `tools/golden-season.ts`로 골든을 다시 뽑는다. 던전 전사 판정은 "일어나지 못했습니다"를 찾는다.

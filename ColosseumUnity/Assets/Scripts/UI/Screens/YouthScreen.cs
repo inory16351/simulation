@@ -55,8 +55,8 @@ namespace Colosseum.UI
                 sub.text = "";
                 return;
             }
-            sub.text = $"학당 {lvl}단계 · 학생 {kids.Count}/{Youth.YouthCapacity(player)}명 · {Youth.ApprenticeInterval}일마다 목검으로 견습 투기를 치른다 (죽지 않는다). 데뷔 나이가 되면 1군으로 올릴 수 있다." +
-                (full ? $"  <color={Theme.Hex(Neg)}>막사가 꽉 찼다</color>" : "");
+            sub.text = $"학당 {lvl}단계 · 학생 {kids.Count}/{Youth.YouthCapacity(player)}명. 학생들은 {Youth.ApprenticeInterval}일마다 목검으로 안전하게 실전 훈련을 하고, 데뷔 나이가 되면 1군으로 올라갑니다." +
+                (full ? $"  <color={Theme.Hex(Neg)}>막사가 꽉 찼습니다</color>" : "");
 
             empty.SetActive(kids.Count == 0);
             if (confirmRelease != null && !kids.Any(g => g.id == confirmRelease)) confirmRelease = null;
@@ -107,7 +107,7 @@ namespace Colosseum.UI
             // 웹판 confirm(): 한 번 더 누르면 내보낸다
             bool asking = confirmRelease == id;
             var release = row.Find("Act/Release").GetComponent<Button>();
-            release.GetComponentInChildren<TMP_Text>().text = asking ? "정말 내보낼까?" : "내보내기";
+            release.GetComponentInChildren<TMP_Text>().text = asking ? "정말 내보내겠습니까?" : "내보내기";
             release.onClick.RemoveAllListeners();
             release.onClick.AddListener(() =>
             {

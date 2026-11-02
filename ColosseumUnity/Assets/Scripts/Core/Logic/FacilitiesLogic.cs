@@ -96,11 +96,11 @@ namespace Colosseum.Core
 
         public static string StartUpgrade(GameState state, Ludus ludus, string id)
         {
-            if (ludus.construction != null) return "이미 공사 중인 시설이 있다";
+            if (ludus.construction != null) return "이미 공사 중인 시설이 있습니다";
             int lvl = Level(ludus.facilities, id);
-            if (lvl >= MaxLevel) return "이미 최고 단계다";
+            if (lvl >= MaxLevel) return "이미 최고 단계입니다";
             var (cost, days) = UpgradeCost(id, lvl + 1);
-            if (ludus.treasury < cost) return "금고가 모자란다";
+            if (ludus.treasury < cost) return "금고에 돈이 모자랍니다";
             Economy.AddMoney(state, ludus, -cost, $"{GetFacility(id).name} 증축");
             ludus.construction = new Construction { facility = id, toLevel = lvl + 1, doneAt = Calendar.AbsDay(state.season, state.day) + days };
             return null;
@@ -121,7 +121,7 @@ namespace Colosseum.Core
                 if (l.isPlayer)
                 {
                     var f = GetFacility(c.facility);
-                    StateUtil.PushMessage(state, "info", $"{f.name} {c.toLevel}단계 완공", $"{f.name} 공사가 끝났다.\n{f.effect(c.toLevel)}");
+                    StateUtil.PushMessage(state, "info", $"{f.name} {c.toLevel}단계 완공", $"{f.name} 공사가 끝났습니다.\n{f.effect(c.toLevel)}");
                 }
             }
             return done;

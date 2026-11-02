@@ -54,7 +54,7 @@ namespace Colosseum.EditorTools
             HRow(them, 10).childAlignment = TextAnchor.MiddleRight;
             Text("Name", them, "", 16, Theme.Parchment, false, FontStyles.Bold, TextAlignmentOptions.MidlineRight).Layout(flexW: 1);
             Portrait("Portrait", them, 48);
-            Button("Enter", single, "경기장에 들어간다", true, 15).Layout(prefW: 180, minW: 180, prefH: 40, flexW: 0);
+            Button("Enter", single, "경기장 들어가기", true, 15).Layout(prefW: 180, minW: 180, prefH: 40, flexW: 0);
             single.gameObject.SetActive(false);
 
             var team = Rect("TeamTemplate", off).Layout(minH: 64);
@@ -72,16 +72,16 @@ namespace Colosseum.EditorTools
                 Text("Label", slot, "", 12, Theme.TextDim);
                 Dropdown("Pick", slot, 150);
             }
-            Button("Enter", team, "경기장에 들어간다", true, 15).Layout(prefW: 180, minW: 180, prefH: 40, flexW: 0);
+            Button("Enter", team, "경기장 들어가기", true, 15).Layout(prefW: 180, minW: 180, prefH: 40, flexW: 0);
             team.gameObject.SetActive(false);
 
-            Text("PracticeSub", root, "연습 시합: RP와 돈은 오가지 않지만 성장·피로·혹사는 실전과 같고, 생사 규칙도 그대로다. 죽으면 끝이다.", 15, Theme.TextDim);
+            Text("PracticeSub", root, "연습 시합은 RP와 상금이 오가지 않습니다. 대신 성장과 피로, 혹사는 실전과 똑같이 쌓입니다. 생사 규칙도 실전과 같아서 죽으면 끝입니다.", 15, Theme.TextDim);
 
             var cols = Rect("Setup", root);
             HRow(cols, 14, 0, 0, 0, 0, TextAnchor.UpperLeft);
             var minePad = TitledPanel("Mine", cols, "우리 검투사", 0);
             minePad.parent.Layout(minW: 0, prefW: 0, flexW: 1);
-            var mineEmpty = Text("Empty", minePad, "출전 가능한 검투사가 없다.", 14, Theme.TextDim);
+            var mineEmpty = Text("Empty", minePad, "싸울 수 있는 검투사가 없습니다.", 14, Theme.TextDim);
             var mineRow = PickRow("MineTemplate", minePad);
 
             var oppPad = TitledPanel("Opp", cols, "상대", 6);
@@ -89,7 +89,7 @@ namespace Colosseum.EditorTools
             Text("Label", oppPad, "루두스", 13, Theme.TextDim);
             var oppLudus = Dropdown("Ludus", oppPad, 0);
             oppLudus.Layout(minH: 30, prefH: 30);
-            var oppEmpty = Text("Empty", oppPad, "출전 가능한 검투사가 없다.", 14, Theme.TextDim);
+            var oppEmpty = Text("Empty", oppPad, "싸울 수 있는 검투사가 없습니다.", 14, Theme.TextDim);
             var oppRow = PickRow("OppTemplate", oppPad);
 
             var condPad = TitledPanel("Cond", cols, "조건", 8);

@@ -93,8 +93,8 @@ export function payday(state: GameState, ludus: Ludus): void {
   if (unpaidNames.length) {
     pushMessage(state, {
       kind: "warning",
-      title: "급료를 다 주지 못했다",
-      body: `금고가 바닥나 급료를 못 받은 자들이 있다: ${unpaidNames.join(", ")}.\n\n세 번 넘게 밀리면 훈련을 거부하고, 네 번째부터는 도망치거나 들고일어날 수 있다.`,
+      title: "급료를 다 주지 못했습니다",
+      body: `금고가 바닥나 급료를 못 받은 자들이 있습니다: ${unpaidNames.join(", ")}.\n\n세 번 넘게 밀리면 훈련을 거부하고, 네 번째부터는 도망치거나 들고일어날 수 있습니다.`,
     });
   }
 }
@@ -163,7 +163,7 @@ export function releaseGladiator(state: GameState, id: string): void {
   player.gladiators = player.gladiators.filter((x) => x !== id);
   g.contract = undefined;
   state.freeAgents.push(id);
-  logCareer(state, g, `${player.name}에서 방출됐다`, "other");
+  logCareer(state, g, `${player.name}에서 방출됐습니다`, "other");
 }
 
 /** 우리 명성에서 이 검투사가 원하는 주급 */
@@ -177,14 +177,14 @@ export const signingFee = (offer: number) => offer * 4;
 export function signFreeAgent(state: GameState, id: string, offer: number, seasons: number, roll: number): string | null {
   const player = state.ludi[state.playerLudusId];
   const g = state.gladiators[id];
-  if (!state.freeAgents.includes(id)) return "이미 다른 곳과 계약했다";
-  if (player.gladiators.length >= rosterCapacity(player)) return "막사에 빈자리가 없다";
+  if (!state.freeAgents.includes(id)) return "이미 다른 곳과 계약했습니다";
+  if (player.gladiators.length >= rosterCapacity(player)) return "막사에 빈자리가 없습니다";
   const d = freeAgentDemand(state, g);
   if (d.refuse) return `${g.name}: ${d.reason}`;
-  if (player.treasury < signingFee(offer)) return "계약금이 모자란다";
+  if (player.treasury < signingFee(offer)) return "계약금이 모자랍니다";
   if (!acceptsOffer(offer, d, roll)) {
     state.freeAgents = state.freeAgents.filter((x) => x !== id);
-    return `${josa(g.name, "이/가")} 제안을 거절하고 다른 루두스로 갔다 (원한 주급 ${d.wage} D)`;
+    return `${josa(g.name, "이/가")} 제안을 거절하고 다른 루두스로 갔습니다 (바라던 주급 ${d.wage} D)`;
   }
   addMoney(state, player, -signingFee(offer), `${g.name} 계약금`);
   g.wage = offer;
@@ -193,6 +193,6 @@ export function signFreeAgent(state: GameState, id: string, offer: number, seaso
   state.freeAgents = state.freeAgents.filter((x) => x !== id);
   player.gladiators.push(id);
   seasonRecord(state, g);
-  logCareer(state, g, `자유민으로 ${josa(player.name, "과/와")} ${seasons}시즌 계약했다 (주급 ${offer} D)`, "join");
+  logCareer(state, g, `자유민으로 ${josa(player.name, "과/와")} ${seasons}시즌 계약했습니다 (주급 ${offer} D)`, "join");
   return null;
 }

@@ -34,7 +34,7 @@ export function scoutSlots(s: GameState): number {
 export function assignScout(s: GameState, id: Id): string | null {
   const sc = scoutingOf(s);
   if (sc.assignments.includes(id)) return null;
-  if (sc.assignments.length >= scoutSlots(s)) return `정찰은 동시에 ${scoutSlots(s)}명까지 맡길 수 있다`;
+  if (sc.assignments.length >= scoutSlots(s)) return `정찰은 동시에 ${scoutSlots(s)}명까지 맡길 수 있습니다`;
   sc.assignments.push(id);
   return null;
 }
@@ -55,7 +55,7 @@ export function dailyScouting(s: GameState): void {
     sc.knowledge[id] = Math.min(100, (sc.knowledge[id] ?? 0) + gain);
     if (sc.knowledge[id] >= 100) {
       unassignScout(s, id);
-      pushMessage(s, { kind: "info", title: `정찰 보고서: ${g.name}`, body: `${g.name} 정찰이 끝났다. 이제 능력과 잠재력이 꽤 정확히 보인다.` });
+      pushMessage(s, { kind: "info", title: `정찰 보고서: ${g.name}`, body: `${g.name} 정찰이 끝났습니다. 이제 능력과 잠재력이 꽤 정확히 보입니다.` });
     }
   }
 }

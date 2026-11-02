@@ -17,7 +17,7 @@ namespace Colosseum.EditorTools
             var rt = Rect("Screen_cup", main).Stretch(26, 20, 26, 20);
             var content = ScrollView("Scroll", rt, out var scroll, 14);
             scroll.Stretch();
-            ScreenHeader(content, "판테온 컵", "여섯 나라 1부 상위 루두스 16곳의 대륙 대회. 나라 계수가 높을수록 출전권이 많다. 대결마다 세 명이 미시오로 한 판씩, 두 판을 먼저 따면 이긴다. 리그 RP는 오가지 않지만 상금과 명성이 크다.");
+            ScreenHeader(content, "판테온 컵", "여섯 나라의 1부 상위 루두스 16곳이 겨루는 대륙 대회입니다. 나라 계수가 높을수록 출전권을 많이 받습니다. 대결마다 세 명이 미시오로 한 판씩 싸워 두 판을 먼저 따면 이깁니다. 리그 RP는 오가지 않지만 큰 상금과 명성을 얻습니다.");
             content.Find("Sub").GetComponent<TMP_Text>().Layout(prefH: 44);
 
             // 오늘의 컵 경기
@@ -38,7 +38,7 @@ namespace Colosseum.EditorTools
                 Text("Label", slot, p, 12, Theme.TextDim);
                 slots.Add(Dropdown("Pick", slot, 200));
             }
-            var warn = Text("Warn", todayPad, "세 명을 채우지 못하면 빈 자리는 기권패다.", 13, Neg);
+            var warn = Text("Warn", todayPad, "세 명을 채우지 못하면 빈 자리는 기권패입니다.", 13, Neg);
             var speedRow = Rect("Speed", todayPad);
             HRow(speedRow, 4);
             Text("Label", speedRow, "중계 속도", 13, Theme.TextDim).Layout(prefW: 70, flexW: 0);
@@ -46,21 +46,21 @@ namespace Colosseum.EditorTools
             foreach (var sp in MatchScreen.Speeds) speeds.Add(Button("Speed_" + sp.id, speedRow, sp.label, false, 14).Layout(prefW: 90, prefH: 30));
             var enterRow = Rect("EnterRow", todayPad);
             HRow(enterRow, 0);
-            var enter = Button("Enter", enterRow, "경기장에 들어간다", true, 15).Layout(prefW: 200, prefH: 40);
+            var enter = Button("Enter", enterRow, "경기장 들어가기", true, 15).Layout(prefW: 200, prefH: 40);
 
             // 나라 계수 | 우리 루두스
             var cols = Rect("Cols", content);
             HRow(cols, 14, 0, 0, 0, 0, TextAnchor.UpperLeft);
             var coefPad = TitledPanel("Coef", cols, "나라 계수", 0);
             coefPad.parent.Layout(minW: 0, prefW: 0, flexW: 1);
-            Head(coefPad, ("나라", 0), ("최근 3시즌", 150), ("합", 60), ("출전권", 60));
+            Head(coefPad, ("나라", 0), ("최근 3시즌", 150), ("합계", 60), ("출전권", 60));
             var coef = Row("CoefTemplate", coefPad);
             Cell(Team("Nation", coef, 0, 14), 0);
             Cell(Text("Recent", coef, "", 13, Theme.TextDim).rectTransform, 150);
             Cell(Text("Sum", coef, "", 14).rectTransform, 60);
             Cell(Text("Slots", coef, "", 14).rectTransform, 60);
             coef.gameObject.SetActive(false);
-            Text("Note", coefPad, "대결 승리 2점, 8강·4강·결승 진출 1점씩, 우승 2점. 나라마다 출전한 루두스의 평균 점수가 그 시즌 계수가 된다.", 13, Theme.TextDim).margin = new Vector4(0, 8, 0, 0);
+            Text("Note", coefPad, "대결에서 이기면 2점, 8강과 4강, 결승에 오를 때마다 1점씩, 우승하면 2점을 얻습니다. 출전한 루두스의 평균 점수가 그 시즌의 나라 계수입니다.", 13, Theme.TextDim).margin = new Vector4(0, 8, 0, 0);
 
             var ourPad = TitledPanel("Ours", cols, "우리 루두스", 0);
             ourPad.parent.Layout(minW: 0, prefW: 0, flexW: 1);
@@ -102,7 +102,7 @@ namespace Colosseum.EditorTools
                 var col = Rect("Stage" + si, bcols).Layout(minW: 0, prefW: 0, flexW: 1);
                 VCol(col, 8);
                 Text("Title", col, "", 13, Theme.TextDim);
-                Text("Empty", col, "아직 정해지지 않았다", 13, Theme.TextDim);
+                Text("Empty", col, "미정", 13, Theme.TextDim);
                 var tie = Panel("TieTemplate", col, Theme.Bg2);
                 VCol(tie.transform, 2, 10, 10, 6, 6);
                 tie.transform.Find("Fill").gameObject.AddComponent<LayoutElement>().ignoreLayout = true;

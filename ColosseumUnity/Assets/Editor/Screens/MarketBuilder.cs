@@ -15,7 +15,7 @@ namespace Colosseum.EditorTools
         static readonly (string id, string label, float w)[] ResultCols =
         {
             ("Name", "이름", 180), ("Race", "종족", 64), ("Age", "나이", 46), ("Style", "스타일", 86), ("Owner", "소속", 0),
-            ("Ca", "능력 (추정)", 140), ("Pa", "잠재 (추정)", 140), ("Info", "정보", 72), ("Wage", "주급", 70), ("Value", "추정 가치", 92), ("Act", "", 132),
+            ("Ca", "추정 능력", 140), ("Pa", "추정 잠재", 140), ("Info", "정보", 72), ("Wage", "주급", 70), ("Value", "추정 가치", 92), ("Act", "", 132),
         };
 
         public static ScreenBase Build(Transform main)
@@ -61,7 +61,7 @@ namespace Colosseum.EditorTools
             var deals = Tab(body, "Deals", roots);
             Set(s, "dealsMsg", Text("Msg", deals, "", 14, Neg));
             var dp = TitledPanel("Deals", deals, "이적료 합의 — 개인 계약 협상", 0);
-            Set(s, "dealEmpty", Text("Empty", dp, "진행 중인 협상이 없다. 다른 루두스 검투사의 상세 화면에서 이적료를 제안하라.", 14, Theme.TextDim).gameObject);
+            Set(s, "dealEmpty", Text("Empty", dp, "진행 중인 협상이 없습니다. 다른 루두스 검투사의 상세 화면에서 이적료를 제안하면 협상을 시작합니다.", 14, Theme.TextDim).gameObject);
             var deal = Row("DealTemplate", dp, 58);
             NameCell(deal, 200, true);
             var dinfo = Rect("Info", deal);
@@ -73,7 +73,7 @@ namespace Colosseum.EditorTools
             var nego = Rect("Negotiate", deal);
             HRow(nego, 6);
             nego.Layout(minW: 420, prefW: 420, flexW: 0, minH: 30, prefH: 30);
-            Text("Want", nego, "원함 0 D", 13, Theme.TextDim).Layout(prefW: 100, minW: 100);
+            Text("Want", nego, "요구 주급 0 D", 13, Theme.TextDim).Layout(prefW: 100, minW: 100);
             Input(nego, 90, true).name = "Wage";
             Dropdown("Seasons", nego, 90);
             Button("Offer", nego, "계약 제안", true, 14).Layout(prefW: 110, minW: 110, prefH: 30);
@@ -81,12 +81,12 @@ namespace Colosseum.EditorTools
             Set(s, "dealTemplate", deal);
 
             var op = TitledPanel("Offers", deals, "받은 이적 제안", 0);
-            Set(s, "offerEmpty", Text("Empty", op, "받은 제안이 없다.", 14, Theme.TextDim).gameObject);
+            Set(s, "offerEmpty", Text("Empty", op, "받은 제안이 없습니다.", 14, Theme.TextDim).gameObject);
             var offer = Row("OfferTemplate", op, 44);
             NameCell(offer, 200, false);
             Cell(Text("From", offer, "", 14).rectTransform, 0);
             Cell(Text("Fee", offer, "", 14, Theme.Text, false, FontStyles.Normal, TextAlignmentOptions.MidlineRight).rectTransform, 110);
-            Button("Accept", offer, "판다", true, 14).Layout(minW: 76, prefW: 76, prefH: 30, flexW: 0);
+            Button("Accept", offer, "팔기", true, 14).Layout(minW: 76, prefW: 76, prefH: 30, flexW: 0);
             Button("Reject", offer, "거절", false, 14).Layout(minW: 76, prefW: 76, prefH: 30, flexW: 0);
             offer.gameObject.SetActive(false);
             Set(s, "offerTemplate", offer);
@@ -95,7 +95,7 @@ namespace Colosseum.EditorTools
             var mine = Tab(body, "Mine", roots);
             var mp = TitledPanel("Mine", mine, "우리 검투사 — 방출", 0);
             Grow(mp);
-            Text("Hint", mp, "방출하면 무소속이 되고 한 푼도 받지 못한다. 팔려면 이적 시장 기간에 다른 루두스의 제안을 기다려라.", 13, Theme.TextDim).Layout(prefH: 30);
+            Text("Hint", mp, "검투사를 방출하면 한 푼도 받지 못하고 무소속으로 풀어 줍니다. 이적료를 받으려면 이적 시장 기간에 다른 루두스의 제안을 기다립니다.", 13, Theme.TextDim).Layout(prefH: 30);
             var mineContent = ScrollView("Scroll", mp, out var mineScroll);
             mineScroll.Layout(flexH: 1);
             var mrow = Row("MineTemplate", mineContent, 40);
@@ -111,7 +111,7 @@ namespace Colosseum.EditorTools
 
             // ── 장비 시장 ──
             var gear = Tab(body, "Gear", roots);
-            var gp = TitledPanel("Filters", gear, "매물 검색", 8);
+            var gp = TitledPanel("Filters", gear, "매물 찾기", 8);
             var g1 = FilterRow(gp);
             Set(s, "gearKind", Filter(g1, "종류", 100));
             Set(s, "gearQuality", Filter(g1, "품질 ≥", 100));
@@ -127,9 +127,9 @@ namespace Colosseum.EditorTools
             // ── 창고 ──
             var armory = Tab(body, "Armory", roots);
             ConsignPanel(armory, s);
-            var crow = ItemTable(armory, s, "consigned", "내놓은 장비", 100, ("Price", "내놓은 값", 100), ("Via", "누가", 70), ("Chance", "팔릴 확률", 100));
+            var crow = ItemTable(armory, s, "consigned", "내놓은 장비", 100, ("Price", "내놓은 값", 100), ("Via", "판매 방식", 70), ("Chance", "팔릴 확률", 100));
             Button("Withdraw", crow, "거둬들이기", false, 14).Layout(minW: 100, prefW: 100, prefH: 30, flexW: 0);
-            var arow = ItemTable(armory, s, "armory", "창고", 168, ("Sell", "팔면", 100));
+            var arow = ItemTable(armory, s, "armory", "창고", 168, ("Sell", "파는 값", 100));
             Button("Consign", arow, "내놓기", false, 14).Layout(minW: 90, prefW: 90, prefH: 30, flexW: 0);
             Button("SellButton", arow, "팔기", false, 14).Layout(minW: 70, prefW: 70, prefH: 30, flexW: 0);
 
@@ -162,7 +162,7 @@ namespace Colosseum.EditorTools
             Head(pad, ResultCols);
             var content = ScrollView("Scroll", pad, out var scroll);
             scroll.Layout(flexH: 1);
-            Set(s, key + "Empty", Text("Empty", content, "조건에 맞는 검투사가 없다.", 14, Theme.TextDim).Layout(prefH: 36).gameObject);
+            Set(s, key + "Empty", Text("Empty", content, "조건에 맞는 검투사가 없습니다.", 14, Theme.TextDim).Layout(prefH: 36).gameObject);
             var row = Row(key + "Template", content, 40);
             foreach (var c in ResultCols)
             {
@@ -216,7 +216,7 @@ namespace Colosseum.EditorTools
                 Head(pad, cols.ToArray());
                 content = ScrollView("Scroll", pad, out var scroll);
                 scroll.Layout(flexH: 1);
-                var empty = key == "gear" ? "조건에 맞는 매물이 없다." : "창고가 비었다. 장비 시장에서 사거나, 던전 원정·사투에서 거둬 온다.";
+                var empty = key == "gear" ? "조건에 맞는 매물이 없습니다." : "창고가 비었습니다. 장비는 장비 시장에서 사거나 던전 원정과 사투에서 얻습니다.";
                 Set(s, key + "Empty", Text("Empty", content, empty, 14, Theme.TextDim).Layout(prefH: 36).gameObject);
             }
             var row = Row(key + "Template", content, 38);
@@ -243,18 +243,18 @@ namespace Colosseum.EditorTools
             HRow(cashRow, 14);
             Set(s, "haggleCash", Input(Field(cashRow, "현금"), 110, true));
             Set(s, "haggleTotal", Text("Total", cashRow, "", 15, Theme.Parchment).Layout(flexW: 1));
-            Text("TradeLabel", pad, "맞교환할 창고 장비 (눌러서 넣고 뺀다)", 13, Theme.TextDim);
+            Text("TradeLabel", pad, "맞교환할 창고 장비 — 눌러서 넣고 뺍니다", 13, Theme.TextDim);
             var content = ScrollView("Trade", pad, out var scroll, 2);
             scroll.Layout(minH: 96, prefH: 96);
-            Set(s, "tradeEmpty", Text("Empty", content, "창고가 비었다.", 13, Theme.TextFaint).Layout(prefH: 26).gameObject);
+            Set(s, "tradeEmpty", Text("Empty", content, "창고가 비었습니다.", 13, Theme.TextFaint).Layout(prefH: 26).gameObject);
             var tpl = Button("TradeTemplate", content, "장비", false, 14).Layout(prefH: 28, minH: 28);
             tpl.GetComponentInChildren<TMP_Text>().alignment = TextAlignmentOptions.MidlineLeft;
             tpl.gameObject.SetActive(false);
             Set(s, "tradeTemplate", tpl);
             var btns = Rect("Buttons", pad);
             HRow(btns, 8);
-            Set(s, "haggleOffer", Button("Offer", btns, "제안한다", true, 15).Layout(prefW: 160, prefH: 34));
-            Set(s, "haggleClose", Button("Close", btns, "그만둔다", false, 14).Layout(prefW: 110, prefH: 34));
+            Set(s, "haggleOffer", Button("Offer", btns, "제안", true, 15).Layout(prefW: 160, prefH: 34));
+            Set(s, "haggleClose", Button("Close", btns, "취소", false, 14).Layout(prefW: 110, prefH: 34));
             pad.parent.gameObject.SetActive(false);
         }
 
@@ -272,9 +272,9 @@ namespace Colosseum.EditorTools
             Set(s, "consignHint", Text("Hint", pad, "", 14));
             var btns = Rect("Buttons", pad);
             HRow(btns, 8);
-            Set(s, "consignAgent", Button("Agent", btns, "중개인에게 맡긴다", true, 15).Layout(prefW: 190, prefH: 34));
-            Set(s, "consignSelf", Button("Self", btns, "직접 내놓는다", false, 15).Layout(prefW: 160, prefH: 34));
-            Set(s, "consignClose", Button("Close", btns, "그만둔다", false, 14).Layout(prefW: 110, prefH: 34));
+            Set(s, "consignAgent", Button("Agent", btns, "중개인에게 맡기기", true, 15).Layout(prefW: 190, prefH: 34));
+            Set(s, "consignSelf", Button("Self", btns, "직접 팔기", false, 15).Layout(prefW: 160, prefH: 34));
+            Set(s, "consignClose", Button("Close", btns, "취소", false, 14).Layout(prefW: 110, prefH: 34));
             pad.parent.gameObject.SetActive(false);
         }
 

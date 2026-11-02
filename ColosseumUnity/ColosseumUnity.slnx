@@ -1,6 +1,6 @@
 ﻿<Solution>
+  <Project Path="Colosseum.Editor.csproj" />
   <Project Path="Colosseum.Core.csproj" />
   <Project Path="Colosseum.UI.csproj" />
-  <Project Path="Colosseum.Editor.csproj" />
   <Project Path="Colosseum.Tests.csproj" />
 </Solution>

@@ -36,15 +36,15 @@ export interface DungeonDef {
 }
 
 export const DUNGEONS: DungeonDef[] = [
-  { id: "sewer", name: "쥐굴 하수도", desc: "도시 밑 하수도. 쥐인간과 도적 떼가 산다. 처음 가 보기 좋다", tier: 1, floors: 3, days: 7, level: 5, death: 0.04, loot: [60, 32, 8, 0],
+  { id: "sewer", name: "쥐굴 하수도", desc: "도시 밑 하수도. 쥐인간과 도적 떼가 삽니다. 처음 가 보기 좋습니다", tier: 1, floors: 3, days: 7, level: 5, death: 0.04, loot: [60, 32, 8, 0],
     foes: [{ race: "beastkin", name: "쥐인간" }, { race: "human", name: "하수도 도적" }], boss: { race: "beastkin", name: "쥐왕" } },
-  { id: "mine", name: "버려진 은광", desc: "무너진 갱도에 오크 약탈자와 광부 망령이 숨어 있다", tier: 2, floors: 3, days: 10, level: 7, death: 0.07, loot: [45, 38, 15, 2],
+  { id: "mine", name: "버려진 은광", desc: "무너진 갱도에 오크 약탈자와 광부 망령이 숨어 있습니다", tier: 2, floors: 3, days: 10, level: 7, death: 0.07, loot: [45, 38, 15, 2],
     foes: [{ race: "orc", name: "오크 약탈자" }, { race: "dwarf", name: "광부 망령" }], boss: { race: "orc", name: "갱도 두목" } },
-  { id: "catacomb", name: "망자의 지하묘지", desc: "옛 검투사들이 묻힌 묘지. 죽은 자들이 아직 싸운다", tier: 3, floors: 4, days: 14, level: 9, death: 0.1, loot: [30, 40, 24, 6],
+  { id: "catacomb", name: "망자의 지하묘지", desc: "옛 검투사들이 묻힌 묘지. 죽은 자들이 아직 싸웁니다", tier: 3, floors: 4, days: 14, level: 9, death: 0.1, loot: [30, 40, 24, 6],
     foes: [{ race: "human", name: "해골 검투사" }, { race: "elf", name: "묘지 사령술사" }], boss: { race: "human", name: "무덤의 챔피언" } },
-  { id: "magma", name: "용암 동굴", desc: "불타는 동굴. 도마뱀 부족과 미노타우로스 광전사가 지킨다", tier: 4, floors: 4, days: 18, level: 11, death: 0.13, loot: [20, 38, 32, 10],
+  { id: "magma", name: "용암 동굴", desc: "불타는 동굴. 도마뱀 부족과 미노타우로스 광전사가 지킵니다", tier: 4, floors: 4, days: 18, level: 11, death: 0.13, loot: [20, 38, 32, 10],
     foes: [{ race: "lizardfolk", name: "화염 도마뱀 전사" }, { race: "minotaur", name: "용암 광전사" }], boss: { race: "minotaur", name: "불의 미궁 주인" } },
-  { id: "abyss", name: "심연의 신전", desc: "가장 깊은 곳. 살아 돌아온 자가 드물다", tier: 5, floors: 5, days: 21, level: 13, death: 0.17, loot: [10, 32, 40, 18],
+  { id: "abyss", name: "심연의 신전", desc: "가장 깊은 곳. 살아 돌아온 자가 드뭅니다", tier: 5, floors: 5, days: 21, level: 13, death: 0.17, loot: [10, 32, 40, 18],
     foes: [{ race: "elf", name: "심연의 사제" }, { race: "orc", name: "타락한 전사" }, { race: "minotaur", name: "심연의 수문장" }], boss: { race: "elf", name: "잊힌 신의 대리인" } },
 ];
 export const getDungeon = (id: DungeonId) => DUNGEONS.find((d) => d.id === id)!;
@@ -53,10 +53,10 @@ export const MAX_PARTY = 5;
 /** 5:5 진형 (docs/13_tactics.md). 배율은 (주는 피해, 받는 피해) */
 export type Formation = "shieldwall" | "wedge" | "flank" | "spread";
 export const FORMATIONS: Record<Formation, { name: string; desc: string; dealt: number; taken: number; ranged: number; focus: "front" | "weakest" | "strongest" }> = {
-  shieldwall: { name: "방패벽", desc: "전열 3·후열 2. 받는 피해가 줄지만 느리게 이긴다", dealt: 0.9, taken: 0.8, ranged: 1, focus: "front" },
-  wedge: { name: "쐐기", desc: "중앙 돌파. 약한 적부터 몰아친다. 받는 피해도 늘어난다", dealt: 1.2, taken: 1.1, ranged: 1, focus: "weakest" },
-  flank: { name: "포위", desc: "양 날개 전진. 수가 많을수록 강하다", dealt: 1, taken: 1, ranged: 1, focus: "strongest" },
-  spread: { name: "산개", desc: "흩어져 싸운다. 투척·창·주술이 강해지고 근접은 약해진다", dealt: 0.95, taken: 1, ranged: 1.3, focus: "front" },
+  shieldwall: { name: "방패벽", desc: "전열 3·후열 2. 받는 피해가 줄지만 느리게 이깁니다", dealt: 0.9, taken: 0.8, ranged: 1, focus: "front" },
+  wedge: { name: "쐐기", desc: "중앙 돌파. 약한 적부터 몰아칩니다. 받는 피해도 늘어납니다", dealt: 1.2, taken: 1.1, ranged: 1, focus: "weakest" },
+  flank: { name: "포위", desc: "양 날개 전진. 수가 많을수록 강합니다", dealt: 1, taken: 1, ranged: 1, focus: "strongest" },
+  spread: { name: "산개", desc: "흩어져 싸웁니다. 투척·창·주술이 강해지고 근접은 약해집니다", dealt: 0.95, taken: 1, ranged: 1.3, focus: "front" },
 };
 
 export interface Expedition {
@@ -99,21 +99,21 @@ export function cannotSend(s: GameState, g: Gladiator): string | null {
   if (!g.alive) return "사망";
   if (g.deployment) return g.deployment.kind === "dungeon" ? "원정 중" : "파견 중";
   if (g.injury?.severity === "serious") return "중상";
-  if (s.challenges.some((x) => x.status === "scheduled" && (x.fromGladiator === g.id || x.toGladiator === g.id))) return "경기가 잡혀 있다";
+  if (s.challenges.some((x) => x.status === "scheduled" && (x.fromGladiator === g.id || x.toGladiator === g.id))) return "경기가 잡혀 있습니다";
   return null;
 }
 
 export function startExpedition(s: GameState, dungeon: DungeonId, ids: Id[], formation: Formation, questId?: Id): string | null {
-  if (!ids.length || ids.length > MAX_PARTY) return `1~${MAX_PARTY}명을 보내라`;
+  if (!ids.length || ids.length > MAX_PARTY) return `1~${MAX_PARTY}명을 보내십시오`;
   const me = s.ludi[s.playerLudusId];
   for (const id of ids) {
     const g = s.gladiators[id];
-    if (!me.gladiators.includes(id)) return "우리 검투사가 아니다";
+    if (!me.gladiators.includes(id)) return "우리 검투사가 아닙니다";
     const why = cannotSend(s, g);
     if (why) return `${g.name}: ${why}`;
   }
   const q = questId ? questsOf(s).find((x) => x.id === questId) : undefined;
-  if (questId && (!q || q.status !== "open")) return "의뢰가 마감됐다";
+  if (questId && (!q || q.status !== "open")) return "의뢰가 마감됐습니다";
   const d = getDungeon(q?.dungeon ?? dungeon);
   const t = now(s);
   const ex: Expedition = {
@@ -125,7 +125,7 @@ export function startExpedition(s: GameState, dungeon: DungeonId, ids: Id[], for
   for (const id of ids) {
     const g = s.gladiators[id];
     g.deployment = { contractId: ex.id, until: ex.endsAt, kind: "dungeon" };
-    logCareer(s, g, `${d.name}${q ? " 토벌" : ""} 원정을 떠났다`, "other");
+    logCareer(s, g, `${d.name}${q ? " 토벌" : ""} 원정을 떠났습니다`, "other");
   }
   return null;
 }
@@ -170,7 +170,7 @@ function runFloor(s: GameState, rng: Rng, ex: Expedition, d: DungeonDef): void {
     const p = Math.max(0.01, d.death * (quest ? 1.5 : 1) * (1 - margin) * (res.won ? 0.6 : 1.2));
     if (rng.chance(p)) {
       killInDungeon(s, g, d);
-      lines.push(`${josa(g.name, "이/가")} 쓰러져 다시 일어나지 못했다.`);
+      lines.push(`${josa(g.name, "이/가")} 쓰러져 다시 일어나지 못했습니다.`);
     } else {
       g.injury = makeInjury(rng, rng.chance(0.35) ? "moderate" : "minor", rng.pick(["arm", "leg", "torso", "head"] as const));
       seasonRecord(s, g).injuries++;
@@ -187,12 +187,12 @@ function runFloor(s: GameState, rng: Rng, ex: Expedition, d: DungeonDef): void {
     lines.push(`승리. 전리품: ${drops.map(itemName).join(", ")} · 동전 ${coins} D`);
     for (const g of party) if (res.kills[g.id]) { g.record.kills += res.kills[g.id]; }
   } else {
-    lines.push("패퇴. 남은 자들이 동료를 메고 물러났다.");
+    lines.push("패퇴. 남은 자들이 동료를 메고 물러났습니다.");
     ex.status = "failed";
   }
   ex.log.push(...lines);
   pushMessage(s, {
-    kind: lines.some((l) => l.includes("일어나지 못했다")) ? "death" : "info",
+    kind: lines.some((l) => l.includes("일어나지 못했습니다")) ? "death" : "info",
     title: `원정 소식: ${d.name} ${ex.floor + (res.won ? 0 : 1)}층`,
     body: lines.join("\n"),
   });
@@ -293,7 +293,7 @@ function killInDungeon(s: GameState, g: Gladiator, d: DungeonDef): void {
   g.diedAt = { season: s.season, day: s.day, cause: `${d.name}에서 전사` };
   me.gladiators = me.gladiators.filter((x) => x !== g.id);
   s.fallen.push(g.id);
-  logCareer(s, g, `${d.name} 깊은 곳에서 쓰러져 돌아오지 못했다`, "death");
+  logCareer(s, g, `${d.name} 깊은 곳에서 쓰러져 돌아오지 못했습니다`, "death");
   for (const other of me.gladiators) s.gladiators[other].morale = Math.max(0, s.gladiators[other].morale - 5);
 }
 
@@ -311,7 +311,7 @@ function finishExpedition(s: GameState, ex: Expedition): void {
   (s.armory ??= []).push(...ex.loot);
   if (ex.coins) addMoney(s, me, ex.coins, `${d.name} 원정 동전`);
   const q = ex.questId ? questsOf(s).find((x) => x.id === ex.questId) : undefined;
-  const lines = [`${d.floors}층 중 ${ex.floor}층을 깼다.`, ex.loot.length ? `가져온 장비: ${ex.loot.map(itemName).join(", ")}` : "가져온 장비가 없다."];
+  const lines = [`${d.floors}층 중 ${ex.floor}층을 깼습니다.`, ex.loot.length ? `가져온 장비: ${ex.loot.map(itemName).join(", ")}` : "가져온 장비가 없습니다."];
   if (q) {
     if (cleared) {
       q.status = "done";
@@ -321,15 +321,15 @@ function finishExpedition(s: GameState, ex: Expedition): void {
       me.favor[q.nation] = Math.min(100, (me.favor[q.nation] ?? 0) + 10);
       for (const id of ex.party) {
         const g = s.gladiators[id];
-        if (g?.alive) { g.popularity = Math.min(100, g.popularity + 6); logCareer(s, g, `${d.name} 토벌에 성공했다`, "milestone"); }
+        if (g?.alive) { g.popularity = Math.min(100, g.popularity + 6); logCareer(s, g, `${d.name} 토벌에 성공했습니다`, "milestone"); }
       }
       lines.push(`토벌 성공! 현상금 ${q.bounty.toLocaleString()} D, RP +${q.rp}, ${getNation(q.nation).short} 호감 +10.`);
     } else {
       q.status = "failed";
-      lines.push("토벌에 실패했다.");
+      lines.push("토벌에 실패했습니다.");
     }
   }
-  pushMessage(s, { kind: "info", title: `원정 귀환: ${d.name}`, body: lines.join("\n") + "\n\n장비는 막사 → 검투사 화면에서 착용할 수 있다." });
+  pushMessage(s, { kind: "info", title: `원정 귀환: ${d.name}`, body: lines.join("\n") + "\n\n장비는 막사 → 검투사 화면에서 착용할 수 있습니다." });
 }
 
 /** 급료일마다: 가끔 나라가 던전 토벌 의뢰를 낸다 (어렵다) */
@@ -347,6 +347,6 @@ export function weeklyQuests(s: GameState, rng: Rng): void {
   pushMessage(s, {
     kind: "warning",
     title: `토벌 의뢰: ${d.name}`,
-    body: `${josa(getNation(nation).name, "이/가")} ${d.name}의 괴물을 소탕할 루두스를 찾는다. 평소보다 훨씬 강한 놈들이 들끓는다.\n현상금 ${q.bounty.toLocaleString()} D · RP +${q.rp} · 14일 안에 떠나야 한다.\n\n던전 화면에서 받을 수 있다.`,
+    body: `${josa(getNation(nation).name, "이/가")} ${d.name}의 괴물을 소탕할 루두스를 찾습니다. 평소보다 훨씬 강한 놈들이 들끓습니다.\n현상금은 ${q.bounty.toLocaleString()} D이고 RP도 ${q.rp} 오릅니다. 14일 안에 떠나야 합니다.\n\n던전 화면에서 받을 수 있습니다.`,
   });
 }

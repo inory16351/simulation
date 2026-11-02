@@ -12,7 +12,7 @@ namespace Colosseum.UI
     {
         [SerializeField] Image layerTemplate;
         [SerializeField] string view = "front";
-        [Tooltip("슬롯 바탕 빛. 나라 색을 입힌다 (없어도 된다)")]
+        [Tooltip("슬롯 바탕 빛. 나라 색을 입힙니다 (없어도 됩니다)")]
         [SerializeField] Image glow;
 
         /// <summary>웹판 HAIR_TINTS를 흉내 낸 값: 색, 밝기, 대비</summary>

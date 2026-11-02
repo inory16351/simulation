@@ -120,7 +120,7 @@ namespace Colosseum.EditorTools
             var info = Text("Info", top, "정보량", 14, Theme.TextDim);
             info.textWrappingMode = TextWrappingModes.NoWrap;
             var bar = Bar("InfoBar", top);
-            var scout = Button("Scout", top, "정찰을 맡긴다", false, 14).Layout(prefW: 140, prefH: 30);
+            var scout = Button("Scout", top, "정찰 보내기", false, 14).Layout(prefW: 140, prefH: 30);
             var shortB = Button("Short", top, "☆ 관심 명단", false, 14).Layout(prefW: 160, prefH: 30);
             var msg = Text("Msg", pad, "", 14, new Color32(0xd9, 0xa2, 0x9b, 0xff));
             var mood = Text("Mood", pad, "", 14);
@@ -131,7 +131,7 @@ namespace Colosseum.EditorTools
             var freeHint = Text("Hint", free, "", 13, Theme.TextDim);
             var fr = Rect("Row", free);
             HRow(fr, 8);
-            var want = Text("Want", fr, "원함 0 D", 14, Theme.TextDim).Layout(prefW: 120, minW: 120);
+            var want = Text("Want", fr, "요구 주급 0 D", 14, Theme.TextDim).Layout(prefW: 120, minW: 120);
             var wage = Input(fr, 90);
             var seasons = new List<Button>();
             for (int i = 1; i <= 4; i++) seasons.Add(Button("Season_" + i, fr, $"{i}시즌", false, 13).Layout(prefW: 64, prefH: 30));
@@ -146,7 +146,7 @@ namespace Colosseum.EditorTools
             var deal = Rect("Deal", pad);
             HRow(deal, 10);
             var dealText = Text("Text", deal, "", 14);
-            var dealGo = Button("Go", deal, "개인 계약 협상으로", true, 14).Layout(prefW: 170, prefH: 30);
+            var dealGo = Button("Go", deal, "개인 계약 협상", true, 14).Layout(prefW: 170, prefH: 30);
 
             var so = new UnityEditor.SerializedObject(p);
             void S(string prop, Object v) => so.FindProperty(prop).objectReferenceValue = v;
@@ -174,7 +174,7 @@ namespace Colosseum.EditorTools
             Text("Label", fam, "교범 숙련도", 14).textWrappingMode = TextWrappingModes.NoWrap;
             var famBar = Bar("Bar", fam);
             var famValue = Text("Value", fam, "0", 14, Theme.Parchment).Layout(minW: 30, prefW: 30, flexW: 0);
-            var famHint = Text("Hint", fam, $"고칠 때마다 숙련도 -{Tactics.FamiliarityChangeCost}. 연무장 수련과 실전으로 다시 오른다.", 12, Theme.TextFaint).Layout(minW: 0, prefW: 0, flexW: 1);
+            var famHint = Text("Hint", fam, $"교범을 고칠 때마다 숙련도가 {Tactics.FamiliarityChangeCost}씩 떨어집니다. 연무장 수련과 실전으로 다시 오릅니다.", 12, Theme.TextFaint).Layout(minW: 0, prefW: 0, flexW: 1);
 
             // 자세·거리·노리는 곳 (웹판 1.4fr 1fr 1.2fr)
             var grid = Rect("Choices", pad);
@@ -197,11 +197,11 @@ namespace Colosseum.EditorTools
             Button("Up", order.transform, "▲", false, 11).Layout(minW: 30, prefW: 30, minH: 22, prefH: 22, flexW: 0);
             Button("Down", order.transform, "▼", false, 11).Layout(minW: 30, prefW: 30, minH: 22, prefH: 22, flexW: 0);
             order.gameObject.SetActive(false);
-            var orderEmpty = Text("Empty", left, "익힌 기술이 없다.", 12, Theme.TextFaint);
+            var orderEmpty = Text("Empty", left, "익힌 기술이 없습니다.", 12, Theme.TextFaint);
 
             var right = Rect("Rules", cols).Layout(minW: 0, prefW: 0, flexW: 1);
             VCol(right, 6);
-            Text("Label", right, $"<b>조건 명령</b>  <color={Theme.Hex(Theme.TextFaint)}><size=11>위에서부터 조건이 맞는 첫 줄만 따른다</size></color>", 12, Theme.BronzeHi);
+            Text("Label", right, $"<b>조건 명령</b>  <color={Theme.Hex(Theme.TextFaint)}><size=11>위에서부터 조건이 맞는 첫 줄만 따릅니다</size></color>", 12, Theme.BronzeHi);
             var rule = Rect("RuleTemplate", right);
             VCol(rule, 0);
             Text("Text", rule, "", 14, Theme.Parchment).Layout(minH: 24);
@@ -213,7 +213,7 @@ namespace Colosseum.EditorTools
             Text("Arrow", edit, "→", 14, Theme.TextDim, false, FontStyles.Normal, TextAlignmentOptions.Center).Layout(minW: 16, prefW: 16, flexW: 0);
             Button("Action", edit, "행동", false, 13).Layout(minW: 110, prefW: 110, minH: 28, prefH: 28, flexW: 0);
             Button("Arg", edit, "", false, 13).Layout(minW: 130, prefW: 130, minH: 28, prefH: 28, flexW: 0);
-            Button("Delete", edit, "삭제", false, 12).Layout(minW: 50, prefW: 50, minH: 28, prefH: 28, flexW: 0);
+            Button("Delete", edit, "지우기", false, 12).Layout(minW: 50, prefW: 50, minH: 28, prefH: 28, flexW: 0);
             rule.gameObject.SetActive(false);
 
             var picker = Box("Picker", right, Theme.Bg2);
@@ -232,7 +232,7 @@ namespace Colosseum.EditorTools
             var add = Button("AddRule", addRow, "+ 조건 명령 추가", false, 14).Layout(prefW: 170, prefH: 30);
             var surRow = Rect("SurrenderRow", right);
             HRow(surRow, 0, 0, 0, 6, 0);
-            var sur = Button("Surrender", surRow, "□ 항복하지 않고 끝까지 싸운다", false, 14).Layout(prefW: 400, prefH: 30);
+            var sur = Button("Surrender", surRow, "□ 항복하지 않고 끝까지 싸우기", false, 14).Layout(prefW: 400, prefH: 30);
             sur.GetComponentInChildren<TMP_Text>().alignment = TextAlignmentOptions.MidlineLeft;
 
             var so = new UnityEditor.SerializedObject(p);
@@ -292,7 +292,7 @@ namespace Colosseum.EditorTools
             var picker = Box("Picker", pad, Theme.Bg2);
             VCol(picker.transform, 4, 8, 8, 8, 8);
             var pickerTitle = Text("Title", picker.transform, "", 13, Theme.BronzeHi, false, FontStyles.Bold);
-            var pickerEmpty = Text("Empty", picker.transform, "창고에 맞는 장비가 없다.", 13, Theme.TextFaint);
+            var pickerEmpty = Text("Empty", picker.transform, "창고에 맞는 장비가 없습니다.", 13, Theme.TextFaint);
             var pick = Button("PickTemplate", picker.transform, "", false, 13).Layout(minH: 28, prefH: 28);
             pick.GetComponentInChildren<TMP_Text>().alignment = TextAlignmentOptions.MidlineLeft;
             pick.gameObject.SetActive(false);
@@ -319,7 +319,7 @@ namespace Colosseum.EditorTools
         static readonly (string id, string label, float w)[] CareerCols =
         {
             ("Season", "시즌", 36), ("Ludus", "루두스", 0), ("Apps", "출전", 38), ("Wins", "승", 32), ("Losses", "패", 32), ("Kills", "살해", 38),
-            ("Injuries", "부상", 38), ("Ca", "능력", 72), ("Pop", "인기", 40), ("Earnings", "벌어들인 돈", 92),
+            ("Injuries", "부상", 38), ("Ca", "능력", 72), ("Pop", "인기", 40), ("Earnings", "수익", 92),
         };
 
         /// <summary>경력 패널 (웹판 CareerPanel, grid2 1.3fr 1fr): 시즌별 기록 표 + 일대기</summary>
@@ -353,7 +353,7 @@ namespace Colosseum.EditorTools
             lp.parent.Layout(minW: 0, prefW: 0, flexW: 1);
             var log = Text("Text", lp, "", 13);
             log.lineSpacing = 14;
-            var empty = Text("Empty", lp, "아직 남긴 기록이 없다.", 13, Theme.TextFaint);
+            var empty = Text("Empty", lp, "아직 남긴 기록이 없습니다.", 13, Theme.TextFaint);
             var moreRow = Rect("MoreRow", lp);
             HRow(moreRow, 0);
             var more = Button("More", moreRow, "전부 보기", false, 13).Layout(prefW: 140, prefH: 28);

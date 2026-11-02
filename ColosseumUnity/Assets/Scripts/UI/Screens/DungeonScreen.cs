@@ -95,7 +95,7 @@ namespace Colosseum.UI
             var done = all.Where(x => x.status != "active").Reverse().Take(4).ToList();
             var open = DungeonLogic.QuestsOf(S).Where(q => q.status == "open").ToList();
 
-            sub.text = $"검투사를 최대 {DungeonLogic.MaxParty}명 보내 장비를 캐 온다. 돈과 명성은 거의 없고, 쓰러지면 죽을 수도 있다. 싸움은 층마다 5:5 진형 전투.";
+            sub.text = $"검투사를 최대 {DungeonLogic.MaxParty}명까지 보내 장비를 얻어 옵니다. 돈이나 명성은 거의 못 얻고, 쓰러진 검투사는 목숨을 잃기도 합니다. 층마다 5:5로 진형을 짜서 싸웁니다.";
 
             // ── 토벌 의뢰 ──
             questPanel.SetActive(open.Count > 0);
@@ -107,7 +107,7 @@ namespace Colosseum.UI
                 T(row, "Info/Title").text = $"{Data.Nation(q.nation).@short}: {DungeonLogic.GetDungeon(q.dungeon).name} 토벌";
                 T(row, "Info/Hint").text = $"몬스터 실력 ×{q.hard:0.00} · 현상금 {q.bounty:N0} D · RP +{q.rp} · {q.expiresAt - t}일 안에 출발";
                 var b = row.Find("Pick").GetComponent<Button>();
-                b.GetComponentInChildren<TMP_Text>().text = on ? "의뢰 취소" : "이 의뢰로 꾸리기";
+                b.GetComponentInChildren<TMP_Text>().text = on ? "의뢰 취소" : "이 의뢰 맡기";
                 string qid = q.id;
                 b.onClick.RemoveAllListeners();
                 b.onClick.AddListener(() => { questId = questId == qid ? null : qid; msgText = null; Refresh(); });
@@ -126,7 +126,7 @@ namespace Colosseum.UI
                 b.GetComponent<CanvasGroup>().alpha = locked ? 0.35f : 1;
                 T(b.transform, "Name").text = x.name;
                 T(b.transform, "Desc").text = x.desc;
-                T(b.transform, "Meta").text = $"난이도 <color={Theme.Hex(Theme.Torch)}>{Widgets.Stars(x.level * 10)}</color>   {x.floors}층 · {x.days}일   죽음 {JsMath.Round(x.death * 100)}%";
+                T(b.transform, "Meta").text = $"난이도 <color={Theme.Hex(Theme.Torch)}>{Widgets.Stars(x.level * 10)}</color>   {x.floors}층 · {x.days}일   사망률 {JsMath.Round(x.death * 100)}%";
                 double total = x.loot.Sum();
                 var loot = new List<string>();
                 for (int k = 0; k < x.loot.Length; k++)
@@ -159,7 +159,7 @@ namespace Colosseum.UI
                 b.onClick.RemoveAllListeners();
                 b.onClick.AddListener(() => { formation = f; Refresh(); });
             });
-            wages.text = $"원정 동안에도 급료는 루두스가 낸다: 약 {wageSum:N0} D. 층마다 동전 몇십 D가 전부다.";
+            wages.text = $"원정을 간 동안에도 급료 약 {wageSum:N0} D는 루두스에서 나갑니다. 던전에서 얻는 돈은 층마다 동전 몇십 D뿐입니다.";
             msg.gameObject.SetActive(msgText != null);
             msg.text = msgText ?? "";
             msg.color = Neg;
@@ -223,7 +223,7 @@ namespace Colosseum.UI
             loot.text = "전리품: " + LootLine(ex.loot);
             T(panel, "Pad/Log/Text").text = ex.log.Count > 0
                 ? string.Join("\n", ex.log)
-                : $"<color={Theme.Hex(Theme.TextDim)}>아직 첫 층에 닿지 않았다.</color>";
+                : $"<color={Theme.Hex(Theme.TextDim)}>아직 첫 층에 도착하지 않았습니다.</color>";
         }
 
         /// <summary>전리품 이름을 등급 색으로 늘어놓는다 (웹판 .tag ItemName)</summary>

@@ -121,7 +121,7 @@ function raise(state: GameState, rng: Rng, def: EventDef, target?: Gladiator): v
     pushMessage(state, { kind: "event", title: def.title, body: `${pending.text}\n\n${result}`.trim() });
   } else {
     state.pendingEvents.push(pending);
-    pushMessage(state, { kind: "event", title: `${def.title} — 결정이 필요하다`, body: pending.text });
+    pushMessage(state, { kind: "event", title: `${def.title} — 어떻게 할지 정해야 합니다`, body: pending.text });
   }
 }
 
@@ -132,11 +132,11 @@ export function resolveEvent(state: GameState, rng: Rng, pendingId: string, choi
   const def = byId[p.eventId];
   const choice = def.choices[choiceIdx];
   const player = state.ludi[state.playerLudusId];
-  if (choice.cost && player.treasury < choice.cost) return "금고가 모자란다.";
+  if (choice.cost && player.treasury < choice.cost) return "금고에 돈이 모자랍니다.";
   state.pendingEvents = state.pendingEvents.filter((x) => x !== p);
   const target = p.targetId ? state.gladiators[p.targetId] : undefined;
   const result = applyEffects(state, rng, choice.effects, target);
-  pushMessage(state, { kind: "event", title: `${def.title}: ${choice.label}`, body: result || "별일 없이 지나갔다." });
+  pushMessage(state, { kind: "event", title: `${def.title}: ${choice.label}`, body: result || "별일 없이 지나갔습니다." });
   return result;
 }
 
@@ -189,10 +189,10 @@ function applyEffects(state: GameState, rng: Rng, effects: Effect[], self?: Glad
         }
         break;
       case "growth":
-        if (g) { grow(g, rng, "match", e.days!, 1, player.facilities.training); lines.push(`${josa(g.name, "이/가")} 한층 성장했다`); logCareer(state, g, "깨달음을 얻었다", "milestone"); }
+        if (g) { grow(g, rng, "match", e.days!, 1, player.facilities.training); lines.push(`${josa(g.name, "이/가")} 한층 성장했습니다`); logCareer(state, g, "깨달음을 얻었습니다", "milestone"); }
         break;
       case "pa":
-        if (g) { g.hidden.pa = Math.min(200, g.hidden.pa + rng.int(e.min!, e.max!)); lines.push(`${g.name}의 그릇이 커졌다`); logCareer(state, g, "숨은 재능이 깨어났다", "milestone"); }
+        if (g) { g.hidden.pa = Math.min(200, g.hidden.pa + rng.int(e.min!, e.max!)); lines.push(`${g.name}의 그릇이 커졌습니다`); logCareer(state, g, "숨은 재능이 깨어났습니다", "milestone"); }
         break;
       case "popularity":
         if (g) { g.popularity = Math.min(100, g.popularity + e.value!); lines.push(`${g.name} 인기 +${e.value}`); }
@@ -202,13 +202,13 @@ function applyEffects(state: GameState, rng: Rng, effects: Effect[], self?: Glad
         break;
       case "fatigueAll":
         roster(state).forEach((x) => (x.fatigue = Math.min(100, x.fatigue + e.value!)));
-        lines.push(`모두 지쳤다 (피로 +${e.value})`);
+        lines.push(`모두 지쳤습니다 (피로 +${e.value})`);
         break;
       case "injury":
         if (g && !g.injury) {
           g.injury = { severity: e.serious ? "serious" : "light", daysLeft: e.days!, desc: e.desc! };
           lines.push(`${g.name}: ${e.desc} (${e.days}일)`);
-          logCareer(state, g, `${josa(e.desc!, "으로/로")} 앓아누웠다`, "injury");
+          logCareer(state, g, `${josa(e.desc!, "으로/로")} 앓아누웠습니다`, "injury");
         }
         break;
       case "deathChance":
@@ -217,8 +217,8 @@ function applyEffects(state: GameState, rng: Rng, effects: Effect[], self?: Glad
           g.diedAt = { season: state.season, day: state.day, cause: e.cause! };
           player.gladiators = player.gladiators.filter((x) => x !== g.id);
           state.fallen.push(g.id);
-          logCareer(state, g, `${josa(e.cause!, "으로/로")} 죽었다`, "death");
-          lines.push(`${josa(g.name, "이/가")} 끝내 숨을 거뒀다.`);
+          logCareer(state, g, `${josa(e.cause!, "으로/로")} 죽었습니다`, "death");
+          lines.push(`${josa(g.name, "이/가")} 끝내 숨을 거뒀습니다.`);
         }
         break;
       case "loyalty":
@@ -229,9 +229,9 @@ function applyEffects(state: GameState, rng: Rng, effects: Effect[], self?: Glad
         lines.push(`모든 주급 +${Math.round(e.value! * 100)}%`);
         break;
       case "gamble":
-        if (rng.chance(e.chance!)) { if (e.win) { addMoney(state, player, e.win, "사건"); lines.push(`운이 따랐다. +${e.win} D`); } else lines.push("무사히 넘어갔다."); }
-        else if (e.lose) { addMoney(state, player, e.lose, "사건"); lines.push(`운이 없었다. ${e.lose} D`); }
-        else lines.push("헛돈만 썼다.");
+        if (rng.chance(e.chance!)) { if (e.win) { addMoney(state, player, e.win, "사건"); lines.push(`운이 따랐습니다. +${e.win} D`); } else lines.push("무사히 넘어갔습니다."); }
+        else if (e.lose) { addMoney(state, player, e.lose, "사건"); lines.push(`운이 없었습니다. ${e.lose} D`); }
+        else lines.push("헛돈만 썼습니다.");
         break;
       case "modifier":
         state.modifiers.push({ kind: e.kind!, mult: e.mult!, until: now + e.days! });

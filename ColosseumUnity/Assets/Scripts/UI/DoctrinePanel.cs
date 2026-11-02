@@ -164,7 +164,7 @@ namespace Colosseum.UI
             addRule.gameObject.SetActive(editable && d.rules.Count < 3);
             surrender.interactable = editable;
             surrender.GetComponentInChildren<TMP_Text>().text =
-                $"{(!d.allowSurrender ? "■" : "□")} 항복하지 않고 끝까지 싸운다 <color={faint}>(살아날 길이 줄어든다)</color>";
+                $"{(!d.allowSurrender ? "■" : "□")} 항복하지 않고 끝까지 싸우기 <color={faint}>(살아날 길이 줄어듭니다)</color>";
 
             DrawPicker(d);
         }
@@ -200,7 +200,7 @@ namespace Colosseum.UI
             arg.gameObject.SetActive(hasArg);
             Seg(arg, pickRule == i && pickField == "arg");
 
-            Btn(row, "Edit/Delete", "삭제", () => Change(x => x.rules.RemoveAt(at)));
+            Btn(row, "Edit/Delete", "지우기", () => Change(x => x.rules.RemoveAt(at)));
         }
 
         void SetValue(int i, string txt)

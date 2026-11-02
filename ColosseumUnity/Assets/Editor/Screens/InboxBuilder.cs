@@ -14,14 +14,14 @@ namespace Colosseum.EditorTools
             var rt = Rect("Screen_inbox", main).Stretch(26, 20, 26, 20);
             var col = VCol(rt, 12);
             col.childForceExpandHeight = false;
-            ScreenHeader(rt, "전령의 서판", "전령이 가져온 소식과 경기 결과가 여기 쌓인다.");
+            ScreenHeader(rt, "전령의 서판", "전령이 가져온 소식과 경기 결과가 여기 쌓입니다.");
 
             // 결정할 일: 카드 원본 (비활성)
             var events = Rect("Events", rt);
             VCol(events, 10);
             var card = Panel("EventCardTemplate", events, Theme.Panel);
             VCol(card.transform, 8, 16, 16, 12, 14);
-            Text("Title", card.transform, "결정이 필요하다", 15, Theme.Torch, false, FontStyles.Bold);
+            Text("Title", card.transform, "결정을 내려야 합니다", 15, Theme.Torch, false, FontStyles.Bold);
             Text("Text", card.transform, "", 16, Theme.Text);
             var choices = Rect("Choices", card.transform);
             HRow(choices, 10);

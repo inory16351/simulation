@@ -34,7 +34,7 @@ namespace Colosseum.Core
         public static bool IsLocked(GameState s, string key) => Get(s, key) is Haggle h && h.lockedUntil > Now(s);
 
         public static string LockedLine(GameState s, string key) =>
-            $"협상이 깨졌다. {Calendar.DateLabel(Calendar.FromAbs(Get(s, key).lockedUntil).day)}까지는 상대하지 않는다";
+            $"협상이 깨졌습니다. {Calendar.DateLabel(Calendar.FromAbs(Get(s, key).lockedUntil).day)}까지는 상대하지 않습니다";
 
         /// <summary>흥정을 열거나 이어 간다. 부르는 값이 바뀌었거나 깨진 기한이 지났으면 새로 연다.
         /// cutMin~cutMax: 마지노선이 부르는 값보다 얼마나 낮은가</summary>
@@ -53,7 +53,7 @@ namespace Colosseum.Core
         public static HaggleResult Offer(GameState s, string key, double offer)
         {
             var h = Get(s, key);
-            if (h == null) return new HaggleResult { status = "error", line = "흥정이 열리지 않았다" };
+            if (h == null) return new HaggleResult { status = "error", line = "흥정 중이 아닙니다" };
             if (h.lockedUntil > Now(s)) return new HaggleResult { status = "locked", line = LockedLine(s, key) };
             if (offer >= h.floor)
             {
@@ -70,19 +70,19 @@ namespace Colosseum.Core
             {
                 h.patience = 0;
                 h.lockedUntil = Now(s) + LockDays;
-                return new HaggleResult { status = "walked", line = gap > 0.35 ? "모욕적이다. 이야기 끝났다" : "더는 시간 낭비하지 않겠다" };
+                return new HaggleResult { status = "walked", line = gap > 0.35 ? "사람을 무시하는군. 거래는 끝이다" : "더는 시간 낭비하지 않겠다" };
             }
             double keep = Math.Clamp(h.patience / h.startPatience, 0, 1);
             double step = h.ask >= 1000 ? 10 : 1;
             h.counter = Math.Max(h.floor, Math.Min(h.ask, Math.Round((h.floor + (h.ask - h.floor) * (0.15 + 0.55 * keep)) / step) * step));
-            return new HaggleResult { status = "countered", counter = h.counter, line = $"{(gap > 0.35 ? "어이없다는 표정이다. " : "")}{Mood(h)} \"{h.counter:N0} D라면 생각해 보지.\"" };
+            return new HaggleResult { status = "countered", counter = h.counter, line = $"{(gap > 0.35 ? "어이없다는 표정입니다. " : "")}{Mood(h)} \"{h.counter:N0} D라면 생각해 보지.\"" };
         }
 
         /// <summary>상대 기분 (인내심 비율로)</summary>
         public static string Mood(Haggle h)
         {
             double r = h.startPatience > 0 ? h.patience / h.startPatience : 0;
-            return r > 0.65 ? "아직 이야기할 만하다는 눈치다." : r > 0.35 ? "슬슬 짜증을 낸다." : "곧 자리를 뜰 것 같다.";
+            return r > 0.65 ? "아직 이야기할 만하다는 눈치입니다." : r > 0.35 ? "슬슬 짜증을 냅니다." : "곧 자리를 뜰 것 같습니다.";
         }
 
         /// <summary>이제 쓸모없는 흥정 기록을 지운다 (끝난 매물, 기한 지난 결렬)</summary>

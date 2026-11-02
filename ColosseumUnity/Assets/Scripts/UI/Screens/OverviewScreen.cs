@@ -47,7 +47,7 @@ namespace Colosseum.UI
             title.text = player.name;
             treasury.text = $"{player.treasury:N0} D";
             wages.text = $"주급 합계 {wageSum} D/주";
-            runway.text = $"지금 금고로 급료를 <b>{weeks}주</b> 더 줄 수 있다";
+            runway.text = $"지금 금고로 <b>{weeks}주</b> 동안 버틸 수 있습니다";
             runway.color = weeks < 8 ? new Color32(0xe0, 0x8b, 0x80, 0xff) : Theme.Text;
 
             rank.text = $"{player.tier}부 {r + 1}위";

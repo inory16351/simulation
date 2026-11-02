@@ -131,7 +131,7 @@ namespace Colosseum.UI
             var list = new List<string>(Day.Blockers(State));
             int unpaid = p.gladiators.Count(id => State.gladiators[id].unpaidWeeks > 0);
             if (unpaid > 0) list.Add($"급료가 밀린 검투사 {unpaid}명");
-            if (p.treasury < 0) list.Add("금고가 바닥났다. 28일 안에 메우지 못하면 압류된다");
+            if (p.treasury < 0) list.Add("금고가 바닥났습니다. 28일 안에 적자를 메우지 못하면 루두스를 빼앗깁니다");
             return list;
         }
     }

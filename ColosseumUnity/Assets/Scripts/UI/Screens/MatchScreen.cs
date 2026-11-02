@@ -18,9 +18,9 @@ namespace Colosseum.UI
         static readonly string[] Rules = { "training", "missio", "sudden" };
         static readonly Dictionary<string, string> RuleHint = new()
         {
-            ["training"] = "쓰러지면 종료. 사고사 1%",
-            ["missio"] = "쓰러지면 관중이 살릴지 죽일지 정한다 (3~25%)",
-            ["sudden"] = "지면 거의 죽는다 (85~95%)",
+            ["training"] = "쓰러지면 시합이 끝납니다. 사고로 죽을 확률은 1%입니다",
+            ["missio"] = "쓰러지면 관중이 살릴지 죽일지를 정합니다. 죽을 확률은 3~25%입니다",
+            ["sudden"] = "지면 대부분 목숨을 잃습니다. 죽을 확률은 85~95%입니다",
         };
         static readonly Dictionary<string, string> CutLabel = new()
         {
@@ -246,7 +246,7 @@ namespace Colosseum.UI
             var rt = row.Find("Info/Rule").GetComponent<TMP_Text>();
             rt.text = $"{SeriesLogic.FormatNames[n]} · {RuleName(c.rule)}";
             rt.color = c.rule == "sudden" ? Neg : Theme.Text;
-            row.Find("Info/Hint").GetComponent<TMP_Text>().text = $"상대: {opp.name}. 이긴 사람이 남아 다음 상대와 싸운다. 체력은 조금만 돌아온다";
+            row.Find("Info/Hint").GetComponent<TMP_Text>().text = $"상대: {opp.name}. 이긴 검투사가 남아 다음 상대와 싸우며, 체력은 조금밖에 차지 않습니다";
             var slots = row.Find("Lineup");
             var options = new[] { "—" }.Concat(pool.Select(g => $"{g.name} · CA {GladiatorRules.ComputeCA(g)}")).ToList();
             for (int i = 0; i < slots.childCount; i++)
@@ -328,10 +328,10 @@ namespace Colosseum.UI
             var l = draft.gladiators[r.loserId];
             var died = r.died != null ? draft.gladiators[r.died] : null;
             StateUtil.PushMessage(draft, died != null ? "death" : "match",
-                died != null ? $"{died.name}, 모래 위에서 숨을 거두다" : $"{RuleName(c.rule)}: {w.name} 승리",
+                died != null ? $"{died.name}, 모래 위에서 숨을 거두었습니다" : $"{RuleName(c.rule)}: {w.name} 승리",
                 $"{w.name} vs {l.name} — {w.name} 승리 ({ReasonNames[r.reason]}, {r.rounds}라운드)\n" +
                 $"RP {(rp >= 0 ? "+" : "")}{rp} · 수입 {money:N0} D (세전)" +
-                (died != null ? $"\n\n{died.name}의 이름이 비석에 새겨졌다. 다시는 돌아오지 않는다." : ""));
+                (died != null ? $"\n\n{died.name}의 이름이 비석에 새겨졌습니다. 다시는 돌아오지 않습니다." : ""));
             Begin(new Live
             {
                 result = r, a = meFirst ? played.a : played.b, b = meFirst ? played.b : played.a,
@@ -532,9 +532,9 @@ namespace Colosseum.UI
                 var lo = d.gladiators[l.result.loserId];
                 var died = l.result.died != null ? d.gladiators[l.result.died] : null;
                 StateUtil.PushMessage(d, died != null ? "death" : "match",
-                    died != null ? $"{died.name}, 모래 위에서 숨을 거두다" : $"연습 시합: {w.name} 승리",
+                    died != null ? $"{died.name}, 모래 위에서 숨을 거두었습니다" : $"연습 시합: {w.name} 승리",
                     $"{RuleName(l.rule)} · {w.name} vs {lo.name}\n{w.name} 승리 ({ReasonNames[l.result.reason]}, {l.result.rounds}라운드)" +
-                    (died != null ? $"\n\n{died.name}의 이름이 비석에 새겨졌다. 다시는 돌아오지 않는다." : ""));
+                    (died != null ? $"\n\n{died.name}의 이름이 비석에 새겨졌습니다. 다시는 돌아오지 않습니다." : ""));
             });
         }
 
@@ -566,7 +566,7 @@ namespace Colosseum.UI
             closeButton.gameObject.SetActive(finished);
             rosterButton.gameObject.SetActive(finished);
             bool lastBout = seriesLives == null || seriesIdx >= seriesLives.Count - 1;
-            closeButton.GetComponentInChildren<TMP_Text>().text = seriesLives == null ? "한 판 더" : lastBout ? "돌아간다" : "다음 판";
+            closeButton.GetComponentInChildren<TMP_Text>().text = seriesLives == null ? "한 판 더" : lastBout ? "돌아가기" : "다음 판";
         }
 
         void DrawFighters()

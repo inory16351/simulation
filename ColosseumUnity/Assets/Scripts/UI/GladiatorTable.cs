@@ -15,7 +15,7 @@ namespace Colosseum.UI
         /// <summary>정렬 기준: 버튼 이름이 Sort_{key}</summary>
         public static readonly string[] SortKeys = { "name", "age", "ca", "morale", "wage" };
 
-        [Tooltip("잠재 칸이 있는지 (빌더가 칸을 만들 때 쓴다)")]
+        [Tooltip("잠재 칸이 있는지 (빌더가 칸을 만들 때 씁니다)")]
         [SerializeField] bool showPa = true;
         public bool ShowPa => showPa;
         [SerializeField] List<Button> sortButtons = new();

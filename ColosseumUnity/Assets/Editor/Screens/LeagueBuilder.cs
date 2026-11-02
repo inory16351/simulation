@@ -20,7 +20,7 @@ namespace Colosseum.EditorTools
         {
             var rt = Rect("Screen_league", main).Stretch(26, 20, 26, 20);
             VCol(rt, 12);
-            ScreenHeader(rt, "서열표", "시즌이 끝날 때 RP 순위로 오르내린다. 2부 1·2위는 1부로 올라가고, 1부 9·10위는 2부로 떨어진다. 다른 나라는 1부만 볼 수 있다.");
+            ScreenHeader(rt, "서열표", "시즌이 끝나면 RP 순위에 따라 승격과 강등이 갈립니다. 2부 1·2위는 1부로 올라가고, 1부 9·10위는 2부로 떨어집니다. 다른 나라는 1부 리그만 볼 수 있습니다.");
 
             var bar = Rect("Filter", rt);
             HRow(bar, 4);

@@ -55,9 +55,9 @@ export function advanceDay(state: GameState): string[] {
     refreshFreeAgents(state, rng);
     refreshStaffMarket(state, rng);
     replenishAi(state, rng);
-    pushMessage(state, { kind: "info", title: "이적 시장이 열렸다", body: "앞으로 14일 동안 다른 루두스와 검투사를 사고팔 수 있다. 무소속 검투사 명단도 새로 바뀌었다." });
+    pushMessage(state, { kind: "info", title: "이적 시장이 열렸습니다", body: "앞으로 14일 동안 다른 루두스와 검투사를 사고팔 수 있습니다. 무소속 검투사 명단도 새로 바뀌었습니다." });
   }
-  if (state.day === 15) pushMessage(state, { kind: "info", title: "정규 기간 시작", body: "오늘부터 도전장을 주고받을 수 있다. 시즌 동안 최소 8경기는 치러야 한다." });
+  if (state.day === 15) pushMessage(state, { kind: "info", title: "정규 기간 시작", body: "오늘부터 도전장을 주고받을 수 있습니다. 시즌 동안 최소 8경기는 치러야 합니다." });
 
   // 2. 급료일 (무소속 명단도 이때 조금씩 바뀐다)
   if (isPayday(state.day)) {
@@ -81,12 +81,12 @@ export function advanceDay(state: GameState): string[] {
         g.injury = healed;
         onHealed(state, g, rng, l.facilities.medical, ratingOf(state, l, "medicus"), l.isPlayer);
         g.injury = undefined;
-        if (l.isPlayer && healed.severity === "serious") pushMessage(state, { kind: "info", title: `${g.name} 복귀`, body: `부상(${healed.desc})이 다 나았다. 다시 싸울 수 있다.` });
+        if (l.isPlayer && healed.severity === "serious") pushMessage(state, { kind: "info", title: `${g.name} 복귀`, body: `부상(${healed.desc})이 다 나았습니다. 다시 싸울 수 있습니다.` });
       }
       if (injured && l.isPlayer) {
         seasonRecord(state, g).injuries++;
-        logCareer(state, g, `훈련 중 다쳤다: ${injured}`, "injury");
-        pushMessage(state, { kind: "warning", title: `훈련 중 부상: ${g.name}`, body: `${injured}. ${g.injury?.daysLeft}일 정도 쉬어야 한다.` });
+        logCareer(state, g, `훈련 중 다쳤습니다: ${injured}`, "injury");
+        pushMessage(state, { kind: "warning", title: `훈련 중 부상: ${g.name}`, body: `${injured}. ${g.injury?.daysLeft}일 정도 쉬어야 합니다.` });
       }
     }
   }
@@ -114,8 +114,8 @@ export function advanceDay(state: GameState): string[] {
   if (player.treasury < 0) {
     player.bankruptSince ??= at;
     const days = at - player.bankruptSince;
-    if (days >= BALANCE.economy.bankruptDays) state.gameOver = "파산: 채권자들이 루두스를 압류했다.";
-    else if (days === 0) pushMessage(state, { kind: "warning", title: "금고가 바닥났다", body: `${BALANCE.economy.bankruptDays}일 안에 빚을 갚지 못하면 루두스를 압류당한다. 검투사를 팔거나 경기로 돈을 벌어라.` });
+    if (days >= BALANCE.economy.bankruptDays) state.gameOver = "파산: 채권자들이 루두스를 압류했습니다.";
+    else if (days === 0) pushMessage(state, { kind: "warning", title: "금고가 바닥났습니다", body: `${BALANCE.economy.bankruptDays}일 안에 빚을 갚지 못하면 루두스를 압류당합니다. 검투사를 팔거나 경기로 돈을 버십시오.` });
   } else player.bankruptSince = undefined;
 
   state.rngState = rng.state;
@@ -152,8 +152,8 @@ function unrest(state: GameState, rng: Rng, player: Ludus): void {
     const p = (g.unpaidWeeks - 3) * U.desertBase * (1 - g.hidden.loyalty / 25) * (1 - player.facilities.guard * 0.1);
     if (rng.chance(p)) {
       player.gladiators = player.gladiators.filter((x) => x !== g.id);
-      logCareer(state, g, `급료가 ${g.unpaidWeeks}번 밀리자 ${player.name}에서 달아났다`, "other");
-      pushMessage(state, { kind: "warning", title: `${josa(g.name, "이/가")} 달아났다`, body: `급료가 ${g.unpaidWeeks}번 밀리자 밤사이 담을 넘었다.` });
+      logCareer(state, g, `급료가 ${g.unpaidWeeks}번 밀리자 ${player.name}에서 달아났습니다`, "other");
+      pushMessage(state, { kind: "warning", title: `${josa(g.name, "이/가")} 달아났습니다`, body: `급료가 ${g.unpaidWeeks}번 밀리자 밤사이 담을 넘었습니다.` });
     }
   }
 
@@ -176,8 +176,8 @@ function unrest(state: GameState, rng: Rng, player: Ludus): void {
   const rebelPower = power(rebels) * rng.range(0.8, 1.2);
   const loyalPower = (power(loyal) + guardPower) * rng.range(0.8, 1.2);
   if (rebelPower > loyalPower) {
-    state.gameOver = `반란: ${rebels.map((g) => g.name).join(", ")} 일당이 루두스를 장악했다.`;
-    pushMessage(state, { kind: "death", title: "반란 — 루두스를 빼앗겼다", body: state.gameOver });
+    state.gameOver = `반란: ${rebels.map((g) => g.name).join(", ")} 일당이 루두스를 장악했습니다.`;
+    pushMessage(state, { kind: "death", title: "반란 — 루두스를 빼앗겼습니다", body: state.gameOver });
     return;
   }
   // 진압 성공: 반란자 중 일부가 죽고 금고가 털린다
@@ -188,19 +188,19 @@ function unrest(state: GameState, rng: Rng, player: Ludus): void {
       g.diedAt = { season: state.season, day: state.day, cause: "반란 진압 중 사망" };
       player.gladiators = player.gladiators.filter((x) => x !== g.id);
       state.fallen.push(g.id);
-      logCareer(state, g, "반란을 일으켰다가 진압 중 죽었다", "death");
+      logCareer(state, g, "반란을 일으켰다가 진압 중 죽었습니다", "death");
       dead.push(g.name);
     } else {
       g.morale = Math.max(0, g.morale - 10);
-      logCareer(state, g, "반란에 가담했다가 진압당했다", "other");
+      logCareer(state, g, "반란에 가담했다가 진압당했습니다", "other");
     }
   }
   const lost = Math.round(Math.max(0, player.treasury) * 0.1);
   player.treasury -= lost;
   pushMessage(state, {
     kind: "death",
-    title: "반란을 진압했다",
-    body: `${josa(rebels.map((g) => g.name).join(", "), "이/가")} 들고일어났지만 진압됐다.${dead.length ? `\n죽은 자: ${dead.join(", ")}` : ""}\n금고 ${lost} D를 잃었다.`,
+    title: "반란을 진압했습니다",
+    body: `${josa(rebels.map((g) => g.name).join(", "), "이/가")} 들고일어났지만 진압됐습니다.${dead.length ? `\n죽은 자: ${dead.join(", ")}` : ""}\n금고에서 ${lost} D를 잃었습니다.`,
   });
 }
 
@@ -224,7 +224,7 @@ function endSeason(state: GameState, rng: Rng): void {
       l.treasury += subsidy;
       if (l.isPlayer) {
         state.ledger.unshift({ at: absDay(state.season, state.day), amount: subsidy, desc: "신전 후원금" });
-        pushMessage(state, { kind: "info", title: "신전이 금을 내렸다", body: `1부 상위 루두스에 신전 후원금 ${subsidy.toLocaleString()} D가 내려왔다.` });
+        pushMessage(state, { kind: "info", title: "신전이 금을 내렸습니다", body: `1부 상위 루두스에 신전 후원금 ${subsidy.toLocaleString()} D가 내려왔습니다.` });
       }
     }
   }
@@ -241,7 +241,7 @@ function endSeason(state: GameState, rng: Rng): void {
   pushMessage(state, {
     kind: "info",
     title: `시즌 ${state.season} 종료 — ${wasPromoted ? "승격!" : wasRelegated ? "강등" : `${playerRank}위`}`,
-    body: `${josa(player.name, "은/는")} ${wasPromoted ? "2부" : wasRelegated ? "1부" : `${player.tier}부`} ${playerRank}위로 시즌을 마쳤다.` +
+    body: `${josa(player.name, "은/는")} ${wasPromoted ? "2부" : wasRelegated ? "1부" : `${player.tier}부`} ${playerRank}위로 시즌을 마쳤습니다.` +
       `\n승격: ${promoted.map((l) => l.name).join(", ")}\n강등: ${relegated.map((l) => l.name).join(", ")}`,
   });
 
@@ -275,11 +275,11 @@ function endSeason(state: GameState, rng: Rng): void {
       if (g.morale >= 50) {
         g.wage = Math.round(g.wage * 1.1);
         g.contract.untilSeason = state.season;
-        pushMessage(state, { kind: "info", title: `${g.name} 재계약`, body: `계약이 끝났지만 남기로 했다. 주급이 ${g.wage} D로 올랐다 (1시즌).` });
+        pushMessage(state, { kind: "info", title: `${g.name} 재계약`, body: `계약이 끝났지만 1시즌 더 남기로 했습니다. 주급은 ${g.wage} D로 올랐습니다.` });
       } else {
         me.gladiators = me.gladiators.filter((x) => x !== id);
-        logCareer(state, g, `계약이 끝나 ${josa(me.name, "을/를")} 떠났다`, "other");
-        pushMessage(state, { kind: "warning", title: `${g.name} 떠남`, body: "계약이 끝났다. 사기가 떨어져 재계약을 거절했다." });
+        logCareer(state, g, `계약이 끝나 ${josa(me.name, "을/를")} 떠났습니다`, "other");
+        pushMessage(state, { kind: "warning", title: `${g.name} 떠남`, body: "계약이 끝났습니다. 사기가 떨어져 재계약을 거절했습니다." });
       }
     }
   }

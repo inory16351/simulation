@@ -91,7 +91,7 @@ namespace Colosseum.UI
             HaggleResult res = null;
             G.Act((d, rng) => res = Economy.HaggleFreeAgent(d, rng, id, w, y));
             if (res.status == "countered") wage.SetTextWithoutNotify(res.counter.ToString());
-            Say(res.Accepted ? "계약했다!" : res.line, res.Accepted);
+            Say(res.Accepted ? "계약했습니다!" : res.line, res.Accepted);
         }
 
         void Bid()
@@ -101,7 +101,7 @@ namespace Colosseum.UI
             HaggleResult res = null;
             G.Act((d, rng) => res = Transfers.HaggleFee(d, rng, id, f));
             if (res.status == "countered") fee.SetTextWithoutNotify(res.counter.ToString());
-            Say(res.Accepted ? "이적료에 합의했다. 이제 개인 계약을 맺어라." : res.line, res.Accepted);
+            Say(res.Accepted ? "이적료에 합의했습니다. 검투사와 개인 계약을 맺으면 영입이 끝납니다." : res.line, res.Accepted);
         }
 
         void Draw()
@@ -116,7 +116,7 @@ namespace Colosseum.UI
             info.text = $"정보량 {JsMath.Round(k)}";
             Widgets.SetBar(infoBar, k, 100, Theme.BronzeHi);
             scout.interactable = !scouting && k < 100;
-            scout.GetComponentInChildren<TMP_Text>().text = scouting ? "정찰 중" : k >= 100 ? "정찰 끝" : "정찰을 맡긴다";
+            scout.GetComponentInChildren<TMP_Text>().text = scouting ? "정찰 중" : k >= 100 ? "정찰 끝" : "정찰 보내기";
             bool shortOn = S.shortlist?.Contains(g.id) == true;
             shortlist.GetComponentInChildren<TMP_Text>().text = shortOn ? "★ 관심 명단에서 빼기" : "☆ 관심 명단";
 
@@ -135,9 +135,9 @@ namespace Colosseum.UI
             {
                 var d = Economy.FreeAgentDemand(S, g);
                 freeHint.text = d.refuse
-                    ? $"<color=#d9a29b>관심 없음 · {d.reason}</color> <color={Theme.Hex(Theme.TextFaint)}>(루두스 명성을 올리면 마음이 바뀔 수 있다)</color>"
-                    : $"계약금은 제안 주급의 4주치({Economy.SigningFee(d.wage):N0} D 안팎)다. {d.reason}";
-                want.text = $"원함 {d.wage} D";
+                    ? $"<color=#d9a29b>관심 없음 · {d.reason}</color> <color={Theme.Hex(Theme.TextFaint)}>루두스 명성이 오르면 협상에 응합니다</color>"
+                    : $"계약금은 제안 주급의 4주치로, {Economy.SigningFee(d.wage):N0} D 안팎입니다. {d.reason}";
+                want.text = $"요구 주급 {d.wage} D";
                 for (int i = 0; i < seasons.Count; i++)
                 {
                     bool on = years == i + 1;
@@ -158,7 +158,7 @@ namespace Colosseum.UI
                 bid.interactable = open && !locked;
                 if (!open && msgText == null) { msg.gameObject.SetActive(true); msg.text = $"이적 시장 기간: {Transfers.WindowLabel}"; msg.color = Theme.TextDim; }
             }
-            if (deal != null) dealText.text = $"이적료 {deal.fee:N0} D에 합의했다.";
+            if (deal != null) dealText.text = $"이적료 {deal.fee:N0} D에 합의했습니다.";
         }
     }
 }
