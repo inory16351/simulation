@@ -3,7 +3,8 @@
 // 파츠: 머리카락·투구는 얼굴이 들어갈 빈 구멍(위쪽 가장자리·폭), 수염은 콧수염 윗가장자리, 갑옷은 목 파임.
 const sharp = require("sharp");
 
-async function load(file) {
+// keepApart: 떨어진 조각도 남긴다 (양 볼 문신, 귀 뒤로 늘어진 머리 꼬리처럼 일부러 나뉜 그림)
+async function load(file, keepApart = false) {
   const { data, info } = await sharp(file).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
   const W = info.width, H = info.height;
   // 옆 칸에서 묻어 온 부스러기를 지운다: 큰 덩어리만 남긴다
@@ -24,7 +25,7 @@ async function load(file) {
   const mx = (box[2] - box[0]) * 0.35, my = (box[3] - box[1]) * 0.35;
   for (let id = 0; id < sizes.length; id++) {
     const cx = cxs[id] / sizes[id], cy = cys[id] / sizes[id];
-    if (id !== bigId && (cx < box[0] - mx || cx > box[2] + mx || cy < box[1] - my || cy > box[3] + my)) sizes[id] = 0;
+    if (!keepApart && id !== bigId && (cx < box[0] - mx || cx > box[2] + mx || cy < box[1] - my || cy > box[3] + my)) sizes[id] = 0;
   }
   for (let i = 0; i < W * H; i++) if (data[i * 4 + 3] > 0 && (lab[i] < 0 ? true : sizes[lab[i]] < big * 0.03)) {
     // 반투명 가장자리는 이웃 큰 덩어리가 있으면 남긴다
@@ -102,7 +103,7 @@ function gapAt(m, y) {
 }
 
 async function partAnchors(file, kind) {
-  const m = await load(file);
+  const m = await load(file, kind === "mark" || kind === "hair");
   const out = { left: m.left, top: m.top, w: m.right - m.left + 1, h: m.bottom - m.top + 1, cx: m.cx, buf: await sharp(await m.clean()).extract({ left: m.left, top: m.top, width: m.right - m.left + 1, height: m.bottom - m.top + 1 }).png().toBuffer() };
   // 질량 중심과 잘라 낸 폭(양 끝 5%의 삐친 부분은 무시)
   const xsAll = [];

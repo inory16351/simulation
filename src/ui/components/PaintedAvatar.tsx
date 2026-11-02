@@ -16,14 +16,15 @@ export function PaintedAvatar({ spec, bg, view = "front", seed = 1 }: { spec: Pa
             <stop offset="1" stopColor="#120d0a" />
           </radialGradient>
         )}
-        {layers.map((l, i) => l.clipBottom !== undefined && (
-          <clipPath key={i} id={`${id}c${i}`}><rect x="0" y="0" width={C} height={l.clipBottom} /></clipPath>
+        {layers.map((l, i) => (l.clipBottom !== undefined || l.clipTop !== undefined) && (
+          <clipPath key={i} id={`${id}c${i}`}><rect x="0" y={l.clipTop ?? 0} width={C} height={(l.clipBottom ?? C) - (l.clipTop ?? 0)} /></clipPath>
         ))}
       </defs>
       {bg && <rect width={C} height={C} fill={`url(#${id}bg)`} />}
       {layers.map((l, i) => (
         <image key={i} href={asset(l.src)} x={l.rect[0]} y={l.rect[1]} width={l.rect[2]} height={l.rect[3]}
-          preserveAspectRatio="none" clipPath={l.clipBottom !== undefined ? `url(#${id}c${i})` : undefined} />
+          preserveAspectRatio="none" clipPath={l.clipBottom !== undefined || l.clipTop !== undefined ? `url(#${id}c${i})` : undefined}
+          style={l.filter ? { filter: l.filter } : undefined} />
       ))}
     </svg>
   );

@@ -2,19 +2,19 @@
  "heads": [
   "f",
   "m",
+  "m",
+  "f",
   "f",
   "m",
   "f",
   "m",
-  "f",
-  "m",
-  "f"
+  "m"
  ],
  "front": [
   "hair_short",
   "hair_long",
   "hair_braids",
-  null,
+  "hair_long_2",
   null,
   "helmet_crest",
   "helmet_visor",
@@ -31,5 +31,25 @@
   "helmet_visor",
   null,
   null
+ ],
+ "extra": [
+  {
+   "heads": [],
+   "front": []
+  },
+  {
+   "heads": [],
+   "front": [
+    "mark_scar_brow",
+    "mark_scar_nose",
+    "mark_scar_lip",
+    "mark_scar_forehead",
+    "mark_scar_claw",
+    "mark_tattoo_forehead",
+    "mark_tattoo_cheeks",
+    "mark_tattoo_chin",
+    "mark_paint_eyes"
+   ]
+  }
  ]
 }
