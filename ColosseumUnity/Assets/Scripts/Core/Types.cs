@@ -1,0 +1,102 @@
+// 게임 상태 타입 (src/core/types.ts, tactics.ts). 필드 이름은 웹판 저장 JSON과 같게 둔다.
+using System.Collections.Generic;
+
+namespace Colosseum.Core
+{
+    public static class Attrs
+    {
+        public static readonly string[] Physical = { "str", "agi", "end", "tou", "rea", "rec" };
+        public static readonly string[] Technical = { "acc", "eva", "blk", "grp", "mag" };
+        public static readonly string[] Mental = { "grit", "comp", "dec", "show", "agg", "disc", "lead" };
+        /// <summary>전투 감각: 수 싸움(예측·기만·변칙)과 단체전 감각 (docs/15_combat_v2.md)</summary>
+        public static readonly string[] Sense = { "read", "feint", "genius", "adapt", "team", "timing", "kill", "aura" };
+        public static readonly string[] All;
+
+        public static readonly Dictionary<string, string> Names = new()
+        {
+            ["str"] = "근력", ["agi"] = "민첩", ["end"] = "지구력", ["tou"] = "강인함", ["rea"] = "반응", ["rec"] = "회복력",
+            ["acc"] = "정확도", ["eva"] = "회피", ["blk"] = "막기", ["grp"] = "제압", ["mag"] = "마력",
+            ["grit"] = "투지", ["comp"] = "침착", ["dec"] = "판단력", ["show"] = "쇼맨십", ["agg"] = "공격성", ["disc"] = "규율", ["lead"] = "리더십",
+            ["read"] = "예측력", ["feint"] = "기만", ["genius"] = "천재성", ["adapt"] = "적응력", ["team"] = "팀워크", ["timing"] = "타이밍", ["kill"] = "마무리 본능", ["aura"] = "위압감",
+        };
+
+        public static readonly string[] WeaponClasses = { "sword", "greatsword", "axe", "mace", "spear", "trident_net", "dagger", "throwing", "shield", "unarmed", "focus" };
+
+        public static readonly Dictionary<string, string> WeaponClassNames = new()
+        {
+            ["sword"] = "한손검", ["greatsword"] = "대검", ["axe"] = "도끼", ["mace"] = "둔기", ["spear"] = "창", ["trident_net"] = "삼지창·그물",
+            ["dagger"] = "단검", ["throwing"] = "투척", ["shield"] = "방패", ["unarmed"] = "맨손", ["focus"] = "주술 촉매",
+        };
+
+        static Attrs()
+        {
+            var l = new List<string>();
+            l.AddRange(Physical); l.AddRange(Technical); l.AddRange(Mental); l.AddRange(Sense);
+            All = l.ToArray();
+        }
+    }
+
+    public class Hidden { public int pa, consistency, bigStage, injuryProne, loyalty, ambition, greed; }
+
+    public class Injury
+    {
+        /// <summary>"light" | "serious"</summary>
+        public string severity;
+        public double daysLeft;
+        public string desc;
+        public string type;
+        /// <summary>"minor" | "moderate" | "severe"</summary>
+        public string tier;
+        public double? total;
+    }
+
+    public class Skills { public List<string> active = new(), passive = new(); }
+    public class Equipment { public string main, off, armor, helmet; }
+    public class Record { public int wins, losses, kills; }
+    public class TrainingPlan { public string focus = "physical", intensity = "normal"; }
+
+    public class RuleCond { public string type; public double value; }
+    public class RuleAction { public string type, stance, skill; }
+    public class DoctrineRule { public RuleCond cond; public RuleAction action; }
+
+    public class Doctrine
+    {
+        /// <summary>assault | balanced | bulwark | harass | showman | blitz</summary>
+        public string stance = "balanced";
+        /// <summary>style | close | mid | far</summary>
+        public string range = "style";
+        /// <summary>spread | head | body | legs | arm</summary>
+        public string focus = "spread";
+        public List<string> order = new();
+        public List<DoctrineRule> rules = new();
+        public bool allowSurrender = true;
+        public double familiarity;
+    }
+
+    public class Gladiator
+    {
+        public string id, name, nickname, gender, race, nation, status, style;
+        public double age;
+        public Dictionary<string, int> attrs = new();
+        public Dictionary<string, int> prof = new();
+        public Hidden hidden = new();
+        public List<string> traits = new();
+        public Skills skills = new();
+        public Equipment equipment = new();
+        public double wage, unpaidWeeks, morale, popularity, fatigue, sharpness, wear;
+        public Injury injury;
+        public Record record = new();
+        public bool alive = true;
+        public Doctrine doctrine;
+        public int portraitSeed;
+        public Dictionary<string, string> portrait;
+        public TrainingPlan training = new();
+        public Dictionary<string, double> growth = new();
+        public double? lastFightAt;
+        public DiedAt diedAt;
+        public GladiatorContract contract;
+        public Deployment deployment;
+        public List<SeasonRecord> history = new();
+        public List<CareerEvent> career = new();
+    }
+}

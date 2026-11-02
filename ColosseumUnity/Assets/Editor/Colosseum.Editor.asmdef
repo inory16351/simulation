@@ -1,0 +1,14 @@
+{
+    "name": "Colosseum.Editor",
+    "rootNamespace": "Colosseum.EditorTools",
+    "references": ["Colosseum.Core", "Colosseum.UI", "UnityEngine.UI", "Unity.TextMeshPro"],
+    "includePlatforms": ["Editor"],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

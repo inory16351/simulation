@@ -1,0 +1,2249 @@
+{
+ "rng": [
+  0.9797282677609473,
+  0.3067522644996643,
+  0.484205421525985,
+  0.817934412509203,
+  0.5094283693470061,
+  0.34747186047025025,
+  0.07375754183158278,
+  0.7663964673411101,
+  0.9968264393974096,
+  0.8250224851071835,
+  0.4599348735064268,
+  0.9458441860042512,
+  0.8906230411957949,
+  0.9693436855450273,
+  0.6276605280581862,
+  0.24882567464374006,
+  0.47334283916279674,
+  0.30504514812491834,
+  0.772419034736231,
+  0.8651748767588288
+ ],
+ "rngNormal": [
+  10.577123142187302,
+  8.993394137840108,
+  10.043242711593573,
+  10.262105318145158,
+  8.94619105503494,
+  11.931390778976517,
+  9.704535510142085,
+  10.642803723944573,
+  10.244351510132725,
+  9.631456018666666
+ ],
+ "gladiators": [
+  {
+   "id": "g0",
+   "name": "플라비우스",
+   "gender": "m",
+   "race": "human",
+   "nation": "aurelia",
+   "age": 31,
+   "status": "free",
+   "style": "murmillo",
+   "attrs": {
+    "str": 3,
+    "agi": 3,
+    "end": 4,
+    "tou": 7,
+    "rea": 5,
+    "rec": 6,
+    "acc": 4,
+    "eva": 4,
+    "blk": 7,
+    "grp": 7,
+    "mag": 2,
+    "grit": 4,
+    "comp": 8,
+    "dec": 1,
+    "show": 4,
+    "agg": 1,
+    "disc": 7,
+    "lead": 5,
+    "read": 3,
+    "feint": 5,
+    "genius": 2,
+    "adapt": 3,
+    "team": 3,
+    "timing": 3,
+    "kill": 6,
+    "aura": 6
+   },
+   "prof": {
+    "sword": 6,
+    "greatsword": 2,
+    "axe": 1,
+    "mace": 2,
+    "spear": 3,
+    "trident_net": 2,
+    "dagger": 3,
+    "throwing": 2,
+    "shield": 10,
+    "unarmed": 2,
+    "focus": 2
+   },
+   "hidden": {
+    "pa": 59,
+    "consistency": 18,
+    "bigStage": 11,
+    "injuryProne": 14,
+    "loyalty": 4,
+    "ambition": 11,
+    "greed": 8
+   },
+   "traits": [
+    "ironman"
+   ],
+   "skills": {
+    "active": [
+     "skill.power_strike"
+    ],
+    "passive": []
+   },
+   "doctrine": {
+    "stance": "bulwark",
+    "range": "style",
+    "focus": "body",
+    "order": [
+     "skill.power_strike"
+    ],
+    "rules": [
+     {
+      "cond": {
+       "type": "oppHpBelow",
+       "value": 35
+      },
+      "action": {
+       "type": "stance",
+       "stance": "assault"
+      }
+     },
+     {
+      "cond": {
+       "type": "staBelow",
+       "value": 20
+      },
+      "action": {
+       "type": "rest"
+      }
+     }
+    ],
+    "allowSurrender": true,
+    "familiarity": 61
+   },
+   "equipment": {
+    "main": "gladius",
+    "off": "scutum",
+    "armor": "muscle_cuirass",
+    "helmet": "brimmed_helm"
+   },
+   "wage": 43,
+   "unpaidWeeks": 0,
+   "morale": 68,
+   "popularity": 10,
+   "fatigue": 0,
+   "record": {
+    "wins": 0,
+    "losses": 0,
+    "kills": 0
+   },
+   "alive": true,
+   "portraitSeed": 976934,
+   "training": {
+    "focus": "physical",
+    "intensity": "normal"
+   },
+   "growth": {},
+   "sharpness": 65,
+   "wear": 13,
+   "history": [],
+   "career": [],
+   "portrait": {
+    "skin": "#e2b28c",
+    "hair": "pony",
+    "hairColor": "#e6e0d2",
+    "eyes": "sleepy",
+    "mouth": "smile",
+    "beard": "short",
+    "helmet": null,
+    "cloth": "#5b2a4e",
+    "variant": "1"
+   }
+  },
+  {
+   "id": "g1",
+   "name": "타우로스",
+   "gender": "m",
+   "race": "minotaur",
+   "nation": "grommar",
+   "age": 19,
+   "status": "slave",
+   "style": "pankratiast",
+   "attrs": {
+    "str": 13,
+    "agi": 3,
+    "end": 4,
+    "tou": 10,
+    "rea": 6,
+    "rec": 5,
+    "acc": 2,
+    "eva": 3,
+    "blk": 9,
+    "grp": 1,
+    "mag": 1,
+    "grit": 7,
+    "comp": 9,
+    "dec": 2,
+    "show": 1,
+    "agg": 9,
+    "disc": 6,
+    "lead": 7,
+    "read": 8,
+    "feint": 3,
+    "genius": 7,
+    "adapt": 4,
+    "team": 7,
+    "timing": 6,
+    "kill": 6,
+    "aura": 10
+   },
+   "prof": {
+    "sword": 1,
+    "greatsword": 2,
+    "axe": 2,
+    "mace": 3,
+    "spear": 2,
+    "trident_net": 2,
+    "dagger": 3,
+    "throwing": 3,
+    "shield": 3,
+    "unarmed": 8,
+    "focus": 2
+   },
+   "hidden": {
+    "pa": 100,
+    "consistency": 7,
+    "bigStage": 16,
+    "injuryProne": 14,
+    "loyalty": 15,
+    "ambition": 9,
+    "greed": 8
+   },
+   "traits": [
+    "greedy"
+   ],
+   "skills": {
+    "active": [
+     "skill.trip"
+    ],
+    "passive": []
+   },
+   "doctrine": {
+    "stance": "assault",
+    "range": "close",
+    "focus": "body",
+    "order": [
+     "skill.trip"
+    ],
+    "rules": [
+     {
+      "cond": {
+       "type": "staBelow",
+       "value": 20
+      },
+      "action": {
+       "type": "rest"
+      }
+     }
+    ],
+    "allowSurrender": true,
+    "familiarity": 89
+   },
+   "equipment": {
+    "main": "cestus",
+    "off": null,
+    "armor": "chainmail",
+    "helmet": null
+   },
+   "wage": 36,
+   "unpaidWeeks": 0,
+   "morale": 73,
+   "popularity": 8,
+   "fatigue": 0,
+   "record": {
+    "wins": 0,
+    "losses": 0,
+    "kills": 0
+   },
+   "alive": true,
+   "portraitSeed": 476965,
+   "training": {
+    "focus": "physical",
+    "intensity": "normal"
+   },
+   "growth": {},
+   "sharpness": 74,
+   "wear": 6,
+   "history": [],
+   "career": [],
+   "portrait": {
+    "skin": "#8b7865",
+    "hair": null,
+    "hairColor": "#a8331f",
+    "eyes": "round",
+    "mouth": null,
+    "beard": null,
+    "helmet": null,
+    "cloth": "#2f2f35",
+    "variant": "1"
+   }
+  },
+  {
+   "id": "g2",
+   "name": "실레스",
+   "gender": "m",
+   "race": "elf",
+   "nation": "sylvaren",
+   "age": 99,
+   "status": "slave",
+   "style": "dimachaerus",
+   "attrs": {
+    "str": 6,
+    "agi": 15,
+    "end": 4,
+    "tou": 4,
+    "rea": 5,
+    "rec": 9,
+    "acc": 8,
+    "eva": 9,
+    "blk": 6,
+    "grp": 7,
+    "mag": 13,
+    "grit": 7,
+    "comp": 7,
+    "dec": 8,
+    "show": 11,
+    "agg": 10,
+    "disc": 5,
+    "lead": 7,
+    "read": 4,
+    "feint": 4,
+    "genius": 7,
+    "adapt": 3,
+    "team": 7,
+    "timing": 5,
+    "kill": 9,
+    "aura": 10
+   },
+   "prof": {
+    "sword": 8,
+    "greatsword": 3,
+    "axe": 2,
+    "mace": 4,
+    "spear": 4,
+    "trident_net": 3,
+    "dagger": 8,
+    "throwing": 3,
+    "shield": 4,
+    "unarmed": 3,
+    "focus": 4
+   },
+   "hidden": {
+    "pa": 79,
+    "consistency": 15,
+    "bigStage": 4,
+    "injuryProne": 3,
+    "loyalty": 17,
+    "ambition": 7,
+    "greed": 12
+   },
+   "traits": [
+    "one_eyed",
+    "ironman"
+   ],
+   "skills": {
+    "active": [
+     "skill.flurry"
+    ],
+    "passive": []
+   },
+   "doctrine": {
+    "stance": "balanced",
+    "range": "style",
+    "focus": "spread",
+    "order": [
+     "skill.flurry"
+    ],
+    "rules": [
+     {
+      "cond": {
+       "type": "staBelow",
+       "value": 20
+      },
+      "action": {
+       "type": "rest"
+      }
+     }
+    ],
+    "allowSurrender": true,
+    "familiarity": 44
+   },
+   "equipment": {
+    "main": "gladius",
+    "off": "gladius",
+    "armor": "leather",
+    "helmet": "open_helm"
+   },
+   "wage": 31,
+   "unpaidWeeks": 0,
+   "morale": 56,
+   "popularity": 11,
+   "fatigue": 0,
+   "record": {
+    "wins": 0,
+    "losses": 0,
+    "kills": 0
+   },
+   "alive": true,
+   "portraitSeed": 57491,
+   "training": {
+    "focus": "physical",
+    "intensity": "normal"
+   },
+   "growth": {},
+   "sharpness": 61,
+   "wear": 15,
+   "history": [],
+   "career": [],
+   "portrait": {
+    "skin": "#f2ebe2",
+    "hair": null,
+    "hairColor": "#8a5a2b",
+    "eyes": "fierce",
+    "mouth": "grit",
+    "beard": null,
+    "helmet": "hood",
+    "cloth": "#6b4a2a",
+    "variant": "0"
+   }
+  },
+  {
+   "id": "g3",
+   "name": "스벤다",
+   "gender": "f",
+   "race": "dwarf",
+   "nation": "dolgar",
+   "age": 66,
+   "status": "slave",
+   "style": "crusher",
+   "attrs": {
+    "str": 10,
+    "agi": 5,
+    "end": 9,
+    "tou": 12,
+    "rea": 6,
+    "rec": 13,
+    "acc": 8,
+    "eva": 7,
+    "blk": 5,
+    "grp": 10,
+    "mag": 5,
+    "grit": 8,
+    "comp": 10,
+    "dec": 6,
+    "show": 10,
+    "agg": 11,
+    "disc": 8,
+    "lead": 12,
+    "read": 9,
+    "feint": 3,
+    "genius": 7,
+    "adapt": 7,
+    "team": 7,
+    "timing": 10,
+    "kill": 7,
+    "aura": 10
+   },
+   "prof": {
+    "sword": 2,
+    "greatsword": 9,
+    "axe": 10,
+    "mace": 12,
+    "spear": 4,
+    "trident_net": 4,
+    "dagger": 4,
+    "throwing": 3,
+    "shield": 4,
+    "unarmed": 4,
+    "focus": 2
+   },
+   "hidden": {
+    "pa": 100,
+    "consistency": 14,
+    "bigStage": 9,
+    "injuryProne": 12,
+    "loyalty": 7,
+    "ambition": 14,
+    "greed": 11
+   },
+   "traits": [
+    "homesick",
+    "greedy"
+   ],
+   "skills": {
+    "active": [
+     "skill.power_strike",
+     "skill.armor_break"
+    ],
+    "passive": []
+   },
+   "doctrine": {
+    "stance": "assault",
+    "range": "style",
+    "focus": "head",
+    "order": [
+     "skill.power_strike",
+     "skill.armor_break"
+    ],
+    "rules": [
+     {
+      "cond": {
+       "type": "staBelow",
+       "value": 20
+      },
+      "action": {
+       "type": "rest"
+      }
+     }
+    ],
+    "allowSurrender": true,
+    "familiarity": 73
+   },
+   "equipment": {
+    "main": "greataxe",
+    "off": null,
+    "armor": "chainmail",
+    "helmet": "brimmed_helm"
+   },
+   "wage": 27,
+   "unpaidWeeks": 0,
+   "morale": 61,
+   "popularity": 19,
+   "fatigue": 0,
+   "record": {
+    "wins": 0,
+    "losses": 0,
+    "kills": 0
+   },
+   "alive": true,
+   "portraitSeed": 124648,
+   "training": {
+    "focus": "physical",
+    "intensity": "normal"
+   },
+   "growth": {},
+   "sharpness": 64,
+   "wear": 8,
+   "history": [],
+   "career": [],
+   "portrait": {
+    "skin": "#b9805b",
+    "hair": "pony",
+    "hairColor": "#4a2f1f",
+    "eyes": "round",
+    "mouth": "grit",
+    "beard": null,
+    "helmet": null,
+    "cloth": "#2f2f35",
+    "variant": "1"
+   }
+  },
+  {
+   "id": "g4",
+   "name": "스섀크",
+   "gender": "m",
+   "race": "lizardfolk",
+   "nation": "karsea",
+   "age": 28,
+   "status": "slave",
+   "style": "hoplomachus",
+   "attrs": {
+    "str": 7,
+    "agi": 9,
+    "end": 15,
+    "tou": 7,
+    "rea": 10,
+    "rec": 13,
+    "acc": 2,
+    "eva": 12,
+    "blk": 12,
+    "grp": 9,
+    "mag": 2,
+    "grit": 9,
+    "comp": 8,
+    "dec": 12,
+    "show": 5,
+    "agg": 8,
+    "disc": 8,
+    "lead": 8,
+    "read": 8,
+    "feint": 9,
+    "genius": 9,
+    "adapt": 9,
+    "team": 7,
+    "timing": 8,
+    "kill": 8,
+    "aura": 12
+   },
+   "prof": {
+    "sword": 4,
+    "greatsword": 2,
+    "axe": 2,
+    "mace": 5,
+    "spear": 12,
+    "trident_net": 1,
+    "dagger": 4,
+    "throwing": 3,
+    "shield": 10,
+    "unarmed": 2,
+    "focus": 2
+   },
+   "hidden": {
+    "pa": 90,
+    "consistency": 18,
+    "bigStage": 4,
+    "injuryProne": 4,
+    "loyalty": 7,
+    "ambition": 14,
+    "greed": 3
+   },
+   "traits": [
+    "homesick"
+   ],
+   "skills": {
+    "active": [
+     "skill.pierce",
+     "skill.iron_wall"
+    ],
+    "passive": []
+   },
+   "doctrine": {
+    "stance": "bulwark",
+    "range": "style",
+    "focus": "body",
+    "order": [
+     "skill.pierce",
+     "skill.iron_wall"
+    ],
+    "rules": [
+     {
+      "cond": {
+       "type": "oppHpBelow",
+       "value": 35
+      },
+      "action": {
+       "type": "stance",
+       "stance": "assault"
+      }
+     },
+     {
+      "cond": {
+       "type": "staBelow",
+       "value": 20
+      },
+      "action": {
+       "type": "rest"
+      }
+     }
+    ],
+    "allowSurrender": true,
+    "familiarity": 79
+   },
+   "equipment": {
+    "main": "hasta",
+    "off": "aspis",
+    "armor": "chainmail",
+    "helmet": "brimmed_helm"
+   },
+   "wage": 22,
+   "unpaidWeeks": 0,
+   "morale": 50,
+   "popularity": 0,
+   "fatigue": 0,
+   "record": {
+    "wins": 0,
+    "losses": 0,
+    "kills": 0
+   },
+   "alive": true,
+   "portraitSeed": 971481,
+   "training": {
+    "focus": "physical",
+    "intensity": "normal"
+   },
+   "growth": {},
+   "sharpness": 66,
+   "wear": 6,
+   "history": [],
+   "career": [],
+   "portrait": {
+    "skin": "#a08a40",
+    "hair": null,
+    "hairColor": "#8a5a2b",
+    "eyes": "sleepy",
+    "mouth": null,
+    "beard": null,
+    "helmet": null,
+    "cloth": "#5b2a4e",
+    "variant": "1"
+   }
+  },
+  {
+   "id": "g5",
+   "name": "타리크",
+   "gender": "m",
+   "race": "beastkin",
+   "nation": "kemer",
+   "age": 25,
+   "status": "free",
+   "style": "bestiarius",
+   "attrs": {
+    "str": 10,
+    "agi": 11,
+    "end": 11,
+    "tou": 10,
+    "rea": 16,
+    "rec": 12,
+    "acc": 14,
+    "eva": 6,
+    "blk": 12,
+    "grp": 10,
+    "mag": 3,
+    "grit": 13,
+    "comp": 8,
+    "dec": 10,
+    "show": 9,
+    "agg": 12,
+    "disc": 10,
+    "lead": 6,
+    "read": 13,
+    "feint": 7,
+    "genius": 12,
+    "adapt": 14,
+    "team": 9,
+    "timing": 9,
+    "kill": 8,
+    "aura": 13
+   },
+   "prof": {
+    "sword": 4,
+    "greatsword": 2,
+    "axe": 3,
+    "mace": 4,
+    "spear": 10,
+    "trident_net": 1,
+    "dagger": 4,
+    "throwing": 14,
+    "shield": 1,
+    "unarmed": 3,
+    "focus": 2
+   },
+   "hidden": {
+    "pa": 128,
+    "consistency": 11,
+    "bigStage": 17,
+    "injuryProne": 15,
+    "loyalty": 11,
+    "ambition": 18,
+    "greed": 17
+   },
+   "traits": [
+    "shadow"
+   ],
+   "skills": {
+    "active": [
+     "skill.javelin",
+     "skill.pierce",
+     "skill.pounce"
+    ],
+    "passive": []
+   },
+   "doctrine": {
+    "stance": "harass",
+    "range": "mid",
+    "focus": "spread",
+    "order": [
+     "skill.javelin",
+     "skill.pierce",
+     "skill.pounce"
+    ],
+    "rules": [
+     {
+      "cond": {
+       "type": "staBelow",
+       "value": 20
+      },
+      "action": {
+       "type": "rest"
+      }
+     }
+    ],
+    "allowSurrender": true,
+    "familiarity": 88
+   },
+   "equipment": {
+    "main": "hunting_spear",
+    "off": "javelin",
+    "armor": "leather",
+    "helmet": "open_helm"
+   },
+   "wage": 105,
+   "unpaidWeeks": 0,
+   "morale": 73,
+   "popularity": 6,
+   "fatigue": 0,
+   "record": {
+    "wins": 0,
+    "losses": 0,
+    "kills": 0
+   },
+   "alive": true,
+   "portraitSeed": 399583,
+   "training": {
+    "focus": "physical",
+    "intensity": "normal"
+   },
+   "growth": {},
+   "sharpness": 55,
+   "wear": 7,
+   "history": [],
+   "career": [],
+   "portrait": {
+    "skin": "#c98b3e",
+    "hair": null,
+    "hairColor": "#8a5a2b",
+    "eyes": "sleepy",
+    "mouth": null,
+    "beard": null,
+    "helmet": null,
+    "cloth": "#6b4a2a",
+    "variant": "0"
+   }
+  },
+  {
+   "id": "g6",
+   "name": "가이우스",
+   "gender": "m",
+   "race": "human",
+   "nation": "aurelia",
+   "age": 26,
+   "status": "slave",
+   "style": "hoplomachus",
+   "attrs": {
+    "str": 10,
+    "agi": 12,
+    "end": 12,
+    "tou": 14,
+    "rea": 13,
+    "rec": 7,
+    "acc": 15,
+    "eva": 15,
+    "blk": 13,
+    "grp": 8,
+    "mag": 3,
+    "grit": 8,
+    "comp": 14,
+    "dec": 12,
+    "show": 11,
+    "agg": 10,
+    "disc": 12,
+    "lead": 12,
+    "read": 9,
+    "feint": 12,
+    "genius": 10,
+    "adapt": 12,
+    "team": 15,
+    "timing": 14,
+    "kill": 10,
+    "aura": 10
+   },
+   "prof": {
+    "sword": 2,
+    "greatsword": 2,
+    "axe": 4,
+    "mace": 5,
+    "spear": 10,
+    "trident_net": 5,
+    "dagger": 4,
+    "throwing": 3,
+    "shield": 12,
+    "unarmed": 4,
+    "focus": 4
+   },
+   "hidden": {
+    "pa": 132,
+    "consistency": 14,
+    "bigStage": 17,
+    "injuryProne": 3,
+    "loyalty": 15,
+    "ambition": 18,
+    "greed": 10
+   },
+   "traits": [
+    "coward"
+   ],
+   "skills": {
+    "active": [
+     "skill.pierce",
+     "skill.iron_wall"
+    ],
+    "passive": []
+   },
+   "doctrine": {
+    "stance": "bulwark",
+    "range": "style",
+    "focus": "body",
+    "order": [
+     "skill.pierce",
+     "skill.iron_wall"
+    ],
+    "rules": [
+     {
+      "cond": {
+       "type": "oppHpBelow",
+       "value": 35
+      },
+      "action": {
+       "type": "stance",
+       "stance": "assault"
+      }
+     },
+     {
+      "cond": {
+       "type": "staBelow",
+       "value": 20
+      },
+      "action": {
+       "type": "rest"
+      }
+     }
+    ],
+    "allowSurrender": true,
+    "familiarity": 58
+   },
+   "equipment": {
+    "main": "hasta",
+    "off": "aspis",
+    "armor": "chainmail",
+    "helmet": "brimmed_helm"
+   },
+   "wage": 36,
+   "unpaidWeeks": 0,
+   "morale": 71,
+   "popularity": 30,
+   "fatigue": 0,
+   "record": {
+    "wins": 0,
+    "losses": 0,
+    "kills": 0
+   },
+   "alive": true,
+   "portraitSeed": 242386,
+   "training": {
+    "focus": "physical",
+    "intensity": "normal"
+   },
+   "growth": {},
+   "sharpness": 74,
+   "wear": 2,
+   "history": [],
+   "career": [],
+   "portrait": {
+    "skin": "#b97d52",
+    "hair": "tuft",
+    "hairColor": "#8a5a2b",
+    "eyes": "round",
+    "mouth": "open",
+    "beard": null,
+    "helmet": null,
+    "cloth": "#4a5a3a",
+    "variant": "1"
+   }
+  },
+  {
+   "id": "g7",
+   "name": "엘두라",
+   "gender": "f",
+   "race": "minotaur",
+   "nation": "grommar",
+   "age": 22,
+   "status": "free",
+   "style": "pankratiast",
+   "attrs": {
+    "str": 16,
+    "agi": 8,
+    "end": 14,
+    "tou": 13,
+    "rea": 11,
+    "rec": 15,
+    "acc": 12,
+    "eva": 14,
+    "blk": 13,
+    "grp": 13,
+    "mag": 1,
+    "grit": 14,
+    "comp": 11,
+    "dec": 10,
+    "show": 15,
+    "agg": 19,
+    "disc": 15,
+    "lead": 14,
+    "read": 13,
+    "feint": 14,
+    "genius": 13,
+    "adapt": 14,
+    "team": 12,
+    "timing": 12,
+    "kill": 12,
+    "aura": 11
+   },
+   "prof": {
+    "sword": 7,
+    "greatsword": 3,
+    "axe": 3,
+    "mace": 5,
+    "spear": 4,
+    "trident_net": 7,
+    "dagger": 6,
+    "throwing": 1,
+    "shield": 6,
+    "unarmed": 15,
+    "focus": 1
+   },
+   "hidden": {
+    "pa": 170,
+    "consistency": 6,
+    "bigStage": 5,
+    "injuryProne": 10,
+    "loyalty": 17,
+    "ambition": 10,
+    "greed": 17
+   },
+   "traits": [
+    "calculator",
+    "prodigy"
+   ],
+   "skills": {
+    "active": [
+     "skill.trip",
+     "skill.grapple"
+    ],
+    "passive": []
+   },
+   "doctrine": {
+    "stance": "assault",
+    "range": "close",
+    "focus": "body",
+    "order": [
+     "skill.trip",
+     "skill.grapple"
+    ],
+    "rules": [
+     {
+      "cond": {
+       "type": "staBelow",
+       "value": 20
+      },
+      "action": {
+       "type": "rest"
+      }
+     }
+    ],
+    "allowSurrender": true,
+    "familiarity": 64
+   },
+   "equipment": {
+    "main": "cestus",
+    "off": null,
+    "armor": "chainmail",
+    "helmet": null
+   },
+   "wage": 257,
+   "unpaidWeeks": 0,
+   "morale": 58,
+   "popularity": 25,
+   "fatigue": 0,
+   "record": {
+    "wins": 0,
+    "losses": 0,
+    "kills": 0
+   },
+   "alive": true,
+   "portraitSeed": 462877,
+   "training": {
+    "focus": "physical",
+    "intensity": "normal"
+   },
+   "growth": {},
+   "sharpness": 79,
+   "wear": 13,
+   "history": [],
+   "career": [],
+   "portrait": {
+    "skin": "#3a2a22",
+    "hair": null,
+    "hairColor": "#a8331f",
+    "eyes": "round",
+    "mouth": null,
+    "beard": null,
+    "helmet": null,
+    "cloth": "#7a1e1a",
+    "variant": "0"
+   }
+  },
+  {
+   "id": "g8",
+   "name": "베렌실",
+   "gender": "m",
+   "race": "elf",
+   "nation": "sylvaren",
+   "age": 78,
+   "status": "slave",
+   "style": "runeblade",
+   "attrs": {
+    "str": 11,
+    "agi": 18,
+    "end": 11,
+    "tou": 11,
+    "rea": 9,
+    "rec": 16,
+    "acc": 14,
+    "eva": 9,
+    "blk": 10,
+    "grp": 13,
+    "mag": 19,
+    "grit": 13,
+    "comp": 18,
+    "dec": 11,
+    "show": 15,
+    "agg": 14,
+    "disc": 13,
+    "lead": 12,
+    "read": 13,
+    "feint": 11,
+    "genius": 14,
+    "adapt": 13,
+    "team": 12,
+    "timing": 16,
+    "kill": 13,
+    "aura": 11
+   },
+   "prof": {
+    "sword": 16,
+    "greatsword": 5,
+    "axe": 4,
+    "mace": 1,
+    "spear": 7,
+    "trident_net": 7,
+    "dagger": 7,
+    "throwing": 3,
+    "shield": 5,
+    "unarmed": 4,
+    "focus": 14
+   },
+   "hidden": {
+    "pa": 200,
+    "consistency": 12,
+    "bigStage": 4,
+    "injuryProne": 4,
+    "loyalty": 14,
+    "ambition": 8,
+    "greed": 11
+   },
+   "traits": [
+    "injury_prone",
+    "scarred"
+   ],
+   "skills": {
+    "active": [
+     "skill.flame_weapon",
+     "skill.ward_rune",
+     "skill.power_strike"
+    ],
+    "passive": []
+   },
+   "doctrine": {
+    "stance": "blitz",
+    "range": "style",
+    "focus": "spread",
+    "order": [
+     "skill.flame_weapon",
+     "skill.ward_rune",
+     "skill.power_strike"
+    ],
+    "rules": [
+     {
+      "cond": {
+       "type": "staBelow",
+       "value": 20
+      },
+      "action": {
+       "type": "rest"
+      }
+     }
+    ],
+    "allowSurrender": true,
+    "familiarity": 69
+   },
+   "equipment": {
+    "main": "longsword",
+    "off": "rune_charm",
+    "armor": "scale",
+    "helmet": "open_helm"
+   },
+   "wage": 58,
+   "unpaidWeeks": 0,
+   "morale": 54,
+   "popularity": 39,
+   "fatigue": 0,
+   "record": {
+    "wins": 0,
+    "losses": 0,
+    "kills": 0
+   },
+   "alive": true,
+   "portraitSeed": 971113,
+   "training": {
+    "focus": "physical",
+    "intensity": "normal"
+   },
+   "growth": {},
+   "sharpness": 63,
+   "wear": 6,
+   "history": [],
+   "career": [],
+   "portrait": {
+    "skin": "#f2ebe2",
+    "hair": null,
+    "hairColor": "#d1ad5f",
+    "eyes": "fierce",
+    "mouth": "line",
+    "beard": null,
+    "helmet": null,
+    "cloth": "#5b2a4e",
+    "variant": "1"
+   }
+  },
+  {
+   "id": "g9",
+   "name": "볼린",
+   "gender": "m",
+   "race": "dwarf",
+   "nation": "dolgar",
+   "age": 50,
+   "status": "slave",
+   "style": "bestiarius",
+   "attrs": {
+    "str": 14,
+    "agi": 15,
+    "end": 16,
+    "tou": 15,
+    "rea": 15,
+    "rec": 18,
+    "acc": 18,
+    "eva": 16,
+    "blk": 11,
+    "grp": 7,
+    "mag": 3,
+    "grit": 14,
+    "comp": 16,
+    "dec": 15,
+    "show": 15,
+    "agg": 13,
+    "disc": 14,
+    "lead": 10,
+    "read": 20,
+    "feint": 13,
+    "genius": 14,
+    "adapt": 14,
+    "team": 14,
+    "timing": 15,
+    "kill": 16,
+    "aura": 11
+   },
+   "prof": {
+    "sword": 6,
+    "greatsword": 6,
+    "axe": 2,
+    "mace": 8,
+    "spear": 19,
+    "trident_net": 3,
+    "dagger": 6,
+    "throwing": 11,
+    "shield": 4,
+    "unarmed": 4,
+    "focus": 5
+   },
+   "hidden": {
+    "pa": 151,
+    "consistency": 12,
+    "bigStage": 4,
+    "injuryProne": 7,
+    "loyalty": 12,
+    "ambition": 11,
+    "greed": 18
+   },
+   "traits": [
+    "loyal_hound"
+   ],
+   "skills": {
+    "active": [
+     "skill.javelin",
+     "skill.pierce",
+     "skill.disengage"
+    ],
+    "passive": []
+   },
+   "doctrine": {
+    "stance": "harass",
+    "range": "mid",
+    "focus": "spread",
+    "order": [
+     "skill.javelin",
+     "skill.pierce",
+     "skill.disengage"
+    ],
+    "rules": [
+     {
+      "cond": {
+       "type": "staBelow",
+       "value": 20
+      },
+      "action": {
+       "type": "rest"
+      }
+     }
+    ],
+    "allowSurrender": true,
+    "familiarity": 48
+   },
+   "equipment": {
+    "main": "hunting_spear",
+    "off": "javelin",
+    "armor": "leather",
+    "helmet": "open_helm"
+   },
+   "wage": 41,
+   "unpaidWeeks": 0,
+   "morale": 69,
+   "popularity": 16,
+   "fatigue": 0,
+   "record": {
+    "wins": 0,
+    "losses": 0,
+    "kills": 0
+   },
+   "alive": true,
+   "portraitSeed": 776787,
+   "training": {
+    "focus": "physical",
+    "intensity": "normal"
+   },
+   "growth": {},
+   "sharpness": 76,
+   "wear": 7,
+   "history": [],
+   "career": [],
+   "portrait": {
+    "skin": "#b9805b",
+    "hair": "braids",
+    "hairColor": "#a8331f",
+    "eyes": "round",
+    "mouth": "frown",
+    "beard": "braided",
+    "helmet": null,
+    "cloth": "#7a1e1a",
+    "variant": "0"
+   }
+  },
+  {
+   "id": "g10",
+   "name": "볼그",
+   "gender": "m",
+   "race": "orc",
+   "nation": "karsea",
+   "age": 23,
+   "status": "slave",
+   "style": "pankratiast",
+   "attrs": {
+    "str": 4,
+    "agi": 3,
+    "end": 9,
+    "tou": 6,
+    "rea": 6,
+    "rec": 7,
+    "acc": 2,
+    "eva": 6,
+    "blk": 5,
+    "grp": 6,
+    "mag": 1,
+    "grit": 6,
+    "comp": 6,
+    "dec": 2,
+    "show": 4,
+    "agg": 3,
+    "disc": 1,
+    "lead": 3,
+    "read": 9,
+    "feint": 6,
+    "genius": 4,
+    "adapt": 6,
+    "team": 6,
+    "timing": 4,
+    "kill": 4,
+    "aura": 6
+   },
+   "prof": {
+    "sword": 2,
+    "greatsword": 3,
+    "axe": 2,
+    "mace": 2,
+    "spear": 1,
+    "trident_net": 2,
+    "dagger": 3,
+    "throwing": 3,
+    "shield": 2,
+    "unarmed": 5,
+    "focus": 1
+   },
+   "hidden": {
+    "pa": 50,
+    "consistency": 15,
+    "bigStage": 7,
+    "injuryProne": 4,
+    "loyalty": 6,
+    "ambition": 8,
+    "greed": 13
+   },
+   "traits": [
+    "injury_prone"
+   ],
+   "skills": {
+    "active": [
+     "skill.trip"
+    ],
+    "passive": []
+   },
+   "doctrine": {
+    "stance": "assault",
+    "range": "close",
+    "focus": "body",
+    "order": [
+     "skill.trip"
+    ],
+    "rules": [
+     {
+      "cond": {
+       "type": "staBelow",
+       "value": 20
+      },
+      "action": {
+       "type": "rest"
+      }
+     }
+    ],
+    "allowSurrender": true,
+    "familiarity": 50
+   },
+   "equipment": {
+    "main": "cestus",
+    "off": null,
+    "armor": "loincloth",
+    "helmet": null
+   },
+   "wage": 14,
+   "unpaidWeeks": 0,
+   "morale": 63,
+   "popularity": 12,
+   "fatigue": 0,
+   "record": {
+    "wins": 0,
+    "losses": 0,
+    "kills": 0
+   },
+   "alive": true,
+   "portraitSeed": 746828,
+   "training": {
+    "focus": "physical",
+    "intensity": "normal"
+   },
+   "growth": {},
+   "sharpness": 74,
+   "wear": 7,
+   "history": [],
+   "career": [],
+   "portrait": {
+    "skin": "#8aa45a",
+    "hair": null,
+    "hairColor": "#a8331f",
+    "eyes": "round",
+    "mouth": "grit",
+    "beard": null,
+    "helmet": null,
+    "cloth": "#4a5a3a",
+    "variant": "1"
+   }
+  },
+  {
+   "id": "g11",
+   "name": "호루안",
+   "gender": "m",
+   "race": "beastkin",
+   "nation": "kemer",
+   "age": 15,
+   "status": "slave",
+   "style": "bestiarius",
+   "attrs": {
+    "str": 9,
+    "agi": 7,
+    "end": 2,
+    "tou": 6,
+    "rea": 11,
+    "rec": 3,
+    "acc": 10,
+    "eva": 7,
+    "blk": 11,
+    "grp": 7,
+    "mag": 2,
+    "grit": 5,
+    "comp": 4,
+    "dec": 6,
+    "show": 8,
+    "agg": 4,
+    "disc": 8,
+    "lead": 8,
+    "read": 10,
+    "feint": 5,
+    "genius": 5,
+    "adapt": 7,
+    "team": 3,
+    "timing": 1,
+    "kill": 9,
+    "aura": 5
+   },
+   "prof": {
+    "sword": 1,
+    "greatsword": 3,
+    "axe": 1,
+    "mace": 3,
+    "spear": 7,
+    "trident_net": 1,
+    "dagger": 3,
+    "throwing": 8,
+    "shield": 2,
+    "unarmed": 3,
+    "focus": 2
+   },
+   "hidden": {
+    "pa": 120,
+    "consistency": 17,
+    "bigStage": 17,
+    "injuryProne": 12,
+    "loyalty": 7,
+    "ambition": 13,
+    "greed": 3
+   },
+   "traits": [
+    "iron_heart",
+    "berserker"
+   ],
+   "skills": {
+    "active": [
+     "skill.javelin"
+    ],
+    "passive": []
+   },
+   "doctrine": {
+    "stance": "harass",
+    "range": "mid",
+    "focus": "spread",
+    "order": [
+     "skill.javelin"
+    ],
+    "rules": [
+     {
+      "cond": {
+       "type": "staBelow",
+       "value": 20
+      },
+      "action": {
+       "type": "rest"
+      }
+     }
+    ],
+    "allowSurrender": true,
+    "familiarity": 51
+   },
+   "equipment": {
+    "main": "hunting_spear",
+    "off": "javelin",
+    "armor": "leather",
+    "helmet": "open_helm"
+   },
+   "wage": 20,
+   "unpaidWeeks": 0,
+   "morale": 52,
+   "popularity": 11,
+   "fatigue": 0,
+   "record": {
+    "wins": 0,
+    "losses": 0,
+    "kills": 0
+   },
+   "alive": true,
+   "portraitSeed": 208064,
+   "training": {
+    "focus": "physical",
+    "intensity": "normal"
+   },
+   "growth": {},
+   "sharpness": 55,
+   "wear": 12,
+   "history": [],
+   "career": [],
+   "portrait": {
+    "skin": "#b0855a",
+    "hair": null,
+    "hairColor": "#d1ad5f",
+    "eyes": "round",
+    "mouth": null,
+    "beard": null,
+    "helmet": null,
+    "cloth": "#5b2a4e",
+    "variant": "0"
+   }
+  }
+ ],
+ "matches": [
+  {
+   "a": "g0",
+   "b": "g3",
+   "rule": "training",
+   "seed": 1000,
+   "winnerId": "g3",
+   "reason": "ko",
+   "rounds": 5,
+   "died": null,
+   "crowd": 30,
+   "damageDealt": {
+    "g0": 0,
+    "g3": 113
+   },
+   "events": 24,
+   "commentary": [
+    "텅 빈 연습장. 플라비우스와 스벤다가 마주 선다. 들리는 건 교관의 호루라기뿐이다.",
+    "스벤다가 거리를 좁힌다.",
+    "플라비우스가 거리를 좁힌다.",
+    "내려치기가 플라비우스의 흘리기를 그대로 짓누른다. 자세가 무너졌다!",
+    "스벤다의 강타! 도끼가 플라비우스의 목을 깊게 가른다! 피가 튄다. (플라비우스 73/98)",
+    "스벤다는 하단을 막았지만, 플라비우스의 내려치기는 상단으로 파고든다.",
+    "플라비우스의 강타! 공격이 허공을 가른다.",
+    "스벤다의 속임수가 읽혔다.",
+    "스벤다의 갑옷 쪼개기! 치명타! 플라비우스의 목에서 피가 뿜어져 나온다. 살점이 모래 위로 떨어진다! (플라비우스 19/98)",
+    "플라비우스가 비틀거리며 정신을 놓았다.",
+    "플라비우스의 갑옷이 쩍 갈라졌다.",
+    "플라비우스가 아직 정신을 차리지 못했다.",
+    "내려치기가 플라비우스의 흘리기를 그대로 짓누른다. 자세가 무너졌다!",
+    "치명타! 스벤다의 도끼가 플라비우스의 머리를 그대로 갈라 버린다. (플라비우스 0/98)",
+    "플라비우스가 피를 뿜으며 쓰러졌다! 모래가 검붉게 젖어 든다.",
+    "■ 스벤다 승리 (KO)"
+   ]
+  },
+  {
+   "a": "g1",
+   "b": "g8",
+   "rule": "missio",
+   "seed": 1001,
+   "winnerId": "g8",
+   "reason": "surrender",
+   "rounds": 7,
+   "died": null,
+   "crowd": 33,
+   "damageDealt": {
+    "g1": 0,
+    "g8": 105
+   },
+   "events": 33,
+   "commentary": [
+    "타우로스와 베렌실이 모래 위에 섰다. 관중석이 술렁인다.",
+    "베렌실이 칼날을 손으로 훑자 불길이 확 일어난다. (화염 부여)",
+    "타우로스가 천천히 원을 그리며 다가간다.",
+    "베렌실이 허공에 룬을 그린다. 푸른 빛이 몸을 감싼다. (수호 룬)",
+    "타우로스가 모래를 박차고 다가선다.",
+    "베렌실의 강타! 타우로스의 어깨가 쩍 갈라진다! 모래가 붉게 젖어 든다. (타우로스 98/123)",
+    "타우로스의 걸어 넘어뜨리기! 하지만 빗나갔다. 관중석에서 탄식이 터진다.",
+    "타우로스는 상단을 막았지만, 베렌실의 베기는 중단으로 파고든다.",
+    "타우로스의 팔이 쩍 갈라진다! 모래가 붉게 젖어 든다. (타우로스 80/123)",
+    "타우로스의 주먹이 베렌실의 가슴을 때린다. 살갗이 터지며 피가 맺힌다. (베렌실 126/126)",
+    "타우로스의 가슴이 쩍 갈라진다! 모래가 붉게 젖어 든다. (타우로스 65/123)",
+    "타우로스의 공격이 빗나갔다. 관중석에서 탄식이 터진다.",
+    "베렌실의 강타! 치명타! 타우로스의 가슴에서 피가 뿜어져 나온다. 살점이 모래 위로 떨어진다! (타우로스 18/123)",
+    "관중이 일어선다! 함성이 터진다.",
+    "타우로스가 무릎을 꿇고 손가락을 들어 올린다. 항복이다.",
+    "관중석에서 돌멩이가 날아든다.",
+    "▶ 미시오 판정 — 주최자가 관중을 둘러본다… (사망 확률 23%)",
+    "엄지가… 위로! 타우로스는 살아남았다.",
+    "■ 베렌실 승리 (항복)"
+   ]
+  },
+  {
+   "a": "g2",
+   "b": "g1",
+   "rule": "sudden",
+   "seed": 1002,
+   "winnerId": "g1",
+   "reason": "ko",
+   "rounds": 22,
+   "died": "g2",
+   "crowd": 48,
+   "damageDealt": {
+    "g2": 92,
+    "g1": 91
+   },
+   "events": 124,
+   "commentary": [
+    "실레스와 타우로스가 모래 위에 섰다. 관중석이 술렁인다.",
+    "실레스가 거리를 좁힌다.",
+    "타우로스가 모래를 박차고 다가선다.",
+    "타우로스의 걸어 넘어뜨리기! 공격이 허공을 가른다.",
+    "내려치기가 실레스의 흘리기를 그대로 짓누른다. 자세가 무너졌다!",
+    "타우로스의 주먹이 실레스의 옆구리를 때린다. 살갗이 터지며 피가 맺힌다. (실레스 80/86)",
+    "실레스의 연속 베기! 하지만 빗나갔다. 관중석에서 탄식이 터진다.",
+    "타우로스가 중단 베기를 읽었다! 정면으로 받아낸 칼날이 튕겨 나간다.",
+    "타우로스의 주먹이 실레스의 가슴을 때린다. 살갗이 터지며 피가 맺힌다. (실레스 73/86)",
+    "실레스가 치는 척하다 방향을 꺾는다!",
+    "실레스의 칼이 타우로스의 가슴을 스친다. 피가 배어 나온다. (타우로스 116/123)",
+    "실레스의 칼이 타우로스의 옆구리를 스친다. 피가 배어 나온다. (타우로스 109/123)",
+    "본 적 없는 수다! 실레스가 하단 찌르기를 읽었다! 칼날을 비스듬히 흘려 보낸다.",
+    "반격! 실레스의 공격이 허공을 가른다.",
+    "타우로스의 주먹이 실레스의 옆구리를 때린다. 살갗이 터지며 피가 맺힌다. (실레스 65/86)",
+    "실레스의 칼이 타우로스의 어깨를 스친다. 피가 배어 나온다. (타우로스 102/123)",
+    "찌르기가 실레스의 막기를 그대로 짓누른다. 자세가 무너졌다!",
+    "타우로스의 주먹이 실레스의 어깨를 때린다. 살갗이 터지며 피가 맺힌다. (실레스 59/86)",
+    "실레스가 모래 위로 나뒹군다.",
+    "타우로스의 주먹이 실레스의 가슴을 스치듯 후려친다. (실레스 50/86)",
+    "실레스가 모래를 짚고 겨우 일어난다.",
+    "실레스는 상단을 막았지만, 타우로스의 내려치기는 하단으로 파고든다.",
+    "타우로스의 주먹이 실레스의 가슴을 때린다. 살갗이 터지며 피가 맺힌다. (실레스 40/86)",
+    "실레스는 하단을 막았지만, 타우로스의 내려치기는 중단으로 파고든다.",
+    "타우로스의 주먹이 실레스의 가슴을 스치듯 후려친다. (실레스 32/86)",
+    "타우로스는 중단을 막았지만, 실레스의 베기는 하단으로 파고든다.",
+    "실레스의 연속 베기! 하지만 빗나갔다. 관중석에서 탄식이 터진다.",
+    "실레스의 연속 베기! 타우로스의 정강이가 얕게 베였다. (타우로스 97/123)",
+    "찌르기가 타우로스의 막기를 그대로 짓누른다. 자세가 무너졌다!",
+    "타우로스의 가슴이 얕게 베였다. (타우로스 92/123)",
+    "▶ 교범 — 타우로스가 교범대로 물러나 숨을 돌린다.",
+    "타우로스가 숨을 몰아쉰다.",
+    "타우로스는 중단을 막았지만, 실레스의 내려치기는 상단으로 파고든다.",
+    "실레스의 칼이 타우로스의 팔을 스친다. 피가 배어 나온다. (타우로스 81/123)",
+    "네 번째다. 실레스는 이제 그 찌르기를 기다리고 있었다. 칼날을 비스듬히 흘려 보낸다.",
+    "실레스의 칼이 타우로스의 머리를 스친다. 피가 배어 나온다. (타우로스 67/123)",
+    "타우로스의 걸어 넘어뜨리기! 실레스가 몸을 틀어 피했다!",
+    "실레스의 연속 베기! 칼이 타우로스의 가슴을 스친다. 피가 배어 나온다. (타우로스 62/123)",
+    "실레스의 연속 베기! 공격이 허공을 가른다.",
+    "타우로스가 숨을 몰아쉰다.",
+    "▶ 교범 — 실레스가 교범대로 물러나 숨을 돌린다.",
+    "실레스가 숨을 몰아쉰다.",
+    "타우로스의 주먹이 실레스의 어깨를 스치듯 후려친다. (실레스 24/86)",
+    "실레스의 칼이 타우로스의 팔을 스친다. 피가 배어 나온다. (타우로스 53/123)",
+    "타우로스의 주먹이 실레스의 옆구리를 스치듯 후려친다. (실레스 17/86)",
+    "방향을 잘못 읽었다… 타우로스가 늦게나마 몸을 튼다.",
+    "타우로스가 몸을 틀어 피했다!",
+    "타우로스의 걸어 넘어뜨리기! 공격이 허공을 가른다.",
+    "타우로스가 숨을 몰아쉰다.",
+    "타우로스는 상단을 막았지만, 실레스의 찌르기는 하단으로 파고든다.",
+    "타우로스의 허벅지가 얕게 베였다. (타우로스 46/123)",
+    "실레스가 숨을 몰아쉰다.",
+    "실레스는 하단을 막았지만, 타우로스의 찌르기는 상단으로 파고든다.",
+    "실레스가 몸을 틀어 피했다!",
+    "실레스의 연속 베기! 칼이 타우로스의 가슴을 스친다. 피가 배어 나온다. (타우로스 41/123)",
+    "베기가 타우로스의 피하기를 그대로 짓누른다. 자세가 무너졌다!",
+    "실레스의 연속 베기! 칼이 타우로스의 어깨를 스친다. 피가 배어 나온다. (타우로스 37/123)",
+    "내려치기가 실레스의 흘리기를 그대로 짓누른다. 자세가 무너졌다!",
+    "타우로스의 주먹이 실레스의 어깨를 때린다. 살갗이 터지며 피가 맺힌다. (실레스 11/86)",
+    "실레스는 상단을 막았지만, 타우로스의 찌르기는 중단으로 파고든다.",
+    "타우로스의 주먹이 실레스의 옆구리를 때린다. 살갗이 터지며 피가 맺힌다. (실레스 3/86)",
+    "실레스가 숨을 몰아쉰다.",
+    "타우로스가 숨을 몰아쉰다.",
+    "타우로스의 걸어 넘어뜨리기! 실레스가 몸을 틀어 피했다!",
+    "타우로스의 공격이 허공을 가른다.",
+    "실레스의 공격이 허공을 가른다.",
+    "타우로스는 상단을 막았지만, 실레스의 베기는 하단으로 파고든다.",
+    "실레스의 공격이 허공을 가른다.",
+    "타우로스가 숨을 몰아쉰다.",
+    "세 번째다. 타우로스는 이제 그 베기를 기다리고 있었다. 정면으로 받아낸 칼날이 튕겨 나간다.",
+    "실레스의 연속 베기! 타우로스의 목이 얕게 베였다. (타우로스 31/123)",
+    "타우로스의 주먹이 실레스의 가슴을 스치듯 후려친다. (실레스 0/86)",
+    "실레스가 쓰러졌다. 관중이 숨을 죽인다…",
+    "관중이 일어선다! 함성이 터진다.",
+    "사투에 자비는 없다. 타우로스가 마지막 일격을 내리꽂는다. 실레스는 다시 일어나지 못했다.",
+    "■ 타우로스 승리 (KO)"
+   ]
+  },
+  {
+   "a": "g3",
+   "b": "g6",
+   "rule": "training",
+   "seed": 1003,
+   "winnerId": "g6",
+   "reason": "surrender",
+   "rounds": 7,
+   "died": null,
+   "crowd": 30,
+   "damageDealt": {
+    "g3": 0,
+    "g6": 68
+   },
+   "events": 30,
+   "commentary": [
+    "텅 빈 연습장. 스벤다와 가이우스가 마주 선다. 들리는 건 교관의 호루라기뿐이다.",
+    "가이우스가 방패를 땅에 박고 몸을 웅크린다. (철벽)",
+    "스벤다가 거리를 좁힌다.",
+    "가이우스의 관통 찌르기! 창이 스벤다의 가슴을 얕게 찌른다. 피가 번진다. (스벤다 115/130)",
+    "스벤다가 거리를 좁힌다.",
+    "가이우스의 속임수가 읽혔다.",
+    "치명타! 가이우스의 창이 스벤다의 옆구리를 꿰뚫었다. 피가 왈칵 쏟아진다! (스벤다 95/130)",
+    "스벤다의 강타! 공격이 허공을 가른다.",
+    "내려치기가 스벤다의 흘리기를 그대로 짓누른다. 자세가 무너졌다!",
+    "가이우스의 창이 스벤다의 가슴을 긁고 지나간다. (스벤다 87/130)",
+    "가이우스가 상단 내려치기를 읽었다! 몸을 비틀어 헛치게 만든다. 크게 빈틈이 났다!",
+    "반격! 가이우스의 창이 스벤다의 어깨를 얕게 찌른다. 피가 번진다. (스벤다 76/130)",
+    "가이우스의 창이 스벤다의 옆구리를 얕게 찌른다. 피가 번진다. (스벤다 62/130)",
+    "스벤다의 공격이 빗나갔다.",
+    "가이우스가 방패를 땅에 박고 몸을 웅크린다. (철벽)",
+    "스벤다가 무릎을 꿇고 손가락을 들어 올린다. 항복이다.",
+    "■ 가이우스 승리 (항복)"
+   ]
+  },
+  {
+   "a": "g4",
+   "b": "g11",
+   "rule": "missio",
+   "seed": 1004,
+   "winnerId": "g4",
+   "reason": "ko",
+   "rounds": 17,
+   "died": null,
+   "crowd": 46,
+   "damageDealt": {
+    "g4": 107,
+    "g11": 77
+   },
+   "events": 84,
+   "commentary": [
+    "스섀크와 호루안이 모래 위에 섰다. 관중석이 술렁인다.",
+    "스섀크가 방패를 땅에 박고 몸을 웅크린다. (철벽)",
+    "호루안의 투창! 공격이 허공을 가른다.",
+    "스섀크가 천천히 원을 그리며 다가간다.",
+    "스섀크는 상단을 막았지만, 호루안의 찌르기는 중단으로 파고든다.",
+    "스섀크가 몸을 틀어 피했다!",
+    "스섀크의 속임수가 읽혔다.",
+    "스섀크의 관통 찌르기! 공격이 허공을 가른다.",
+    "호루안의 투창! 투창이 스섀크의 어깨를 긁고 지나간다. (스섀크 93/102)",
+    "스섀크의 창이 호루안의 가슴에 깊이 박힌다! 뽑아내자 피가 솟는다. (호루안 87/99)",
+    "스섀크가 상단 찌르기를 읽었다! 칼날을 비스듬히 흘려 보낸다.",
+    "스섀크의 창이 호루안의 가슴에 깊이 박힌다! 뽑아내자 피가 솟는다. (호루안 75/99)",
+    "호루안의 창이 스섀크의 팔을 얕게 찌른다. 피가 번진다. (스섀크 84/102)",
+    "스섀크가 방패를 땅에 박고 몸을 웅크린다. (철벽)",
+    "방향을 잘못 읽었다… 스섀크가 늦게나마 몸을 튼다.",
+    "스섀크가 막아냈다! 쇳소리가 경기장을 울린다. (스섀크 82/102)",
+    "스섀크의 관통 찌르기! 창이 호루안의 가슴에 깊이 박힌다! 뽑아내자 피가 솟는다. (호루안 63/99)",
+    "호루안의 속임수가 읽혔다.",
+    "호루안의 창이 스섀크의 팔을 긁고 지나간다. (스섀크 73/102)",
+    "스섀크의 창이 호루안의 가슴을 얕게 찌른다. 피가 번진다. (호루안 53/99)",
+    "호루안의 창이 스섀크의 팔을 긁고 지나간다. (스섀크 63/102)",
+    "스섀크의 창이 호루안의 가슴을 긁고 지나간다. (호루안 45/99)",
+    "세 번째다. 스섀크는 이제 그 찌르기를 기다리고 있었다. 칼날을 비스듬히 흘려 보낸다.",
+    "본 적 없는 수다! 호루안이 중단 내려치기를 읽었다! 몸을 비틀어 헛치게 만든다. 크게 빈틈이 났다!",
+    "내려치기가 스섀크의 흘리기를 그대로 짓누른다. 자세가 무너졌다!",
+    "호루안의 창이 스섀크의 어깨를 긁고 지나간다. (스섀크 56/102)",
+    "스섀크가 방패를 땅에 박고 몸을 웅크린다. (철벽)",
+    "호루안이 치는 척하다 방향을 꺾는다!",
+    "호루안의 창이 스섀크의 팔을 얕게 찌른다. 피가 번진다. (스섀크 46/102)",
+    "호루안이 치는 척하다 방향을 꺾는다!",
+    "호루안의 창이 스섀크의 팔을 얕게 찌른다. 피가 번진다. (스섀크 34/102)",
+    "찌르기가 호루안의 막기를 그대로 짓누른다. 자세가 무너졌다!",
+    "스섀크의 관통 찌르기! 창이 호루안의 옆구리를 긁고 지나간다. (호루안 37/99)",
+    "스섀크의 창이 호루안의 가슴을 얕게 찌른다. 피가 번진다. (호루안 28/99)",
+    "찌르기가 스섀크의 막기를 그대로 짓누른다. 자세가 무너졌다!",
+    "호루안의 창이 스섀크의 허벅지를 얕게 찌른다. 피가 번진다. (스섀크 28/102)",
+    "▶ 교범 — 스섀크가 자세를 맹공으로 바꾼다.",
+    "스섀크의 창이 호루안의 옆구리를 얕게 찌른다. 피가 번진다. (호루안 19/99)",
+    "▶ 교범 — 호루안이 교범대로 물러나 숨을 돌린다.",
+    "호루안이 숨을 몰아쉰다.",
+    "스섀크의 창이 호루안의 가슴에 깊이 박힌다! 뽑아내자 피가 솟는다. (호루안 5/99)",
+    "호루안의 공격이 방패에 튕겨 나간다. (스섀크 25/102)",
+    "호루안은 상단을 막았지만, 스섀크의 찌르기는 중단으로 파고든다.",
+    "스섀크의 관통 찌르기! 창이 호루안의 가슴에 깊이 박힌다! 뽑아내자 피가 솟는다. (호루안 0/99)",
+    "호루안이 쓰러졌다. 관중이 숨을 죽인다…",
+    "관중이 일어선다! 함성이 터진다.",
+    "▶ 미시오 판정 — 주최자가 관중을 둘러본다… (사망 확률 22%)",
+    "엄지가… 위로! 호루안은 살아남았다.",
+    "■ 스섀크 승리 (KO)"
+   ]
+  },
+  {
+   "a": "g5",
+   "b": "g4",
+   "rule": "sudden",
+   "seed": 1005,
+   "winnerId": "g5",
+   "reason": "ko",
+   "rounds": 11,
+   "died": "g4",
+   "crowd": 48,
+   "damageDealt": {
+    "g5": 108,
+    "g4": 44
+   },
+   "events": 55,
+   "commentary": [
+    "타리크와 스섀크가 모래 위에 섰다. 관중석이 술렁인다.",
+    "타리크의 투창! 스섀크가 몸을 틀어 피했다!",
+    "스섀크가 방패를 땅에 박고 몸을 웅크린다. (철벽)",
+    "스섀크가 모래를 박차고 다가선다.",
+    "타리크의 관통 찌르기! 창이 스섀크의 옆구리에 깊이 박힌다! 뽑아내자 피가 솟는다. (스섀크 88/102)",
+    "스섀크의 관통 찌르기! 타리크가 몸을 틀어 피했다!",
+    "타리크의 투창! 투창이 스섀크의 가슴을 긁고 지나간다. (스섀크 76/102)",
+    "타리크의 사냥 도약! 스섀크의 팔이 쩍 갈라진다! 모래가 붉게 젖어 든다. (스섀크 59/102)",
+    "타리크가 상단 찌르기를 읽었다! 칼날을 비스듬히 흘려 보낸다.",
+    "타리크의 창이 스섀크의 팔을 파고든다! 스섀크의 입에서 신음이 터진다. (스섀크 45/102)",
+    "타리크는 중단을 막았지만, 스섀크의 찌르기는 하단으로 파고든다.",
+    "스섀크의 창이 타리크의 가슴을 긁고 지나간다. (타리크 110/120)",
+    "본 적 없는 수다!",
+    "타리크의 관통 찌르기! 창이 스섀크의 허벅지를 파고든다! 스섀크의 입에서 신음이 터진다. (스섀크 31/102)",
+    "스섀크가 방패를 땅에 박고 몸을 웅크린다. (철벽)",
+    "타리크의 속임수가 읽혔다.",
+    "타리크의 공격이 허공을 가른다.",
+    "스섀크의 관통 찌르기! 창이 타리크의 가슴을 얕게 찌른다. 피가 번진다. (타리크 98/120)",
+    "방향을 잘못 읽었다… 스섀크가 늦게나마 몸을 튼다.",
+    "스섀크가 막아냈다! 쇳소리가 경기장을 울린다. (스섀크 28/102)",
+    "스섀크의 창이 타리크의 가슴을 긁고 지나간다. (타리크 88/120)",
+    "타리크의 창이 스섀크의 허벅지에 깊이 박힌다! 뽑아내자 피가 솟는다. (스섀크 14/102)",
+    "스섀크의 창이 타리크의 가슴을 긁고 지나간다. (타리크 76/120)",
+    "타리크의 관통 찌르기! 창이 스섀크의 어깨에 깊이 박힌다! 뽑아내자 피가 솟는다. (스섀크 0/102)",
+    "스섀크가 쓰러졌다. 관중이 숨을 죽인다…",
+    "관중이 일어선다! 함성이 터진다.",
+    "사투에 자비는 없다. 타리크가 마지막 일격을 내리꽂는다. 스섀크는 다시 일어나지 못했다.",
+    "■ 타리크 승리 (KO)"
+   ]
+  },
+  {
+   "a": "g6",
+   "b": "g9",
+   "rule": "training",
+   "seed": 1006,
+   "winnerId": "g9",
+   "reason": "ko",
+   "rounds": 11,
+   "died": null,
+   "crowd": 30,
+   "damageDealt": {
+    "g6": 68,
+    "g9": 154
+   },
+   "events": 55,
+   "commentary": [
+    "텅 빈 연습장. 가이우스와 볼린이 마주 선다. 들리는 건 교관의 호루라기뿐이다.",
+    "볼린의 투창! 볼린의 공격이 방패에 튕겨 나간다. (가이우스 136/140)",
+    "가이우스가 방패를 땅에 박고 몸을 웅크린다. (철벽)",
+    "가이우스가 거리를 좁힌다.",
+    "가이우스는 하단을 막았지만, 볼린의 찌르기는 상단으로 파고든다.",
+    "볼린의 관통 찌르기! 치명타! 창이 가이우스의 팔을 꿰뚫었다. 피가 왈칵 쏟아진다! (가이우스 103/140)",
+    "볼린의 투창! 볼린의 공격이 방패에 튕겨 나간다. (가이우스 99/140)",
+    "볼린은 중단을 막았지만, 가이우스의 찌르기는 하단으로 파고든다.",
+    "가이우스의 관통 찌르기! 창이 볼린의 가슴을 긁고 지나간다. (볼린 135/149)",
+    "가이우스가 상단 찌르기를 읽었다! 칼날을 비스듬히 흘려 보낸다.",
+    "반격! 가이우스의 공격이 방패에 튕겨 나간다. (볼린 131/149)",
+    "찌르기가 볼린의 막기를 그대로 짓누른다. 자세가 무너졌다!",
+    "가이우스의 창이 볼린의 가슴을 긁고 지나간다. (볼린 120/149)",
+    "볼린이 하단 찌르기를 읽었다! 칼날을 비스듬히 흘려 보낸다.",
+    "반격! 볼린의 창이 가이우스의 허벅지를 얕게 찌른다. 피가 번진다. (가이우스 84/140)",
+    "가이우스가 중단 찌르기를 읽었다! 칼날을 비스듬히 흘려 보낸다.",
+    "반격! 치명타! 가이우스의 창이 볼린의 옆구리를 관통했다. 등 뒤로 핏방울이 흩날린다! (볼린 99/149)",
+    "세 번째다. 가이우스는 이제 그 찌르기를 기다리고 있었다. 칼날을 비스듬히 흘려 보낸다.",
+    "반격! 볼린이 몸을 틀어 피했다!",
+    "가이우스가 방패를 땅에 박고 몸을 웅크린다. (철벽)",
+    "세 번째다. 볼린은 이제 그 찌르기를 기다리고 있었다. 칼날을 비스듬히 흘려 보낸다.",
+    "반격! 가이우스가 막아냈다! 쇳소리가 경기장을 울린다. (가이우스 79/140)",
+    "볼린이 치는 척하다 방향을 꺾는다!",
+    "볼린의 창이 가이우스의 허벅지에 깊이 박힌다! 뽑아내자 피가 솟는다. (가이우스 60/140)",
+    "가이우스는 상단을 막았지만, 볼린의 찌르기는 중단으로 파고든다.",
+    "볼린의 창이 가이우스의 허벅지에 깊이 박힌다! 뽑아내자 피가 솟는다. (가이우스 41/140)",
+    "볼린이 막아냈다! 쇳소리가 경기장을 울린다. (볼린 96/149)",
+    "볼린의 창이 가이우스의 팔에 깊이 박힌다! 뽑아내자 피가 솟는다. (가이우스 22/140)",
+    "가이우스의 창이 볼린의 가슴을 얕게 찌른다. 피가 번진다. (볼린 81/149)",
+    "볼린의 관통 찌르기! 창이 가이우스의 머리를 파고든다! 가이우스의 입에서 신음이 터진다. (가이우스 0/140)",
+    "가이우스가 쓰러졌다.",
+    "■ 볼린 승리 (KO)"
+   ]
+  },
+  {
+   "a": "g7",
+   "b": "g2",
+   "rule": "missio",
+   "seed": 1007,
+   "winnerId": "g7",
+   "reason": "surrender",
+   "rounds": 13,
+   "died": null,
+   "crowd": 40,
+   "damageDealt": {
+    "g7": 80,
+    "g2": 5
+   },
+   "events": 58,
+   "commentary": [
+    "엘두라와 실레스가 모래 위에 섰다. 관중석이 술렁인다.",
+    "엘두라가 거리를 좁힌다.",
+    "실레스가 모래를 박차고 다가선다.",
+    "실레스가 모래 위로 나뒹군다.",
+    "실레스가 모래를 짚고 겨우 일어난다.",
+    "실레스가 목을 졸린 채 꼼짝 못 한다.",
+    "실레스가 붙잡힌 채 버둥거린다.",
+    "치명타! 뼈 부러지는 소리가 경기장에 울린다. 실레스의 어깨가 기괴하게 꺾였다! (실레스 71/86)",
+    "환호성이 경기장을 뒤흔든다!",
+    "실레스가 붙잡힌 채 버둥거린다.",
+    "치명타! 뼈 부러지는 소리가 경기장에 울린다. 실레스의 가슴이 기괴하게 꺾였다! (실레스 52/86)",
+    "환호성이 경기장을 뒤흔든다!",
+    "실레스의 연속 베기! 하지만 빗나갔다. 관중석에서 탄식이 터진다.",
+    "실레스의 연속 베기! 칼이 엘두라의 옆구리를 스친다. 피가 배어 나온다. (엘두라 136/141)",
+    "실레스가 모래 위로 나뒹군다.",
+    "실레스가 모래를 짚고 겨우 일어난다.",
+    "실레스가 목을 졸린 채 꼼짝 못 한다.",
+    "실레스가 붙잡힌 채 버둥거린다.",
+    "엘두라의 주먹이 실레스의 옆구리를 스치듯 후려친다. (실레스 42/86)",
+    "실레스가 붙잡힌 채 버둥거린다.",
+    "실레스가 몸을 틀어 피했다!",
+    "엘두라는 중단을 막았지만, 실레스의 베기는 하단으로 파고든다.",
+    "실레스의 연속 베기! 엘두라가 몸을 틀어 피했다!",
+    "세 번째다. 엘두라는 이제 그 베기를 기다리고 있었다. 정면으로 받아낸 칼날이 튕겨 나간다.",
+    "반격! 엘두라의 주먹이 실레스의 옆구리를 때린다. 살갗이 터지며 피가 맺힌다. (실레스 31/86)",
+    "실레스가 모래 위로 나뒹군다.",
+    "퍽! 엘두라의 주먹에 실레스의 옆구리가 짓이겨진다. (실레스 19/86)",
+    "실레스가 모래를 짚고 겨우 일어난다.",
+    "실레스가 목을 졸린 채 꼼짝 못 한다.",
+    "실레스가 붙잡힌 채 버둥거린다.",
+    "엘두라의 주먹이 실레스의 가슴을 때린다. 살갗이 터지며 피가 맺힌다. (실레스 8/86)",
+    "실레스가 붙잡힌 채 버둥거린다.",
+    "실레스가 무릎을 꿇고 손가락을 들어 올린다. 항복이다.",
+    "관중석에서 돌멩이가 날아든다.",
+    "▶ 미시오 판정 — 주최자가 관중을 둘러본다… (사망 확률 23%)",
+    "엄지가… 위로! 실레스는 살아남았다.",
+    "■ 엘두라 승리 (항복)"
+   ]
+  },
+  {
+   "a": "g8",
+   "b": "g7",
+   "rule": "sudden",
+   "seed": 1008,
+   "winnerId": "g8",
+   "reason": "ko",
+   "rounds": 15,
+   "died": "g7",
+   "crowd": 71,
+   "damageDealt": {
+    "g8": 172,
+    "g7": 26
+   },
+   "events": 79,
+   "commentary": [
+    "베렌실과 엘두라가 모래 위에 섰다. 관중석이 술렁인다.",
+    "베렌실이 칼날을 손으로 훑자 불길이 확 일어난다. (화염 부여)",
+    "엘두라가 천천히 원을 그리며 다가간다.",
+    "베렌실이 허공에 룬을 그린다. 푸른 빛이 몸을 감싼다. (수호 룬)",
+    "엘두라가 천천히 원을 그리며 다가간다.",
+    "베렌실이 중단 내려치기를 읽었다! 몸을 비틀어 헛치게 만든다. 크게 빈틈이 났다!",
+    "반격! 치명타! 베렌실의 칼이 엘두라의 정강이를 그대로 갈라 버린다. 관중석 앞줄까지 피가 튄다! (엘두라 106/141)",
+    "관중이 일어선다! 함성이 터진다.",
+    "엘두라가 중단 내려치기를 읽었다! 몸을 비틀어 헛치게 만든다. 크게 빈틈이 났다!",
+    "반격! 엘두라의 주먹이 베렌실의 어깨를 때린다. 살갗이 터지며 피가 맺힌다. (베렌실 126/126)",
+    "베렌실이 모래 위로 나뒹군다.",
+    "엘두라의 주먹이 베렌실의 옆구리를 스치듯 후려친다. (베렌실 126/126)",
+    "엘두라의 붙잡기! 공격이 허공을 가른다.",
+    "베렌실이 모래를 짚고 겨우 일어난다.",
+    "베렌실의 칼이 엘두라의 어깨를 깊게 가른다! 피가 튄다. (엘두라 88/141)",
+    "베렌실은 하단을 막았지만, 엘두라의 내려치기는 중단으로 파고든다.",
+    "엘두라의 주먹이 베렌실의 가슴을 때린다. 살갗이 터지며 피가 맺힌다. (베렌실 126/126)",
+    "베렌실은 중단을 막았지만, 엘두라의 찌르기는 하단으로 파고든다.",
+    "엘두라의 주먹이 베렌실의 가슴을 스치듯 후려친다. (베렌실 118/126)",
+    "본 적 없는 수다!",
+    "베렌실의 강타! 엘두라의 어깨가 쩍 갈라진다! 모래가 붉게 젖어 든다. (엘두라 66/141)",
+    "베렌실이 칼날을 손으로 훑자 불길이 확 일어난다. (화염 부여)",
+    "엘두라의 걸어 넘어뜨리기! 공격이 허공을 가른다.",
+    "베렌실이 허공에 룬을 그린다. 푸른 빛이 몸을 감싼다. (수호 룬)",
+    "베렌실이 목을 졸린 채 꼼짝 못 한다.",
+    "베렌실이 붙잡힌 채 버둥거린다.",
+    "엘두라의 주먹이 베렌실의 옆구리를 스치듯 후려친다. (베렌실 118/126)",
+    "엘두라의 주먹이 베렌실의 어깨를 때린다. 살갗이 터지며 피가 맺힌다. (베렌실 118/126)",
+    "엘두라의 주먹이 베렌실의 가슴을 때린다. 살갗이 터지며 피가 맺힌다. (베렌실 118/126)",
+    "베렌실이 붙잡힌 채 버둥거린다.",
+    "베렌실의 강타! 엘두라의 팔이 쩍 갈라진다! 모래가 붉게 젖어 든다. (엘두라 39/141)",
+    "엘두라의 걸어 넘어뜨리기! 하지만 빗나갔다. 관중석에서 탄식이 터진다.",
+    "베렌실이 막아냈다! 쇳소리가 경기장을 울린다. (베렌실 117/126)",
+    "치명타! 베렌실의 칼이 엘두라의 가슴을 그대로 갈라 버린다. 관중석 앞줄까지 피가 튄다! (엘두라 7/141)",
+    "관중이 일어선다! 함성이 터진다.",
+    "엘두라의 붙잡기! 하지만 빗나갔다. 관중석에서 탄식이 터진다.",
+    "네 번째다. 베렌실은 이제 그 내려치기를 기다리고 있었다. 몸을 비틀어 헛치게 만든다. 크게 빈틈이 났다!",
+    "베렌실이 칼날을 손으로 훑자 불길이 확 일어난다. (화염 부여)",
+    "찌르기가 베렌실의 막기를 그대로 짓누른다. 자세가 무너졌다!",
+    "엘두라의 주먹이 베렌실의 가슴을 때린다. 살갗이 터지며 피가 맺힌다. (베렌실 111/126)",
+    "엘두라가 치는 척하다 방향을 꺾는다!",
+    "엘두라의 주먹이 베렌실의 가슴을 때린다. 살갗이 터지며 피가 맺힌다. (베렌실 100/126)",
+    "베렌실의 속임수가 읽혔다.",
+    "베렌실의 강타! 엘두라의 가슴이 쩍 갈라진다! 모래가 붉게 젖어 든다. (엘두라 0/141)",
+    "엘두라가 쓰러졌다. 관중이 숨을 죽인다…",
+    "관중이 일어선다! 함성이 터진다.",
+    "사투에 자비는 없다. 베렌실이 마지막 일격을 내리꽂는다. 엘두라는 다시 일어나지 못했다.",
+    "■ 베렌실 승리 (KO)"
+   ]
+  },
+  {
+   "a": "g9",
+   "b": "g0",
+   "rule": "training",
+   "seed": 1009,
+   "winnerId": "g9",
+   "reason": "ko",
+   "rounds": 11,
+   "died": null,
+   "crowd": 30,
+   "damageDealt": {
+    "g9": 114,
+    "g0": 6
+   },
+   "events": 43,
+   "commentary": [
+    "텅 빈 연습장. 볼린과 플라비우스가 마주 선다. 들리는 건 교관의 호루라기뿐이다.",
+    "볼린의 투창! 볼린의 공격이 방패에 튕겨 나간다. (플라비우스 95/98)",
+    "플라비우스가 천천히 원을 그리며 다가간다.",
+    "볼린이 치는 척하다 방향을 꺾는다!",
+    "볼린의 관통 찌르기! 창이 플라비우스의 어깨를 파고든다! 플라비우스의 입에서 신음이 터진다. (플라비우스 76/98)",
+    "플라비우스가 천천히 원을 그리며 다가간다.",
+    "볼린이 뒤로 물러나 거리를 벌린다.",
+    "플라비우스가 모래를 박차고 다가선다.",
+    "볼린의 투창! 투창이 플라비우스의 어깨를 얕게 찌른다. 피가 번진다. (플라비우스 66/98)",
+    "볼린은 상단을 막았지만, 플라비우스의 내려치기는 중단으로 파고든다.",
+    "플라비우스의 강타! 하지만 빗나갔다.",
+    "플라비우스가 막아냈다! 쇳소리가 경기장을 울린다. (플라비우스 62/98)",
+    "볼린의 옆구리가 얕게 베였다. (볼린 143/149)",
+    "볼린이 뒤로 물러나 거리를 벌린다.",
+    "플라비우스가 거리를 좁힌다.",
+    "플라비우스는 하단을 막았지만, 볼린의 찌르기는 중단으로 파고든다.",
+    "볼린의 관통 찌르기! 창이 플라비우스의 가슴에 깊이 박힌다! 뽑아내자 피가 솟는다. (플라비우스 39/98)",
+    "플라비우스의 속임수가 읽혔다.",
+    "플라비우스의 강타! 볼린이 몸을 틀어 피했다!",
+    "볼린이 치는 척하다 방향을 꺾는다!",
+    "볼린의 창이 플라비우스의 목에 깊이 박힌다! 뽑아내자 피가 솟는다. (플라비우스 12/98)",
+    "볼린은 중단을 막았지만, 플라비우스의 베기는 상단으로 파고든다.",
+    "플라비우스의 공격이 허공을 가른다.",
+    "볼린이 뒤로 물러나 거리를 벌린다.",
+    "플라비우스가 모래를 박차고 다가선다.",
+    "볼린의 창이 플라비우스의 머리를 파고든다! 플라비우스의 입에서 신음이 터진다. (플라비우스 0/98)",
+    "플라비우스가 쓰러졌다.",
+    "■ 볼린 승리 (KO)"
+   ]
+  },
+  {
+   "a": "g10",
+   "b": "g5",
+   "rule": "missio",
+   "seed": 1010,
+   "winnerId": "g5",
+   "reason": "surrender",
+   "rounds": 6,
+   "died": "g10",
+   "crowd": 38,
+   "damageDealt": {
+    "g10": 6,
+    "g5": 88
+   },
+   "events": 38,
+   "commentary": [
+    "볼그와 타리크가 모래 위에 섰다. 관중석이 술렁인다.",
+    "타리크의 투창! 투창이 볼그의 정강이에 깊이 박힌다! 뽑아내자 피가 솟는다. (볼그 75/94)",
+    "볼그가 모래를 박차고 다가선다.",
+    "타리크의 사냥 도약! 치명타! 볼그의 팔에서 피가 뿜어져 나온다. 살점이 모래 위로 떨어진다! (볼그 35/94)",
+    "환호성이 경기장을 뒤흔든다!",
+    "타리크가 모래 위로 나뒹군다.",
+    "타리크가 몸을 틀어 피했다!",
+    "타리크가 모래를 짚고 겨우 일어난다.",
+    "볼그의 주먹이 타리크의 가슴을 스치듯 후려친다. (타리크 114/120)",
+    "타리크가 하단 찌르기를 읽었다! 칼날을 비스듬히 흘려 보낸다.",
+    "타리크의 투창! 볼그가 막아냈다! 쇳소리가 경기장을 울린다. (볼그 29/94)",
+    "타리크는 하단을 막았지만, 볼그의 내려치기는 중단으로 파고든다.",
+    "볼그의 공격이 허공을 가른다.",
+    "볼그의 속임수가 읽혔다.",
+    "볼그의 공격이 빗나갔다. 관중석에서 탄식이 터진다.",
+    "타리크의 관통 찌르기! 창이 볼그의 옆구리를 파고든다! 볼그의 입에서 신음이 터진다. (볼그 6/94)",
+    "볼그가 무릎을 꿇고 손가락을 들어 올린다. 항복이다.",
+    "관중석에서 돌멩이가 날아든다.",
+    "▶ 미시오 판정 — 주최자가 관중을 둘러본다… (사망 확률 23%)",
+    "엄지가 아래를 향한다. 타리크가 볼그의 숨통을 끊는다. 피가 모래 위로 쏟아진다.",
+    "■ 타리크 승리 (항복)"
+   ]
+  },
+  {
+   "a": "g11",
+   "b": "g10",
+   "rule": "sudden",
+   "seed": 1011,
+   "winnerId": "g11",
+   "reason": "ko",
+   "rounds": 11,
+   "died": "g10",
+   "crowd": 62,
+   "damageDealt": {
+    "g11": 114,
+    "g10": 47
+   },
+   "events": 58,
+   "commentary": [
+    "호루안과 볼그가 모래 위에 섰다. 관중석이 술렁인다.",
+    "호루안의 투창! 호루안의 공격이 방패에 튕겨 나간다. (볼그 90/94)",
+    "볼그가 거리를 좁힌다.",
+    "볼그가 거리를 좁힌다.",
+    "볼그의 주먹이 호루안의 가슴을 스치듯 후려친다. (호루안 93/99)",
+    "볼그는 중단을 막았지만, 호루안의 찌르기는 상단으로 파고든다.",
+    "볼그가 몸을 틀어 피했다!",
+    "볼그의 걸어 넘어뜨리기! 공격이 허공을 가른다.",
+    "호루안의 투창! 공격이 허공을 가른다.",
+    "볼그의 주먹이 호루안의 가슴을 때린다. 살갗이 터지며 피가 맺힌다. (호루안 86/99)",
+    "호루안이 뒤로 물러나 거리를 벌린다.",
+    "볼그가 모래를 박차고 다가선다.",
+    "치명타! 호루안의 창이 볼그의 옆구리를 관통했다. 등 뒤로 핏방울이 흩날린다! (볼그 61/94)",
+    "환호성이 경기장을 뒤흔든다!",
+    "볼그의 주먹이 호루안의 가슴을 스치듯 후려친다. (호루안 79/99)",
+    "볼그의 주먹이 호루안의 옆구리를 때린다. 살갗이 터지며 피가 맺힌다. (호루안 72/99)",
+    "호루안의 창이 볼그의 팔에 깊이 박힌다! 뽑아내자 피가 솟는다. (볼그 47/94)",
+    "치명타! 호루안의 창이 볼그의 가슴을 관통했다. 등 뒤로 핏방울이 흩날린다! (볼그 18/94)",
+    "환호성이 경기장을 뒤흔든다!",
+    "호루안이 모래 위로 나뒹군다.",
+    "볼그의 주먹이 호루안의 가슴을 때린다. 살갗이 터지며 피가 맺힌다. (호루안 65/99)",
+    "▶ 피의 격노 — 볼그의 눈이 붉게 물든다.",
+    "호루안이 모래를 짚고 겨우 일어난다.",
+    "볼그의 주먹이 호루안의 어깨를 스치듯 후려친다. (호루안 59/99)",
+    "호루안의 창이 볼그의 가슴을 파고든다! 볼그의 입에서 신음이 터진다. (볼그 1/94)",
+    "볼그의 주먹이 호루안의 가슴을 스치듯 후려친다. (호루안 52/99)",
+    "호루안의 창이 볼그의 허벅지에 깊이 박힌다! 뽑아내자 피가 솟는다. (볼그 0/94)",
+    "볼그가 쓰러졌다. 관중이 숨을 죽인다…",
+    "환호성이 경기장을 뒤흔든다!",
+    "사투에 자비는 없다. 호루안이 마지막 일격을 내리꽂는다. 볼그는 다시 일어나지 못했다.",
+    "■ 호루안 승리 (KO)"
+   ]
+  }
+ ]
+}

@@ -1,0 +1,227 @@
+[
+  {
+    "id": "iron_heart",
+    "name": "강철 심장",
+    "cat": "personality",
+    "desc": "침착 +3, 큰 무대 보정 2배",
+    "attrMods": {
+      "comp": 3
+    },
+    "spawn": 3
+  },
+  {
+    "id": "coward",
+    "name": "겁쟁이",
+    "cat": "personality",
+    "desc": "투지 -4, 궁지에 몰리면 쉽게 항복",
+    "attrMods": {
+      "grit": -4
+    },
+    "spawn": 3,
+    "negative": true
+  },
+  {
+    "id": "berserker",
+    "name": "광전사",
+    "cat": "personality",
+    "desc": "공격성 +5, 막기 -3",
+    "attrMods": {
+      "agg": 5,
+      "blk": -3
+    },
+    "spawn": 3
+  },
+  {
+    "id": "calculator",
+    "name": "냉정한 계산가",
+    "cat": "personality",
+    "desc": "판단력 +3, 쇼맨십 -2",
+    "attrMods": {
+      "dec": 3,
+      "show": -2
+    },
+    "spawn": 3
+  },
+  {
+    "id": "greedy",
+    "name": "탐욕스러운 자",
+    "cat": "personality",
+    "desc": "급료 인상 요구 2배, 미납 시 사기 하락 1.5배",
+    "spawn": 3,
+    "hidden": true,
+    "negative": true
+  },
+  {
+    "id": "loyal_hound",
+    "name": "충견",
+    "cat": "personality",
+    "desc": "충성 최대, 반란 가담 불가",
+    "spawn": 2
+  },
+  {
+    "id": "agitator",
+    "name": "선동가",
+    "cat": "personality",
+    "desc": "사기 30 이하일 때 반란 확률 증가",
+    "spawn": 2,
+    "hidden": true,
+    "negative": true
+  },
+  {
+    "id": "ambitious",
+    "name": "야심가",
+    "cat": "personality",
+    "desc": "성장 +15%, 이적·해방 요구",
+    "spawn": 3
+  },
+  {
+    "id": "late_bloomer",
+    "name": "늦게 피는 꽃",
+    "cat": "personality",
+    "desc": "전성기가 3년 늦게 시작하고 늦게 끝남",
+    "spawn": 2,
+    "hidden": true
+  },
+  {
+    "id": "prodigy",
+    "name": "조숙",
+    "cat": "personality",
+    "desc": "성장기 성장 +30%, 전성기가 짧음",
+    "spawn": 2,
+    "hidden": true
+  },
+  {
+    "id": "open_minded",
+    "name": "편견 없음",
+    "cat": "personality",
+    "desc": "다른 종족을 가리지 않음",
+    "spawn": 3
+  },
+  {
+    "id": "homesick",
+    "name": "향수병",
+    "cat": "personality",
+    "desc": "출신국 밖에서 주간 사기 -2",
+    "spawn": 3,
+    "negative": true
+  },
+  {
+    "id": "crowd_darling",
+    "name": "관중의 총아",
+    "cat": "combat",
+    "desc": "쇼맨십 +3, 인기 성장 2배",
+    "attrMods": {
+      "show": 3
+    },
+    "spawn": 1
+  },
+  {
+    "id": "executioner",
+    "name": "처형자",
+    "cat": "combat",
+    "desc": "사투 승리 시 관중 열광 증가",
+    "spawn": 0
+  },
+  {
+    "id": "deathless",
+    "name": "불사신",
+    "cat": "combat",
+    "desc": "시즌당 1회 사망 판정 무효",
+    "spawn": 0
+  },
+  {
+    "id": "shadow",
+    "name": "그림자",
+    "cat": "combat",
+    "desc": "첫 3턴 회피 +20%",
+    "spawn": 2
+  },
+  {
+    "id": "iron_jaw",
+    "name": "강철 턱",
+    "cat": "combat",
+    "desc": "기절 면역",
+    "spawn": 2
+  },
+  {
+    "id": "glass_jaw",
+    "name": "유리 턱",
+    "cat": "combat",
+    "desc": "기절 확률 2배",
+    "spawn": 2,
+    "hidden": true,
+    "negative": true
+  },
+  {
+    "id": "ambidextrous",
+    "name": "양손잡이",
+    "cat": "combat",
+    "desc": "쌍수 무기 페널티 없음",
+    "spawn": 2
+  },
+  {
+    "id": "scarred",
+    "name": "흉터투성이",
+    "cat": "body",
+    "desc": "인기 +5, 상대 투지 -1",
+    "spawn": 1
+  },
+  {
+    "id": "one_eyed",
+    "name": "외눈",
+    "cat": "body",
+    "desc": "정확도 -3, 침착 +1",
+    "attrMods": {
+      "acc": -3,
+      "comp": 1
+    },
+    "spawn": 1,
+    "negative": true
+  },
+  {
+    "id": "injury_prone",
+    "name": "부상 체질",
+    "cat": "body",
+    "desc": "부상 확률 +50%",
+    "spawn": 2,
+    "hidden": true,
+    "negative": true
+  },
+  {
+    "id": "ironman",
+    "name": "철인",
+    "cat": "body",
+    "desc": "피로 누적 절반",
+    "spawn": 2
+  },
+  {
+    "id": "lame",
+    "name": "절름발이",
+    "cat": "body",
+    "desc": "민첩 -3, 회피 -2 (무릎 부상 후유증)",
+    "attrMods": {
+      "agi": -3,
+      "eva": -2
+    },
+    "spawn": 0,
+    "negative": true
+  },
+  {
+    "id": "academy",
+    "name": "학당 출신",
+    "cat": "personality",
+    "desc": "루두스 학당에서 자랐다. 충성 +3, 사기가 쉽게 꺾이지 않는다",
+    "spawn": 0
+  },
+  {
+    "id": "war_hero",
+    "name": "전쟁 영웅",
+    "cat": "combat",
+    "desc": "전장에서 이름을 떨쳤다. 리더십 +2, 투지 +1",
+    "attrMods": {
+      "lead": 2,
+      "grit": 1
+    },
+    "spawn": 0
+  }
+]
