@@ -5,13 +5,16 @@ export type Id = string;
 export const PHYSICAL = ["str", "agi", "end", "tou", "rea", "rec"] as const;
 export const TECHNICAL = ["acc", "eva", "blk", "grp", "mag"] as const;
 export const MENTAL = ["grit", "comp", "dec", "show", "agg", "disc", "lead"] as const;
-export const ATTRS = [...PHYSICAL, ...TECHNICAL, ...MENTAL] as const;
+/** 전투 감각: 수 싸움(예측·기만·변칙)과 단체전 감각 (docs/15_combat_v2.md) */
+export const SENSE = ["read", "feint", "genius", "adapt", "team", "timing", "kill", "aura"] as const;
+export const ATTRS = [...PHYSICAL, ...TECHNICAL, ...MENTAL, ...SENSE] as const;
 export type AttrId = (typeof ATTRS)[number];
 
 export const ATTR_NAMES: Record<AttrId, string> = {
   str: "근력", agi: "민첩", end: "지구력", tou: "강인함", rea: "반응", rec: "회복력",
   acc: "정확도", eva: "회피", blk: "막기", grp: "제압", mag: "마력",
   grit: "투지", comp: "침착", dec: "판단력", show: "쇼맨십", agg: "공격성", disc: "규율", lead: "리더십",
+  read: "예측력", feint: "기만", genius: "천재성", adapt: "적응력", team: "팀워크", timing: "타이밍", kill: "마무리 본능", aura: "위압감",
 };
 
 export const WEAPON_CLASSES = [
@@ -88,7 +91,7 @@ export interface Gladiator {
   /** 자유민 계약 (이 시즌까지) */
   contract?: { untilSeason: number; clauses: string[] };
   /** 용병 파견 중이면 의뢰 id와 돌아오는 날 */
-  deployment?: { contractId: Id; until: number };
+  deployment?: { contractId: Id; until: number; /** 없으면 전쟁 용병 */ kind?: "war" | "dungeon" };
   /** 경기감각 0~100. 경기를 뛰면 오르고 쉬면 떨어진다 */
   sharpness: number;
   /** 혹사도 0~100. 체력(피로)과 별개로 경기 간격이 짧을수록 쌓인다 */
@@ -123,7 +126,7 @@ export interface CareerEvent {
 
 export type PortraitParts = Partial<Record<"skin" | "hair" | "hairColor" | "eyes" | "mouth" | "beard" | "helmet" | "cloth" | "variant", string | null>>;
 
-export type TrainingFocus = "physical" | "weapon" | "defense" | "grapple" | "mental" | "magic" | "show" | "doctrine" | "rest";
+export type TrainingFocus = "physical" | "weapon" | "defense" | "grapple" | "mental" | "sense" | "magic" | "show" | "doctrine" | "rest";
 export type TrainingIntensity = "low" | "normal" | "high" | "extreme";
 
 export interface TrainingPlan {
@@ -319,6 +322,14 @@ export interface GameState {
   coefficients: Record<NationId, number[]>;
   cup?: import("./cup").Cup;
   market: MarketListing[];
+  /** 루두스 창고 (착용하지 않은 장비 id) */
+  armory?: string[];
+  /** 장비 시장 매물 */
+  gearMarket?: import("./gear").GearListing[];
+  /** 던전 원정 */
+  expeditions?: import("./dungeon").Expedition[];
+  /** 나라가 내건 던전 토벌 의뢰 */
+  dungeonQuests?: import("./dungeon").DungeonQuest[];
   ledger: LedgerEntry[];
   /** 플레이어가 골라야 하는 이벤트 선택지 */
   pendingEvents: PendingEvent[];

@@ -62,7 +62,7 @@ export function bid(s: GameState, gladiatorId: Id, fee: number): BidResult {
   const owner = ludusOf(s, gladiatorId);
   if (!owner || owner.isPlayer) return { status: "rejected", reason: "소속 루두스가 없다" };
   if (!inWindow(s)) return { status: "rejected", reason: `이적 시장 기간이 아니다 (${windowLabel})` };
-  if (g.deployment) return { status: "rejected", reason: "전장에 나가 있다" };
+  if (g.deployment) return { status: "rejected", reason: g.deployment.kind === "dungeon" ? "던전 원정 중이다" : "전장에 나가 있다" };
   if (fee > s.ludi[s.playerLudusId].treasury) return { status: "rejected", reason: "금고에 그만한 돈이 없다" };
   // 중개인이 있으면 값을 조금 깎는다
   const asking = Math.round(askingPrice(s, g, owner) * buyMult(ratingOf(s, s.ludi[s.playerLudusId], "agent")) / 50) * 50;

@@ -30,10 +30,11 @@ import { WorldScreen } from "./screens/WorldScreen";
 import { StaffScreen } from "./screens/StaffScreen";
 import { YouthScreen } from "./screens/YouthScreen";
 import { FacilitiesScreen } from "./screens/FacilitiesScreen";
+import { DungeonScreen } from "./screens/DungeonScreen";
 
 export type ScreenId =
   | "inbox" | "overview" | "roster" | "gladiator" | "training" | "challenge" | "match" | "league"
-  | "market" | "staff" | "facilities" | "finance" | "world" | "hall" | "youth" | "cup";
+  | "market" | "staff" | "facilities" | "finance" | "world" | "hall" | "youth" | "cup" | "dungeon";
 
 export interface Nav {
   go: (s: ScreenId) => void;
@@ -60,6 +61,7 @@ const MENU: { id: ScreenId; label: string; ready: boolean }[] = [
   { id: "league", label: "서열표", ready: true },
   { id: "cup", label: "판테온 컵", ready: true },
   { id: "market", label: "이적 시장", ready: true },
+  { id: "dungeon", label: "던전", ready: true },
   { id: "youth", label: "유소년 학당", ready: true },
   { id: "staff", label: "식솔", ready: true },
   { id: "facilities", label: "증축", ready: true },
@@ -244,6 +246,7 @@ function Game({ state, setState, onRestart }: { state: GameState; setState: (s: 
           {screen === "staff" && <StaffScreen {...ctx} />}
           {screen === "youth" && <YouthScreen {...ctx} />}
           {screen === "facilities" && <FacilitiesScreen {...ctx} />}
+          {screen === "dungeon" && <DungeonScreen {...ctx} />}
           {!MENU.find((m) => m.id === screen)?.ready && screen !== "gladiator" && (
             <div className="empty-state" style={{ backgroundImage: `linear-gradient(rgba(20,17,15,0.35), rgba(20,17,15,0.9)), url(${asset("ui/empty.webp")})` }}>
               <h2>{MENU.find((m) => m.id === screen)?.label}</h2>

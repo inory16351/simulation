@@ -10,6 +10,8 @@ import { rollDailyEvents } from "./events";
 import { dailyConstruction } from "./facilities";
 import { onHealed } from "./injuries";
 import { dailyWar } from "./war";
+import { dailyDungeons, weeklyQuests } from "./dungeon";
+import { refreshGearMarket } from "./gear";
 import { dailyTransfers } from "./transfers";
 import { dailyScouting } from "./scouting";
 import { apprenticeBouts, dailyYouth, intake, isApprenticeDay, seasonEndYouth } from "./youth";
@@ -61,6 +63,8 @@ export function advanceDay(state: GameState): string[] {
   if (isPayday(state.day)) {
     for (const l of Object.values(state.ludi)) payday(state, l);
     weeklyFreeAgents(state, rng);
+    refreshGearMarket(state, rng, !state.gearMarket?.length);
+    weeklyQuests(state, rng);
   }
 
   // 3. 훈련과 회복 (모든 루두스)
@@ -98,6 +102,7 @@ export function advanceDay(state: GameState): string[] {
   dailyChallenges(state, rng);
   dailyCup(state, rng);
   dailyWar(state, rng);
+  dailyDungeons(state, rng);
   dailyTransfers(state, rng);
   dailyScouting(state);
   playAiScheduled(state, rng);

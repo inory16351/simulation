@@ -5,6 +5,10 @@ import { effectiveAttr } from "../gladiator";
 import { Rng } from "../rng";
 import { defaultDoctrine, type Doctrine, type Focus, type RuleAction, type Stance } from "../tactics";
 import type { AttrId, DeathRule, Gladiator, Id, Injury } from "../types";
+import {
+  ADV, SKILL_MOTION, affinityHit, cell, emptyBook, habitsOf, learnWeight, outcomeOf, planAttack, planGuard,
+  type Dir, type Guard, type Habits, type Mind, type Motion, type Outcome, type ReadBook,
+} from "./exchange";
 
 export type EndReason = "ko" | "surrender" | "timeout";
 export type HighlightKind = "entrance" | "crit" | "race_skill" | "execute" | "comeback" | "missio" | "death";
@@ -17,6 +21,17 @@ export type CombatEvent =
   | {
       t: "attack"; actor: Id; target: Id; skill?: string; hit: boolean; blocked: boolean; crit: boolean;
       damage: number; part: BodyPart; hpAfter: number; maxHp: number; magic: boolean;
+      /** 수 싸움에서 완전히 막혔다 (중계는 exchange 문장으로 대신한다) */
+      parried?: boolean;
+      /** 완전 방어 뒤 되받아친 공격 */
+      counter?: boolean;
+    }
+  | {
+      /** 한 합의 수 싸움 (docs/15_combat_v2.md) */
+      t: "exchange"; actor: Id; target: Id; dir: Dir; motion: Motion; guardDir: Dir; guard: Guard; outcome: Outcome;
+      feint?: "ok" | "fail"; improv?: boolean;
+      /** 방어자가 이 칸을 이번 경기에서 몇 번 봤는지 (이번 합 전까지) */
+      seen: number;
     }
   | { t: "status"; target: Id; status: string; turns: number; resisted?: boolean }
   | { t: "self"; actor: Id; skill: string }
@@ -102,6 +117,12 @@ interface Fighter {
   /** 가장 크게 맞은 부위 (부상 부위) */
   worstPart?: BodyPart;
   worstHit: number;
+  habits: Habits;
+  mind: Mind;
+  /** 상대에 대해 이번 경기에 본 것 */
+  book: ReadBook;
+  /** 상대 공격 칸을 본 횟수 */
+  seenN: number[];
 }
 
 const PART_WEIGHTS: Record<BodyPart, number> = {
@@ -146,6 +167,16 @@ function makeFighter(g: Gladiator, idx: 0 | 1, doctrine: Doctrine): Fighter {
     hasPassive: (id) => g.skills.passive.includes(id),
     perf: performance(g).total,
     worstHit: 0,
+    habits: habitsOf(g, main.class, {
+      focus: doctrine.focus, shield: offA?.slot === "shield", armorAgiPenalty: g.race === "dwarf" ? 0 : armor?.agiPenalty ?? 0,
+      agg: effectiveAttr(g, "agg"), genius: effectiveAttr(g, "genius"), blk: effectiveAttr(g, "blk"), eva: effectiveAttr(g, "eva"),
+    }),
+    mind: {
+      read: effectiveAttr(g, "read"), feint: effectiveAttr(g, "feint"), genius: effectiveAttr(g, "genius"), adapt: effectiveAttr(g, "adapt"),
+      dec: effectiveAttr(g, "dec"), rea: effectiveAttr(g, "rea"), comp: effectiveAttr(g, "comp"), form: 0, late: 0,
+    },
+    book: emptyBook(),
+    seenN: Array(9).fill(0),
   };
 }
 
@@ -170,7 +201,15 @@ export function simulateMatch(a: Gladiator, b: Gladiator, opt: MatchOptions): Ma
   F.forEach((f, i) => {
     const r = opt.startHp?.[i];
     if (r !== undefined) f.hp = Math.max(1, Math.round(f.maxHp * r));
+    // 일관성이 낮으면 그날그날 읽는 감이 들쭉날쭉하다
+    f.mind.form = (rng.next() - 0.5) * (21 - f.g.hidden.consistency) * 0.06;
   });
+  // 위압감: 마주 서는 것만으로 기세가 꺾인다
+  for (const f of F) {
+    const o = F[1 - f.idx];
+    const d = Math.max(0, effectiveAttr(f.g, "aura") - effectiveAttr(o.g, "comp"));
+    o.momentum = Math.max(0, o.momentum - (d / 2) * (effectiveAttr(o.g, "grit") < 10 ? 2 : 1));
+  }
   const events: CombatEvent[] = [];
   const emit = (e: CombatEvent) => events.push(e);
   let dist = 2;
@@ -235,14 +274,66 @@ export function simulateMatch(a: Gladiator, b: Gladiator, opt: MatchOptions): Ma
     critAdd: number;
     autoHit: boolean;
     magicDamage?: number;
+    counter?: boolean;
   }
+
+  /** 한 합의 수 싸움. 근접 공격이고 방어자가 움직일 수 있을 때만 */
+  const canExchange = (def: Fighter, spec: AttackSpec): boolean =>
+    spec.magicDamage === undefined && !spec.autoHit && !spec.counter && !spec.skill?.ranged && spec.weapon.class !== "throwing"
+    && !["bound", "prone", "stun", "grappled"].some((s) => def.statuses.has(s));
+
+  const runExchange = (att: Fighter, def: Fighter, spec: AttackSpec): { outcome: Outcome; motion: Motion; adv: number; dir: Dir } => {
+    const fixed = spec.skill ? SKILL_MOTION[spec.skill.id] : undefined;
+    const feintBias = att.stance === "harass" || att.stance === "showman" ? 0.05 : 0;
+    // def.book = 방어자가 공격자에 대해 본 것 = 공격자가 보여 준 버릇
+    const plan = planAttack(rng, att.mind, att.habits, def.book, att.book, spec.weapon.class, fixed, def.mind.read, feintBias);
+    if (plan.feint) att.sta = Math.max(0, att.sta - 4);
+    const pressure = Math.max(0, attr(att, "aura") - attr(def, "comp")) * 0.06
+      + (hpRatio(def) < 0.3 && def.mind.comp < 12 ? (12 - def.mind.comp) * 0.05 : 0)
+      + (def.statuses.has("exposed") ? 0.5 : 0);
+    const guard = planGuard(rng, def.mind, def.habits, def.book, att.mind.feint, pressure, plan.feint === "ok" ? plan.shown : undefined);
+    let outcome = outcomeOf(rng, plan, guard, attr(def, "rea"));
+    // 곡검: 방패를 돌아 들어가 막기에 완전히 걸리지 않는다
+    if (outcome === "parry" && guard.guard === 0 && spec.weapon.blockBypass) outcome = "neutral";
+    const c = plan.dir === 3 ? -1 : cell(plan.dir, plan.motion);
+    const seen = c >= 0 ? def.seenN[c] : 0;
+    if (c >= 0) {
+      def.book.atk[c] += learnWeight(def.mind.adapt);
+      def.seenN[c]++;
+    }
+    att.book.guard[guard.guard] += learnWeight(att.mind.adapt);
+    emit({
+      t: "exchange", actor: att.g.id, target: def.g.id, dir: plan.dir, motion: plan.motion, guardDir: guard.dir, guard: guard.guard,
+      outcome, feint: plan.feint, improv: plan.improv || undefined, seen,
+    });
+    return { outcome, motion: plan.motion, adv: ADV[plan.motion][guard.guard], dir: plan.dir };
+  };
 
   const counters = (x: Fighter, y: Fighter) => getStyle(x.g.style).counters.includes(y.g.style);
 
   const resolveHit = (att: Fighter, def: Fighter, spec: AttackSpec, allowRiposte = true): void => {
     const w = spec.weapon;
     const magic = spec.magicDamage !== undefined;
+    const ex = allowRiposte && canExchange(def, spec) ? runExchange(att, def, spec) : undefined;
+    if (ex?.outcome === "parry") {
+      // 완전 방어: 피해 없음, 공격자는 자세가 흐트러지고 방어자는 되받아칠 틈을 본다
+      emit({ t: "attack", actor: att.g.id, target: def.g.id, skill: spec.skill?.id, hit: false, blocked: true, crit: false, damage: 0, part: "chest", hpAfter: def.hp, maxHp: def.maxHp, magic, parried: true });
+      att.statuses.set("exposed", Math.max(att.statuses.get("exposed") ?? 0, 1));
+      def.momentum = Math.min(100, def.momentum + 6);
+      att.momentum = Math.max(0, att.momentum - 4 - Math.max(0, attr(def, "aura") - attr(att, "comp")) / 3);
+      addCrowd(2, def);
+      if (dist <= reach(def) && rng.chance(0.2 + attr(def, "timing") * 0.04)) {
+        resolveHit(def, att, { ...basicSpec(def), counter: true }, false);
+      }
+      return;
+    }
     let hitChance = C.baseHit + (attr(att, "acc") - attr(def, "eva")) * C.hitPerAttrDiff;
+    if (ex) hitChance += affinityHit(w.class, ex.motion) + (ex.outcome === "clean" ? 0.15 : 0) + (ex.dir === 3 ? -0.15 : 0)
+      // 타이밍: 상대 호흡이 끊기는 순간에 들어간다
+      + (attr(att, "timing") - 10) * 0.012;
+    // 마무리 본능: 빈사·무너진 상대를 놓치지 않는다 (낮으면 오히려 머뭇거린다)
+    const finishing = hpRatio(def) < 0.3 || def.statuses.has("exposed");
+    if (finishing) hitChance += attr(att, "kill") * 0.01 - (attr(att, "kill") <= 6 ? 0.1 : 0);
     hitChance += (att.g.prof[w.class] - 10) * 0.01 + spec.hitMod;
     if (counters(att, def)) hitChance += C.counterHit;
     if (counters(def, att)) hitChance -= C.counterEvade;
@@ -264,9 +355,9 @@ export function simulateMatch(a: Gladiator, b: Gladiator, opt: MatchOptions): Ma
     hitChance = Math.max(C.hitMin, Math.min(C.hitMax, hitChance));
 
     const part = rng.weighted(spec.magicDamage !== undefined ? PART_WEIGHTS : FOCUS_PARTS[att.doctrine.focus]);
-    const hit = spec.autoHit || rng.chance(hitChance);
+    const hit = spec.autoHit || ex?.outcome === "break" || rng.chance(hitChance);
     if (!hit) {
-      emit({ t: "attack", actor: att.g.id, target: def.g.id, skill: spec.skill?.id, hit: false, blocked: false, crit: false, damage: 0, part, hpAfter: def.hp, maxHp: def.maxHp, magic });
+      emit({ t: "attack", actor: att.g.id, target: def.g.id, skill: spec.skill?.id, hit: false, blocked: false, crit: false, damage: 0, part, hpAfter: def.hp, maxHp: def.maxHp, magic, counter: spec.counter });
       def.momentum = Math.min(100, def.momentum + 4);
       att.momentum = Math.max(0, att.momentum - 2);
       if (allowRiposte && def.statuses.has("riposte") && dist <= reach(def)) {
@@ -277,7 +368,9 @@ export function simulateMatch(a: Gladiator, b: Gladiator, opt: MatchOptions): Ma
     }
 
     let blocked = false;
-    if (!magic && !def.statuses.has("bound") && !def.statuses.has("prone")) {
+    // 방향을 틀렸거나 방어가 무너졌으면 막기 판정이 없다
+    const openHit = ex?.outcome === "clean" || ex?.outcome === "break";
+    if (!magic && !openHit && !def.statuses.has("bound") && !def.statuses.has("prone")) {
       let blockChance = attr(def, "blk") * C.blockPerBlk + (def.shield?.block ?? 0);
       if (def.statuses.has("guard")) blockChance += 0.5;
       if (def.statuses.has("earth_stance")) blockChance += 0.2;
@@ -287,6 +380,7 @@ export function simulateMatch(a: Gladiator, b: Gladiator, opt: MatchOptions): Ma
 
     let raw: number;
     let critChance = attr(att, "acc") * C.critPerAcc + w.crit + spec.critAdd + (att.doctrine.focus === "head" ? 0.1 : 0);
+    if (ex?.outcome === "clean" && ex.adv > 0) critChance += 0.15;
     if (magic) {
       const focusBonus = (att.main.magicBonus ?? 0) + (att.off?.magicBonus ?? 0);
       raw = spec.magicDamage! * (1 + attr(att, "mag") / 20) * (1 + focusBonus);
@@ -300,6 +394,10 @@ export function simulateMatch(a: Gladiator, b: Gladiator, opt: MatchOptions): Ma
       if (def.statuses.has("prone")) raw *= 1.3;
       if (att.statuses.has("arm_wound")) raw *= 0.75;
     }
+    // 상성 배율: 클린 히트 ×1.25 (동작까지 유리하면 ×1.5), 방어 무너짐 ×0.9 (일부 막았지만 상성으로 밀림)
+    if (ex?.outcome === "clean") raw *= ex.adv > 0 ? 1.5 : 1.25;
+    else if (ex?.outcome === "break") raw *= 0.9;
+    if (finishing) raw *= 1 + attr(att, "kill") * 0.015;
     if (att.g.race === "orc" && hpRatio(att) <= 0.3) raw *= 1.25;
     if (def.g.race === "orc" && hpRatio(def) <= 0.3) raw *= 1.1;
     const crit = !blocked && rng.chance(critChance);
@@ -320,9 +418,11 @@ export function simulateMatch(a: Gladiator, b: Gladiator, opt: MatchOptions): Ma
     const dealt = dealDamage(att, def, Math.max(1, Math.round(dmg)));
     if (dealt > def.worstHit) { def.worstHit = dealt; def.worstPart = part; }
 
-    emit({ t: "attack", actor: att.g.id, target: def.g.id, skill: spec.skill?.id, hit: true, blocked, crit, damage: dealt, part, hpAfter: Math.max(0, def.hp), maxHp: def.maxHp, magic });
+    emit({ t: "attack", actor: att.g.id, target: def.g.id, skill: spec.skill?.id, hit: true, blocked, crit, damage: dealt, part, hpAfter: Math.max(0, def.hp), maxHp: def.maxHp, magic, counter: spec.counter });
     att.momentum = Math.min(100, att.momentum + (crit ? 12 : blocked ? 2 : 6));
     def.momentum = Math.max(0, def.momentum - (crit ? 12 : blocked ? 2 : 6));
+    if (ex?.outcome === "break" && def.hp > 0) def.statuses.set("exposed", Math.max(def.statuses.get("exposed") ?? 0, 2));
+    if (crit) def.momentum = Math.max(0, def.momentum - Math.max(0, attr(att, "aura") - attr(def, "comp")) / 3);
     if (crit) {
       addCrowd(8, att);
       emit({ t: "highlight", kind: spec.skill?.id === "skill.execute" ? "execute" : "crit", actors: [att.g.id, def.g.id] });
@@ -608,8 +708,12 @@ export function simulateMatch(a: Gladiator, b: Gladiator, opt: MatchOptions): Ma
 
   for (round = 1; round <= C.maxRounds && !ended; round++) {
     emit({ t: "round", round });
+    for (const f of F) f.mind.late = (f.mind.adapt - 8) * 0.01 * Math.min(round, 20);
     const init = F.map((f) => {
-      let v = attr(f, "agi") + attr(f, "rea") / 2 - f.main.speed * 2 + rng.next() * 6;
+      // 공격권: 타이밍이 가장 크고, 무너진 쪽은 선공을 잡기 어렵다
+      let v = attr(f, "timing") + attr(f, "rea") / 2 + attr(f, "agi") / 2 - f.main.speed * 2 + rng.next() * 8 - (f.statuses.has("exposed") ? 6 : 0)
+        // 상대가 무너졌거나 지쳤으면 타이밍 좋은 쪽이 파고든다
+        + (F[1 - f.idx].statuses.has("exposed") || F[1 - f.idx].sta <= 0 ? attr(f, "timing") * 0.6 : 0);
       if (round === 1 && f.g.race === "beastkin") v += 5;
       return v;
     });

@@ -3,12 +3,12 @@ import { BALANCE, getRace, getStyle } from "./data";
 import { ageStage, computeCA } from "./gladiator";
 import { makeInjury } from "./injuries";
 import type { Rng } from "./rng";
-import { MENTAL, PHYSICAL, type Gladiator, type TrainingFocus, type TrainingIntensity, type WeaponClassId } from "./types";
+import { MENTAL, PHYSICAL, SENSE, type Gladiator, type TrainingFocus, type TrainingIntensity, type WeaponClassId } from "./types";
 
 const T = BALANCE.training;
 
 export const FOCUS_NAMES: Record<TrainingFocus, string> = {
-  physical: "체력 단련", weapon: "무기술", defense: "방어", grapple: "격투", mental: "정신 수양",
+  physical: "체력 단련", weapon: "무기술", defense: "방어", grapple: "격투", mental: "정신 수양", sense: "실전 감각",
   magic: "주술", show: "쇼맨십", doctrine: "교범 수련", rest: "휴식",
 };
 export const FOCUS_DESC: Record<TrainingFocus, string> = {
@@ -17,6 +17,7 @@ export const FOCUS_DESC: Record<TrainingFocus, string> = {
   defense: "회피·막기·방패 숙련",
   grapple: "제압·맨손 숙련",
   mental: "투지·침착·판단력·규율",
+  sense: "예측력·기만·천재성·적응력·팀워크·타이밍·마무리 본능·위압감 (대련)",
   magic: "마력·주술 촉매 숙련 (마력이 있어야 효과)",
   show: "쇼맨십",
   doctrine: "전투 교범 숙련도",
@@ -36,6 +37,7 @@ function focusTargets(g: Gladiator, focus: TrainingFocus | "match"): Record<Key,
     case "defense": add("eva", 2); add("blk", 2); add("prof:shield", 1); break;
     case "grapple": add("grp", 3); add("prof:unarmed", 2); break;
     case "mental": ["grit", "comp", "dec", "disc"].forEach((a) => add(a)); break;
+    case "sense": SENSE.forEach((a) => add(a)); break;
     case "magic": if (g.attrs.mag > 1) { add("mag", 3); add("prof:focus", 1); } break;
     case "show": add("show", 3); break;
     case "match":
@@ -43,6 +45,8 @@ function focusTargets(g: Gladiator, focus: TrainingFocus | "match"): Record<Key,
       for (const [a, w] of Object.entries(style.weights)) add(a, w ?? 1);
       style.profs.forEach((p) => add(`prof:${p}`, 2));
       add("grit"); add("comp"); add("dec");
+      // 실전에서만 제대로 느는 감각
+      add("read", 0.6); add("adapt", 0.6); add("timing", 0.6); add("kill", 0.4);
       break;
   }
   return t;

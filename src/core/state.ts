@@ -1,3 +1,5 @@
+import { refreshGearMarket } from "./gear";
+import { fillSenseAttrs } from "./gladiator";
 import { Rng } from "./rng";
 import type { GameState, InboxMessage } from "./types";
 
@@ -28,7 +30,12 @@ export function loadGame(): GameState | null {
     const raw = localStorage.getItem(SAVE_KEY);
     if (!raw) return null;
     const s = JSON.parse(raw) as GameState;
-    return s.version === 9 ? s : null;
+    if (s.version !== 9) return null;
+    // 장비 시장이 생기기 전 저장: 매물을 처음 깐다
+    if (!s.gearMarket?.length) refreshGearMarket(s, new Rng(s.rngState), true);
+    // 전투 감각이 생기기 전 저장
+    Object.values(s.gladiators).forEach(fillSenseAttrs);
+    return s;
   } catch {
     return null;
   }

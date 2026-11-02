@@ -188,7 +188,35 @@ const traitIdx = index(TRAITS);
 export const getRace = (id: RaceId) => raceIdx[id];
 export const getNation = (id: NationId) => nationIdx[id];
 export const getStyle = (id: string) => styleIdx[id];
-export const getWeapon = (id: string): WeaponDef | undefined => weaponIdx[id];
-export const getArmor = (id: string): ArmorDef | undefined => armorIdx[id];
+/** 장비 품질: 'gladius+2'처럼 id 뒤에 붙는다. 0 보통, 1 정교한, 2 명품, 3 전설의 */
+export const QUALITY_NAMES = ["", "정교한", "명품", "전설의"];
+export const splitItemId = (id: string): [string, number] => {
+  const i = id.indexOf("+");
+  return i < 0 ? [id, 0] : [id.slice(0, i), Math.max(0, Math.min(3, Number(id.slice(i + 1)) || 0))];
+};
+const qualityCache = new Map<string, WeaponDef | ArmorDef>();
+function withQuality<T extends WeaponDef | ArmorDef>(base: T | undefined, id: string, q: number, boost: (d: T, q: number) => T): T | undefined {
+  if (!base || q === 0) return base;
+  let d = qualityCache.get(id) as T | undefined;
+  if (!d) {
+    d = { ...boost({ ...base }, q), id, name: `${QUALITY_NAMES[q]} ${base.name}` };
+    qualityCache.set(id, d);
+  }
+  return d;
+}
+export const getWeapon = (id: string): WeaponDef | undefined => {
+  const [b, q] = splitItemId(id);
+  return withQuality(weaponIdx[b], id, q, (d, q) => ({ ...d, damage: Math.round(d.damage * (1 + 0.12 * q)), crit: d.crit + 0.03 * q, magicBonus: d.magicBonus ? d.magicBonus + 0.05 * q : d.magicBonus }));
+};
+export const getArmor = (id: string): ArmorDef | undefined => {
+  const [b, q] = splitItemId(id);
+  return withQuality(armorIdx[b], id, q, (d, q) => ({
+    ...d,
+    defense: d.defense !== undefined ? d.defense + (d.slot === "helmet" ? Math.ceil(q / 2) : q) : d.defense,
+    block: d.block !== undefined ? d.block + 0.04 * q : d.block,
+    // 좋은 갑옷일수록 몸에 잘 맞아 덜 무겁다
+    staCost: d.staCost !== undefined ? Math.max(0, d.staCost - 0.03 * q) : d.staCost,
+  }));
+};
 export const getSkill = (id: string) => skillIdx[id];
 export const getTrait = (id: string) => traitIdx[id];

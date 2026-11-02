@@ -4,6 +4,7 @@ import { Rng } from "../rng";
 import { STANCE_NAMES } from "../tactics";
 import type { Gladiator, Id, WeaponClassId } from "../types";
 import type { BodyPart, CombatEvent } from "./sim";
+import { DIR_NAMES, GUARD_NAMES, MOTION_NAMES } from "./exchange";
 
 export type GoreLevel = "strong" | "normal" | "mild";
 
@@ -88,10 +89,39 @@ export function buildCommentary(
         else push(pickLine(rng, [`${josa(n, "이/가")} 뒤로 물러나 거리를 벌린다.`, `${josa(n, "은/는")} 한 걸음 빠지며 간격을 잰다.`]), "normal", e);
         break;
       }
+      case "exchange": {
+        const a = name(e.actor), d = name(e.target);
+        const dir = DIR_NAMES[e.dir], mo = MOTION_NAMES[e.motion], gd = GUARD_NAMES[e.guard];
+        const lead = e.improv
+          ? (e.dir === 3 ? "사선으로 꺾여 드는 변칙 수! " : "본 적 없는 수다! ")
+          : e.feint === "ok" ? `${josa(a, "이/가")} 치는 척하다 방향을 꺾는다! `
+          : e.feint === "fail" ? `${a}의 속임수가 읽혔다. `
+          : "";
+        if (e.outcome === "parry") {
+          const how = [
+            "정면으로 받아낸 칼날이 튕겨 나간다.",
+            "칼날을 비스듬히 흘려 보낸다.",
+            "몸을 비틀어 헛치게 만든다. 크게 빈틈이 났다!",
+          ][e.guard];
+          const nth = ["", "", "", "세", "네", "다섯"][e.seen + 1] ?? "또 한";
+          const read = e.seen >= 2
+            ? `${nth} 번째다. ${josa(d, "은/는")} 이제 그 ${josa(mo, "을/를")} 기다리고 있었다. `
+            : `${josa(d, "이/가")} ${dir} ${josa(mo, "을/를")} 읽었다! `;
+          push(lead + read + how, "hit", e);
+        } else if (e.outcome === "break") {
+          push(`${lead}${josa(mo, "이/가")} ${d}의 ${josa(gd, "을/를")} 그대로 짓누른다. 자세가 무너졌다!`, "hit", e);
+        } else if (e.outcome === "clean" && (lead || rng.chance(0.3))) {
+          push(lead.trim() || `${josa(d, "은/는")} ${DIR_NAMES[e.guardDir]}을 막았지만, ${a}의 ${josa(mo, "은/는")} ${dir}으로 파고든다.`, "normal", e);
+        } else if (e.outcome === "late" && rng.chance(0.4)) {
+          push(`${lead}방향을 잘못 읽었다… ${josa(d, "이/가")} 늦게나마 몸을 튼다.`, "normal", e);
+        } else if (lead) push(lead.trim(), "normal", e);
+        break;
+      }
       case "attack": {
+        if (e.parried) break; // 수 싸움 문장으로 이미 말했다
         const a = name(e.actor), d = name(e.target);
         const skill = e.skill ? getSkill(e.skill) : undefined;
-        const prefix = skill ? `${a}의 ${skill.name}! ` : "";
+        const prefix = (e.counter ? "반격! " : "") + (skill ? `${a}의 ${skill.name}! ` : "");
         const part = PART_NAMES[e.part];
         if (!e.hit) {
           // 기술 이름으로 이미 공격자를 말했으면 문장에서 이름을 다시 쓰지 않는다

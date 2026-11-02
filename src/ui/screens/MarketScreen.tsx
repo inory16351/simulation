@@ -12,8 +12,9 @@ import type { Gladiator, RaceId } from "../../core/types";
 import type { Ctx } from "../App";
 import { Bar, Portrait, RaceTag, StyleTag } from "../components/common";
 import { Negotiate } from "../components/Negotiate";
+import { ArmoryPanel, GearSearch } from "../components/GearPanels";
 
-type Tab = "search" | "shortlist" | "deals" | "mine";
+type Tab = "search" | "shortlist" | "deals" | "mine" | "gear" | "armory";
 
 /** 범위 별점: 추정치가 넓을수록 범위로 보인다 */
 export function RangeStars({ lo, hi }: { lo: number; hi: number }) {
@@ -41,11 +42,15 @@ export function MarketScreen(ctx: Ctx) {
         <button className={tab === "shortlist" ? "on" : ""} onClick={() => setTab("shortlist")}>관심 명단 ({state.shortlist?.length ?? 0})</button>
         <button className={tab === "deals" ? "on" : ""} onClick={() => setTab("deals")}>협상·제안 ({t.deals.length + t.offers.length})</button>
         <button className={tab === "mine" ? "on" : ""} onClick={() => setTab("mine")}>우리 검투사</button>
+        <button className={tab === "gear" ? "on" : ""} onClick={() => setTab("gear")}>장비 시장</button>
+        <button className={tab === "armory" ? "on" : ""} onClick={() => setTab("armory")}>창고 ({state.armory?.length ?? 0})</button>
       </div>
       {tab === "search" && <Search {...ctx} />}
       {tab === "shortlist" && <ResultTable ctx={ctx} list={(state.shortlist ?? []).map((id) => state.gladiators[id]).filter((g) => g?.alive)} />}
       {tab === "deals" && <Deals {...ctx} />}
       {tab === "mine" && <Mine {...ctx} />}
+      {tab === "gear" && <GearSearch {...ctx} />}
+      {tab === "armory" && <ArmoryPanel {...ctx} />}
     </>
   );
 }

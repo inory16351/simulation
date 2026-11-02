@@ -13,6 +13,24 @@ export function effectiveAttr(g: Gladiator, a: AttrId): number {
   return Math.max(1, Math.min(20, v));
 }
 
+/** 전투 감각이 생기기 전 저장의 검투사: 가까운 기존 능력치에서 감각을 만든다 (id로 고정된 흔들림) */
+export function fillSenseAttrs(g: Gladiator): void {
+  const a = g.attrs;
+  if (a.read !== undefined) return;
+  let h = 0;
+  for (const ch of g.id) h = (h * 31 + ch.charCodeAt(0)) | 0;
+  const jitter = () => { h = (h * 1103515245 + 12345) | 0; return ((h >>> 16) % 5) - 2; };
+  const mix = (x: number, y: number) => Math.max(1, Math.min(20, Math.round((x + y) / 2) + jitter()));
+  a.read = mix(a.rea, a.dec);
+  a.feint = mix(a.agi, a.show);
+  a.genius = mix(a.dec, 8);
+  a.adapt = mix(a.dec, a.comp);
+  a.team = mix(a.lead, a.disc);
+  a.timing = mix(a.rea, a.agi);
+  a.kill = mix(a.agg, a.grit);
+  a.aura = mix(a.grit, a.str);
+}
+
 /** 스타일 가중치로 계산한 현재 능력 CA (1~200) */
 export function computeCA(g: Pick<Gladiator, "attrs" | "prof" | "style">): number {
   const style = getStyle(g.style);

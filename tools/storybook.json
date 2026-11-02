@@ -3,7 +3,8 @@
   "presets": {
     "sheet": "A square sprite sheet image on a solid flat pure magenta background (#FF00FF) filling every pixel that is not part of an object. Each object sits alone in the center of its grid cell with generous magenta padding around it, objects never touch cell borders or each other, no grid lines, no drop shadow on the background, no frames.",
     "wide": "Wide 16:9 painted background illustration. Dark warm overall (deep umber and plum shadows) so light parchment-colored UI text stays readable on top of it, with a few glowing warm light accents.",
-    "crest_one": "One single heraldic shield crest, centered, on a solid flat pure magenta background (#FF00FF). It must match the attached sheet of crests EXACTLY in shield shape, hammered gold rim, size, brushwork and flat painted style, as if it were a seventh crest from the same set."
+    "crest_one": "One single heraldic shield crest, centered, on a solid flat pure magenta background (#FF00FF). It must match the attached sheet of crests EXACTLY in shield shape, hammered gold rim, size, brushwork and flat painted style, as if it were a seventh crest from the same set.",
+    "icon_one": "One single game menu icon object, centered, on a solid flat pure magenta background (#FF00FF). It must match the attached icon sheet EXACTLY in brushwork, flat painted style, lighting and object size, as if it were one more icon from the same set."
   },
   "items": [
     {
@@ -53,10 +54,18 @@
       "preset": "crest_one",
       "out": "art/source/sheets/crest_kemer.png",
       "prompt": "Desert sun kingdom: a big radiant golden sun disk rising over a stepped sandstone pyramid flanked by two palm fronds, on a desert gold (#B8913A) field with lapis blue (#2C3E73) rays. No gods, no animal-headed figures, no people."
+    },
+    {
+      "id": "icon.dungeon",
+      "preset": "icon_one",
+      "out": "art/source/sheets/icon_dungeon.png",
+      "prompt": "A dark stone dungeon doorway in a rocky hillside with a rusty iron gate half open, a torch beside it and a small skull on the step.",
+      "styleRef": "art/source/sheets/icons.png"
     }
   ],
   "styleRef": "art/source/sheets/crests.png",
   "styleRefPresets": [
-    "crest_one"
+    "crest_one",
+    "icon_one"
   ]
 }

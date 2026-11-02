@@ -1,6 +1,7 @@
 import { logCareer, seasonRecord } from "../career";
 import { BALANCE, NAMES, NATIONS, getNation } from "../data";
 import { payDividend, refreshFreeAgents } from "../economy";
+import { refreshGearMarket } from "../gear";
 import { refreshStaffMarket, startingStaff } from "../staff";
 import { Rng } from "../rng";
 import type { GameState, Ludus, NationId } from "../types";
@@ -132,6 +133,7 @@ export function newGame(seed: number, nation: NationId = "aurelia", ludusName = 
   for (const l of Object.values(state.ludi)) payDividend(state, l, l.isPlayer ? BALANCE.economy.promotedDividendCoef : undefined);
   refreshStaffMarket(state, rng);
   refreshFreeAgents(state, rng);
+  refreshGearMarket(state, rng, true);
   startingStaff(state, rng, state.ludi[state.playerLudusId]);
   for (const l of Object.values(state.ludi)) {
     for (const id of l.gladiators) {

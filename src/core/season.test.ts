@@ -154,7 +154,7 @@ describe("유소년 학당", () => {
 
 describe("용병·전쟁", () => {
   it("관계가 나쁘면 전쟁이 나고, 의뢰를 받아 파견하면 보수를 받고 돌아온다", async () => {
-    const { takeContract, CONTRACT_TYPES } = await import("./war");
+    const { takeContract, CONTRACT_TYPES, eligible } = await import("./war");
     const { computeCA } = await import("./gladiator");
     const s = newGame(5, "karsea");
     s.relations.aurelia.grommar = -100;
@@ -166,7 +166,11 @@ describe("용병·전쟁", () => {
     const c = s.contracts.find((x) => x.status === "open" && x.type !== "duel")
       ?? (() => { throw new Error("의뢰 없음"); })();
     c.minCA = 1;
+    // 가장 강한 검투사를 보낸다 (잡힌 경기와 중상은 지운다)
     const g = me.gladiators.map((id) => s.gladiators[id]).sort((a, b) => computeCA(b) - computeCA(a))[0];
+    s.challenges = s.challenges.filter((x) => x.fromGladiator !== g.id && x.toGladiator !== g.id);
+    g.injury = undefined;
+    expect(eligible(s, g, c)).toBeNull();
     const before = me.treasury;
     expect(takeContract(s, c.id, [g.id])).toBeNull();
     expect(g.deployment).toBeDefined();
@@ -209,5 +213,70 @@ describe("이적·스카우팅", () => {
     for (let i = 0; i < 30; i++) dailyScouting(s);
     const after = caRange(s, g);
     expect(after.hi - after.lo).toBeLessThan(before.hi - before.lo);
+  });
+});
+
+describe("장비·던전", () => {
+  it("장비 시장에서 사서 착용하면 원래 장비는 창고로 간다. 양손 무기는 보조를 비운다", async () => {
+    const { buyListing, equipItem, armoryOf, gearMarketOf, cannotEquip } = await import("./gear");
+    const { getWeapon } = await import("./data");
+    const s = newGame(11);
+    const me = s.ludi[s.playerLudusId];
+    me.treasury = 100000;
+    expect(gearMarketOf(s).length).toBeGreaterThan(20);
+    s.gearMarket!.push({ id: "Gt", item: "greataxe+2", price: 500, nation: s.nation, seller: "시험 상인" });
+    expect(buyListing(s, "Gt")).toBeNull();
+    expect(armoryOf(s)).toContain("greataxe+2");
+    expect(getWeapon("greataxe+2")!.damage).toBeGreaterThan(getWeapon("greataxe")!.damage);
+    const g = s.gladiators[me.gladiators[0]];
+    g.equipment.off = "parmula";
+    const oldMain = g.equipment.main;
+    expect(equipItem(s, g.id, "main", "greataxe+2")).toBeNull();
+    expect(g.equipment.main).toBe("greataxe+2");
+    expect(g.equipment.off).toBeNull();
+    expect(armoryOf(s)).toContain("parmula");
+    if (oldMain !== "cestus") expect(armoryOf(s)).toContain(oldMain);
+    expect(cannotEquip(g, "off", "parmula")).not.toBeNull();
+  });
+
+  it("던전 원정: 1~5명, 급료는 그대로 나가고 장비를 들고 돌아온다. 토벌 의뢰를 깨면 RP와 현상금", async () => {
+    const { startExpedition, dailyDungeons, expeditionsOf, questsOf, getDungeon } = await import("./dungeon");
+    const s = newGame(12);
+    const me = s.ludi[s.playerLudusId];
+    me.treasury = 100000;
+    const party = me.gladiators.slice(0, 6);
+    expect(startExpedition(s, "sewer", party, "shieldwall")).not.toBeNull();
+    // 몬스터를 아주 약하게 해서 끝까지 깨게 한다
+    const d = getDungeon("sewer");
+    const level = d.level;
+    d.level = 1;
+    s.dungeonQuests = [{ id: "Qt", nation: s.nation, dungeon: "sewer", hard: 1, bounty: 3000, rp: 40, postedAt: 0, expiresAt: 99999, status: "open" }];
+    const rp = me.rp;
+    expect(startExpedition(s, "sewer", party.slice(0, 5), "wedge", "Qt")).toBeNull();
+    expect(s.gladiators[party[0]].deployment?.kind).toBe("dungeon");
+    const rng = new Rng(3);
+    for (let i = 0; i < d.days + 1; i++) { s.day++; dailyDungeons(s, rng); }
+    const ex = expeditionsOf(s)[0];
+    expect(ex.status).toBe("done");
+    expect(ex.loot.length).toBeGreaterThanOrEqual(d.floors);
+    expect(s.armory).toEqual(expect.arrayContaining(ex.loot));
+    expect(questsOf(s)[0].status).toBe("done");
+    expect(me.rp).toBe(rp + 40);
+    for (const id of party.slice(0, 5)) expect(s.gladiators[id].deployment).toBeUndefined();
+    d.level = level;
+  });
+
+  it("던전 5:5 전투는 강한 쪽이 이기고, 쓰러진 자를 알려 준다", async () => {
+    const { skirmish } = await import("./dungeon");
+    const { generateGladiator } = await import("./generators/gladiator");
+    const rng = new Rng(5);
+    const strong = Array.from({ length: 5 }, (_, i) => generateGladiator(rng, { id: `s${i}`, nation: "aurelia", target: 16 }));
+    const weak = Array.from({ length: 5 }, (_, i) => generateGladiator(rng, { id: `w${i}`, nation: "grommar", target: 4 }));
+    let wins = 0;
+    for (let i = 0; i < 6; i++) if (skirmish(new Rng(i), strong, weak, "shieldwall").won) wins++;
+    expect(wins).toBeGreaterThanOrEqual(5);
+    const lose = skirmish(new Rng(9), weak, strong, "wedge");
+    expect(lose.won).toBe(false);
+    expect(lose.downed.length).toBeGreaterThan(0);
   });
 });

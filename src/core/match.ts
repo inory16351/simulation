@@ -1,4 +1,5 @@
 import { absDay } from "./calendar";
+import { lootFallen } from "./gear";
 import { logCareer, ludusOf, seasonRecord } from "./career";
 import type { MatchResult } from "./combat/sim";
 import { afterMatch } from "./condition";
@@ -87,6 +88,8 @@ export function applyMatchResult(state: GameState, r: MatchResult, opt: ApplyOpt
     seasonRecord(state, w).kills++;
     logCareer(state, w, `${rule.name}에서 ${dead.name}의 목숨을 거뒀다`, "milestone");
     logCareer(state, dead, `${rule.name}에서 ${w.name}에게 패해 모래 위에서 죽었다`, "death");
+    // 사투에서 우리 검투사가 적을 죽이면 그 장비를 거둔다
+    if (opt.rule === "sudden" && wl?.isPlayer && !ll?.isPlayer) lootFallen(state, w, dead);
     const home = ludusOf(state, dead.id);
     if (home?.isPlayer) state.fallen.push(dead.id);
     if (home) {

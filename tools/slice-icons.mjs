@@ -48,3 +48,7 @@ for (const n of CRESTS) {
   if (existsSync(`art/source/sheets/crest_${n}.png`)) await slice(`art/source/sheets/crest_${n}.png`, 1, 1, [`art/source/crest/${n}.png`]);
 }
 await slice("art/source/sheets/icons.png", 5, 3, ICONS.map((n) => `art/source/icon/menu/${n}.png`));
+// 따로 그린 메뉴 아이콘(sheets/icon_<id>.png)
+for (const f of ["dungeon"]) {
+  if (existsSync(`art/source/sheets/icon_${f}.png`)) await slice(`art/source/sheets/icon_${f}.png`, 1, 1, [`art/source/icon/menu/${f}.png`]);
+}

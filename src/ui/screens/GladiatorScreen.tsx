@@ -1,7 +1,8 @@
-import { getArmor, getNation, getRace, getSkill, getStyle, getTrait, getWeapon } from "../../core/data";
+import { getNation, getRace, getSkill, getStyle, getTrait } from "../../core/data";
+import { EquipPanel } from "../components/GearPanels";
 import { AGE_STAGE_NAMES, ageStage, computeCA, effectiveAttr } from "../../core/gladiator";
 import {
-  MENTAL, PHYSICAL, TECHNICAL, ATTR_NAMES, WEAPON_CLASS_NAMES, WEAPON_CLASSES,
+  MENTAL, PHYSICAL, SENSE, TECHNICAL, ATTR_NAMES, WEAPON_CLASS_NAMES, WEAPON_CLASSES,
   type AttrId,
 } from "../../core/types";
 import { dateLabel } from "../../core/calendar";
@@ -115,10 +116,11 @@ export function GladiatorScreen({ ctx, id }: { ctx: Ctx; id: string }) {
         </div>
       </div>
 
-      <div className="grid3" style={{ gridTemplateColumns: "1fr 1fr 1fr 1.2fr" }}>
+      <div className="grid3" style={{ gridTemplateColumns: "1fr 1fr 1fr 1fr 1.2fr" }}>
         {attrBlock("신체", PHYSICAL)}
         {attrBlock("기술", TECHNICAL)}
         {attrBlock("정신", MENTAL)}
+        {attrBlock("전투 감각", SENSE)}
         <div className="panel">
           <h3>무기 숙련</h3>
           <table className="t attr-table">
@@ -151,15 +153,7 @@ export function GladiatorScreen({ ctx, id }: { ctx: Ctx; id: string }) {
             </div>
           </div>
         </div>
-        <div className="panel">
-          <h3>장비</h3>
-          <div className="pad">
-            <span className="tag">주무기: {getWeapon(g.equipment.main)?.name}</span>
-            {g.equipment.off && <span className="tag">보조: {getWeapon(g.equipment.off)?.name ?? getArmor(g.equipment.off)?.name}</span>}
-            <span className="tag">갑옷: {getArmor(g.equipment.armor)?.name}</span>
-            {g.equipment.helmet && <span className="tag">투구: {getArmor(g.equipment.helmet)?.name}</span>}
-          </div>
-        </div>
+        <EquipPanel ctx={ctx} g={g} editable={isMine && g.alive} />
       </div>
 
       <CareerPanel g={g} />

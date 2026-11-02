@@ -49,8 +49,10 @@ function run(it) {
     const started = Date.now();
     // 프롬프트는 stdin으로 넘긴다 (Windows 셸 인용 문제 회피)
     // 화풍 통일: 지정된 프리셋은 전투 화풍 기준 이미지를 함께 첨부한다
-    const useRef = manifest.styleRef && manifest.styleRefPresets?.includes(it.preset) && existsSync(manifest.styleRef);
-    const cliArgs = ["exec", "-s", "workspace-write", ...(useRef ? ["-i", manifest.styleRef] : []), "-"];
+    // 항목에 styleRef가 있으면 그것을 쓴다
+    const ref = it.styleRef ?? manifest.styleRef;
+    const useRef = ref && manifest.styleRefPresets?.includes(it.preset) && existsSync(ref);
+    const cliArgs = ["exec", "-s", "workspace-write", ...(useRef ? ["-i", ref] : []), "-"];
     const child = spawn("codex", cliArgs, { shell: true });
     let log = "";
     child.stdout.on("data", (d) => (log += d));
