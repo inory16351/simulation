@@ -1,14 +1,24 @@
-// 경기 장면: 관절 인형 검투사 두 명이 전투 이벤트대로 움직인다 (RigFighter).
+// 경기 장면: 위에서 내려다본 모래 마당에서 동그란 초상화 말 두 개가 전투 이벤트대로 움직인다.
+// 장면 전체가 SVG 하나라서 tools/render-stage.tsx로 정지 화면을 뽑을 수 있다.
+import type { CSSProperties } from "react";
 import type { BodyPart, CombatEvent } from "../../core/combat/sim";
-import { getWeapon } from "../../core/data";
+import { avatarOf } from "../../core/avatar";
+import { getNation, getWeapon } from "../../core/data";
+import { paintedSpec } from "../../core/portrait2";
 import type { Gladiator, Id } from "../../core/types";
 import { asset } from "../assets";
-import { RigFighter, type Pose } from "./RigFighter";
+import { AvatarSvg } from "./Avatar";
+import { PaintedAvatar } from "./PaintedAvatar";
 
 const INK = "#1a120e";
-const GROUND = 128;
-/** 거리 상태(0 근접, 1 중거리, 2 원거리)별 두 사람의 x 위치 */
-const POS: Record<number, [number, number]> = { 0: [168, 232], 1: [138, 262], 2: [104, 296] };
+const W = 400, H = 160;
+const CX = 200, CY = 82;
+/** 말 반지름 */
+const R = 28;
+/** 거리 상태(0 근접, 1 중거리, 2 원거리)별 중심에서 말까지 거리 */
+const HALF: Record<number, number> = { 0: 38, 1: 66, 2: 102 };
+
+export type Pose = "idle" | "attack" | "hurt" | "block" | "dodge" | "step" | "cast" | "stagger" | "down" | "dead" | "kneel" | "cheer";
 
 interface FighterView {
   g: Gladiator;
@@ -24,167 +34,230 @@ interface Props {
   /** 지금까지 보여 준 이벤트 */
   events: CombatEvent[];
   crowd: boolean;
-  /** 정지 화면 렌더링용: 동작 시간을 고정한다 */
+  /** 정지 화면 렌더링용 (예전 리깅 장면과 같은 인터페이스) */
   fixedTime?: number;
 }
 
-export function ArenaStage({ a, b, events, crowd, fixedTime }: Props) {
-  const { dist, views, blood, burst, dodge, shake, crowdHype } = derive(a, b, events);
-  const [xa, xb] = POS[dist] ?? POS[2];
+/** 두 사람이 서로를 마주 보는 축의 각도와 거리로 두 말의 위치를 낸다 */
+function place(dist: number, angle: number): [[number, number], [number, number]] {
+  const d = HALF[dist] ?? HALF[2];
+  const dx = Math.cos(angle) * d, dy = Math.sin(angle) * d * 0.55;
+  return [[CX - dx, CY - dy], [CX + dx, CY + dy]];
+}
+
+export function ArenaStage({ a, b, events, crowd }: Props) {
+  const { dist, angle, views, blood, burst, dodge, shake, crowdHype } = derive(a, b, events);
+  const pos = place(dist, angle);
+  // a에서 b를 향한 단위 벡터
+  const ux = (pos[1][0] - pos[0][0]) / Math.max(1, Math.hypot(pos[1][0] - pos[0][0], pos[1][1] - pos[0][1]));
+  const uy = (pos[1][1] - pos[0][1]) / Math.max(1, Math.hypot(pos[1][0] - pos[0][0], pos[1][1] - pos[0][1]));
+  const dirOf = (s: number): [number, number] => (s === 0 ? [ux, uy] : [-ux, -uy]);
 
   return (
-    <div className={`arena-stage storybook ${shake ? "shake hitstop" : ""}`} key={shake ? `s${events.length}` : "s"}>
-      <svg viewBox="0 0 400 160" preserveAspectRatio="xMidYMid slice">
-        <PaintDefs />
-        <g filter="url(#paintEdge)">
-        {/* 배경: 붓으로 그린 경기장 (훈련전은 관중 없는 훈련장) */}
-        <rect width="400" height="160" fill="#1a1411" />
-        <image href={asset(crowd ? "ui/arena_provincial.webp" : "ui/bg_main.webp")} x="0" y="0" width="400" height="160" preserveAspectRatio={crowd ? "xMidYMax slice" : "xMidYMid slice"} />
-        {/* 관중이 달아오르면 관중석이 횃불빛으로 일렁인다 */}
-        {crowd && <rect width="400" height="90" fill="#ff9a3c" className={crowdHype > 55 ? "crowd-glow" : ""} opacity={Math.max(0, (crowdHype - 40) / 300)} style={{ mixBlendMode: "screen" }} />}
-        <ellipse cx="200" cy="146" rx="240" ry="34" fill="url(#sandShade)" opacity="0.55" />
-        <defs>
-          <radialGradient id="sandShade" cx="50%" cy="20%" r="80%">
-            <stop offset="0" stopColor="#c9a070" stopOpacity="0.35" />
-            <stop offset="1" stopColor="#3a2a1e" stopOpacity="0.7" />
-          </radialGradient>
-        </defs>
+    <div className={`arena-stage topdown ${shake ? "shake" : ""}`} key={shake ? `s${events.length}` : "s"}>
+      <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="xMidYMid slice">
+        <Floor crowd={crowd} hype={crowdHype} />
         {/* 모래에 남은 핏자국 */}
         {blood.map((p, i) => (
-          <image key={i} href={asset("fx/blood_pool.webp")} x={p.x - p.r * 2.6} y={GROUND - p.r * 0.7 + 3 + p.dy} width={p.r * 5.2} height={p.r * 2}
-            preserveAspectRatio="none" opacity="0.9" transform={i % 2 ? `translate(${p.x * 2} 0) scale(-1 1)` : undefined} />
+          <image key={i} href={asset("fx/blood_pool.webp")} x={p.x - p.r * 2.2} y={p.y - p.r * 1.1} width={p.r * 4.4} height={p.r * 2.2}
+            preserveAspectRatio="none" opacity="0.85" transform={`rotate(${(i * 67) % 360} ${p.x} ${p.y})`} />
+        ))}
+        {dodge && <FxSprite key={`d${dodge.key}`} name="dust" x={pos[dodge.side][0]} y={pos[dodge.side][1] + 8} size={50} className="fx-dust" />}
+
+        {/* 쓰러진 쪽을 먼저 그려 선 쪽이 위에 오게 */}
+        {(views[1].pose === "down" || views[1].pose === "dead" ? [1, 0] : [0, 1]).map((s) => (
+          <Token key={s} v={views[s]} x={pos[s][0]} y={pos[s][1]} dir={dirOf(s)} />
         ))}
 
-        <Fighter v={views[0]} x={xa} facing={1} hitstop={shake} fixedTime={fixedTime} />
-        <Fighter v={views[1]} x={xb} facing={-1} hitstop={shake} fixedTime={fixedTime} />
-
-        {/* 피 튐 */}
-        {dodge && <FxSprite key={`d${dodge.key}`} name="dust" x={dodge.side === 0 ? xa - 10 : xb + 10} y={GROUND - 10} size={46} className="fx-dust" />}
-        </g>
-        {/* 붓으로 그린 타격 효과 */}
-        {burst && <HitFx key={`h${burst.key}`} x={burst.side === 0 ? xa : xb} hit={burst} dir={burst.side === 0 ? -1 : 1} />}
-        {/* 동화책 조명: 왼쪽 횃불의 따뜻한 빛, 오른쪽 아래 푸른 그늘, 가장자리 어둠 */}
-        <rect width="400" height="160" fill="url(#warmKey)" style={{ mixBlendMode: "screen" }} pointerEvents="none" />
-        <rect width="400" height="160" fill="url(#coolShade)" style={{ mixBlendMode: "multiply" }} pointerEvents="none" />
-        <rect width="400" height="160" fill="url(#vignette)" pointerEvents="none" />
-        <rect width="400" height="160" filter="url(#canvasGrain)" opacity="0.16" style={{ mixBlendMode: "overlay" }} pointerEvents="none" />
-        {burst?.big && <rect key={`f${burst.key}`} className="impact-frame" width="400" height="160" fill="#fff6dc" pointerEvents="none" />}
+        {burst && <HitFx key={`h${burst.key}`} x={pos[burst.side][0]} y={pos[burst.side][1]} hit={burst} from={dirOf(burst.side)} />}
+        <rect width={W} height={H} fill="url(#tdVignette)" pointerEvents="none" />
+        {burst?.big && <rect key={`f${burst.key}`} className="impact-frame" width={W} height={H} fill="#fff6dc" pointerEvents="none" />}
       </svg>
     </div>
   );
 }
 
-/** 붓질 느낌을 내는 SVG 필터와 조명 그라디언트 */
-function PaintDefs() {
+/** 위에서 본 원형 경기장: 관중석 고리, 벽, 갈퀴 자국 난 모래 */
+function Floor({ crowd, hype }: { crowd: boolean; hype: number }) {
+  // 관중: 관중석 고리를 따라 점을 뿌린다 (항상 같은 배치)
+  const heads: { x: number; y: number; c: string }[] = [];
+  if (crowd) {
+    const tones = ["#8a5a3a", "#6e4a33", "#a0703e", "#5c3c2a", "#b38452", "#7a3b2e", "#4d5a6e"];
+    for (let ring = 0; ring < 3; ring++) {
+      const rx = 206 + ring * 14, ry = 86 + ring * 10;
+      const n = 70 + ring * 8;
+      for (let i = 0; i < n; i++) {
+        const t = (i / n) * Math.PI * 2 + ring * 0.13;
+        heads.push({ x: CX + Math.cos(t) * rx, y: CY + Math.sin(t) * ry, c: tones[(i * 7 + ring * 3) % tones.length] });
+      }
+    }
+  }
   return (
-    <defs>
-      {/* 윤곽을 살짝 흔들어 손으로 칠한 가장자리처럼 */}
-      <filter id="paintEdge" x="-5%" y="-5%" width="110%" height="110%">
-        <feTurbulence type="fractalNoise" baseFrequency="0.035" numOctaves="2" seed="7" result="n" />
-        <feDisplacementMap in="SourceGraphic" in2="n" scale="2.4" xChannelSelector="R" yChannelSelector="G" />
-      </filter>
-      {/* 캔버스 결 */}
-      <filter id="canvasGrain">
-        <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="3" />
-        <feColorMatrix type="saturate" values="0" />
-      </filter>
-      <linearGradient id="warmKey" x1="0" y1="0" x2="1" y2="0">
-        <stop offset="0" stopColor="#ff9a3c" stopOpacity="0.38" />
-        <stop offset="0.45" stopColor="#ff9a3c" stopOpacity="0.06" />
-        <stop offset="1" stopColor="#ff9a3c" stopOpacity="0" />
-      </linearGradient>
-      <linearGradient id="coolShade" x1="0.2" y1="0" x2="1" y2="1">
-        <stop offset="0" stopColor="#ffffff" />
-        <stop offset="0.6" stopColor="#c9c3e6" />
-        <stop offset="1" stopColor="#3d4f7a" />
-      </linearGradient>
-      <radialGradient id="vignette" cx="50%" cy="55%" r="70%">
-        <stop offset="0.55" stopColor="#000" stopOpacity="0" />
-        <stop offset="1" stopColor="#0a0610" stopOpacity="0.75" />
-      </radialGradient>
-    </defs>
+    <g>
+      <defs>
+        <radialGradient id="tdSand" cx="50%" cy="45%" r="60%">
+          <stop offset="0" stopColor="#d9b383" />
+          <stop offset="0.7" stopColor="#c09060" />
+          <stop offset="1" stopColor="#8e6640" />
+        </radialGradient>
+        <radialGradient id="tdVignette" cx="50%" cy="50%" r="70%">
+          <stop offset="0.6" stopColor="#000" stopOpacity="0" />
+          <stop offset="1" stopColor="#0a0610" stopOpacity="0.7" />
+        </radialGradient>
+        <filter id="tdGrain">
+          <feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="2" seed="5" />
+          <feColorMatrix type="saturate" values="0" />
+        </filter>
+        <clipPath id="tdSandClip"><ellipse cx={CX} cy={CY} rx="186" ry="74" /></clipPath>
+      </defs>
+      <rect width={W} height={H} fill={crowd ? "#2a1f18" : "#1c1712"} />
+      {crowd && <ellipse cx={CX} cy={CY} rx="240" ry="116" fill="#3a2b20" />}
+      {heads.map((h, i) => (
+        <circle key={i} cx={h.x} cy={h.y} r="3.4" fill={h.c} className={hype > 55 && i % 3 === 0 ? "crowd-bob" : undefined}
+          style={hype > 55 ? { animationDelay: `${(i % 7) * 0.07}s` } : undefined} />
+      ))}
+      {/* 벽 */}
+      <ellipse cx={CX} cy={CY} rx="194" ry="80" fill="#5a4535" stroke={INK} strokeWidth="2" />
+      <ellipse cx={CX} cy={CY} rx="188" ry="76" fill="url(#tdSand)" stroke="#3a2a1e" strokeWidth="1.5" />
+      {/* 갈퀴 자국과 모래 결 */}
+      <g clipPath="url(#tdSandClip)" opacity="0.18" stroke="#6b4a2a" strokeWidth="0.8" fill="none">
+        {Array.from({ length: 9 }, (_, i) => <ellipse key={i} cx={CX} cy={CY} rx={20 + i * 20} ry={8 + i * 8} />)}
+      </g>
+      <ellipse cx={CX} cy={CY} rx="188" ry="76" filter="url(#tdGrain)" opacity="0.12" style={{ mixBlendMode: "overlay" }} />
+      {/* 양쪽 출입문 */}
+      <rect x="2" y={CY - 13} width="14" height="26" rx="2" fill="#1a120e" stroke="#7a5c33" strokeWidth="1.5" />
+      <rect x={W - 16} y={CY - 13} width="14" height="26" rx="2" fill="#1a120e" stroke="#7a5c33" strokeWidth="1.5" />
+      {crowd && hype > 55 && <ellipse cx={CX} cy={CY} rx="230" ry="110" fill="none" stroke="#ff9a3c" strokeWidth="18" className="crowd-glow" opacity="0.12" />}
+    </g>
+  );
+}
+
+/** 초상화 말 하나. dir은 상대를 향한 단위 벡터 */
+function Token({ v, x, y, dir }: { v: FighterView; x: number; y: number; dir: [number, number] }) {
+  const g = v.g;
+  const color = getNation(g.nation).color;
+  const spec2 = paintedSpec(g);
+  const down = v.pose === "down" || v.pose === "dead";
+  const clip = `tdClip${g.id}`;
+  const facing = (Math.atan2(dir[1], dir[0]) * 180) / Math.PI;
+  const hp = Math.max(0, Math.min(1, v.hpRatio));
+  const ringR = R + 4;
+  const circ = 2 * Math.PI * ringR;
+  const hpColor = hp > 0.6 ? "#7fc463" : hp > 0.3 ? "#e0b84a" : "#d4483a";
+  // 동작마다 움직일 방향 (CSS 변수로 넘긴다)
+  const vars = {
+    "--fx": `${dir[0] * 16}px`, "--fy": `${dir[1] * 16}px`,
+    "--bx": `${-dir[0] * 9}px`, "--by": `${-dir[1] * 9}px`,
+    "--sx": `${-dir[1] * 14}px`, "--sy": `${dir[0] * 14}px`,
+  } as CSSProperties;
+
+  return (
+    <g className="token" style={{ transform: `translate(${x}px, ${y}px)` }}>
+      {/* 그림자 */}
+      <ellipse cx="2" cy="4" rx={R + 3} ry={R + 1} fill="#000" opacity="0.35" />
+      <g key={v.key} className={`token-body pose-${v.pose}`} style={vars}>
+        {/* 바라보는 쪽 화살촉 */}
+        {!down && <path d={`M ${ringR + 2} -5 L ${ringR + 9} 0 L ${ringR + 2} 5 Z`} fill={color} stroke={INK} strokeWidth="1.2" transform={`rotate(${facing})`} />}
+        <circle r={ringR + 1.5} fill={INK} />
+        <circle r={ringR - 2} fill={color} />
+        <clipPath id={clip}><circle r={R - 1} /></clipPath>
+        <g clipPath={`url(#${clip})`} className={down ? "token-down" : undefined}>
+          <circle r={R} fill="#120d0a" />
+          <svg x={-R - 3} y={-R - 1} width={(R + 3) * 2} height={(R + 3) * 2}>
+            {spec2
+              ? <PaintedAvatar spec={spec2} bg={color} seed={g.portraitSeed % 997} />
+              : <AvatarSvg spec={avatarOf(g)} bg={color} seed={g.portraitSeed % 997} dead={v.pose === "dead"} />}
+          </svg>
+          <circle className="hurt-flash" r={R} fill="#ff2a1a" opacity="0" />
+          {down && <circle r={R} fill="#1a0a0a" opacity="0.45" />}
+        </g>
+        {/* 체력 고리 */}
+        <circle r={ringR} fill="none" stroke="#2a1d16" strokeWidth="3.4" />
+        <circle r={ringR} fill="none" stroke={hpColor} strokeWidth="3.4" strokeLinecap="round"
+          strokeDasharray={`${circ * hp} ${circ}`} transform="rotate(-90)" className="hp-ring" />
+        <WeaponBadge cls={getWeapon(g.equipment.main)?.class ?? "unarmed"} />
+        {v.pose === "block" && <path className="shield-arc" d={arc(ringR + 6, -50, 50)} stroke="#e8d7a8" strokeWidth="4" fill="none" strokeLinecap="round" transform={`rotate(${facing})`} />}
+        {v.pose === "cast" && <circle className="cast-ring" r={ringR + 4} fill="none" stroke="#7ad0ff" strokeWidth="3" />}
+        {v.pose === "cheer" && <circle className="cheer-ring" r={ringR + 5} fill="none" stroke="#f2c14e" strokeWidth="2.5" />}
+        {v.pose === "kneel" && <g transform={`translate(${-R + 2} ${-R - 2})`}><path d="M0 0 L0 -14" stroke="#7a5c33" strokeWidth="1.8" /><path d="M0 -14 L10 -11 L0 -8 Z" fill="#f4efe2" stroke={INK} strokeWidth="0.8" /></g>}
+        {v.pose === "dead" && <path d="M-9 -9 L9 9 M9 -9 L-9 9" stroke="#8a1c14" strokeWidth="4" strokeLinecap="round" opacity="0.85" />}
+      </g>
+    </g>
+  );
+}
+
+/** 각도(도) a0~a1 사이의 원호 경로 */
+function arc(r: number, a0: number, a1: number): string {
+  const p = (a: number) => `${Math.cos((a * Math.PI) / 180) * r} ${Math.sin((a * Math.PI) / 180) * r}`;
+  return `M ${p(a0)} A ${r} ${r} 0 0 1 ${p(a1)}`;
+}
+
+/** 오른쪽 아래에 붙는 무기 표식 */
+function WeaponBadge({ cls }: { cls: string }) {
+  const metal = "#d8dbe0", wood = "#8a6238";
+  let glyph;
+  switch (cls) {
+    case "greatsword": glyph = <><path d="M-4 4 L4 -4" stroke={metal} strokeWidth="2.4" strokeLinecap="round" /><path d="M-5 1 L-1 5" stroke={wood} strokeWidth="1.6" /></>; break;
+    case "axe": glyph = <><path d="M-4 5 L3 -3" stroke={wood} strokeWidth="1.6" strokeLinecap="round" /><path d="M1 -6 C6 -6 7 -1 4 1 Z" fill={metal} /></>; break;
+    case "mace": glyph = <><path d="M-4 5 L2 -1" stroke={wood} strokeWidth="1.6" strokeLinecap="round" /><circle cx="2.5" cy="-2.5" r="2.8" fill={metal} /></>; break;
+    case "spear": glyph = <><path d="M-5 5 L3 -3" stroke={wood} strokeWidth="1.4" strokeLinecap="round" /><path d="M2 -6 L6 -6 L6 -2 Z" fill={metal} /></>; break;
+    case "trident_net": glyph = <><path d="M-5 5 L3 -3 M1 -6 L4 -3 L6 -1 M3 -3 L6 -6" stroke={metal} strokeWidth="1.4" strokeLinecap="round" fill="none" /></>; break;
+    case "dagger": glyph = <><path d="M-2 2 L3 -3" stroke={metal} strokeWidth="2" strokeLinecap="round" /><path d="M-4 0 L0 4" stroke={wood} strokeWidth="1.4" /></>; break;
+    case "focus": glyph = <><path d="M-4 5 L2 -1" stroke={wood} strokeWidth="1.6" strokeLinecap="round" /><circle cx="3" cy="-3" r="2.6" fill="#7ad0ff" /></>; break;
+    case "unarmed": glyph = <circle r="3.4" fill="#c49a6c" stroke={INK} strokeWidth="0.8" />; break;
+    default: glyph = <><path d="M-3 3 L4 -4" stroke={metal} strokeWidth="2.2" strokeLinecap="round" /><path d="M-5 0 L0 5" stroke={wood} strokeWidth="1.6" /></>;
+  }
+  return (
+    <g transform={`translate(${R * 0.72} ${R * 0.72})`}>
+      <circle r="8" fill="#241912" stroke="#b08a4a" strokeWidth="1.3" />
+      {glyph}
+    </g>
   );
 }
 
 interface Hit { side: number; big: boolean; heavy: boolean; blunt: boolean; key: number; part: BodyPart }
 
-/** 맞은 부위의 높이 (땅 0 기준) */
-const PART_Y: Record<BodyPart, number> = { head: -56, neck: -46, chest: -32, side: -28, shoulder: -38, arm: -30, thigh: -12, leg: -6 };
-
-/** 그림 이펙트 한 장. 가운데를 (x, y)에 맞추고 dir이 -1이면 좌우를 뒤집는다 */
-function FxSprite({ name, x, y, size, dir = 1, rotate = 0, className }: { name: string; x: number; y: number; size: number; dir?: number; rotate?: number; className?: string }) {
+/** 그림 이펙트 한 장. 가운데를 (x, y)에 맞춘다 */
+function FxSprite({ name, x, y, size, rotate = 0, className }: { name: string; x: number; y: number; size: number; rotate?: number; className?: string }) {
   return (
-    <g transform={`translate(${x} ${y}) scale(${dir} 1) rotate(${rotate})`}>
+    <g transform={`translate(${x} ${y}) rotate(${rotate})`}>
       <image className={`fx-sprite ${className ?? ""}`} href={asset(`fx/${name}.webp`)} x={-size / 2} y={-size / 2} width={size} height={size} />
     </g>
   );
 }
 
-/** 타격: 무기에 따라 베기·둔기 충격, 세게 맞으면 피가 뿜어지고, 치명타는 빛살과 함께 피가 쏟아진다 */
-function HitFx({ x, hit, dir }: { x: number; hit: Hit; dir: number }) {
-  // dir: 맞은 쪽에서 본 바깥 방향(공격자 반대쪽). 핏줄기는 그쪽으로 튄다
-  const y = GROUND + PART_Y[hit.part];
-  const k = hit.big ? 1.25 : hit.heavy ? 1 : 0.8;
+/** 타격: 맞은 말 위에 베기·둔기 충격, 공격자 반대쪽으로 피가 튄다. from은 맞은 쪽에서 공격자를 향한 방향 */
+function HitFx({ x, y, hit, from }: { x: number; y: number; hit: Hit; from: [number, number] }) {
+  const k = hit.big ? 1.3 : hit.heavy ? 1.05 : 0.85;
+  const ang = (Math.atan2(from[1], from[0]) * 180) / Math.PI;
+  // 맞은 쪽 가장자리(공격자 쪽)와 피가 튀는 바깥쪽
+  const ex = x + from[0] * R * 0.5, ey = y + from[1] * R * 0.5;
+  const ox = x - from[0] * R * 0.9, oy = y - from[1] * R * 0.9;
   return (
     <g>
-      {hit.big && <FxSprite name="crit_star" x={x - dir * 4} y={y} size={46} className="fx-star" />}
+      {hit.big && <FxSprite name="crit_star" x={x} y={y} size={60} className="fx-star" />}
       {hit.blunt
-        ? <FxSprite name="impact_blunt" x={x - dir * 6} y={y} size={40 * k} dir={dir} className="fx-pop" />
-        : <FxSprite name={hit.heavy || hit.big ? "slash_blood" : "slash_gold"} x={x - dir * 4} y={y} size={40 * k} dir={-dir} rotate={hit.part === "head" ? -20 : -6} className="fx-slash" />}
-      {(hit.heavy || hit.big) && <FxSprite name="blood_splash" x={x + dir * 16} y={y + 2} size={42 * k} dir={-dir} className="fx-spray" />}
-      {!hit.heavy && !hit.big && <FxSprite name="blood_drops" x={x + dir * 12} y={y - 2} size={26} dir={-dir} className="fx-spray" />}
-      {hit.big && <FxSprite name="blood_gush" x={x + dir * 6} y={Math.min(GROUND - 8, y + 16)} size={40} dir={-dir} className="fx-gush" />}
+        ? <FxSprite name="impact_blunt" x={ex} y={ey} size={46 * k} className="fx-pop" />
+        : <FxSprite name={hit.heavy || hit.big ? "slash_blood" : "slash_gold"} x={ex} y={ey} size={50 * k} rotate={ang + 90} className="fx-slash" />}
+      {(hit.heavy || hit.big)
+        ? <FxSprite name="blood_splash" x={ox} y={oy} size={48 * k} rotate={ang + 180} className="fx-spray" />
+        : <FxSprite name="blood_drops" x={ox} y={oy} size={30} rotate={ang + 180} className="fx-spray" />}
+      {hit.big && <FxSprite name="blood_gush" x={ox} y={oy + 6} size={44} className="fx-gush" />}
     </g>
   );
 }
-
-function Fighter({ v, x, facing, hitstop, fixedTime }: { v: FighterView; x: number; facing: 1 | -1; hitstop?: boolean; fixedTime?: number }) {
-  const weapon = getWeapon(v.g.equipment.main);
-  return (
-    <g className="fighter" style={{ transform: `translate(${x}px, ${GROUND}px) scale(${facing}, 1)` }}>
-      <ellipse cx="0" cy="1" rx="18" ry="3.8" fill="#000" opacity="0.3" />
-      <RigFighter g={v.g} pose={v.pose} poseKey={v.key} hpRatio={v.hpRatio} hitstop={hitstop} fixedTime={fixedTime}
-        weapon={<Weapon cls={weapon?.class ?? "unarmed"} />} />
-      {v.pose === "cast" && <circle className="cast-glow" cx="16" cy="-40" r="9" fill="#7ad0ff" opacity="0.7" />}
-    </g>
-  );
-}
-
-function Weapon({ cls }: { cls: string }) {
-  const metal = "#c9ccd2";
-  switch (cls) {
-    case "greatsword":
-      return <g><path d="M0 0 L0 -40" stroke={metal} strokeWidth="4" strokeLinecap="round" /><path d="M0 -40 L0 -40" /><path d="M-6 -3 L6 -3" stroke="#7a5c33" strokeWidth="3" strokeLinecap="round" /><path d="M0 0 L0 -40" stroke={INK} strokeWidth="0.8" /></g>;
-    case "axe":
-      return <g><path d="M0 4 L0 -30" stroke="#6b4a2a" strokeWidth="3" strokeLinecap="round" /><path d="M0 -30 C10 -34 12 -22 0 -20 Z" fill={metal} stroke={INK} strokeWidth="1.3" /></g>;
-    case "mace":
-      return <g><path d="M0 4 L0 -22" stroke="#6b4a2a" strokeWidth="3" strokeLinecap="round" /><circle cx="0" cy="-25" r="5" fill="#8a8e94" stroke={INK} strokeWidth="1.3" /></g>;
-    case "spear":
-    case "trident_net":
-      return <g><path d="M0 10 L0 -44" stroke="#6b4a2a" strokeWidth="2.6" strokeLinecap="round" />{cls === "spear"
-        ? <path d="M-3 -44 L0 -54 L3 -44 Z" fill={metal} stroke={INK} strokeWidth="1.2" />
-        : <path d="M-5 -44 L-5 -52 M0 -44 L0 -54 M5 -44 L5 -52 M-5 -44 L5 -44" stroke={metal} strokeWidth="2" strokeLinecap="round" />}</g>;
-    case "dagger":
-      return <g><path d="M0 0 L0 -12" stroke={metal} strokeWidth="2.6" strokeLinecap="round" /><path d="M-3 -1 L3 -1" stroke="#7a5c33" strokeWidth="2" /></g>;
-    case "focus":
-      return <g><path d="M0 8 L0 -36" stroke="#5a3b22" strokeWidth="2.6" strokeLinecap="round" /><circle cx="0" cy="-38" r="4" fill="#7ad0ff" stroke={INK} strokeWidth="1.2" /></g>;
-    case "unarmed":
-      return <circle r="3.2" fill="#c49a6c" stroke={INK} strokeWidth="1.2" />;
-    default:
-      return <g><path d="M0 0 L0 -24" stroke={metal} strokeWidth="3.2" strokeLinecap="round" /><path d="M-5 -2 L5 -2" stroke="#7a5c33" strokeWidth="2.6" strokeLinecap="round" /></g>;
-  }
-}
-
 
 /** 이벤트 목록에서 지금 장면 상태를 계산한다 */
 function derive(a: Gladiator, b: Gladiator, events: CombatEvent[]) {
   const side = (id: Id) => (id === a.id ? 0 : 1);
   let dist = 2;
+  // 두 사람이 서로 돌며 싸우도록 이동할 때마다 축이 조금씩 돈다
+  let angle = 0;
   const views: [FighterView, FighterView] = [
     { g: a, pose: "idle", key: 0, hpRatio: 1 },
     { g: b, pose: "idle", key: 0, hpRatio: 1 },
   ];
-  const blood: { x: number; dy: number; r: number }[] = [];
+  const blood: { x: number; y: number; r: number }[] = [];
   const persistent: (Pose | null)[] = [null, null];
   let burst = null as Hit | null;
   let dodge = null as { side: number; key: number } | null;
@@ -200,18 +273,24 @@ function derive(a: Gladiator, b: Gladiator, events: CombatEvent[]) {
       if (last) { views[s].pose = pose; views[s].key = idx; }
     };
     switch (e.t) {
-      case "move":
+      case "move": {
         dist = e.dist;
+        const turn = (((idx * 37) % 5) - 2) * 0.22;
+        angle = Math.max(-0.75, Math.min(0.75, angle + turn));
         set(side(e.actor), "step");
         break;
+      }
       case "attack": {
         const t = side(e.target);
         set(side(e.actor), e.magic ? "cast" : "attack");
         set(t, !e.hit ? "dodge" : e.blocked ? "block" : "hurt");
         if (e.hit) views[t].hpRatio = e.hpAfter / e.maxHp;
         if (e.hit && !e.blocked && e.damage > 0) {
-          const [xa, xb] = POS[dist] ?? POS[2];
-          if (e.damage / e.maxHp > 0.08 || e.crit) blood.push({ x: t === 0 ? xa - 6 : xb + 6, dy: (idx % 5) - 2, r: Math.min(9, 3 + (e.damage / e.maxHp) * 30) });
+          const p = place(dist, angle)[t];
+          if (e.damage / e.maxHp > 0.08 || e.crit) {
+            const j = (idx * 53) % 360 * (Math.PI / 180);
+            blood.push({ x: p[0] + Math.cos(j) * 14, y: p[1] + Math.sin(j) * 8, r: Math.min(10, 4 + (e.damage / e.maxHp) * 30) });
+          }
           if (last) {
             burst = { side: t, big: e.crit, heavy: e.damage / e.maxHp > 0.12, blunt: bluntOf(views[side(e.actor)].g), key: idx, part: e.part };
             shake = e.crit;
@@ -242,8 +321,8 @@ function derive(a: Gladiator, b: Gladiator, events: CombatEvent[]) {
       case "verdict":
         if (e.died) {
           persistent[side(e.target)] = "dead";
-          const [xa, xb] = POS[dist] ?? POS[2];
-          blood.push({ x: side(e.target) === 0 ? xa : xb, dy: 2, r: 14 });
+          const p = place(dist, angle)[side(e.target)];
+          blood.push({ x: p[0], y: p[1] + 4, r: 16 });
         }
         break;
       case "end":
@@ -252,5 +331,5 @@ function derive(a: Gladiator, b: Gladiator, events: CombatEvent[]) {
     }
   }
   persistent.forEach((p, i) => { if (p) { views[i].pose = p; } });
-  return { dist, views, blood, burst, dodge, shake, crowdHype };
+  return { dist, angle, views, blood, burst, dodge, shake, crowdHype };
 }

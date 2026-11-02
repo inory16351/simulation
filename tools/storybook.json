@@ -1,0 +1,62 @@
+{
+  "style": "Style: a flat 2D hand-painted illustration, like a concept-art painting or a painted frame from a storybook fairy-tale animated film. FLAT shapes built from a few big blocks of solid color (one light tone, one shadow tone, maybe one accent highlight), shading done with bold visible brush strokes and dry-brush scumbling, NOT smooth gradients. Clearly visible individual brush marks and canvas/paper texture everywhere, loose painterly edges where strokes run out, simplified chunky shapes, graphic and readable. Limited warm palette: crimson, gold ochre, teal, plum, moss over warm umber shadows. NO glossy specular highlights, NO metallic shine rendering, NO 3D render, NO airbrush, NO photorealism, NO fine detail noise, no hard black outlines. No text, no letters, no numbers, no watermark.",
+  "presets": {
+    "sheet": "A square sprite sheet image on a solid flat pure magenta background (#FF00FF) filling every pixel that is not part of an object. Each object sits alone in the center of its grid cell with generous magenta padding around it, objects never touch cell borders or each other, no grid lines, no drop shadow on the background, no frames.",
+    "wide": "Wide 16:9 painted background illustration. Dark warm overall (deep umber and plum shadows) so light parchment-colored UI text stays readable on top of it, with a few glowing warm light accents.",
+    "crest_one": "One single heraldic shield crest, centered, on a solid flat pure magenta background (#FF00FF). It must match the attached sheet of crests EXACTLY in shield shape, hammered gold rim, size, brushwork and flat painted style, as if it were a seventh crest from the same set."
+  },
+  "items": [
+    {
+      "id": "sheet.crests",
+      "preset": "sheet",
+      "out": "art/source/sheets/crests.png",
+      "prompt": "A 3 columns x 2 rows grid of six painted heraldic shield crests, all the same heater-shield shape and size with a hammered gold-bronze rim, so they read as one set. Row 1, left to right: (1) Roman empire: a golden eagle with spread wings and a laurel wreath on a deep plum purple (#5B2A4E) field. (2) Spartan mountain league: a bronze round hoplite shield with a red lambda and crossed spear on a burnt orange-brown (#A0522D) field with mountain peaks. (3) Carthaginian sea league: a sea serpent coiled around a ship anchor on a deep sea teal (#2F5F63) field with foam curls. Row 2, left to right: (4) Desert sun kingdom: a big radiant golden sun disk rising over a stepped sandstone pyramid flanked by two palm fronds, on a desert gold (#B8913A) field with lapis blue (#2C3E73) rays. No gods, no animal-headed figures, no people. (5) Norse-Germanic tribes: a horned skull above two crossed axes on a frost blue-grey (#4E5D66) field with blood red splashes. (6) Celtic forest kingdom: a silver ancient tree with sprawling roots on a moss green (#3F5A3A) field with tiny glowing fireflies."
+    },
+    {
+      "id": "sheet.icons",
+      "preset": "sheet",
+      "out": "art/source/sheets/icons.png",
+      "prompt": "A 5 columns x 3 rows grid of fifteen painted game menu icons, each a single chunky object seen from a slight 3/4 angle, same size, same warm light from the upper left, readable at small size. Row 1, left to right: (1) a wax writing tablet with a bronze stylus, (2) a stone courtyard gate arch with a warm glowing doorway, (3) a bronze gladiator helmet with a red crest, (4) a wooden training dummy with a wooden sword, (5) a rolled parchment scroll pierced by a dagger. Row 2: (6) two crossed short swords over a round shield, (7) a three-step podium with a gold laurel wreath on top, (8) iron shackles beside a fat coin pouch, (9) a small wooden practice sword and a child-size round shield, (10) a big bronze key on a ring. Row 3: (11) a mason hammer resting on a carved stone column block, (12) an iron-bound treasure chest overflowing with gold coins, (13) a two-handled golden trophy cup, (14) a rolled-out parchment map with a red pin, (15) a stone grave stele with a laurel wreath hanging on it."
+    },
+    {
+      "id": "ui.bg_main",
+      "preset": "wide",
+      "out": "art/source/ui/bg_main.jpg",
+      "prompt": "Interior of a gladiator school at dusk seen from a balcony: warm torch-lit stone colonnade, hanging crimson banners, training sand yard below, distant domed city rooftops under a plum and amber sunset sky. Mostly in soft shadow."
+    },
+    {
+      "id": "ui.sidebar",
+      "preset": "wide",
+      "out": "art/source/ui/sidebar.jpg",
+      "prompt": "Close-up texture of an old dark carved wooden wall panel with worn bronze studs and a faded painted vine ornament, lit softly by candlelight from the left. Very dark, low detail in the middle so text can sit on it."
+    },
+    {
+      "id": "ui.topbar",
+      "preset": "wide",
+      "out": "art/source/ui/topbar.jpg",
+      "prompt": "A long wooden beam above an arena gate with draped crimson and gold cloth bunting and two small torches, seen straight on, warm dusk light. Dark in the middle band."
+    },
+    {
+      "id": "ui.arena_provincial",
+      "preset": "wide",
+      "out": "art/source/ui/arena_provincial.jpg",
+      "prompt": "A small provincial wooden-and-stone arena at sunset seen from the sand floor: tiers of cheering silhouetted crowd, colorful pennants on ropes, torches on posts, warm dust in the air. The top half busy, the lower third mostly plain warm sand."
+    },
+    {
+      "id": "ui.empty",
+      "preset": "wide",
+      "out": "art/source/ui/empty.jpg",
+      "prompt": "A quiet candle-lit writing desk in a gladiator school office: scattered wax tablets, a quill, a bronze helmet resting on a stool, a window showing a plum night sky. Mostly dark."
+    },
+    {
+      "id": "crest.kemer",
+      "preset": "crest_one",
+      "out": "art/source/sheets/crest_kemer.png",
+      "prompt": "Desert sun kingdom: a big radiant golden sun disk rising over a stepped sandstone pyramid flanked by two palm fronds, on a desert gold (#B8913A) field with lapis blue (#2C3E73) rays. No gods, no animal-headed figures, no people."
+    }
+  ],
+  "styleRef": "art/source/sheets/crests.png",
+  "styleRefPresets": [
+    "crest_one"
+  ]
+}

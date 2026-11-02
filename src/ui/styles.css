@@ -482,3 +482,167 @@ body {
 .audio-control .btn { padding: 4px 8px; }
 .audio-pop { position: absolute; top: 110%; right: 0; z-index: 50; padding: 10px 12px; display: flex; flex-direction: column; gap: 8px; min-width: 200px; }
 .audio-pop label { display: flex; justify-content: space-between; align-items: center; gap: 8px; font-size: 12px; color: var(--text-dim); }
+
+/* ── 탑뷰 전투: 동그란 초상화 말 ── */
+.arena-stage.topdown { height: 260px; background: #1c1712; }
+.arena-stage.topdown .token { transition: transform 0.5s cubic-bezier(0.3, 0.7, 0.3, 1); }
+.token-body { transform-origin: 0 0; }
+.token .hp-ring { transition: stroke-dasharray 0.4s ease-out, stroke 0.4s; }
+.pose-idle, .pose-step { animation: tokbob 1.8s ease-in-out infinite; }
+@keyframes tokbob { 50% { transform: scale(1.03); } }
+/* 공격: 상대 쪽으로 들이받았다 돌아온다 */
+.pose-attack { animation: toklunge 0.45s ease-out; }
+@keyframes toklunge { 0% { transform: translate(0, 0); } 30% { transform: translate(calc(var(--bx) * 0.5), calc(var(--by) * 0.5)); } 55% { transform: translate(var(--fx), var(--fy)) scale(1.08); } 100% { transform: translate(0, 0); } }
+/* 맞음: 뒤로 밀리고 붉게 번쩍 */
+.pose-hurt { animation: tokknock 0.45s ease-out; }
+.pose-hurt .hurt-flash { animation: tokflash 0.45s ease-out; }
+@keyframes tokknock { 0% { transform: translate(0, 0); } 30% { transform: translate(var(--bx), var(--by)) rotate(-8deg); } 100% { transform: translate(0, 0); } }
+@keyframes tokflash { 0% { opacity: 0; } 20% { opacity: 0.55; } 100% { opacity: 0; } }
+/* 막기: 살짝 버티고 방패 호가 번쩍 */
+.pose-block { animation: tokbrace 0.4s ease-out; }
+@keyframes tokbrace { 30% { transform: translate(calc(var(--bx) * 0.4), calc(var(--by) * 0.4)) scale(0.96); } }
+.shield-arc { animation: tokfade 0.5s ease-out forwards; }
+@keyframes tokfade { 0% { opacity: 1; } 100% { opacity: 0; } }
+/* 피하기: 옆으로 비켜선다 */
+.pose-dodge { animation: tokdodge 0.5s ease-out; }
+@keyframes tokdodge { 40% { transform: translate(var(--sx), var(--sy)); } }
+/* 주술 */
+.cast-ring { animation: glow 0.6s ease-out forwards; transform-origin: 0 0; }
+.pose-cast { animation: tokbob 0.6s ease-in-out; }
+/* 비틀거림 */
+.pose-stagger { animation: tokwobble 0.7s ease-in-out; }
+@keyframes tokwobble { 25% { transform: rotate(-14deg); } 50% { transform: rotate(10deg); } 75% { transform: rotate(-5deg); } }
+/* 쓰러짐·죽음·항복·환호 (지속) */
+.pose-down, .pose-dead { transform: scale(0.9) rotate(-18deg); transition: transform 0.4s; }
+.token-down { filter: grayscale(0.8) brightness(0.7); }
+.pose-kneel { transform: scale(0.92); opacity: 0.85; }
+.pose-cheer { animation: tokcheer 0.6s ease-in-out infinite alternate; }
+@keyframes tokcheer { from { transform: scale(1); } to { transform: scale(1.1); } }
+.cheer-ring { animation: tokpulse 1s ease-in-out infinite; transform-origin: 0 0; }
+@keyframes tokpulse { 0% { opacity: 0.9; transform: scale(1); } 100% { opacity: 0; transform: scale(1.35); } }
+.crowd-bob { animation: crowdbob 0.5s ease-in-out infinite alternate; }
+@keyframes crowdbob { from { transform: translateY(0); } to { transform: translateY(-1.5px); } }
+
+/* ── 동화책 그림체 UI: 따뜻한 자두·호박색, 둥근 판, 붓으로 칠한 듯한 테두리 ── */
+:root {
+  --bg: #1a1216;
+  --bg-2: #22171a;
+  --panel: #2c1f20;
+  --panel-2: #3a2826;
+  --line: #5a3f32;
+  --bronze: #a87a3e;
+  --bronze-hi: #e2b664;
+  --parchment: #f3e2bf;
+  --text: #e6d4b2;
+  --text-dim: #b09a7a;
+  --text-faint: #7a6656;
+  --torch: #f2a33a;
+  --blood: #c0392b;
+  --blood-dark: #8e2a22;
+  --plum: #5b2a4e;
+}
+body {
+  background:
+    radial-gradient(ellipse at 20% 0%, rgba(242, 163, 58, 0.14), transparent 55%),
+    linear-gradient(rgba(26, 14, 20, 0.72), rgba(20, 12, 16, 0.88)),
+    url("/assets/ui/bg_main.webp") center / cover fixed,
+    var(--bg);
+}
+.topbar {
+  background:
+    linear-gradient(90deg, rgba(36, 18, 26, 0.9) 0%, rgba(36, 18, 26, 0.45) 45%, rgba(36, 18, 26, 0.9) 100%),
+    url("/assets/ui/topbar.webp") center 30% / cover,
+    #241219;
+  border-bottom: 2px solid var(--bronze);
+  box-shadow: 0 3px 0 #120a0d, 0 6px 22px rgba(0, 0, 0, 0.55);
+}
+.topbar .club { letter-spacing: 0.02em; text-shadow: 0 2px 0 #1a0d12, 0 0 14px rgba(242, 163, 58, 0.25); }
+.crest { object-fit: contain; filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.6)); vertical-align: middle; }
+.sidebar {
+  background:
+    linear-gradient(rgba(30, 16, 20, 0.55), rgba(24, 13, 17, 0.85)),
+    url("/assets/ui/sidebar.webp") center / cover,
+    var(--bg-2);
+  border-right: 2px solid var(--bronze);
+}
+.sidebar button { border-radius: 0 14px 14px 0; margin-right: 10px; width: calc(100% - 10px); }
+.sidebar button:hover { background: rgba(242, 163, 58, 0.1); }
+.sidebar button.active {
+  background: linear-gradient(90deg, rgba(242, 163, 58, 0.28), rgba(91, 42, 78, 0.35));
+  box-shadow: inset 0 0 0 1px rgba(226, 182, 100, 0.35);
+}
+.menu-icon { width: 26px; height: 26px; object-fit: contain; opacity: 0.9; filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.7)); }
+.sidebar button.active .menu-icon { opacity: 1; filter: drop-shadow(0 0 5px rgba(242, 163, 58, 0.7)); transform: scale(1.08); }
+
+.panel {
+  border-radius: 14px;
+  border: 2px solid #6b4a34;
+  background:
+    radial-gradient(ellipse at 15% 0%, rgba(242, 163, 58, 0.08), transparent 60%),
+    linear-gradient(rgba(48, 32, 32, 0.94), rgba(36, 24, 26, 0.96));
+  box-shadow: inset 0 1px 0 rgba(255, 220, 160, 0.12), inset 0 0 0 1px rgba(0, 0, 0, 0.5), 0 8px 20px rgba(0, 0, 0, 0.4);
+  overflow: hidden;
+}
+.panel > h3 {
+  background: linear-gradient(90deg, rgba(91, 42, 78, 0.55), rgba(168, 122, 62, 0.15) 70%, transparent);
+  color: var(--parchment);
+  border-bottom: 1px solid rgba(168, 122, 62, 0.4);
+}
+.panel > h3::before { content: "✦"; color: var(--bronze-hi); }
+.screen-title { font-size: 26px; text-shadow: 0 2px 0 #1a0d12, 0 0 18px rgba(242, 163, 58, 0.2); }
+
+.btn, .continue { border-radius: 999px; transition: transform 0.12s, filter 0.12s; }
+.btn {
+  background: linear-gradient(#4a3230, #33221f);
+  border: 2px solid var(--bronze);
+  box-shadow: inset 0 1px 0 rgba(255, 220, 160, 0.18), 0 2px 0 #120a0d;
+}
+.btn:hover:not(:disabled), .continue:hover:not(:disabled) { transform: translateY(-1px); filter: brightness(1.12); }
+.btn.primary, .continue {
+  background: linear-gradient(#e0962e, #b0601c 60%, #8a4515);
+  border: 2px solid #f6c66a;
+  color: #fff6e0;
+  text-shadow: 0 1px 0 #5a2a0a;
+  box-shadow: inset 0 1px 0 rgba(255, 240, 200, 0.5), 0 3px 0 #4a220c, 0 6px 14px rgba(0, 0, 0, 0.4);
+}
+.portrait { border-radius: 12px; border: 2px solid var(--bronze); box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5); }
+.arena-head {
+  background:
+    linear-gradient(rgba(30, 14, 22, 0.25), rgba(24, 12, 18, 0.85)),
+    url("/assets/ui/arena_provincial.webp") center 55% / cover,
+    #1a0f13;
+}
+.hpbar { border-radius: 999px; overflow: hidden; }
+.alertbar { background: linear-gradient(90deg, #8e2a22, #5b2a4e); }
+.empty-state { border-radius: 16px; border: 2px solid #6b4a34; }
+.arena { border-radius: 16px; overflow: hidden; }
+
+/* ── 플랫 페인팅 다듬기: 광택 그라디언트 대신 단색 면 + 흐림 없는 그림자 + 캔버스 결 ── */
+:root {
+  --canvas: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9 0.35' numOctaves='3' seed='4'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 0.9 0 0 0 0 0.75 0 0 0 0.09 0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+.panel {
+  background: var(--canvas), #33231f;
+  border: 3px solid #7a5434;
+  border-radius: 16px 12px 18px 10px;
+  box-shadow: 4px 5px 0 rgba(10, 5, 8, 0.55);
+}
+.panel > h3 { background: var(--canvas), #5b2a4e; border-bottom: 3px solid #7a5434; }
+.btn {
+  background: var(--canvas), #4a2f2b;
+  border: 2px solid #a87a3e;
+  box-shadow: 2px 3px 0 #120a0d;
+}
+.btn.primary, .continue {
+  background: var(--canvas), #d2802a;
+  border: 2px solid #f2c063;
+  text-shadow: none;
+  box-shadow: 2px 3px 0 #4a220c;
+}
+.btn:active:not(:disabled), .continue:active:not(:disabled) { transform: translate(2px, 3px); box-shadow: none; }
+.sidebar button.active { background: var(--canvas), #6a3a2a; box-shadow: 3px 3px 0 rgba(10, 5, 8, 0.5); }
+.topbar { border-bottom: 3px solid #7a5434; box-shadow: 0 4px 0 rgba(10, 5, 8, 0.55); }
+.sidebar { border-right: 3px solid #7a5434; }
+.portrait { border-width: 3px; border-color: #7a5434; box-shadow: 3px 3px 0 rgba(10, 5, 8, 0.5); }
+.arena, .empty-state { border-radius: 18px 14px 20px 12px; }
+.topbar .club, .screen-title { text-shadow: 2px 2px 0 #1a0d12; }
