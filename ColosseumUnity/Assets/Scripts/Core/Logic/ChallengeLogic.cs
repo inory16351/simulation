@@ -64,6 +64,21 @@ namespace Colosseum.Core
             double perWeek = L("challengesPerWeek");
             if (sent >= perWeek) return $"일주일에 {N(perWeek)}번까지만 신청할 수 있습니다";
             if (state.challenges.Any(c => c.from == from.id && c.to == to.id && (c.status == "pending" || c.status == "scheduled"))) return "이미 도전 중";
+            if (FmRules.Enabled) return CanReceive(state, to, 1);
+            return null;
+        }
+
+        /// <summary>FM식: 받는 쪽이 이 도전을 받을 수 있는가 (부상·경기 예정·휴식·원정으로 내보낼 사람이 없으면 보낼 수 없다).
+        /// 이미 답을 기다리는 도전장만큼 사람을 빼고 센다. 우리 루두스에는 답을 기다리는 도전장이 2통까지만 온다</summary>
+        public static string CanReceive(GameState state, Ludus to, int format)
+        {
+            int t = Now(state);
+            var pending = state.challenges.Where(c => c.to == to.id && c.status == "pending").ToList();
+            if (to.isPlayer && pending.Count >= 2) return "상대가 이미 답할 도전장이 밀려 있습니다";
+            int reserved = pending.Sum(c => Math.Max(1, c.format ?? 1));
+            int free = to.gladiators.Count(id => state.gladiators.TryGetValue(id, out var g) && Availability(state, g, t) == null && Availability(state, g, t + L("matchDelayMin")) == null);
+            if (free - reserved < Math.Max(1, format))
+                return format > 1 ? $"상대에게 지금 {format}명을 내보낼 여력이 없습니다 (부상·경기 예정·휴식)" : "상대에게 지금 내보낼 검투사가 없습니다 (부상·경기 예정·휴식)";
             return null;
         }
 
@@ -80,6 +95,7 @@ namespace Colosseum.Core
             var g = state.gladiators[fromGladiator];
             var busy = Availability(state, g);
             if (busy != null) { error = $"{g.name}: {busy}"; return null; }
+            if (FmRules.Enabled && format > 1 && CanReceive(state, to, format) is string full) { error = full; return null; }
             if (format > 1 && SeriesLogic.AutoLineup(state, from, format, Now(state) + L("matchDelayMin")).Count < format)
             {
                 error = $"{SeriesLogic.FormatNames[format]}에 내보낼 검투사가 {format}명이 안 됩니다";
@@ -249,7 +265,8 @@ namespace Colosseum.Core
             var rivals = state.ludi.Values.Where(l => !l.isPlayer && CanChallenge(state, l, player) == null).ToList();
             foreach (var ai in rivals)
             {
-                if (!rng.Chance(L("aiChallengePlayerChance") / 3)) continue;
+                if (!rng.Chance(L("aiChallengePlayerChance") / (FmRules.Enabled ? 8 : 3))) continue;
+                if (FmRules.Enabled && state.challenges.Any(x => x.to == player.id && x.status == "pending")) break;
                 string rule = PickRule(rng, ai);
                 var g = PickFighter(state, ai, rule, t);
                 if (g == null) continue;

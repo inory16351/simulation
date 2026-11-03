@@ -213,6 +213,128 @@ namespace Colosseum.EditorTools
             so.ApplyModifiedPropertiesWithoutUndo();
         }
 
+        /// <summary>협상 창 (NegotiationPopup): 값 판(이적 제안·역제안·이적 명단)과 계약 판(조항 열 줄)</summary>
+        public static void BuildNegotiationPopup(Transform canvas)
+        {
+            var root = Rect("NegotiationPopup", canvas).Stretch();
+            var overlay = Rect("Overlay", root).Stretch();
+            var dim = Box("Dim", overlay, new Color(0, 0, 0, 0.62f));
+            ((RectTransform)dim.transform).Stretch();
+            var dimBtn = dim.gameObject.AddComponent<Button>();
+            dimBtn.transition = Selectable.Transition.None;
+
+            var card = Panel("Card", overlay);
+            var crt = (RectTransform)card.transform;
+            crt.anchorMin = crt.anchorMax = new Vector2(0.5f, 0.5f);
+            crt.sizeDelta = new Vector2(820, 780);
+            Box("Accent", card.transform, Theme.Bronze).rectTransform.Anchor(new Vector2(0, 1), new Vector2(1, 1), new Vector2(1, -4), new Vector2(-1, -1));
+
+            var body = Rect("Body", card.transform).Stretch(28, 24, 28, 22);
+            var vl = VCol(body, 8);
+            vl.childForceExpandHeight = false;
+            var title = Text("Title", body, "협상", 24, Theme.Parchment, true, FontStyles.Bold);
+            title.raycastTarget = true;
+            var sub = Text("Sub", body, "", 15, Theme.TextDim);
+            sub.raycastTarget = true;
+            Box("Line", body, Theme.Line).Layout(minH: 1, prefH: 1);
+            var info = Text("Info", body, "", 15, Theme.Text, false, FontStyles.Normal, TextAlignmentOptions.TopLeft);
+            info.raycastTarget = true;
+            info.lineSpacing = 12;
+
+            // 값 판
+            var fee = Rect("FeeRoot", body);
+            HRow(fee, 8).childForceExpandWidth = false;
+            fee.Layout(minH: 42, prefH: 42, flexH: 0);
+            var priceLabel = Text("PriceLabel", fee, "값", 15, Theme.BronzeHi, false, FontStyles.Bold);
+            priceLabel.Layout(prefW: 120, flexW: 0);
+            var price = Input(fee, 150, 38, 17);
+            var minus10 = Button("Minus10", fee, "−10%", false, 14).Layout(prefW: 70, prefH: 36);
+            var plus10 = Button("Plus10", fee, "+10%", false, 14).Layout(prefW: 70, prefH: 36);
+            var quickA = Button("QuickA", fee, "희망가", false, 14).Layout(prefW: 110, prefH: 36);
+            var quickB = Button("QuickB", fee, "몸값", false, 14).Layout(prefW: 110, prefH: 36);
+
+            // 계약 판: 조항 한 줄씩
+            var contract = Rect("ContractRoot", body);
+            var cl = VCol(contract, 4);
+            cl.childForceExpandHeight = false;
+            var rowsData = new (string key, string label, bool toggle)[]
+            {
+                ("wage", "주급", false), ("seasons", "계약 기간", false), ("signing", "계약금", false), ("win", "승리 수당", false), ("kill", "킬 수당", false),
+                ("promo", "승격 보너스", false), ("extend", "승격 시 1시즌 연장", true), ("raise", "승격 시 주급 인상", false), ("cut", "강등 시 주급 삭감", false), ("release", "최소 이적료 조항", false),
+            };
+            var rowObjs = new System.Collections.Generic.List<(string key, GameObject root, TMP_InputField input, Button minus, Button plus, Button toggle, TMP_Text hint)>();
+            foreach (var (key, label, toggle) in rowsData)
+            {
+                var row = Box("Row_" + key, contract, new Color(1, 1, 1, 0.025f));
+                row.Layout(minH: 38, prefH: 38, flexH: 0);
+                HRow(row.transform, 8, 10, 10).childForceExpandWidth = false;
+                Text("Label", row.transform, label, 15, Theme.Text).Layout(prefW: 190, flexW: 0);
+                TMP_InputField input = null;
+                Button minus = null, plus = null, tg = null;
+                if (toggle) tg = Button("Toggle", row.transform, "□ 없음", false, 14).Layout(prefW: 130, prefH: 32);
+                else
+                {
+                    minus = Button("Minus", row.transform, "−", false, 16).Layout(prefW: 34, prefH: 32);
+                    input = Input(row.transform, 110, 32, 15);
+                    plus = Button("Plus", row.transform, "+", false, 16).Layout(prefW: 34, prefH: 32);
+                }
+                var hint = Text("Hint", row.transform, "", 13, Theme.TextFaint);
+                hint.Layout(flexW: 1);
+                rowObjs.Add((key, row.gameObject, input, minus, plus, tg, hint));
+            }
+
+            var mood = Text("Mood", body, "", 17, Theme.Parchment);
+            var note = Text("Note", body, "", 14, Theme.TextDim, false, FontStyles.Normal, TextAlignmentOptions.TopLeft);
+            note.raycastTarget = true;
+            var msg = Text("Msg", body, "", 14, new Color32(0xd9, 0xa2, 0x9b, 0xff));
+            Rect("Spacer", body).Layout(flexH: 1);
+
+            var buttons = Rect("Buttons", body);
+            buttons.Layout(minH: 48, prefH: 48, flexH: 0);
+            HRow(buttons, 10, align: TextAnchor.MiddleRight).childForceExpandWidth = false;
+            var reject = Button("Reject", buttons, "거절", false, 15).Layout(prefW: 170, prefH: 44);
+            var secondary = Button("Secondary", buttons, "역제안", false, 15).Layout(prefW: 210, prefH: 44);
+            var primary = Button("Primary", buttons, "수락", true, 15).Layout(prefW: 210, prefH: 44);
+            var close = Button("Close", buttons, "닫기", false, 15).Layout(prefW: 110, prefH: 44);
+
+            var popup = root.gameObject.AddComponent<NegotiationPopup>();
+            var so = new SerializedObject(popup);
+            void S(string p, Object v) => so.FindProperty(p).objectReferenceValue = v;
+            S("overlay", overlay.gameObject); S("dim", dimBtn); S("title", title); S("sub", sub); S("info", info); S("mood", mood); S("note", note); S("msg", msg);
+            S("feeRoot", fee.gameObject); S("priceLabel", priceLabel); S("price", price); S("minus10", minus10); S("plus10", plus10); S("quickA", quickA); S("quickB", quickB);
+            S("contractRoot", contract.gameObject);
+            S("primary", primary); S("secondary", secondary); S("reject", reject); S("close", close);
+            var rows = so.FindProperty("rows");
+            rows.arraySize = rowObjs.Count;
+            for (int i = 0; i < rowObjs.Count; i++)
+            {
+                var el = rows.GetArrayElementAtIndex(i);
+                var r = rowObjs[i];
+                el.FindPropertyRelative("key").stringValue = r.key;
+                el.FindPropertyRelative("root").objectReferenceValue = r.root;
+                el.FindPropertyRelative("input").objectReferenceValue = r.input;
+                el.FindPropertyRelative("minus").objectReferenceValue = r.minus;
+                el.FindPropertyRelative("plus").objectReferenceValue = r.plus;
+                el.FindPropertyRelative("toggle").objectReferenceValue = r.toggle;
+                el.FindPropertyRelative("hint").objectReferenceValue = r.hint;
+            }
+            so.ApplyModifiedPropertiesWithoutUndo();
+        }
+
+        static TMP_InputField Input(Transform parent, float w, float h, float size)
+        {
+            var go = TMP_DefaultControls.CreateInputField(new TMP_DefaultControls.Resources());
+            go.name = "Input";
+            go.transform.SetParent(parent, false);
+            go.GetComponent<Image>().color = Theme.Bg2;
+            var input = go.GetComponent<TMP_InputField>();
+            foreach (var t in go.GetComponentsInChildren<TextMeshProUGUI>(true)) { t.font = Sans; t.fontSize = size; t.color = Theme.Parchment; }
+            input.placeholder.GetComponent<TMP_Text>().text = "";
+            input.contentType = TMP_InputField.ContentType.IntegerNumber;
+            input.Layout(minW: w, prefW: w, minH: h, prefH: h, flexW: 0);
+            return input;
+        }
+
         public static void BuildTipLayer(Transform canvas)
         {
             var root = Rect("TipLayer", canvas).Stretch();

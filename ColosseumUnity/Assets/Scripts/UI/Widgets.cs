@@ -17,6 +17,13 @@ namespace Colosseum.UI
             return new string('★', full) + (s - full >= 0.5 ? "☆" : "");
         }
 
+        /// <summary>FM식 교관 평가 별점: 우리 검투사는 독토레가 보는 대로, 남의 검투사는 정찰 범위로. CA 숫자는 보여 주지 않는다</summary>
+        public static string CaStars(GameState s, Gladiator g)
+        {
+            var r = Scouting.CaRange(s, g);
+            return RangeStars(r.lo, r.hi);
+        }
+
         /// <summary>범위 별점 (웹판 RangeStars): 추정이 넓으면 "★★~★★★"</summary>
         public static string RangeStars(double lo, double hi)
         {

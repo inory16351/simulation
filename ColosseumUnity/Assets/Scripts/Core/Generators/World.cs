@@ -13,9 +13,16 @@ namespace Colosseum.Core
             ["aurelia"] = 11, ["grommar"] = 9.5, ["dolgar"] = 9, ["karsea"] = 8, ["kemer"] = 7, ["sylvaren"] = 6,
         };
 
+        /// <summary>FM식: 시작 리그별 금고 (아래 부일수록 적다)</summary>
+        public static double StartTreasury(int tier) => tier switch { 1 => 9000, 2 => 6000, 3 => 4500, _ => 3800 };
+
+        /// <summary>FM식: AI 루두스 시작 금고 범위 (부마다 최소·최대)</summary>
+        static readonly int[,] AiTreasury = { { 6000, 18000 }, { 3000, 9000 }, { 2000, 6000 }, { 1200, 4000 } };
+
         static readonly string[] Personalities = { "aggressive", "stable", "grudge", "merchant", "developer" };
 
-        public static GameState NewGame(double seed, string nation = "aurelia", string ludusName = "모래의 집")
+        /// <param name="startTier">시작 리그 (FM식 규칙에서만, 1~4. 아래 부일수록 어렵다)</param>
+        public static GameState NewGame(double seed, string nation = "aurelia", string ludusName = "모래의 집", int startTier = 2)
         {
             var rng = new Rng(seed);
             var state = new GameState
@@ -58,6 +65,10 @@ namespace Colosseum.Core
             double rpTier1 = (double)L["rpTier1"], rpTier2 = (double)L["rpTier2"];
             int aiRoster = (int)E["aiRoster"], startRoster = (int)E["startRoster"];
             double startTreasury = (double)E["startTreasury"];
+            bool fm = FmRules.Enabled;
+            if (!fm) startTier = 2;
+            startTier = Math.Max(1, Math.Min(FmRules.MaxTier, startTier));
+            if (fm) startTreasury = StartTreasury(startTier);
 
             Ludus AddLudus(int tier, bool isPlayer, string name, double rp, int rosterSize, double target, string ludusNation = null)
             {
@@ -68,7 +79,7 @@ namespace Colosseum.Core
                 ludus.nation = ludusNation;
                 ludus.tier = tier;
                 ludus.rp = JsMath.Round(rp);
-                ludus.treasury = isPlayer ? startTreasury : rng.Int(3000, tier == 1 ? 15000 : 7000);
+                ludus.treasury = isPlayer ? startTreasury : fm ? rng.Int(AiTreasury[tier - 1, 0], AiTreasury[tier - 1, 1]) : rng.Int(3000, tier == 1 ? 15000 : 7000);
                 ludus.gladiators = new List<string>();
                 ludus.isPlayer = isPlayer;
                 ludus.aiPersonality = isPlayer ? null : rng.Pick(Personalities);
@@ -88,6 +99,8 @@ namespace Colosseum.Core
                     // 플레이어 시작 로스터는 노예 위주
                     opt.status = isPlayer ? (rng.Chance(0.85) ? "slave" : "free") : null;
                     var g = GladiatorGen.Generate(rng, opt);
+                    // FM식: 자유민은 계약서가 있어야 재계약·만료가 돈다 (시즌 2까지)
+                    if (fm && g.status == "free" && g.contract == null) g.contract = new GladiatorContract { untilSeason = 2, clauses = new List<string>() };
                     state.gladiators[g.id] = g;
                     ludus.gladiators.Add(g.id);
                 }
@@ -95,8 +108,9 @@ namespace Colosseum.Core
                 return ludus;
             }
 
-            string LudusNameGen()
+            string LudusNameGen(string forNation = null)
             {
+                if (fm && NameBook.Ready) return NameBook.LudusName(rng, forNation ?? nation, usedNames);
                 for (;;)
                 {
                     // "붉은 늑대 투기단" 또는 "늑대의 집" 꼴
@@ -122,32 +136,59 @@ namespace Colosseum.Core
                 }
             }
 
-            for (int i = 0; i < teamsPerTier; i++)
+            Ludus player;
+            if (!fm)
             {
-                string name = LudusNameGen();
-                double rp = rpTier1 + rng.Normal(0, 60);
-                AddLudus(1, false, name, rp, aiRoster, 11 - i * 0.15);
-            }
-            for (int i = 0; i < teamsPerTier - 1; i++)
-            {
-                string name = LudusNameGen();
-                double rp = rpTier2 + rng.Normal(0, 50);
-                AddLudus(2, false, name, rp, aiRoster, 8 - i * 0.15);
-            }
-            var player = AddLudus(2, true, ludusName, rpTier2 - 60, startRoster, 6.5);
-            state.playerLudusId = player.id;
-
-            // 다른 나라: 1부 리그만 실제로 돌린다 (판테온 컵 상대). 국가 계수가 높은 나라일수록 조금 더 강하다
-            foreach (var other in Data.Nations)
-            {
-                if (other.id == nation) continue;
-                double strength = (InitialCoefficient[other.id] - 8) * 0.12;
                 for (int i = 0; i < teamsPerTier; i++)
                 {
                     string name = LudusNameGen();
                     double rp = rpTier1 + rng.Normal(0, 60);
-                    AddLudus(1, false, name, rp, aiRoster, 11 + strength - i * 0.15, other.id);
+                    AddLudus(1, false, name, rp, aiRoster, 11 - i * 0.15);
                 }
+                for (int i = 0; i < teamsPerTier - 1; i++)
+                {
+                    string name = LudusNameGen();
+                    double rp = rpTier2 + rng.Normal(0, 50);
+                    AddLudus(2, false, name, rp, aiRoster, 8 - i * 0.15);
+                }
+                player = AddLudus(2, true, ludusName, rpTier2 - 60, startRoster, 6.5);
+                state.playerLudusId = player.id;
+
+                // 다른 나라: 1부 리그만 실제로 돌린다 (판테온 컵 상대). 국가 계수가 높은 나라일수록 조금 더 강하다
+                foreach (var other in Data.Nations)
+                {
+                    if (other.id == nation) continue;
+                    double strength = (InitialCoefficient[other.id] - 8) * 0.12;
+                    for (int i = 0; i < teamsPerTier; i++)
+                    {
+                        string name = LudusNameGen();
+                        double rp = rpTier1 + rng.Normal(0, 60);
+                        AddLudus(1, false, name, rp, aiRoster, 11 + strength - i * 0.15, other.id);
+                    }
+                }
+            }
+            else
+            {
+                // FM식: 모든 나라가 1~4부, 부마다 10개. 우리 루두스는 고른 부에 들어간다
+                player = null;
+                foreach (var n in new[] { nation }.Concat(Data.Nations.Select(x => x.id).Where(x => x != nation)))
+                {
+                    double strength = n == nation ? 0 : (InitialCoefficient[n] - 8) * 0.12;
+                    for (int tier = 1; tier <= FmRules.MaxTier; tier++)
+                    {
+                        bool mine = n == nation && tier == startTier;
+                        int count = teamsPerTier - (mine ? 1 : 0);
+                        double top = FmRules.RosterTarget(tier) + 0.65 + strength;
+                        for (int i = 0; i < count; i++)
+                        {
+                            string name = LudusNameGen(n);
+                            double rp = FmRules.RpBase(tier) + rng.Normal(0, tier == 1 ? 60 : 50);
+                            AddLudus(tier, false, name, rp, aiRoster, top - i * 0.15, n);
+                        }
+                        if (mine) player = AddLudus(tier, true, ludusName, FmRules.RpBase(tier) - 60, startRoster, FmRules.RosterTarget(tier) - 1.0);
+                    }
+                }
+                state.playerLudusId = player.id;
             }
             state.coefficients = new Dictionary<string, List<double>>();
             foreach (var n in Data.Nations)
@@ -163,7 +204,7 @@ namespace Colosseum.Core
                 season = 1,
                 day = 1,
                 kind = "info",
-                title = $"{nationDef.league} 2부 입성",
+                title = $"{nationDef.league} {startTier}부 입성",
                 body =
                     $"라니스타, {ludusName}의 문이 열렸습니다.\n\n" +
                     $"금고엔 {StateUtil.Locale(startTreasury)} 데나리, 막사엔 검투사 {startRoster}명이 있습니다. " +
@@ -175,7 +216,7 @@ namespace Colosseum.Core
 
             // 시즌 시작: 배당금, 무소속 명단, 일대기 첫 줄
             double promoted = (double)E["promotedDividendCoef"];
-            foreach (var l in state.ludi.Values.ToList()) Economy.PayDividend(state, l, l.isPlayer ? promoted : (double?)null);
+            foreach (var l in state.ludi.Values.ToList()) Economy.PayDividend(state, l, l.isPlayer ? (fm ? 1.0 : promoted) : (double?)null);
             StaffLogic.RefreshStaffMarket(state, rng);
             Economy.RefreshFreeAgents(state, rng);
             GearLogic.RefreshGearMarket(state, rng, true);

@@ -86,7 +86,7 @@ namespace Colosseum.UI
             if (quest == null) questId = null;
             var d = DungeonLogic.GetDungeon(quest?.dungeon ?? dungeon);
             var roster = me.gladiators.Select(id => S.gladiators.TryGetValue(id, out var g) ? g : null).Where(g => g?.alive == true)
-                .OrderByDescending(GladiatorRules.ComputeCA).ToList();
+                .OrderByDescending(g => Scouting.CaRange(S, g).mid).ToList();
             // 떠났거나 못 가게 된 검투사는 원정대에서 뺀다
             party.RemoveAll(id => !roster.Any(g => g.id == id) || DungeonLogic.CannotSend(S, S.gladiators[id]) != null);
             double wageSum = party.Sum(id => S.gladiators.TryGetValue(id, out var g) ? g.wage : 0) * Math.Ceiling(d.days / 7.0);
@@ -142,7 +142,7 @@ namespace Colosseum.UI
             });
 
             // ── 원정대 ──
-            partyTitle.text = $"◆  원정대 · {party.Count}/{DungeonLogic.MaxParty}명 → {d.name}{(quest != null ? " (토벌 의뢰)" : "")}";
+            partyTitle.text = $"◆  원정대 · {party.Count}/{DungeonLogic.MaxParty}명 → {Tips.Dungeon(d.id)}{(quest != null ? " (토벌 의뢰)" : "")}";
             partyEmpty.SetActive(roster.Count == 0);
             partyRows.Sync(roster.Count, (row, i) => BindMember(row, roster[i]));
 
@@ -191,8 +191,8 @@ namespace Colosseum.UI
             row.interactable = why == null;
             T(row.transform, "Check").text = on ? "■" : "□";
             row.GetComponentInChildren<PortraitView>(true).Show(g);
-            T(row.transform, "Name/Text").text = g.name;
-            T(row.transform, "Ca").text = Widgets.Stars(GladiatorRules.ComputeCA(g));
+            T(row.transform, "Name/Text").text = Tips.Name(g);
+            T(row.transform, "Ca").text = Widgets.CaStars(S, g);
             T(row.transform, "Why").text = why ?? (g.injury != null ? g.injury.desc : "");
             T(row.transform, "Wage").text = $"{g.wage} D";
             string id = g.id;

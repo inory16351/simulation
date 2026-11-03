@@ -74,12 +74,12 @@ namespace Colosseum.UI
             var nameBtn = row.Find("Name").GetComponent<Button>();
             nameBtn.onClick.RemoveAllListeners();
             nameBtn.onClick.AddListener(() => G.ShowGladiator(id));
-            T(row, "Name/Text").text = g.name;
+            T(row, "Name/Text").text = Tips.Name(g);
             T(row, "Race").text = Tips.Race(g.race);
             string when = ready ? "데뷔 가능" : $"데뷔까지 {Data.Race(g.race).age.debut - g.age}년";
             T(row, "Age").text = $"{g.age} <size=80%><color={Theme.Hex(ready ? Theme.Good : Theme.TextFaint)}>{when}</color></size>";
             T(row, "Style").text = Tips.Style(g.style);
-            T(row, "Ca").text = Widgets.Stars(ca);
+            T(row, "Ca").text = Widgets.CaStars(S, g);
             T(row, "Pa").text = Widgets.RangeStars(Math.Max(ca, g.hidden.pa - spread), Math.Min(200, g.hidden.pa + spread));
 
             // 훈련 내용: 학당 목록에 없는 값이면 끝에 붙여 보여 준다 (웹판 select는 빈 칸)

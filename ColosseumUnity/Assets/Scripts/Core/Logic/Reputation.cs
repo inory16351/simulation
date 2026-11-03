@@ -23,7 +23,7 @@ namespace Colosseum.Core
             var same = state.ludi.Values.Where(l => l.tier == ludus.tier && l.nation == ludus.nation).OrderByDescending(l => l.rp).ToList();
             int idx = same.FindIndex(l => l.id == ludus.id) + 1;
             int rank = idx != 0 ? idx : same.Count;
-            double b = ludus.tier == 1 ? 45 : 18;
+            double b = FmRules.Enabled ? FmRules.ReputationBase(ludus.tier) : ludus.tier == 1 ? 45 : 18;
             double rankBonus = Math.Max(0, (same.Count - rank) * 1.6);
             var stars = new List<double>();
             foreach (var id in ludus.gladiators)
@@ -48,7 +48,7 @@ namespace Colosseum.Core
 
         /// <summary>사람의 '격' 0~100</summary>
         public static double StaffStanding(Staff s) => s.rating * 5;
-        public static double GladiatorStanding(Gladiator g) => Math.Min(100, GladiatorRules.ComputeCA(g) * 0.55 + g.popularity * 0.35);
+        public static double GladiatorStanding(Gladiator g) => FmRules.Enabled ? Valuation.Standing(g) : Math.Min(100, GladiatorRules.ComputeCA(g) * 0.55 + g.popularity * 0.35);
 
         /// <summary>격이 명성보다 높을수록 더 많이 요구하고, 너무 차이 나면 거절한다.</summary>
         public static Demand DemandFor(double standing, double baseWage, double reputation)

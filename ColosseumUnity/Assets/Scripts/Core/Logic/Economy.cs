@@ -37,7 +37,7 @@ namespace Colosseum.Core
         {
             int rank = TierRanking(state, ludus.tier, ludus.nation).FindIndex(l => l.id == ludus.id) + 1;
             double c = coef ?? 1.5 - rank / (double)Data.Balance["league"]["teamsPerTier"];
-            double amount = JsMath.Round((double)E["dividendBase"][ludus.tier.ToString()] * c);
+            double amount = JsMath.Round((FmRules.Enabled ? FmRules.TierMoney("dividendBaseFm", ludus.tier) : (double)E["dividendBase"][ludus.tier.ToString()]) * c);
             ludus.treasury += amount;
             if (ludus.isPlayer)
                 state.ledger.Insert(0, new LedgerEntry { at = Calendar.AbsDay(state.season, state.day), amount = amount, desc = $"시즌 {state.season} 배당금" });
@@ -102,6 +102,9 @@ namespace Colosseum.Core
             return b;
         }
 
+        /// <summary>FM식: AI 루두스의 주간 부수입 (후원·관중 외 수입)</summary>
+        public static double AiSideIncome(int tier) => tier switch { 1 => 420, 2 => 240, 3 => 170, _ => 120 };
+
         /// <summary>급료일 처리. 돈이 모자라면 주급이 높은 순으로 주고, 못 받은 검투사는 미납이 쌓인다</summary>
         public static void Payday(GameState state, Ludus ludus)
         {
@@ -109,7 +112,7 @@ namespace Colosseum.Core
             if (!ludus.isPlayer)
             {
                 // AI 루두스는 추상적으로 처리: 급료와 식비를 내고, 상금 외 부수입을 조금 번다
-                ludus.treasury += ludus.tier == 1 ? 400 : 150;
+                ludus.treasury += FmRules.Enabled ? AiSideIncome(ludus.tier) : ludus.tier == 1 ? 400 : 150;
                 ludus.treasury -= WeeklyWages(state, ludus) + WeeklyFood(state, ludus);
                 return;
             }
@@ -158,8 +161,9 @@ namespace Colosseum.Core
         }
 
         /// <summary>시장 가격</summary>
-        public static double MarketValue(Gladiator g)
+        public static double MarketValue(Gladiator g, GameState s = null)
         {
+            if (FmRules.Enabled) return Valuation.MarketValue(s, g);
             double ca = GladiatorRules.ComputeCA(g);
             double potentialBonus = Math.Max(0, g.hidden.pa - ca) * 4;
             double ageMult = StageOf(g) switch { "youth" => 0.8, "growth" => 1.1, "prime" => 1.0, _ => 0.6 };
@@ -179,7 +183,7 @@ namespace Colosseum.Core
         {
             var g = GladiatorGen.Generate(rng, new GenOptions { id = $"G{state.nextId++}", nation = nation, target = target, status = "free", usedNames = used });
             g.popularity = Math.Min(80, g.popularity + rng.Int(0, 20));
-            g.wage = JsMath.Round(GladiatorGen.ComputeWage(g, GladiatorRules.ComputeCA(g)) * (pow ? 0.5 : 1) * Modifiers.ModifierMult(state, "market") * NationRules.RulesOfNation(state.nation).marketMult);
+            g.wage = JsMath.Round((FmRules.Enabled ? Valuation.FairWage(state, g) : GladiatorGen.ComputeWage(g, GladiatorRules.ComputeCA(g))) * (pow ? 0.5 : 1) * Modifiers.ModifierMult(state, "market") * NationRules.RulesOfNation(state.nation).marketMult);
             if (pow)
             {
                 g.morale = rng.Int(15, 35);
@@ -199,6 +203,14 @@ namespace Colosseum.Core
             return used;
         }
 
+        /// <summary>무소속 명단의 실력 기준 (우리 리그 단계에 맞춘다)</summary>
+        static double FreeAgentTarget(GameState state)
+        {
+            int tier = state.ludi[state.playerLudusId].tier;
+            if (!FmRules.Enabled) return tier == 1 ? 9 : 7;
+            return FmRules.RosterTarget(tier) - 0.5;
+        }
+
         /// <summary>무소속 검투사 명단 새로 고침 (이적 시장이 열릴 때). 실력 폭이 넓고, 협상해야 온다</summary>
         public static void RefreshFreeAgents(GameState state, Rng rng)
         {
@@ -207,7 +219,7 @@ namespace Colosseum.Core
             StateUtil.RemoveOrdered(state.gladiators, del);
             state.freeAgents = new List<string>();
             var used = UsedNames(state);
-            double b = state.ludi[state.playerLudusId].tier == 1 ? 9 : 7;
+            double b = FreeAgentTarget(state);
             // 전쟁 포로: 패전국 출신이 싼 주급에 풀린다
             if (state.powPending != null)
             {
@@ -228,7 +240,7 @@ namespace Colosseum.Core
                 state.freeAgents.RemoveAt(at);
                 if (!IsOwned(state, id)) StateUtil.RemoveOrdered(state.gladiators, id);
             }
-            double b = state.ludi[state.playerLudusId].tier == 1 ? 9 : 7;
+            double b = FreeAgentTarget(state);
             for (int i = 0; i < 2; i++) AddFreeAgent(state, rng, state.nation, b + rng.Range(-3, 6), used);
         }
 
@@ -247,8 +259,11 @@ namespace Colosseum.Core
         public static Demand FreeAgentDemand(GameState state, Gladiator g) =>
             Reputation.DemandFor(Reputation.GladiatorStanding(g), g.wage, Reputation.LudusReputation(state, state.ludi[state.playerLudusId]));
 
-        /// <summary>계약금 = 제안 주급 4주치</summary>
+        /// <summary>계약금 = 제안 주급 4주치 (웹판)</summary>
         public static double SigningFee(double offer) => offer * 4;
+
+        /// <summary>계약 조건의 계약금: FM식은 협상 창에서 정한 값, 웹판은 주급 4주치</summary>
+        public static double SigningFeeOf(ContractTerms t) => FmRules.Enabled ? t.signingFee : SigningFee(t.wage);
 
         /// <summary>실패하면 이유, 성공하면 null</summary>
         public static string SignFreeAgent(GameState state, string id, double offer, int seasons, double roll)
@@ -265,15 +280,21 @@ namespace Colosseum.Core
                 state.freeAgents = state.freeAgents.Where(x => x != id).ToList();
                 return $"{Josa.J(g.name, "이/가")} 제안을 거절하고 다른 루두스로 갔습니다 (바라던 주급 {StateUtil.Num(d.wage)} D)";
             }
-            JoinFreeAgent(state, id, offer, seasons);
+            JoinFreeAgent(state, id, new ContractTerms { wage = offer, seasons = seasons, signingFee = SigningFee(offer) });
             return null;
         }
 
         public static string WageKey(string id) => "wage:" + id;
 
         /// <summary>무소속 검투사와 주급 흥정 (Unity판 전용). 깨지면 한동안 상대하지 않는다</summary>
-        public static HaggleResult HaggleFreeAgent(GameState state, Rng rng, string id, double offer, int seasons)
+        public static HaggleResult HaggleFreeAgent(GameState state, Rng rng, string id, double offer, int seasons) =>
+            HaggleFreeAgentTerms(state, rng, id, new ContractTerms { wage = offer, seasons = seasons });
+
+        /// <summary>무소속 검투사에게 조항째 계약을 제안한다 (협상 창)</summary>
+        public static HaggleResult HaggleFreeAgentTerms(GameState state, Rng rng, string id, ContractTerms t)
         {
+            double offer = t.wage;
+            int seasons = t.seasons;
             var player = state.ludi[state.playerLudusId];
             state.gladiators.TryGetValue(id, out var g);
             HaggleResult Err(string line) => new HaggleResult { status = "error", line = line };
@@ -281,37 +302,44 @@ namespace Colosseum.Core
             if (player.gladiators.Count >= RosterCapacity(player)) return Err("막사에 빈자리가 없습니다");
             var d = FreeAgentDemand(state, g);
             if (d.refuse) return Err($"{g.name}: {d.reason}");
-            if (player.treasury < SigningFee(offer)) return Err("계약금이 모자랍니다");
+            if (player.treasury < SigningFeeOf(t)) return Err("계약금이 모자랍니다");
             string key = WageKey(id);
             if (Haggling.IsLocked(state, key)) return new HaggleResult { status = "locked", line = Haggling.LockedLine(state, key) };
             // 답은 바로 오지 않는다: 하루이틀 뒤 서판으로 온다 (Negotiations)
-            return Negotiations.Send(state, rng, "free", id, null, offer, seasons);
+            return Negotiations.Send(state, rng, "free", id, null, offer, seasons, t);
         }
 
         /// <summary>보낸 주급 제안에 답이 올 때 (Negotiations.Daily)</summary>
-        internal static HaggleResult ResolveFreeAgent(GameState state, Rng rng, string id, double offer, int seasons)
+        internal static HaggleResult ResolveFreeAgent(GameState state, Rng rng, string id, ContractTerms t)
         {
+            double offer = t.wage;
             var player = state.ludi[state.playerLudusId];
             var g = state.gladiators[id];
             HaggleResult Err(string line) => new HaggleResult { status = "error", line = line };
             if (player.gladiators.Count >= RosterCapacity(player)) return Err("막사에 빈자리가 없어 계약하지 못했습니다");
             var d = FreeAgentDemand(state, g);
             if (d.refuse) return Err(d.reason);
-            if (player.treasury < SigningFee(offer)) return Err("계약금이 모자라 계약하지 못했습니다");
+            if (player.treasury < SigningFeeOf(t)) return Err("계약금이 모자라 계약하지 못했습니다");
             string key = WageKey(id);
-            Haggling.Open(state, rng, key, d.wage, 0.03, 0.12);
-            var res = Haggling.Offer(state, key, offer);
-            if (res.Accepted) JoinFreeAgent(state, id, offer, seasons);
+            HaggleResult res;
+            if (FmRules.Enabled) res = Contracts.Resolve(state, rng, key, g, t, d, player);
+            else
+            {
+                Haggling.Open(state, rng, key, d.wage, 0.03, 0.12);
+                res = Haggling.Offer(state, key, offer);
+            }
+            if (res.Accepted) JoinFreeAgent(state, id, t);
             return res;
         }
 
-        static void JoinFreeAgent(GameState state, string id, double offer, int seasons)
+        static void JoinFreeAgent(GameState state, string id, ContractTerms t)
         {
+            double offer = t.wage;
+            int seasons = t.seasons;
             var player = state.ludi[state.playerLudusId];
             var g = state.gladiators[id];
-            AddMoney(state, player, -SigningFee(offer), $"{g.name} 계약금");
-            g.wage = offer;
-            g.contract = new GladiatorContract { untilSeason = state.season + seasons - 1, clauses = new List<string>() };
+            AddMoney(state, player, -SigningFeeOf(t), $"{g.name} 계약금");
+            Contracts.Apply(state, g, t);
             g.status = "free";
             state.freeAgents = state.freeAgents.Where(x => x != id).ToList();
             player.gladiators.Add(id);

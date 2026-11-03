@@ -158,7 +158,7 @@ namespace Colosseum.UI
             var rt = row.Find("Vs/Rule").GetComponent<TMP_Text>();
             rt.text = RuleName(c.rule);
             rt.color = c.rule == "sudden" ? Neg : Theme.Text;
-            row.Find("Vs/Opp").GetComponent<TMP_Text>().text = opp.name;
+            row.Find("Vs/Opp").GetComponent<TMP_Text>().text = Tips.Ludus(opp);
             EnterButton(row.Find("Enter").GetComponent<Button>(), c);
         }
 
@@ -178,7 +178,7 @@ namespace Colosseum.UI
             rt.color = c.rule == "sudden" ? Neg : Theme.Text;
             row.Find("Info/Hint").GetComponent<TMP_Text>().text = $"상대: {opp.name}. 양쪽 출전자 전원이 한꺼번에 싸웁니다. 한쪽이 모두 쓰러지거나 마지막 한 명이 항복하면 끝납니다";
             var slots = row.Find("Lineup");
-            var options = new[] { "—" }.Concat(pool.Select(g => $"{g.name} · CA {GladiatorRules.ComputeCA(g)}")).ToList();
+            var options = new[] { "—" }.Concat(pool.Select(g => $"{g.name} · {Widgets.Stars(Scouting.CaRange(S, g).mid)}")).ToList();
             for (int i = 0; i < slots.childCount; i++)
             {
                 var slot = slots.GetChild(i);
@@ -229,7 +229,7 @@ namespace Colosseum.UI
             var foes = SeriesLogic.AutoLineup(S, opp, n, ChallengeLogic.Now(S));
             var fd = t.Find("Focus").GetComponent<TMP_Dropdown>();
             fd.gameObject.SetActive(policy == "focus");
-            var fOptions = new[] { "첫 목표: 상대 최강자 (자동)" }.Concat(foes.Select(g => $"첫 목표: {g.name} · CA {GladiatorRules.ComputeCA(g)}")).ToList();
+            var fOptions = new[] { "첫 목표: 상대 최강자 (자동)" }.Concat(foes.Select(g => $"첫 목표: {g.name} · {Widgets.Stars(Scouting.CaRange(S, g).mid)}")).ToList();
             if (!fd.options.Select(o => o.text).SequenceEqual(fOptions)) { fd.ClearOptions(); fd.AddOptions(fOptions); }
             fd.SetValueWithoutNotify(saved?.focusTarget == null ? 0 : foes.FindIndex(g => g.id == saved.focusTarget) + 1);
             fd.onValueChanged.RemoveAllListeners();
@@ -589,7 +589,7 @@ namespace Colosseum.UI
             if (!drawnFor.TryGetValue(box, out var was) || was != g.id) { drawnFor[box] = g.id; pv.Show(g); }
             pv.GetComponentInParent<CanvasGroup>().alpha = dead == g.id ? 0.4f : 1f;
             box.Find("Info/Name").GetComponent<TMP_Text>().text = Tips.Name(g);
-            box.Find("Info/Sub").GetComponent<TMP_Text>().text = $"{Tips.Style(g.style)} · <color={Theme.Hex(Theme.Torch)}>{Widgets.Stars(GladiatorRules.ComputeCA(g))}</color>";
+            box.Find("Info/Sub").GetComponent<TMP_Text>().text = $"{Tips.Style(g.style)} · <color={Theme.Hex(Theme.Torch)}>{Widgets.CaStars(S, g)}</color>";
             double pct = hp.TryGetValue(g.id, out var h) ? h.hp / h.max : 1;
             var fill = (RectTransform)box.Find("Info/Hp/Fill");
             fill.anchorMax = new Vector2(Mathf.Clamp01((float)pct), 1);

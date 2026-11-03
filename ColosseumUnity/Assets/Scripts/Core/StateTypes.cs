@@ -20,7 +20,14 @@ namespace Colosseum.Core
     }
 
     public class DiedAt { public int season, day; public string cause; }
-    public class GladiatorContract { public int untilSeason; public List<string> clauses = new(); }
+    public class GladiatorContract
+    {
+        public int untilSeason;
+        public List<string> clauses = new();
+        /// <summary>Unity판 전용 계약 조항 (Logic/Contracts.cs). 없으면 null</summary>
+        public double? winBonus, killBonus, promoBonus, promoRaise, relegCut, releaseClause;
+        public bool? promoExtend;
+    }
     public class Deployment { public string contractId; public double until; /** null이면 전쟁 용병 */ public string kind; }
 
     public class Facilities { public int barracks, training, medical, bath, arena, guard, academy; }
@@ -84,6 +91,8 @@ namespace Colosseum.Core
         public double rating, wage;
         public int portraitSeed;
         public string formerGladiator;
+        /// <summary>Unity판 전용 세부 능력치 1~20 (StaffLogic.AttrKeys). 없으면 rating 하나로 본다</summary>
+        public Dictionary<string, int> attrs;
     }
 
     public class Challenge
@@ -137,8 +146,36 @@ namespace Colosseum.Core
     }
 
     public class Deal { public string id, gladiatorId, fromLudus; public double fee, expiresAt; }
-    public class Offer { public string id, fromLudus, gladiatorId; public double fee, expiresAt; }
+
+    public class Offer
+    {
+        public string id, fromLudus, gladiatorId;
+        public double fee, expiresAt;
+        /// <summary>Unity판 전용: null/open = 우리 답을 기다림(결정 전엔 다음 날로 못 감), waiting = 우리 역제안에 상대 답을 기다림</summary>
+        public string status;
+        /// <summary>우리가 부른 값 (역제안)</summary>
+        public double? ask;
+        /// <summary>상대가 낼 수 있는 최대 (상대만 앎)</summary>
+        public double? maxFee;
+        public double? replyAt;
+        public int? round;
+        /// <summary>최소 이적료 조항을 건드린 제안 (거절할 수 없다)</summary>
+        public bool? clause;
+    }
+
     public class TransferState { public List<Deal> deals = new(); public List<Offer> offers = new(); }
+
+    /// <summary>Unity판 전용: 우리가 정해야 다음 날로 갈 수 있는 협상 답장 (상대의 역제안).
+    /// kind: fee(이적료 역제안) | terms(이적 개인 계약) | free(무소속 계약) | renew(재계약)</summary>
+    public class Decision
+    {
+        public string id, kind, gladiatorId, dealId, line;
+        public double counterFee, at;
+        public ContractTerms counterTerms;
+        /// <summary>우리가 낸 마지막 제안 (협상 창이 보여 준다)</summary>
+        public ContractTerms lastTerms;
+        public double lastFee;
+    }
 
     public class CupTie
     {
@@ -212,6 +249,10 @@ namespace Colosseum.Core
         public List<PendingBid> bids;
         /// <summary>Unity판 전용: 같은 검투사를 노리는 경쟁 루두스 (키: 검투사 id)</summary>
         public Dictionary<string, RivalBid> rivals;
+        /// <summary>Unity판 전용: 결정해야 다음 날로 가는 협상 역제안 (FM처럼)</summary>
+        public List<Decision> decisions;
+        /// <summary>Unity판 전용: 이적 명단에 올린 우리 검투사 (id → 희망 이적료)</summary>
+        public Dictionary<string, double> transferList;
         /// <summary>Unity판 전용: 시장에 내놓은 우리 장비</summary>
         public List<Consignment> consignments;
         /// <summary>Unity판 전용: 역대 우승 기록 (리그 1·2부, 판테온 컵). Logic/Honours.cs</summary>

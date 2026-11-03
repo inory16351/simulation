@@ -30,11 +30,18 @@ namespace Colosseum.UI
 
         public override void Refresh()
         {
+            // 다음 날로 버튼이 읽지 않은 소식을 열어 달라고 했으면 그것을
+            if (G.InboxFocus != null) { sel = G.InboxFocus; G.InboxFocus = null; }
             if (sel == null || S.inbox.All(m => m.id != sel)) sel = S.inbox.FirstOrDefault()?.id;
             double treasury = S.ludi[S.playerLudusId].treasury;
 
-            cards.Sync(S.pendingEvents.Count, (card, i) =>
+            // 결정할 일: 사건 카드 + (FM식) 받은 이적 제안·협상 역제안
+            var offers = Transfers.OpenOffers(S);
+            var decisions = S.decisions?.ToList() ?? new System.Collections.Generic.List<Decision>();
+            int events = S.pendingEvents.Count;
+            cards.Sync(events + offers.Count + decisions.Count, (card, i) =>
             {
+                if (i >= events) { BindDeal(card, i - events < offers.Count ? offers[i - events] : null, i - events < offers.Count ? null : decisions[i - events - offers.Count]); return; }
                 var p = S.pendingEvents[i];
                 var def = Events.GetEvent(p.eventId);
                 card.Find("Title").GetComponent<TMP_Text>().text = $"결정을 내려야 합니다 — {p.title}";
@@ -70,9 +77,43 @@ namespace Colosseum.UI
             });
 
             var msg = S.inbox.FirstOrDefault(m => m.id == sel);
-            readTitle.text = msg?.title ?? "";
+            readTitle.text = msg != null ? Tips.AutoLink(S, msg.title) : "";
             readMeta.text = msg != null ? $"시즌 {msg.season} · {Calendar.DateLabel(msg.day)}" : "";
-            readBody.text = msg?.body ?? "소식이 없습니다.";
+            readBody.text = msg != null ? Tips.AutoLink(S, msg.body) : "소식이 없습니다.";
+        }
+
+        /// <summary>받은 이적 제안 / 협상 역제안 카드: 협상 창을 열거나 바로 답한다</summary>
+        void BindDeal(RectTransform card, Offer o, Decision d)
+        {
+            var choiceTemplate = card.Find("Choices/ChoiceTemplate").GetComponent<Button>();
+            var choices = ChoiceList(card, choiceTemplate);
+            var acts = new System.Collections.Generic.List<(string label, System.Action act)>();
+            if (o != null)
+            {
+                var g = S.gladiators[o.gladiatorId];
+                card.Find("Title").GetComponent<TMP_Text>().text = $"결정을 내려야 합니다 — 이적 제안: {Tips.Name(g)}";
+                card.Find("Text").GetComponent<TMP_Text>().text = $"{Tips.Ludus(S.ludi[o.fromLudus])}에서 이적료 {o.fee:N0} D를 제시했습니다. 받거나, 거절하거나, 값을 다시 불러야 다음 날로 넘어갈 수 있습니다.";
+                string oid = o.id;
+                acts.Add(("협상 창 열기", () => NegotiationPopup.OpenOffer(oid)));
+                acts.Add(($"수락 ({o.fee:N0} D)", () => G.Mutate(s => Transfers.AcceptOffer(s, oid))));
+                acts.Add(("거절", () => G.Mutate(s => Transfers.RejectOffer(s, oid))));
+            }
+            else
+            {
+                card.Find("Title").GetComponent<TMP_Text>().text = $"결정을 내려야 합니다 — {Negotiations.DecisionTitle(S, d)}";
+                card.Find("Text").GetComponent<TMP_Text>().text = $"{d.line}\n다시 제안하거나 협상에서 물러서야 다음 날로 넘어갈 수 있습니다.";
+                string did = d.id;
+                acts.Add(("협상 창 열기", () => NegotiationPopup.OpenDecision(did)));
+                acts.Add(("협상에서 물러서기", () => G.Mutate(s => Negotiations.Withdraw(s, did))));
+            }
+            choices.Sync(acts.Count, (b, ci) =>
+            {
+                b.GetComponentInChildren<TMP_Text>().text = acts[ci].label;
+                b.interactable = true;
+                b.onClick.RemoveAllListeners();
+                var a = acts[ci].act;
+                b.onClick.AddListener(() => a());
+            });
         }
 
         void Open(string id)

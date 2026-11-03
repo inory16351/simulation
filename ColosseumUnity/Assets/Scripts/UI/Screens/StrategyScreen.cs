@@ -106,7 +106,7 @@ namespace Colosseum.UI
                 var g = lineup[i];
                 string role = t.roles[g.id];
                 bool chosen = saved && Player.teamTactics[Format].roles.ContainsKey(g.id);
-                row.Find("Name").GetComponent<TMP_Text>().text = $"{Tips.Name(g)}\n<size=80%><color={faint}>{Tips.Style(g.style)} · CA {GladiatorRules.ComputeCA(g)}</color></size>";
+                row.Find("Name").GetComponent<TMP_Text>().text = $"{Tips.Name(g)}\n<size=80%><color={faint}>{Tips.Style(g.style)} · {Widgets.CaStars(S, g)}</color></size>";
                 foreach (Transform c in row.Find("Roles"))
                 {
                     var b = c.GetComponent<Button>();

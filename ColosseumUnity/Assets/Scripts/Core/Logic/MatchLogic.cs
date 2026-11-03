@@ -72,6 +72,7 @@ namespace Colosseum.Core
 
             w.record.wins++;
             l.record.losses++;
+            Contracts.OnWin(state, w, opt.rule);
             w.morale = Math.Min(100, w.morale + 5);
             l.morale = Math.Max(0, l.morale - 5);
 
@@ -96,7 +97,7 @@ namespace Colosseum.Core
                 // 실전 경험: 훈련전·미시오·사투 모두 성장한다 (진 쪽도 배운다)
                 var home = Career.LudusOf(state, g.id);
                 Training.Grow(g, rng, "match",
-                    (double)rule["growthDays"] * (g == w ? 1 : 0.8) * nr.growthMult * StaffLogic.CoachMult(StaffLogic.RatingOf(state, home, "doctore")),
+                    (double)rule["growthDays"] * (g == w ? 1 : 0.8) * nr.growthMult * StaffLogic.CoachMultFor(state, home, "sense"),
                     1, home?.facilities.training ?? 1);
                 var rec = Career.SeasonRecord(state, g);
                 rec.apps++;
@@ -120,6 +121,7 @@ namespace Colosseum.Core
                 dead.injury = null;
                 dead.diedAt = new DiedAt { season = state.season, day = state.day, cause = $"{w.name}에게 패배" };
                 w.record.kills++;
+                Contracts.OnKill(state, w);
                 Career.SeasonRecord(state, w).kills++;
                 Career.LogCareer(state, w, $"{ruleName}에서 {dead.name}의 목숨을 거뒀습니다", "milestone");
                 Career.LogCareer(state, dead, $"{ruleName}에서 {w.name}에게 패해 모래 위에서 죽었습니다", "death");
@@ -182,7 +184,7 @@ namespace Colosseum.Core
 
             foreach (var (g, won) in people)
             {
-                if (won) g.record.wins++; else g.record.losses++;
+                if (won) { g.record.wins++; Contracts.OnWin(state, g, ruleId); } else g.record.losses++;
                 g.morale = won ? Math.Min(100, g.morale + 5) : Math.Max(0, g.morale - 5);
                 double cc = r.crowdContribution[g.id];
                 double fame = JsMath.Round((won ? 2 + Math.Max(0, cc) / 10 : cc / 15) * fameMult * nr.fameMult * MagicMult(g));
@@ -194,7 +196,7 @@ namespace Colosseum.Core
                 Condition.AfterMatch(g, at, ruleId);
                 var home = Career.LudusOf(state, g.id);
                 Training.Grow(g, rng, "match",
-                    (double)rule["growthDays"] * (won ? 1 : 0.8) * nr.growthMult * StaffLogic.CoachMult(StaffLogic.RatingOf(state, home, "doctore")),
+                    (double)rule["growthDays"] * (won ? 1 : 0.8) * nr.growthMult * StaffLogic.CoachMultFor(state, home, "sense"),
                     1, home?.facilities.training ?? 1);
                 var rec = Career.SeasonRecord(state, g);
                 rec.apps++;
@@ -221,6 +223,7 @@ namespace Colosseum.Core
                 dead.injury = null;
                 dead.diedAt = new DiedAt { season = state.season, day = state.day, cause = $"{w.name}에게 쓰러짐 (단체전)" };
                 w.record.kills++;
+                Contracts.OnKill(state, w);
                 Career.SeasonRecord(state, w).kills++;
                 Career.LogCareer(state, w, $"{ruleName} 단체전에서 {dead.name}의 목숨을 거뒀습니다", "milestone");
                 Career.LogCareer(state, dead, $"{ruleName} 단체전에서 {w.name}에게 쓰러져 모래 위에서 죽었습니다", "death");
@@ -248,7 +251,7 @@ namespace Colosseum.Core
             {
                 wl.matchesThisSeason++;
                 ll.matchesThisSeason++;
-                double k = (double)Data.Balance["league"]["eloK"] * (double)rule["rpMult"] * (o.rpMult ?? 1) * (wl.tier == 2 && ll.tier == 1 ? 1.25 : 1);
+                double k = (double)Data.Balance["league"]["eloK"] * (double)rule["rpMult"] * (o.rpMult ?? 1) * (FmRules.Enabled ? (wl.tier > ll.tier ? 1.25 : 1) : wl.tier == 2 && ll.tier == 1 ? 1.25 : 1);
                 double dw = EloDelta(wl.rp, ll.rp, true, k);
                 double dl = EloDelta(ll.rp, wl.rp, false, k);
                 wl.rp += dw;
@@ -260,9 +263,9 @@ namespace Colosseum.Core
             var E = Bal.Economy;
             string tier = Math.Min(wl.tier, ll.tier).ToString(CultureInfo.InvariantCulture);
             double mult = o.moneyMult ?? 1;
-            double purse = JsMath.Round((double)E["purse"][tier] * (double)rule["purseMult"] * nr.purseMult * (ruleId == "sudden" ? nr.suddenPurseMult : 1) * mult);
+            double purse = JsMath.Round((FmRules.Enabled ? FmRules.TierMoney("purseFm", Math.Min(wl.tier, ll.tier)) : (double)E["purse"][tier]) * (double)rule["purseMult"] * nr.purseMult * (ruleId == "sudden" ? nr.suddenPurseMult : 1) * mult);
             double crowdFactor = 0.5 + o.popularity / 200 + o.crowd / 200;
-            double baseTickets = JsMath.Round((double)E["ticketIncome"][tier] * (double)rule["ticketMult"] * crowdFactor * Modifiers.ModifierMult(state, "ticket") * nr.ticketMult * mult);
+            double baseTickets = JsMath.Round((FmRules.Enabled ? FmRules.TierMoney("ticketIncomeFm", Math.Min(wl.tier, ll.tier)) : (double)E["ticketIncome"][tier]) * (double)rule["ticketMult"] * crowdFactor * Modifiers.ModifierMult(state, "ticket") * nr.ticketMult * mult);
             string homeId = o.homeLudusId ?? ll.id;
             // 홈 경기장이 클수록 관중 수입이 늘어난다
             int arena = state.ludi.TryGetValue(homeId, out var homeLudus) ? homeLudus.facilities.arena : 1;

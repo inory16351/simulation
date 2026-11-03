@@ -70,13 +70,14 @@ namespace Colosseum.UI
 
         /// <summary>메인 메뉴로 가기 전에 묻는다 (ESC·사이드바 버튼 공통)</summary>
         static void AskToLobby() =>
-            ConfirmPopup.Ask("메인 메뉴로 이동하시겠습니까?", "지금까지 진행한 내용은 저장됩니다.", () => GameController.I.ToLobby());
+            ConfirmPopup.Ask("메인 메뉴로 나가시겠습니까?", "지금까지 진행한 내용은 저장됩니다.", () => GameController.I.ToLobby());
 
         /// <summary>스페이스 키 = 다음 날로 버튼. 글 입력·드롭다운 펼침 중에는 막는다</summary>
         void Update()
         {
             if (!Input.GetKeyDown(KeyCode.Space)) return;
             if (ConfirmPopup.I != null && ConfirmPopup.I.IsOpen) return;
+            if (NegotiationPopup.IsOpen) return;
             if (!gameRoot.activeInHierarchy || !nextButton.gameObject.activeInHierarchy || !nextButton.interactable) return;
             var sel = UnityEngine.EventSystems.EventSystem.current?.currentSelectedGameObject;
             if (sel != null && (sel.GetComponent<TMP_InputField>()?.isFocused == true || sel.GetComponentInParent<TMP_Dropdown>()?.IsExpanded == true)) return;
@@ -128,8 +129,8 @@ namespace Colosseum.UI
             var tierLudi = s.ludi.Values.Where(l => l.tier == p.tier && l.nation == s.nation).OrderByDescending(l => l.rp).ToList();
             int rank = tierLudi.FindIndex(l => l.id == p.id) + 1;
             crest.sprite = Resources.Load<Sprite>($"Art/crest/{s.nation}");
-            clubName.text = p.name;
-            clubSub.text = $"{nation.league} {p.tier}부 · {rank}위 · RP {p.rp}";
+            clubName.text = Tips.Ludus(p);
+            clubSub.text = $"{Tips.League(s.nation, p.tier)} · {rank}위 · RP {p.rp}";
             dateText.text = $"시즌 {s.season} · {Calendar.DateLabel(s.day)}";
             var (open, windowDays, _) = Transfers.WindowState(s);
             string window = open ? $"<color={Theme.Hex(Theme.Good)}>이적 시장 {(windowDays == 0 ? "오늘 마감" : $"{windowDays}일 남음")}</color>" : $"이적 시장 {windowDays}일 뒤 개장";
@@ -143,9 +144,11 @@ namespace Colosseum.UI
             wagesText.text = Tips.Pay(bill > p.treasury ? $"<color={Theme.Hex(Theme.Blood)}>{billText}</color>" : billText);
 
             var blocked = Day.Blockers(s);
+            int unreadNow = s.inbox.Count(m => !m.read);
             skipButton.interactable = blocked.Count == 0;
             nextButton.interactable = s.gameOver == null;
-            nextLabel.text = blocked.Count > 0 ? "처리할 일이 있습니다" : "다음 날로 ▶";
+            // FM처럼: 읽지 않은 소식부터 차례로, 그다음 정할 일, 그다음 날
+            nextLabel.text = unreadNow > 0 ? $"새 소식 읽기 ({unreadNow}) ▶" : blocked.Count > 0 ? "처리할 일이 있습니다 ▶" : "다음 날로 ▶";
 
             var alerts = G.Alerts();
             alertBar.SetActive(alerts.Count > 0);

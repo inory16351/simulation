@@ -204,7 +204,7 @@ namespace Colosseum.UI
                 (levy ? $"  <size=75%><color={Theme.Hex(Neg)}>[징발령]</color></size>" : "");
             T(card, "Head/Info/Desc").text = $"{spec?.desc} · 적: {Data.Nation(c.enemy).@short}";
             T(card, "Head/Terms/Pay").text = $"1인당 <b>{c.pay:N0} D</b> (선금 30%)";
-            T(card, "Head/Terms/Detail").text = $"{N(c.slots)}명까지 · {N(c.days)}일 · CA {N(c.minCA)} 이상 · 마감 {N(c.expiresAt - t)}일";
+            T(card, "Head/Terms/Detail").text = $"{N(c.slots)}명까지 · {N(c.days)}일 · 실력 {Widgets.Stars(c.minCA)} 이상 · 마감 {N(c.expiresAt - t)}일";
 
             string blocked = WarLogic.CanTake(S, c);
             var blockedText = T(card, "Blocked");
@@ -229,7 +229,7 @@ namespace Colosseum.UI
                 b.GetComponentInChildren<PortraitView>(true).Show(g);
                 T(b.transform, "Name").text = g.name;
                 // 웹판은 title(마우스 올림)로 이유를 보였다. 여기선 별 자리에 옅게
-                T(b.transform, "Stars").text = why != null ? $"<color={Theme.Hex(Theme.TextFaint)}>{why}</color>" : Widgets.Stars(GladiatorRules.ComputeCA(g));
+                T(b.transform, "Stars").text = why != null ? $"<color={Theme.Hex(Theme.TextFaint)}>{why}</color>" : Widgets.CaStars(S, g);
                 b.interactable = why == null;
                 b.GetComponent<Image>().color = on ? Theme.Torch : Theme.Line;
                 b.transform.Find("Fill").GetComponent<Image>().color = on ? Color.Lerp(Theme.Bg2, Theme.Torch, 0.12f) : Theme.Bg2;

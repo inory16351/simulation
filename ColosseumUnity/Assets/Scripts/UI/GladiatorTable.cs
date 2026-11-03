@@ -52,7 +52,7 @@ namespace Colosseum.UI
             "wage" => list.OrderByDescending(g => g.wage),
             "morale" => list.OrderByDescending(g => g.morale),
             "name" => list.OrderBy(g => g.name, StringComparer.Ordinal),
-            _ => list.OrderByDescending(GladiatorRules.ComputeCA),
+            _ => list.OrderByDescending(g => Scouting.CaRange(GameController.I.State, g).mid),
         };
 
         void Draw()
@@ -78,7 +78,7 @@ namespace Colosseum.UI
             Txt(t, "Race", Tips.Race(g.race), text);
             Txt(t, "Age", $"{g.age} <size=75%><color={Theme.Hex(Theme.TextFaint)}>{GladiatorRules.AgeStageNames[stage]}</color></size>", text);
             Txt(t, "Style", Tips.Style(g.style), text);
-            Txt(t, "Ca", Widgets.Stars(ca), Theme.Torch);
+            Txt(t, "Ca", Widgets.CaStars(GameController.I.State, g), Theme.Torch);
             var pa = t.Find("Pa");
             if (pa != null)
             {

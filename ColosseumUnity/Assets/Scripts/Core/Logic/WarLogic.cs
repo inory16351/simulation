@@ -56,6 +56,10 @@ namespace Colosseum.Core
 
         public static List<War> ActiveWars(GameState s) => s.wars.Where(w => !w.over).ToList();
 
+        /// <summary>두 나라가 지금 전쟁 중인가 (같은 나라면 false)</summary>
+        public static bool AtWar(GameState s, string a, string b) =>
+            a != b && s.wars != null && s.wars.Any(w => !w.over && ((w.a == a && w.b == b) || (w.a == b && w.b == a)));
+
         public static double FavorOf(GameState s, string n)
         {
             var f = s.ludi[s.playerLudusId].favor;
@@ -185,7 +189,7 @@ namespace Colosseum.Core
             if (!g.alive) return "사망";
             if (g.deployment != null) return "이미 파견 중";
             if (g.injury?.severity == "serious") return "중상";
-            if (GladiatorRules.ComputeCA(g) < c.minCA) return $"능력 부족 (CA {Num(c.minCA)} 필요)";
+            if (GladiatorRules.ComputeCA(g) < c.minCA) return FmRules.Enabled ? "능력이 이 의뢰에 못 미칩니다" : $"능력 부족 (CA {Num(c.minCA)} 필요)";
             if (s.challenges.Any(x => x.status == "scheduled" && (x.fromGladiator == g.id || x.toGladiator == g.id))) return "경기가 잡혀 있습니다";
             return null;
         }

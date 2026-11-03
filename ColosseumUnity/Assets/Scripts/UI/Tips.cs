@@ -36,6 +36,67 @@ namespace Colosseum.UI
         /// <summary>장비 이름 (등급 색, 올리면 성능, 누르면 장비 카드)</summary>
         public static string Item(string id) => string.IsNullOrEmpty(id) ? "" : $"<link=\"item:{id}\">{Widgets.ItemLabel(id)}</link>";
 
+        // ── 저장된 글(서판 소식 등)에 링크 입히기 ──
+
+        static System.Text.RegularExpressions.Regex autoRe;
+        static Dictionary<string, string> autoMap;
+        static int autoStamp = -1;
+        static GameState autoState;
+
+        /// <summary>글 속의 루두스·검투사·식솔·나라·리그·컵 이름을 링크로 바꾼다 (FM처럼 웬만한 이름은 눌러 볼 수 있게).
+        /// 서판 소식은 만들 때 글자로 저장되므로 보여 줄 때 입힌다. 이미 링크·태그가 든 글은 그대로 둔다</summary>
+        public static string AutoLink(GameState s, string text)
+        {
+            if (s == null || string.IsNullOrEmpty(text) || text.Contains("<link")) return text;
+            if (autoState != s || autoStamp != s.nextId)
+            {
+                autoState = s;
+                autoStamp = s.nextId;
+                autoMap = new Dictionary<string, string>();
+                void Add(string name, string link)
+                {
+                    if (string.IsNullOrEmpty(name) || name.Length < 2 || autoMap.ContainsKey(name)) return;
+                    autoMap[name] = $"<link=\"{link}\">{name}</link>";
+                }
+                foreach (var n in Data.Nations)
+                {
+                    for (int t = 1; t <= FmRules.MaxTier; t++) Add(Honours.LeagueName(n.id, t), $"comp:league:{n.id}:{t}");
+                    Add(n.name, "nation:" + n.id);
+                }
+                Add(Honours.CupName, "comp:cup");
+                foreach (var l in s.ludi.Values) Add(l.name, "ludus:" + l.id);
+                foreach (var st in s.staff.Values) if (st.name.Contains(' ')) Add(st.name, "person:" + st.id);
+                // 한 단어 이름은 다른 낱말과 겹치기 쉬워 두 단어(이름 성)이거나 세 글자 이상만
+                foreach (var g in s.gladiators.Values) if (g.name.Contains(' ') || g.name.Length >= 3) Add(g.name, "g:" + g.id);
+                var keys = autoMap.Keys.OrderByDescending(k => k.Length).Select(System.Text.RegularExpressions.Regex.Escape);
+                autoRe = new System.Text.RegularExpressions.Regex($"(?<![가-힣A-Za-z])(?:{string.Join("|", keys)})", System.Text.RegularExpressions.RegexOptions.CultureInvariant);
+            }
+            return autoRe.Replace(text, m => autoMap.TryGetValue(m.Value, out var v) ? v : m.Value);
+        }
+
+        /// <summary>식솔 이름 (올리면 역할·핵심 능력치, 누르면 세부 능력치 카드)</summary>
+        public static string Person(Staff s) => s == null ? "" : $"<link=\"person:{s.id}\">{s.name}</link>";
+
+        /// <summary>식솔 능력치 이름 (올리면 하는 일)</summary>
+        public static string StaffAttr(string key) => $"<link=\"sattr:{key}\">{StaffLogic.AttrNames[key]}</link>";
+
+        /// <summary>역할에 중요한 능력치 한 줄: "신체 지도 14 · 기술 지도 12 · 정신 지도 9 · 전술 지도 11"</summary>
+        public static string StaffKeyAttrs(Staff s, bool links = false, int top = 0)
+        {
+            if (s == null) return "";
+            var keys = StaffLogic.RoleWeights[s.role].Where(x => x.w >= 1).Select(x => x.key);
+            // 좁은 칸에는 가장 잘하는 것 몇 개만 (전부는 툴팁·카드로)
+            if (top > 0) keys = keys.OrderByDescending(k => StaffLogic.Attr(s, k)).Take(top);
+            return string.Join(" · ", keys.Select(k => $"{(links ? StaffAttr(k) : StaffLogic.AttrNames[k])} {StaffLogic.Attr(s, k)}"));
+        }
+
+        static string PersonTip(string id)
+        {
+            var st = GameController.I?.State;
+            if (st == null || !st.staff.TryGetValue(id, out var s)) return null;
+            return $"<b>{s.name}</b>  <color={Theme.Hex(Theme.TextDim)}>{StaffLogic.RoleNames[s.role]} · 평점 {StateUtil.Num(s.rating)} · {StateUtil.Num(s.age)}세</color>\n{StaffKeyAttrs(s)}{More}";
+        }
+
         /// <summary>링크 id에 맞는 툴팁 글. 툴팁 없이 누르기만 하는 링크면 null</summary>
         public static string For(string link)
         {
@@ -57,6 +118,8 @@ namespace Colosseum.UI
                 "racial" => RacialTip(id),
                 "role" => Tactics.RoleDesc.TryGetValue(id, out var rd) ? $"<b>{Tactics.RoleNames[id]}</b>\n{rd}" : null,
                 "staff" => StaffLogic.RoleDesc.TryGetValue(id, out var sd) ? $"<b>{StaffLogic.RoleNames[id]}</b>\n{sd}" : null,
+                "person" => PersonTip(id),
+                "sattr" => StaffLogic.AttrDesc.TryGetValue(id, out var ad) ? $"<b>{StaffLogic.AttrNames[id]}</b>\n{ad}" : null,
                 _ => null,
             };
         }

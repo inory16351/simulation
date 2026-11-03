@@ -15,14 +15,14 @@ namespace Colosseum.Core
 
         public static string LeagueName(string nation, int tier) => $"{Data.Nation(nation).@short} {tier}부 리그";
 
-        /// <summary>시즌 종료 직전(승강 반영 전)에 부른다. promoted·relegated는 우리 나라의 승강 명단</summary>
+        /// <summary>시즌 종료 직전(승강 반영 전)에 부른다. promoted·relegated는 승강 명단 (FM식이면 모든 나라)</summary>
         public static void RecordSeason(GameState state, ICollection<Ludus> promoted, ICollection<Ludus> relegated)
         {
             if (!Enabled) return;
             state.honours ??= new List<HonourEntry>();
             bool cupDone = state.cup?.season == state.season && !string.IsNullOrEmpty(state.cup.champion);
             foreach (var n in Data.Nations)
-                for (int tier = 1; tier <= 2; tier++)
+                for (int tier = 1; tier <= FmRules.MaxTier; tier++)
                 {
                     var table = Economy.TierRanking(state, tier, n.id);
                     if (table.Count == 0) continue;

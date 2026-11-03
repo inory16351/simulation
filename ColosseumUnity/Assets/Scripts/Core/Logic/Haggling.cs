@@ -19,6 +19,8 @@ namespace Colosseum.Core
         public string status;
         public double counter;
         public string line;
+        /// <summary>계약 협상의 역제안 조건 (Unity판, Contracts.Resolve)</summary>
+        public ContractTerms terms;
         public bool Accepted => status == "accepted";
     }
 

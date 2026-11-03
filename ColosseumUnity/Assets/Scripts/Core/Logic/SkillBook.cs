@@ -62,7 +62,7 @@ namespace Colosseum.Core
         }
 
         /// <summary>머리 3줄(열 이름·자료형·설명)을 건너뛰고 열 이름 → 값 사전으로</summary>
-        static List<Dictionary<string, string>> Rows(string csv)
+        internal static List<Dictionary<string, string>> Rows(string csv)
         {
             var lines = csv.Replace("\r", "").Split('\n').Where(l => l.Length > 0).ToList();
             var cols = Split(lines[0]);

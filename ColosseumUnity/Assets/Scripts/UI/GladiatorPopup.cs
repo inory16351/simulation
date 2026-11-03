@@ -71,7 +71,7 @@ namespace Colosseum.UI
             subText.text = $"{Tips.Race(g.race)} · {Tips.Style(g.style)} · {g.age}세 <color={faint}>({GladiatorRules.AgeStageNames[GladiatorRules.AgeStage(g)]})</color> · {Tips.Nation(g.nation, true)} 출신";
 
             int ca = GladiatorRules.ComputeCA(g);
-            string caText = isMine ? $"<color={torch}>{Widgets.Stars(ca)}</color> <color={faint}>(CA {ca})</color>"
+            string caText = isMine ? $"<color={torch}>{Widgets.CaStars(s, g)}</color>"
                 : RangeStars(Scouting.CaRange(s, g));
             var pr = Scouting.PaRange(s, g);
             string state = !g.alive ? $"<color={Theme.Hex(Neg)}>사망 — {g.diedAt?.cause}</color>"

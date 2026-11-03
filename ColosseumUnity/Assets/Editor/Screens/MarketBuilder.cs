@@ -106,6 +106,7 @@ namespace Colosseum.EditorTools
             Cell(Text("Wage", mrow, "", 14, Theme.Text, false, FontStyles.Normal, TextAlignmentOptions.MidlineRight).rectTransform, 110);
             Cell(Text("Value", mrow, "", 14, Theme.Text, false, FontStyles.Normal, TextAlignmentOptions.MidlineRight).rectTransform, 160);
             Rect("Gap", mrow).Layout(flexW: 1);
+            Button("List", mrow, "이적 명단", false, 14).Layout(minW: 170, prefW: 170, prefH: 30, flexW: 0);
             var rel = Button("Release", mrow, "방출", false, 14).Layout(minW: 200, prefW: 200, prefH: 30, flexW: 0);
             rel.GetComponent<Image>().color = Theme.Blood;
             mrow.gameObject.SetActive(false);

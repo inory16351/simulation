@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- 밸런스 시뮬레이션: Unity 없이 Colosseum.Core.dll을 직접 불러 돌린다. 먼저 dotnet build Colosseum.Core.csproj -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <NoWarn>CS1701;CS1702</NoWarn>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Colosseum.Core"><HintPath>../../Temp/bin/Debug/Colosseum.Core.dll</HintPath></Reference>
+    <Reference Include="Newtonsoft.Json"><HintPath>$(NewtonsoftDir)/Newtonsoft.Json.dll</HintPath></Reference>
+    <Reference Include="UnityEngine.CoreModule"><HintPath>C:/Program Files/Unity/Hub/Editor/6000.3.19f1/Editor/Data/Managed/UnityEngine/UnityEngine.CoreModule.dll</HintPath></Reference>
+  </ItemGroup>
+</Project>

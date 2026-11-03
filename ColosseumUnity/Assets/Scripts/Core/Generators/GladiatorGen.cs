@@ -21,6 +21,7 @@ namespace Colosseum.Core
 
         static string UniqueName(Rng rng, string raceId, string gender, HashSet<string> used)
         {
+            if (NameBook.Ready) return NameBook.PersonName(rng, raceId, gender, used);
             var female = new HashSet<string>(Data.Names.female);
             var pool = Data.Names.gladiator[raceId].Where(n => female.Contains(n) == (gender == "f")).ToList();
             string name = rng.Pick(pool);
@@ -108,7 +109,7 @@ namespace Colosseum.Core
             double stageGap = age <= race.age.growthEnd ? rng.Range(15, 70) : rng.Range(0, 20);
             g.hidden.pa = (int)Clamp(JsMath.Round(ca + stageGap), ca, opt.paCap ?? 200);
             g.wage = ComputeWage(g, ca);
-            if (g.popularity >= 40 && rng.Chance(0.5)) g.nickname = rng.Pick(Data.Names.epithet);
+            if (g.popularity >= 40 && rng.Chance(0.5)) g.nickname = NameBook.Ready ? NameBook.Epithet(rng) : rng.Pick(Data.Names.epithet);
             // 외형은 태어날 때 정해지고 바뀌지 않는다
             var look = Avatar.Make(g);
             g.portrait = new Dictionary<string, string>

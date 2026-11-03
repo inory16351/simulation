@@ -1,0 +1,276 @@
+// 밸런스 시뮬레이션 (Unity 없이): 전투(능력 차이별 승률·능력치별 영향·스타일 상성·교범·운)와 경제(시작 리그별 금고 흐름), 하루 처리 속도.
+// 사용 (ColosseumUnity 폴더에서): dotnet build Colosseum.Core.csproj && dotnet run --project Tools/BalanceSim -- combat|econ|all
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
+using System.Reflection;
+using Colosseum.Core;
+using Colosseum.Core.Combat;
+
+class Program
+{
+    static int Signed;
+    static int Main(string[] args)
+    {
+        Console.OutputEncoding = System.Text.Encoding.UTF8;
+        Data.LoadFrom(n => File.ReadAllText($"Assets/Resources/Data/{n}.json"));
+        SkillBook.LoadFrom(n => File.ReadAllText($"Tables/{n}.csv"));
+        NameBook.LoadFrom(n => File.ReadAllText($"Tables/{n}.csv"));
+        string mode = args.Length > 0 ? args[0] : "all";
+        if (mode is "combat" or "all") Combat();
+        if (mode is "econ" or "all") Econ(args.Length > 1 ? int.Parse(args[1]) : 2);
+        return 0;
+    }
+
+    static Gladiator Gen(Rng rng, string id, double target, string style = null, string nation = "aurelia") =>
+        GladiatorGen.Generate(rng, new GenOptions { id = id, nation = nation, target = target, style = style, age = 26 });
+
+    static Gladiator Clone(Gladiator g, string id)
+    {
+        var c = MatchLogic.CloneGladiator(g);
+        c.id = id;
+        return c;
+    }
+
+    static bool AWins(Gladiator a, Gladiator b, uint seed, Doctrine da = null, Doctrine db = null)
+    {
+        var r = Sim.Run(Clone(a, "A"), Clone(b, "B"), new MatchOptions { rule = "missio", seed = seed, medicalLevel = new double[] { 1, 1 }, noDeath = true, doctrines = da != null || db != null ? new[] { da ?? a.doctrine, db ?? b.doctrine } : null });
+        return r.winnerId == "A";
+    }
+
+    static void Combat()
+    {
+        var sw = Stopwatch.StartNew();
+        var rng = new Rng(777);
+        Console.WriteLine("== 능력(CA) 차이별 강자 승률 ==");
+        var buckets = new SortedDictionary<int, (int win, int n)>();
+        for (int i = 0; i < 2500; i++)
+        {
+            double t = rng.Range(5, 14);
+            var a = Gen(rng, "A", t);
+            var b = Gen(rng, "B", t + rng.Range(-3, 3));
+            int ca = GladiatorRules.ComputeCA(a), cb = GladiatorRules.ComputeCA(b);
+            int gap = Math.Abs(ca - cb);
+            int key = gap < 5 ? 0 : gap < 10 ? 5 : gap < 15 ? 10 : gap < 20 ? 15 : gap < 30 ? 20 : 30;
+            bool strongA = ca >= cb;
+            bool aw = AWins(a, b, (uint)(i * 7 + 1));
+            var (w, n) = buckets.TryGetValue(key, out var x) ? x : (0, 0);
+            buckets[key] = (w + (aw == strongA ? 1 : 0), n + 1);
+        }
+        foreach (var (k, (w, n)) in buckets) Console.WriteLine($"  CA 차이 {k,2}+ : 강자 승률 {100.0 * w / n,5:0.0}%  ({n}판)");
+
+        Console.WriteLine("\n== 능력치 하나 +4 의 효과 (같은 검투사끼리, 올린 쪽 승률) ==");
+        var bases = Enumerable.Range(0, 60).Select(i => Gen(rng, "A", 9 + rng.Range(-1, 1))).ToList();
+        var effects = new List<(string, double)>();
+        foreach (var attr in Attrs.All)
+        {
+            int win = 0, n = 0;
+            foreach (var g in bases)
+            {
+                var up = Clone(g, "B");
+                up.attrs[attr] = Math.Min(20, up.attrs[attr] + 4);
+                for (uint s = 1; s <= 6; s++)
+                {
+                    // 자리 편향을 없애려고 좌우를 번갈아
+                    bool upWins = s % 2 == 0 ? !AWins(g, up, s * 13 + (uint)n) : AWins(up, g, s * 13 + (uint)n);
+                    if (upWins) win++;
+                    n++;
+                }
+            }
+            effects.Add((attr, 100.0 * win / n));
+        }
+        foreach (var (a, p) in effects.OrderByDescending(e => e.Item2)) Console.WriteLine($"  {a,-7} {Attrs.Names[a],-8} {p,5:0.0}%");
+        {
+            int w = 0, n = 0;
+            foreach (var g in bases) for (uint s = 1; s <= 6; s++) { if (AWins(g, Clone(g, "B"), s * 17 + (uint)n)) w++; n++; }
+            Console.WriteLine($"  (자리 A 승률, 같은 검투사끼리: {100.0 * w / n:0.0}%)");
+        }
+
+        Console.WriteLine("\n== 스타일 상성 (비슷한 능력, 상성 우위 쪽 승률) ==");
+        var styles = Data.Styles.Select(s => s.id).ToList();
+        int cw = 0, cn = 0, nw = 0, nn = 0;
+        for (int i = 0; i < 1200; i++)
+        {
+            string sa = rng.Pick(styles), sb = rng.Pick(styles);
+            if (sa == sb) continue;
+            double t = rng.Range(7, 12);
+            var a = Gen(rng, "A", t, sa);
+            var b = Gen(rng, "B", t, sb);
+            bool aw = AWins(a, b, (uint)(i * 3 + 5));
+            bool counters = Data.Style(sa).counters?.Contains(sb) == true;
+            bool countered = Data.Style(sb).counters?.Contains(sa) == true;
+            if (counters && !countered) { cw += aw ? 1 : 0; cn++; }
+            else if (!counters && !countered) { nw += aw ? 1 : 0; nn++; }
+        }
+        Console.WriteLine($"  상성 우위: {100.0 * cw / Math.Max(1, cn):0.0}% ({cn}판), 상성 없음: {100.0 * nw / Math.Max(1, nn):0.0}% ({nn}판)");
+
+        Console.WriteLine("\n== 교범 (같은 검투사, 기본 교범 대비 자세만 바꿨을 때 승률) ==");
+        foreach (var stance in new[] { "assault", "bulwark", "harass", "blitz", "showman" })
+        {
+            int w = 0, n = 0;
+            foreach (var g in bases.Take(20))
+            {
+                var d = MatchLogic.CloneGladiator(g).doctrine ?? GladiatorRules.DefaultDoctrine(g);
+                d.stance = stance;
+                for (uint s = 1; s <= 8; s++)
+                {
+                    bool dw = s % 2 == 0 ? AWins(g, g, s * 31 + (uint)n, d, null) : !AWins(g, g, s * 31 + (uint)n, null, d);
+                    if (dw) w++;
+                    n++;
+                }
+            }
+            Console.WriteLine($"  {stance,-8} {100.0 * w / n,5:0.0}%");
+        }
+
+        Console.WriteLine("\n== 전술: 상대 기본 자세를 이기는 자세로 바꿨을 때 (비슷한 능력, 다른 검투사) ==");
+        {
+            string Beat(string st) => st switch { "harass" => "assault", "bulwark" => "harass", "assault" => "bulwark", "showman" => "assault", _ => "blitz" };
+            int w0 = 0, w1 = 0, n = 0;
+            for (int i = 0; i < 400; i++)
+            {
+                double t = rng.Range(7, 12);
+                var a = Gen(rng, "A", t); var b = Gen(rng, "B", t);
+                var da = MatchLogic.CloneGladiator(a).doctrine ?? GladiatorRules.DefaultDoctrine(a);
+                da.stance = Beat((b.doctrine ?? GladiatorRules.DefaultDoctrine(b)).stance);
+                uint seed = (uint)(i * 11 + 3);
+                if (AWins(a, b, seed)) w0++;
+                if (AWins(a, b, seed, da, null)) w1++;
+                n++;
+            }
+            Console.WriteLine($"  기본 자세 {100.0 * w0 / n:0.0}% → 상성 자세 {100.0 * w1 / n:0.0}%");
+        }
+
+        Console.WriteLine("\n== 운: CA 차이 8~14인 두 검투사 40쌍, 쌍마다 60번 → 강자 승률 분포 ==");
+        {
+            var ps = new List<double>();
+            var rounds = new List<double>();
+            for (int tries = 0; ps.Count < 40 && tries < 5000; tries++)
+            {
+                double t = rng.Range(6, 13);
+                var a = Gen(rng, "A", t + 0.6); var b = Gen(rng, "B", t);
+                int d = GladiatorRules.ComputeCA(a) - GladiatorRules.ComputeCA(b);
+                if (d < 8 || d > 14) continue;
+                int w = 0;
+                for (uint s = 1; s <= 60; s++)
+                {
+                    var r = s % 2 == 0
+                        ? Sim.Run(Clone(a, "A"), Clone(b, "B"), new MatchOptions { rule = "missio", seed = s * 101 + (uint)tries, medicalLevel = new double[] { 1, 1 }, noDeath = true })
+                        : Sim.Run(Clone(b, "B"), Clone(a, "A"), new MatchOptions { rule = "missio", seed = s * 101 + (uint)tries, medicalLevel = new double[] { 1, 1 }, noDeath = true });
+                    if (r.winnerId == "A") w++;
+                    rounds.Add(r.rounds);
+                }
+                ps.Add(w / 60.0);
+            }
+            ps.Sort();
+            Console.WriteLine($"  평균 {ps.Average() * 100:0.0}% · 하위 25% {ps[ps.Count / 4] * 100:0}% · 중앙 {ps[ps.Count / 2] * 100:0}% · 상위 25% {ps[ps.Count * 3 / 4] * 100:0}% · 90% 넘는 쌍 {ps.Count(p => p > 0.9)}개 · 약자가 더 이긴 쌍 {ps.Count(p => p < 0.5)}개 · 평균 {rounds.Average():0.0}라운드");
+        }
+        Console.WriteLine($"\n(전투 {sw.Elapsed.TotalSeconds:0.0}초)");
+    }
+
+    // ── 경제 ──
+
+    static void Econ(int seasons)
+    {
+        for (int tier = 1; tier <= 4; tier++)
+        {
+            var sw = Stopwatch.StartNew();
+            Signed = 0;
+            var s = World.NewGame(1000 + tier, "aurelia", "시험 루두스", tier);
+            var rng = new Rng((uint)(99 + tier));
+            var me = s.ludi[s.playerLudusId];
+            Console.WriteLine($"\n== {tier}부 시작: 금고 {me.treasury:N0} D, 검투사 {me.gladiators.Count}명, 주급 합 {Economy.WeeklyWages(s, me):N0} D, 루두스 {s.ludi.Count}개, 검투사 {s.gladiators.Count}명 ==");
+            int days = 0;
+            var income = new Dictionary<string, double>();
+            double minTreasury = me.treasury;
+            int startSeason = s.season;
+            while (s.season < startSeason + seasons && s.gameOver == null)
+            {
+                int ledgerBefore = s.ledger.Count;
+                var before = s.ledger.FirstOrDefault();
+                Autoplay(s, rng);
+                days++;
+                foreach (var e in s.ledger.TakeWhile(e => e != before))
+                {
+                    string k = Category(e.desc);
+                    income[k] = (income.TryGetValue(k, out var v) ? v : 0) + e.amount;
+                }
+                minTreasury = Math.Min(minTreasury, me.treasury);
+                if (s.day == 1 && days > 1)
+                {
+                    var rank = Economy.TierRanking(s, me.tier, me.nation).FindIndex(l => l.isPlayer) + 1;
+                    var last = me.seasons?.LastOrDefault();
+                    Console.WriteLine($"  시즌 {s.season - 1} 끝: {last?.tier}부 {last?.rank}위 {last?.wins}승 {last?.losses}패 → 지금 {me.tier}부 · 금고 {me.treasury:N0} D · 최저 {minTreasury:N0} D · 검투사 {me.gladiators.Count}명 주급 {Economy.WeeklyWages(s, me):N0}/주 · 영입 {Signed}명 · 전사 {s.fallen.Count(id => me.gladiators.Contains(id) || true)}");
+                    minTreasury = me.treasury;
+                }
+            }
+            if (s.gameOver != null) Console.WriteLine($"  게임 오버: {s.gameOver}");
+            Console.WriteLine($"  하루 평균 {sw.Elapsed.TotalMilliseconds / Math.Max(1, days):0} ms");
+            foreach (var (k, v) in income.OrderByDescending(x => x.Value)) Console.WriteLine($"    {k,-14} {v,10:N0}");
+        }
+    }
+
+    static string Category(string desc)
+    {
+        if (desc.Contains("배당")) return "배당금";
+        if (desc.Contains("상금")) return "상금·관중";
+        if (desc.Contains("주급")) return "주급";
+        if (desc.Contains("식비")) return "식비";
+        if (desc.Contains("유지비")) return "시설 유지비";
+        if (desc.Contains("식솔")) return "식솔 급료";
+        if (desc.Contains("이적료")) return "이적료";
+        if (desc.Contains("계약금")) return "계약금";
+        if (desc.Contains("수당") || desc.Contains("보너스")) return "수당·보너스";
+        return "기타";
+    }
+
+    /// <summary>단순한 플레이어: 사건은 첫 선택지, 도전장은 받고, 사흘마다 같은 리그에 미시오 도전, 제안·역제안은 거절·철회</summary>
+    static void Autoplay(GameState s, Rng rng)
+    {
+        var me = s.ludi[s.playerLudusId];
+        foreach (var p in s.pendingEvents.ToList())
+        {
+            var def = Events.GetEvent(p.eventId);
+            int i = def.choices.FindIndex(c => c.cost == null || c.cost == 0 || me.treasury >= c.cost);
+            Events.ResolveEvent(s, rng, p.id, Math.Max(0, i));
+        }
+        foreach (var o in Transfers.OpenOffers(s)) Transfers.RejectOffer(s, o.id);
+        foreach (var d in (s.decisions ?? new List<Decision>()).ToList()) Negotiations.Withdraw(s, d.id);
+        // 재계약: 바라는 조건 그대로 2시즌
+        if (s.day == 150)
+            foreach (var g in Contracts.Expiring(s))
+            {
+                var d = Contracts.RenewDemand(s, g);
+                if (d.refuse) continue;
+                int until = Math.Max(s.season, g.contract.untilSeason);
+                Contracts.Apply(s, g, new ContractTerms { wage = d.wage, seasons = 2 });
+                g.contract.untilSeason = until + 2;
+            }
+        // 막사 유지: 살아 있는 검투사가 7명 아래면 금고가 허락하는 무소속 중 가장 나은 자를 바라는 주급에 데려온다
+        var alive = me.gladiators.Count(id => s.gladiators[id].alive);
+        if (alive < 7 && s.day % 7 == 2)
+        {
+            var best = s.freeAgents.Select(id => s.gladiators[id])
+                .Select(g => (g, d: Economy.FreeAgentDemand(s, g)))
+                .Where(x => !x.d.refuse && x.d.wage * 30 < me.treasury)
+                .OrderByDescending(x => GladiatorRules.ComputeCA(x.g) - x.d.wage * 0.3).FirstOrDefault();
+            if (best.g != null)
+            {
+                var err = Economy.SignFreeAgent(s, best.g.id, best.d.wage, 2, 0);
+                if (err == null) Signed++;
+            }
+        }
+        foreach (var c in s.challenges.Where(x => x.status == "pending" && s.ludi[x.to].isPlayer).ToList()) ChallengeLogic.Respond(s, c, true, rng);
+        foreach (var c in ChallengeLogic.TodaysPlayerMatches(s)) ChallengeLogic.PlayChallenge(s, c, rng);
+        var tie = CupLogic.TodaysPlayerTie(s);
+        if (tie != null) CupLogic.PlayTie(s, tie.id, rng);
+        if (s.day % 3 == 0)
+        {
+            var targets = s.ludi.Values.Where(l => !l.isPlayer && l.nation == me.nation && l.tier == me.tier && ChallengeLogic.CanChallenge(s, me, l) == null).ToList();
+            var g = ChallengeLogic.PickFighter(s, me, "missio", ChallengeLogic.Now(s));
+            if (targets.Count > 0 && g != null) ChallengeLogic.CreateChallenge(s, me, rng.Pick(targets), g.id, "missio");
+        }
+        Day.AdvanceDay(s);
+    }
+}

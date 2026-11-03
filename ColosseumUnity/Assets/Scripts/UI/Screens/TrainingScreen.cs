@@ -63,7 +63,7 @@ namespace Colosseum.UI
             var nameBtn = row.Find("Name").GetComponent<Button>();
             nameBtn.onClick.RemoveAllListeners();
             nameBtn.onClick.AddListener(() => G.ShowGladiator(id));
-            row.Find("Name/Text").GetComponent<TMP_Text>().text = g.name;
+            row.Find("Name/Text").GetComponent<TMP_Text>().text = Tips.Name(g);
             row.Find("Style").GetComponent<TMP_Text>().text = Tips.Style(g.style);
 
             var focus = row.Find("Focus").GetComponent<TMP_Dropdown>();

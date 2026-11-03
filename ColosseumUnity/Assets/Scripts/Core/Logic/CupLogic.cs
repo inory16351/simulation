@@ -19,6 +19,8 @@ namespace Colosseum.Core
         public CupTie tie;
         public Series series;
         public MatchSummary summary;
+        /// <summary>치른 규칙 (missio, 전쟁 중인 나라끼리면 sudden)</summary>
+        public string rule = "missio";
         /// <summary>TS가 string을 돌려주는 경우 (그런 경기가 없다, 이미 치른 경기). 있으면 나머지는 null</summary>
         public string error;
     }
@@ -220,6 +222,10 @@ namespace Colosseum.Core
         }
 
         /// <summary>대결 한 번: 세 판 중 두 판을 먼저 따면 이긴다 (미시오). 실패하면 error만 채운다</summary>
+        /// <summary>컵 경기 규칙 (Unity판 FM식): 전쟁 중인 나라 루두스끼리 만나면 사투, 아니면 미시오</summary>
+        public static string TieRule(GameState state, CupTie tie) =>
+            FmRules.Enabled && WarLogic.AtWar(state, state.ludi[tie.home].nation, state.ludi[tie.away].nation) ? "sudden" : "missio";
+
         public static PlayedTie PlayTie(GameState state, string tieId, Rng rng, List<string> lineup = null)
         {
             var cup = state.cup;
@@ -231,13 +237,14 @@ namespace Colosseum.Core
             int at = (int)Calendar.AbsDay(state.season, state.day);
             var lh = SeriesLogic.AutoLineup(state, home, CupConst.Bouts, at, home.isPlayer ? lineup : null);
             var la = SeriesLogic.AutoLineup(state, away, CupConst.Bouts, at, away.isPlayer ? lineup : null);
-            var series = SeriesLogic.RunSeries(state, new[] { home, away }, new[] { lh, la }, new RunOptions { rule = "missio", mode = "best_of", homeLudusId = home.id }, rng);
+            string rule = TieRule(state, tie);
+            var series = SeriesLogic.RunSeries(state, new[] { home, away }, new[] { lh, la }, new RunOptions { rule = rule, mode = "best_of", homeLudusId = home.id }, rng);
             tie.score = series.score;
             var (w, l) = series.winner == 0 ? (home, away) : (away, home);
             tie.winner = w.id;
             var summary = new MatchSummary();
             double crowd = series.Crowd();
-            MatchLogic.Settle(state, w, l, "missio", new SettleOptions { homeLudusId = home.id, crowd = crowd + 20, popularity = 120, moneyMult = 2, noLeague = true }, summary);
+            MatchLogic.Settle(state, w, l, rule, new SettleOptions { homeLudusId = home.id, crowd = crowd + 20, popularity = 120, moneyMult = 2, noLeague = true }, summary);
             cup.points[w.id] = (cup.points.TryGetValue(w.id, out var wp) ? wp : 0) + CupConst.Coef.Win;
             if (tie.stage == "group") Economy.AddMoney(state, w, CupConst.Prize.GroupWin, "판테온 컵 조별 리그 승리 수당");
             if (tie.stage == "final")
@@ -265,12 +272,13 @@ namespace Colosseum.Core
                     kind = "match",
                     title = $"판테온 컵 {StageNames[tie.stage]}: {(won ? "승리" : "패배")}",
                     body = $"상대 {opp.name}({Data.Nation(opp.nation).name}) · {N(series.score[home.id == me ? 0 : 1])}:{N(series.score[home.id == me ? 1 : 0])}" +
+                        (rule == "sudden" ? "\n두 나라가 전쟁 중이라 사투로 치렀습니다." : "") +
                         $"\n수입 {N0(summary.money.TryGetValue(me, out var mm) ? mm : 0)} D (세전)" +
                         (tie.stage != "group" && !won ? "\n여기서 탈락했습니다." : ""),
                 });
             }
             AdvanceBracket(state, cup);
-            return new PlayedTie { tie = tie, series = series, summary = summary };
+            return new PlayedTie { tie = tie, series = series, summary = summary, rule = rule };
         }
 
         /// <summary>오늘 플레이어가 치를 컵 경기</summary>

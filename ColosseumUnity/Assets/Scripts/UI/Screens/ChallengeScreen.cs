@@ -58,7 +58,7 @@ namespace Colosseum.UI
             incoming = new TemplateList<RectTransform>(incomingTemplate);
             scheduled = new TemplateList<RectTransform>(scheduledTemplate);
             outgoing = new TemplateList<RectTransform>(outgoingTemplate);
-            target.onValueChanged.AddListener(i => { targetId = targets[i].id; theirId = null; errorText = null; Refresh(); });
+            target.onValueChanged.AddListener(i => { if (i < targets.Count) targetId = targets[i].id; theirId = null; errorText = null; Refresh(); });
             mine.onValueChanged.AddListener(i => { myId = myList[i].id; Refresh(); });
             theirs.onValueChanged.AddListener(i => { theirId = i == 0 ? null : theirList[i - 1].id; });
             for (int i = 0; i < formatButtons.Count; i++) { int f = Formats[i]; formatButtons[i].onClick.AddListener(() => { format = f; Refresh(); }); }
@@ -95,13 +95,28 @@ namespace Colosseum.UI
             incoming.Sync(inc.Count, (row, i) => BindIncoming(row, inc[i], alive, now + delay));
 
             // 도전장 보내기
-            targets = S.ludi.Values.Where(l => !l.isPlayer && l.nation == S.nation).OrderByDescending(l => l.rp).ToList();
-            if (targetId == null || targets.All(l => l.id != targetId))
-                targetId = (targets.FirstOrDefault(l => ChallengeLogic.CanChallenge(S, p, l) == null) ?? targets[0]).id;
-            Fill(target, targets.Select(l => $"{l.tier}부 · {l.name} (RP {l.rp}){(ChallengeLogic.CanChallenge(S, p, l) != null ? " — 불가" : "")}"),
-                targets.FindIndex(l => l.id == targetId));
-            var tgt = S.ludi[targetId];
-            string block = ChallengeLogic.CanChallenge(S, p, tgt);
+            var all = S.ludi.Values.Where(l => !l.isPlayer && l.nation == S.nation).OrderBy(l => l.tier).ThenByDescending(l => l.rp).ToList();
+            // FM식: 지금 도전장을 보낼 수 있는(상대도 받을 수 있는) 루두스만 띄운다
+            targets = FmRules.Enabled ? all.Where(l => ChallengeLogic.CanChallenge(S, p, l) == null).ToList() : all;
+            string block;
+            Ludus tgt;
+            if (targets.Count == 0)
+            {
+                // 왜 아무 데도 못 보내는지 (가장 흔한 이유 하나)
+                block = all.Select(l => ChallengeLogic.CanChallenge(S, p, l)).Where(x => x != null).GroupBy(x => x).OrderByDescending(g => g.Count()).FirstOrDefault()?.Key ?? "도전할 수 있는 루두스가 없습니다";
+                targetId = null;
+                tgt = null;
+                Fill(target, new[] { "지금 도전할 수 있는 루두스가 없습니다" }, 0);
+            }
+            else
+            {
+                if (targetId == null || targets.All(l => l.id != targetId))
+                    targetId = (targets.FirstOrDefault(l => ChallengeLogic.CanChallenge(S, p, l) == null) ?? targets[0]).id;
+                Fill(target, targets.Select(l => $"{l.tier}부 · {l.name} (RP {l.rp}){(ChallengeLogic.CanChallenge(S, p, l) != null ? " — 불가" : "")}"),
+                    targets.FindIndex(l => l.id == targetId));
+                tgt = S.ludi[targetId];
+                block = ChallengeLogic.CanChallenge(S, p, tgt);
+            }
             blockHint.gameObject.SetActive(block != null);
             blockHint.text = block ?? "";
 
@@ -111,7 +126,8 @@ namespace Colosseum.UI
             Fill(mine, myList.Select(g => { var busy = ChallengeLogic.Availability(S, g); return FighterLabel(g) + (busy != null ? $" — {busy}" : ""); }),
                 myId == null ? 0 : myList.FindIndex(g => g.id == myId));
 
-            theirList = tgt.gladiators.Select(id => S.gladiators[id]).Where(g => g.alive).ToList();
+            // 상대 출전자: 지금 나올 수 있는 검투사만 (부상·경기 예정·휴식 빼고)
+            theirList = tgt == null ? new List<Gladiator>() : tgt.gladiators.Select(id => S.gladiators[id]).Where(g => g.alive && (!FmRules.Enabled || ChallengeLogic.Availability(S, g, now + delay) == null)).ToList();
             Fill(theirs, new[] { "상대에게 맡기기" }.Concat(theirList.Select(g => $"{g.name} · {Data.Style(g.style)?.name}")),
                 theirId == null ? 0 : theirList.FindIndex(g => g.id == theirId) + 1);
 
@@ -134,7 +150,7 @@ namespace Colosseum.UI
 
             error.gameObject.SetActive(errorText != null);
             error.text = errorText ?? "";
-            send.interactable = myId != null && block == null;
+            send.interactable = myId != null && block == null && tgt != null;
             send.transform.Find("Fill").GetComponent<Image>().color = rule == "sudden" ? Theme.BloodDark : Theme.ContinueBg;
 
             // 잡힌 경기
@@ -162,7 +178,7 @@ namespace Colosseum.UI
 
             T(row, "Opp").text = $"{Tips.Ludus(from)} <size=80%><color={Theme.Hex(Theme.TextDim)}>RP {from.rp}</color></size>";
             row.GetComponentInChildren<PortraitView>(true).Show(their);
-            T(row, "Their/Name").text = $"{Tips.Name(their)} <color={Theme.Hex(Theme.Torch)}>{Widgets.Stars(GladiatorRules.ComputeCA(their))}</color>";
+            T(row, "Their/Name").text = $"{Tips.Name(their)} <color={Theme.Hex(Theme.Torch)}>{Widgets.CaStars(S, their)}</color>";
             var rt = T(row, "Rule");
             rt.text = RuleLabel(c);
             rt.color = c.rule == "sudden" ? Neg : Theme.Text;
@@ -212,7 +228,7 @@ namespace Colosseum.UI
 
         static string RuleName(string r) => (string)Bal.Rule(r)["name"];
         static string RuleLabel(Challenge c) => (c.format is int f && f != 0 ? $"{SeriesLogic.FormatNames[f]} · " : "") + RuleName(c.rule);
-        static string FighterLabel(Gladiator g) => $"{g.name} · {Data.Style(g.style)?.name} · CA {GladiatorRules.ComputeCA(g)}";
+        string FighterLabel(Gladiator g) => $"{g.name} · {Data.Style(g.style)?.name} · {Widgets.Stars(Scouting.CaRange(S, g).mid)}";
         static TMP_Text T(Transform row, string path) => row.Find(path).GetComponent<TMP_Text>();
 
         static void Fill(TMP_Dropdown d, IEnumerable<string> labels, int value)

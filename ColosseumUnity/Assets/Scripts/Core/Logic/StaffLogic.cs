@@ -23,6 +23,113 @@ namespace Colosseum.Core
         /// <summary>역할마다 한 명만 둔다</summary>
         public static readonly string[] Roles = { "doctore", "medicus", "scout", "agent" };
 
+        // ── 세부 능력치 (FM 직원 능력치처럼) ──
+
+        public static readonly string[] AttrKeys =
+            { "coachPhy", "coachTec", "coachMen", "coachTac", "judgeA", "judgeP", "physio", "sci", "motiv", "disc", "manage", "det", "nego", "network" };
+
+        public static readonly Dictionary<string, string> AttrNames = new()
+        {
+            ["coachPhy"] = "신체 지도", ["coachTec"] = "기술 지도", ["coachMen"] = "정신 지도", ["coachTac"] = "전술 지도",
+            ["judgeA"] = "능력 판단", ["judgeP"] = "잠재력 판단", ["physio"] = "치료", ["sci"] = "몸 관리",
+            ["motiv"] = "동기 부여", ["disc"] = "규율", ["manage"] = "인간 관리", ["det"] = "결단력", ["nego"] = "협상", ["network"] = "인맥",
+        };
+
+        public static readonly Dictionary<string, string> AttrDesc = new()
+        {
+            ["coachPhy"] = "체력 단련·격투 훈련에서 검투사가 크는 속도",
+            ["coachTec"] = "무기술·방어·주술 훈련에서 크는 속도",
+            ["coachMen"] = "정신 수양·쇼맨십·실전 감각 훈련에서 크는 속도",
+            ["coachTac"] = "교범 수련 속도와 기술을 익히는 빠르기",
+            ["judgeA"] = "검투사의 지금 실력을 얼마나 정확히 보나 (교관 평가 별점)",
+            ["judgeP"] = "검투사의 숨은 그릇(잠재력)을 얼마나 정확히 보나",
+            ["physio"] = "부상을 낫게 하는 빠르기, 사투에서 목숨을 건질 확률",
+            ["sci"] = "훈련 중 부상을 막고 피로를 빨리 풀어 줍니다",
+            ["motiv"] = "검투사들의 사기를 매일 조금씩 끌어올립니다",
+            ["disc"] = "급료가 밀렸을 때 탈주·반란을 누릅니다",
+            ["manage"] = "재계약 때 검투사가 바라는 주급을 누그러뜨립니다",
+            ["det"] = "맡은 일을 끝까지 해냅니다. 다른 능력이 조금씩 오르내리는 폭을 줄입니다",
+            ["nego"] = "이적료를 깎아 사고 더 받아 팝니다",
+            ["network"] = "이적 시장에 이름을 알려 제안이 더 자주 오고, 무소속 명단이 넓어집니다",
+        };
+
+        /// <summary>역할마다 중요한 능력치와 무게 (종합 평점 = 가중 평균)</summary>
+        public static readonly Dictionary<string, (string key, double w)[]> RoleWeights = new()
+        {
+            ["doctore"] = new[] { ("coachPhy", 1.0), ("coachTec", 1.0), ("coachMen", 1.0), ("coachTac", 1.0), ("judgeA", 0.5), ("motiv", 0.6), ("disc", 0.4) },
+            ["medicus"] = new[] { ("physio", 2.0), ("sci", 1.5), ("manage", 0.3), ("det", 0.3) },
+            ["scout"] = new[] { ("judgeA", 1.5), ("judgeP", 1.5), ("network", 1.0), ("det", 0.3) },
+            ["agent"] = new[] { ("nego", 2.0), ("network", 1.0), ("manage", 0.5), ("det", 0.3) },
+        };
+
+        public static int Attr(Staff s, string key)
+        {
+            if (s == null) return 0;
+            if (s.attrs != null && s.attrs.TryGetValue(key, out var v)) return v;
+            return (int)Math.Round(s.rating);
+        }
+
+        /// <summary>이 루두스의 그 역할 식솔의 능력치 하나 (없으면 0)</summary>
+        public static double AttrOf(GameState state, Ludus ludus, string role, string key) =>
+            ludus == null ? 0 : StaffOf(state, ludus, role) is Staff s ? Attr(s, key) : 0;
+
+        /// <summary>세부 능력치에서 역할 종합 평점을 낸다</summary>
+        public static double RatingFromAttrs(string role, Dictionary<string, int> attrs)
+        {
+            double sum = 0, w = 0;
+            foreach (var (k, wt) in RoleWeights[role]) { sum += attrs[k] * wt; w += wt; }
+            return Math.Max(1, Math.Min(20, JsMath.Round(sum / w)));
+        }
+
+        /// <summary>훈련 종류에 맞는 지도 능력치</summary>
+        public static string CoachKeyFor(string focus) => focus switch
+        {
+            "physical" or "grapple" => "coachPhy",
+            "weapon" or "defense" or "magic" => "coachTec",
+            "mental" or "show" or "sense" => "coachMen",
+            "doctrine" => "coachTac",
+            _ => null,
+        };
+
+        /// <summary>FM식: 훈련 종류별 독토레 성장 배율 (동기 부여도 조금). 꺼져 있으면 CoachMult(rating)</summary>
+        public static double CoachMultFor(GameState state, Ludus ludus, string focus)
+        {
+            var d = StaffOf(state, ludus, "doctore");
+            if (!FmRules.Enabled || d == null) return CoachMult(RatingOf(state, ludus, "doctore"));
+            string key = CoachKeyFor(focus);
+            double v = key != null ? Attr(d, key) : d.rating;
+            return 0.85 + v * 0.015 + (Attr(d, "motiv") - 10) * 0.002;
+        }
+
+        /// <summary>FM식: 메디쿠스 '치료'로 부상 회복 배율</summary>
+        public static double HealMultOf(GameState state, Ludus ludus) =>
+            FmRules.Enabled && StaffOf(state, ludus, "medicus") is Staff m ? HealMult(Attr(m, "physio")) : HealMult(RatingOf(state, ludus, "medicus"));
+
+        /// <summary>FM식: 메디쿠스 '몸 관리'로 훈련 부상 확률 배율 (없으면 1)</summary>
+        public static double InjuryMultOf(GameState state, Ludus ludus) =>
+            FmRules.Enabled && StaffOf(state, ludus, "medicus") is Staff m ? Math.Max(0.6, 1 - Attr(m, "sci") * 0.02) : 1;
+
+        /// <summary>FM식: 중개인 '협상'</summary>
+        public static double AgentNego(GameState state, Ludus ludus) =>
+            FmRules.Enabled && StaffOf(state, ludus, "agent") is Staff a ? Attr(a, "nego") : RatingOf(state, ludus, "agent");
+
+        /// <summary>새 식솔의 세부 능력치: 역할에 중요한 것은 평점 근처, 나머지는 낮게 흩어진다</summary>
+        static Dictionary<string, int> MakeAttrs(Rng rng, string role, double rating)
+        {
+            var a = new Dictionary<string, int>();
+            var main = new HashSet<string>(RoleWeights[role].Where(x => x.w >= 1).Select(x => x.key));
+            var side = new HashSet<string>(RoleWeights[role].Where(x => x.w < 1).Select(x => x.key));
+            foreach (var k in AttrKeys)
+            {
+                double c = main.Contains(k) ? rating + rng.Range(-3.5, 3.5) : side.Contains(k) ? rating * 0.75 + rng.Range(-4, 4) : rating * 0.4 + rng.Range(-3, 5);
+                a[k] = (int)Math.Max(1, Math.Min(20, Math.Round(c)));
+            }
+            // 한 가지는 남다르게 잘한다 (개성)
+            var star = rng.Pick(main.ToList());
+            a[star] = Math.Min(20, a[star] + rng.Int(1, 3));
+            return a;
+        }
+
         public static Staff StaffOf(GameState state, Ludus ludus, string role)
         {
             if (ludus.staff == null) return null;
@@ -50,7 +157,7 @@ namespace Colosseum.Core
         public static double PaSpread(GameState state, Gladiator g)
         {
             var player = state.ludi[state.playerLudusId];
-            double r = RatingOf(state, player, "scout");
+            double r = FmRules.Enabled ? AttrOf(state, player, "scout", "judgeP") : RatingOf(state, player, "scout");
             bool mine = player.gladiators.Contains(g.id);
             return mine ? Math.Max(3, 30 - r * 1.35) : Math.Max(5, 45 - r * 2);
         }
@@ -72,19 +179,30 @@ namespace Colosseum.Core
         {
             var races = Data.Nation(state.nation).races;
             string race = rng.Weighted(races);
-            var female = new HashSet<string>(Data.Names.female);
             string gender = rng.Chance(0.25) ? "f" : "m";
-            var pool = Data.Names.gladiator[race].Where(n => female.Contains(n) == (gender == "f")).ToList();
             var s = new Staff();
             s.id = $"S{state.nextId++}";
+            if (NameBook.Ready)
+                s.name = NameBook.PersonName(rng, race, gender, new HashSet<string>(state.staff.Values.Select(x => x.name).Concat(state.gladiators.Values.Select(x => x.name))));
+            else
+            {
+            var female = new HashSet<string>(Data.Names.female);
+            var pool = Data.Names.gladiator[race].Where(n => female.Contains(n) == (gender == "f")).ToList();
             string first = rng.Pick(pool);
             string last = rng.Pick(Data.Names.surname[race]);
             s.name = $"{first} {last}";
+            }
             s.race = race;
             s.gender = gender;
             s.age = rng.Int(30, 60);
             s.role = role;
             s.rating = rating;
+            if (FmRules.Enabled)
+            {
+                s.attrs = MakeAttrs(rng, role, rating);
+                s.rating = RatingFromAttrs(role, s.attrs);
+                rating = s.rating;
+            }
             s.wage = JsMath.Round(10 + rating * rating * 0.6);
             s.portraitSeed = rng.Int(0, 1_000_000);
             state.staff[s.id] = s;

@@ -69,7 +69,7 @@ namespace Colosseum.UI
             order = null;
             bool homeIsMe = tie.home == S.playerLudusId;
             if (r.series.bouts.Count == 0) { G.Replace(draft); return; }
-            match.RunSeries(MatchScreen.SeriesLives(r.series, homeIsMe, "missio", $"판테온 컵 {CupLogic.StageNames[tie.stage]}"), draft, speed, "cup");
+            match.RunSeries(MatchScreen.SeriesLives(r.series, homeIsMe, r.rule, $"판테온 컵 {CupLogic.StageNames[tie.stage]}{(r.rule == "sudden" ? " · 사투 (전쟁 중)" : "")}"), draft, speed, "cup");
         }
 
         public override void Refresh()
@@ -82,12 +82,14 @@ namespace Colosseum.UI
             todayPanel.SetActive(tie != null && cup != null);
             if (tie != null && cup != null)
             {
-                todayTitle.text = $"◆  오늘의 컵 경기 — {CupLogic.StageNames[tie.stage]}";
+                bool war = CupLogic.TieRule(S, tie) == "sudden";
+                todayTitle.text = $"◆  오늘의 컵 경기 — {CupLogic.StageNames[tie.stage]}" +
+                    (war ? $"  <color={Theme.Hex(Theme.Blood)}>사투 · {Tips.Nation(S.ludi[tie.home].nation)}과 {Tips.Nation(S.ludi[tie.away].nation)}이 전쟁 중입니다</color>" : "");
                 Team(todayHome, tie.home);
                 Team(todayAway, tie.away);
                 var pool = Pool;
                 var lineup = Lineup;
-                var options = new[] { "—" }.Concat(pool.Select(g => $"{g.name} · CA {GladiatorRules.ComputeCA(g)}")).ToList();
+                var options = new[] { "—" }.Concat(pool.Select(g => $"{g.name} · {Widgets.Stars(Scouting.CaRange(S, g).mid)}")).ToList();
                 for (int i = 0; i < lineupSlots.Count; i++)
                 {
                     var dd = lineupSlots[i];

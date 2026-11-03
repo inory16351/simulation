@@ -49,8 +49,34 @@ namespace Colosseum.UI
                 "trait" => Data.Trait(id) == null ? null : new InfoCard { title = Data.Trait(id).name, sub = "특성", body = Tips.TraitTip(id).Substring(Tips.TraitTip(id).IndexOf('\n') + 1) },
                 "status" => SkillBook.Statuses.TryGetValue(id, out var st) ? new InfoCard { title = st.name, sub = "상태 이상", body = Tips.StatusTip(id).Substring(Tips.StatusTip(id).IndexOf('\n') + 1), iconSprite = UnityEngine.Resources.Load<UnityEngine.Sprite>("Art/icon/" + st.icon) } : null,
                 "dungeon" => Dungeon(s, id),
+                "person" => s.staff.TryGetValue(id, out var person) ? Person(s, person) : null,
                 _ => null,
             };
+        }
+
+        // ── 식솔 (FM 직원 프로필처럼: 역할, 평점, 세부 능력치 14개) ──
+
+        static InfoCard Person(GameState s, Staff p)
+        {
+            string dim = Theme.Hex(Theme.TextDim), torch = Theme.Hex(Theme.Torch);
+            var main = new HashSet<string>(StaffLogic.RoleWeights[p.role].Select(x => x.key));
+            string Group(string label, params string[] keys) =>
+                $"<color={dim}>{label}</color>\n" + string.Join("\n", keys.Select(k =>
+                {
+                    int v = StaffLogic.Attr(p, k);
+                    string num = main.Contains(k) ? $"<color={torch}><b>{v}</b></color>" : v.ToString();
+                    return $"  {Tips.StaffAttr(k)}  {num}";
+                }));
+            var me = s.ludi[s.playerLudusId];
+            bool mine = me.staff.Contains(p.id);
+            string where = mine ? $"{Tips.Ludus(me)}의 식솔" : s.staffMarket.Contains(p.id) ? "고용할 수 있는 후보" : "";
+            string body =
+                $"<color={dim}>역할</color> {Tips.StaffRole(p.role)} · <color={dim}>평점</color> {StateUtil.Num(p.rating)} · <color={dim}>주급</color> {StateUtil.Num(p.wage)} D · {StateUtil.Num(p.age)}세 · {Tips.Race(p.race)}" +
+                (where.Length > 0 ? $"\n{where}" : "") +
+                (p.attrs == null ? $"\n\n<color={dim}>세부 능력치가 없는 옛 식솔입니다 (평점 하나로 일합니다).</color>" :
+                $"\n\n{Group("지도", "coachPhy", "coachTec", "coachMen", "coachTac")}\n{Group("판단", "judgeA", "judgeP")}\n{Group("의료", "physio", "sci")}\n{Group("사람", "motiv", "disc", "manage", "det")}\n{Group("거래", "nego", "network")}" +
+                $"\n\n<color={dim}>역할에 중요한 능력치는 굵게 표시합니다. 이름에 마우스를 올리면 무슨 일에 쓰이는지 볼 수 있습니다.</color>");
+            return new InfoCard { title = p.name, sub = $"식솔 · {StaffLogic.RoleNames[p.role]}", body = body };
         }
 
         // ── 던전 ──
@@ -159,7 +185,7 @@ namespace Colosseum.UI
                 .OrderByDescending(g => Scouting.CaRange(s, g).mid).ToList();
             body += "\n" + Head($"검투사 {people.Count}명") + string.Join("\n", people.Select(g =>
             {
-                var ca = l.isPlayer ? (lo: (double)GladiatorRules.ComputeCA(g), hi: (double)GladiatorRules.ComputeCA(g)) : (lo: Scouting.CaRange(s, g).lo, hi: Scouting.CaRange(s, g).hi);
+                var ca = (lo: Scouting.CaRange(s, g).lo, hi: Scouting.CaRange(s, g).hi);
                 return $"{Tips.Name(g)} <color={Faint}>{Tips.Race(g.race)} · {Tips.Style(g.style)} · {g.age}세</color>  {Widgets.RangeStars(ca.lo, ca.hi)}";
             }));
             var seasons = (l.seasons ?? new List<LudusSeason>()).OrderByDescending(x => x.season).Take(4).ToList();

@@ -242,3 +242,26 @@
   - 이적료 합의와 개인 계약은 별개 (합의 뒤 검투사가 "무명 루두스엔 안 가"로 거절할 수 있음 — 사용자: 실제로도 그러니 그대로 둔다).
   - 툴팁: 특성 줄 맨 앞 종족 특성(`racial:`), 단체전 역할 버튼(`role:`), 식솔 후보 자리(`staff:`)에 링크 추가.
   - Windows 빌드: `Builds/ColosseumWindows/Colosseum.exe` (`Builds/Windows`는 RatWar 빌드라 건드리지 않음).
+
+### 진행 (2026-11-03 밤) FM식 규칙 묶음 — `FmRules.Enabled` (골든 두 파일은 끈다)
+- **Unity Hub 등록**: `%APPDATA%/UnityHub/hub.db`의 projects 표에 `D:\pro\simulation\ColosseumUnity` 추가 (백업은 세션 스크래치). 첫 임포트·csproj 생성은 배치 모드로 함.
+- **4부 리그**: 모든 나라 1~4부 × 10개 (240 루두스, 검투사 약 1,940명, 하루 처리 약 25ms). `FmRules.RpBase/RosterTarget/ReputationBase/TierValueMult`. 시즌 끝 승강은 나라·부마다 위 2 / 아래 2 (`Day.EndSeason` FM 분기), 역대 기록·루두스 연혁도 4부까지. 새 게임에서 시작 리그(1~4부 = 난이도) 고름 (`World.NewGame(..., startTier)`).
+- **이름 테이블**: `Tools/gen-names.mjs` → `Tables/LudusName.csv`(912, 나라 분위기별) · `Tables/PersonName.csv`(1,149, 종족·성별 이름·성·별명). `Logic/NameBook.cs`. check-tables가 Resources/Tables로 복사.
+- **몸값·주급 요구** `Logic/Valuation.cs`: 격 = 능력 32%·명성 42%·승률·킬. 몸값 = 능력²×승률 + 명성 + 잠재 + 킬, × 나이 × 뛰는 리그 × 계약 만료 할인. CA는 화면에서 숨김 → `Widgets.CaStars`(우리 = 독토레 '능력 판단'만큼 흐린 평가, 남 = 정찰 범위).
+- **계약 조항** `Logic/Contracts.cs` + `GladiatorContract`의 새 칸: 계약금·승리/킬 수당·승격 보너스·승격 시 연장·인상·강등 시 삭감·최소 이적료. 검투사는 조항을 '주급 환산 값'으로 따져(성격·나이·승격 가능성) 흥정. 재계약(renew), FM식은 재계약 안 하면 시즌 끝에 무소속으로 떠남(120·150일 경고).
+- **결정 전엔 못 넘어감**: `GameState.decisions`(상대 역제안), 받은 이적 제안(open). `Day.Blockers`에 들어간다. 다음 날 버튼·스페이스는 **읽지 않은 소식부터 차례로** 열고, 그다음 막힌 일이면 협상 창을 연다.
+- **받은 제안 역제안·이적 명단·최소 이적료**: `Transfers.CounterOffer/ListForTransfer/Unlist/DailyOffersFm` (AI는 최대 3번 값을 올리거나 거둬들임).
+- **식솔 세부 능력치 14개** (`Staff.attrs`, `StaffLogic.AttrKeys`): 훈련 종류별 지도, 판단(별점 정확도·잠재력), 치료·몸 관리, 동기 부여·규율·인간 관리, 협상·인맥. 평점(rating)은 역할 가중 평균.
+- **전투 FM식 보정** (`Sim.DayForm/FmHit/FmDamage/StanceEdge`): 그날 컨디션(일관성·큰 무대), 민첩·반응 회피, 공격성×지구력·침착(무모함), 판단·예측, 스타일 상성 강화, 자세 가위바위보. 측정 `sh Tools/BalanceSim/run.sh combat`: CA 8~14 차이 강자 평균 65%(쌍마다 50~83%, 40쌍 중 10쌍은 약자 우세), 상성 자세 +8%p.
+- **경제**: FM식 전용 표 `purseFm/ticketIncomeFm/dividendBaseFm`(웹판 값은 그대로). `sh Tools/BalanceSim/run.sh econ 3` — 모든 시작 리그에서 3시즌 흑자.
+- **도전장**: 받는 쪽이 낼 사람이 없으면(부상·경기 예정·휴식) 못 보냄(`ChallengeLogic.CanReceive`), AI→우리 빈도 ⅜, 우리에게 답할 도전장 2통까지. 도전장 화면엔 보낼 수 있는 루두스만.
+- **UI**: `NegotiationPopup`(+`PopupBuilder.BuildNegotiationPopup`), 서판 결정 카드, 영입 패널(우리 검투사 = 재계약·이적 명단), 시장(협상·이적 명단 버튼), 서열표 1~4부 탭·지난 시즌 칸, 새 게임 시작 리그 버튼, 식솔 링크(`person:`)·능력치 카드. 서판 본문은 `Tips.AutoLink`로 이름에 링크.
+- **씬 다시 조립 필요**: 빌더를 고쳤다 (LeagueBuilder·GameSceneBuilder 새 게임·MarketBuilder·PopupBuilder). Unity에서 `GameSceneBuilder.Build()`.
+- 테스트 러너 `Tools/TestRunner/runner.csproj`는 *.csproj가 gitignore라 저장소에 없다 (net10.0 콘솔 프로젝트로 다시 만들면 된다).
+
+### 진행 (2026-11-03 밤) MCP로 씬 적용 + 전쟁 규칙
+- **MCP 연결**: Unity의 MCP for Unity는 기본이 HTTP(127.0.0.1:8080, 에디터 창에서 서버 시작)라 `.mcp.json`도 `{"type":"http","url":"http://127.0.0.1:8080/mcp"}`로 바꿨다. stdio(uvx)로 띄우면 에디터와 만나지 못한다.
+- **씬 적용**: MCP `execute_code`로 `GameSceneBuilder.Build()` → `Game.unity` 저장. 확인한 새 객체: NegotiationPopup, 서열표 Tier3·Tier4 탭과 Last 칸, 새 게임 Tier1~4 버튼, 시장 List 버튼.
+- **플레이 확인** (스크린샷 `Assets/Screenshots/`, gitignore): 새 게임 3부 선택·설명, 다음 날 버튼이 '새 소식 읽기 (N)'로 먼저 소식을 열고 날짜는 그대로, 서열표 4부(승격 구역)·그롬마르 2부(승강 구역·부족풍 이름), 우리 검투사 '재계약 협상'·'이적 명단' 버튼 → 협상 창, 계약 판에서 주급을 깎으면 반응이 '긍정적' → '모욕적'으로 바로 바뀜, 식솔 이름 → 세부 능력치 카드. 협상 창 높이 780에 조항 10줄이 넘치지 않음, 새 게임 하단 줄 폭 정상.
+- **고친 것**: ① FM식 시작 자유민에게 계약이 없어 재계약 버튼이 안 나옴 → 생성 때 시즌 2까지 계약. ② 재계약 요구가 영입용 명성 격차 배율(최대 ×2)을 그대로 써서 64 D → 102 D로 뜀 → 재계약은 격차 1점당 1%, 최대 +40%. ③ 식솔 후보 줄에 핵심 능력치 글이 넘침 → 표에는 빼고(이름 툴팁·카드로), 우리 식솔 카드엔 가장 높은 2개만.
+- **전쟁 규칙 (사용자 요청)**: 전쟁 중인 나라의 루두스와는 이적 거래 불가 (`Transfers.WarBlock`, 이적료 제안·답장·개인 계약 모두), 판테온 컵에서 전쟁 중인 나라 루두스끼리 만나면 사투 (`CupLogic.TieRule`, 컵 화면·중계 제목에 표시). `WarLogic.AtWar`. 테스트 `FmRulesTests.WarBlocksTransfersAndMakesCupSudden`. EditMode 18개 통과.

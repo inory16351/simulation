@@ -37,6 +37,13 @@ namespace Colosseum.Core
             var matches = ChallengeLogic.TodaysPlayerMatches(state);
             if (matches.Count > 0) o.Add($"오늘 치를 경기 {matches.Count}건");
             if (CupLogic.TodaysPlayerTie(state) != null) o.Add("오늘 판테온 컵 경기");
+            if (FmRules.Enabled)
+            {
+                int offers = Transfers.OpenOffers(state).Count;
+                if (offers > 0) o.Add($"답할 이적 제안 {offers}건");
+                int decisions = state.decisions?.Count ?? 0;
+                if (decisions > 0) o.Add($"답할 협상 {decisions}건");
+            }
             return o;
         }
 
@@ -64,6 +71,13 @@ namespace Colosseum.Core
                 ReplenishAi(state, rng);
                 Msg(state, "info", "이적 시장이 열렸습니다", "앞으로 14일 동안 다른 루두스와 검투사를 사고팔 수 있습니다. 무소속 검투사 명단도 새로 바뀌었습니다.");
             }
+            if (FmRules.Enabled && (state.day == 120 || state.day == 150))
+            {
+                var exp = Contracts.Expiring(state);
+                if (exp.Count > 0)
+                    Msg(state, "warning", $"계약 만료가 다가옵니다 ({exp.Count}명)",
+                        $"이번 시즌이 끝나면 계약이 끝나는 검투사: {string.Join(", ", exp.Select(g => g.name))}.\n\n시즌이 끝나기 전에 검투사 상세 화면의 '재계약'으로 협상하지 않으면 무소속으로 떠납니다.");
+            }
             if (state.day == 15) Msg(state, "info", "정규 기간 시작", "오늘부터 도전장을 주고받을 수 있습니다. 시즌 동안 최소 8경기는 치러야 합니다.");
 
             // 2. 급료일 (무소속 명단도 이때 조금씩 바뀐다)
@@ -80,6 +94,8 @@ namespace Colosseum.Core
             // 3. 훈련과 회복 (모든 루두스)
             foreach (var l in state.ludi.Values.ToList())
             {
+                // FM식: 우리 독토레의 '동기 부여'가 사기를 매일 조금씩 움직인다 (10이 기준)
+                double motiv = FmRules.Enabled && l.isPlayer && StaffLogic.StaffOf(state, l, "doctore") is Staff doc ? (StaffLogic.Attr(doc, "motiv") - 10) * 0.02 : 0;
                 // JS for-of는 처음 잡은 배열을 길이를 매번 보며 훑는다
                 var ids = l.gladiators;
                 for (int i = 0; i < ids.Count; i++)
@@ -89,8 +105,9 @@ namespace Colosseum.Core
                     // 전장에 나간 검투사는 루두스에서 훈련하지 않는다
                     if (g.deployment != null) continue;
                     if (!l.isPlayer) AiTrainingPlan(g);
-                    string injured = Training.DailyTraining(g, rng, l.facilities.training, NationRules.RulesOfNation(l.nation).growthMult * StaffLogic.CoachMult(StaffLogic.RatingOf(state, l, "doctore")));
-                    var healed = Condition.DailyCondition(g, at, l.facilities.medical, l.facilities.bath, StaffLogic.HealMult(StaffLogic.RatingOf(state, l, "medicus")));
+                    if (motiv != 0) g.morale = Math.Max(0, Math.Min(100, g.morale + motiv));
+                    string injured = Training.DailyTraining(g, rng, l.facilities.training, NationRules.RulesOfNation(l.nation).growthMult * StaffLogic.CoachMultFor(state, l, g.training?.focus), StaffLogic.InjuryMultOf(state, l));
+                    var healed = Condition.DailyCondition(g, at, l.facilities.medical, l.facilities.bath, StaffLogic.HealMultOf(state, l));
                     if (healed != null)
                     {
                         g.injury = healed;
@@ -163,7 +180,7 @@ namespace Colosseum.Core
                 if (l.isPlayer) continue;
                 while (l.gladiators.Count < aiRoster)
                 {
-                    var g = GladiatorGen.Generate(rng, new GenOptions { id = $"G{state.nextId++}", nation = l.nation, target = (l.tier == 1 ? 10.5 : 7.5) + rng.Range(-1.5, 1.5), usedNames = used });
+                    var g = GladiatorGen.Generate(rng, new GenOptions { id = $"G{state.nextId++}", nation = l.nation, target = (FmRules.Enabled ? FmRules.RosterTarget(l.tier) : l.tier == 1 ? 10.5 : 7.5) + rng.Range(-1.5, 1.5), usedNames = used });
                     state.gladiators[g.id] = g;
                     l.gladiators.Add(g.id);
                 }
@@ -172,6 +189,10 @@ namespace Colosseum.Core
 
         static List<Gladiator> AliveOf(GameState state, Ludus l) =>
             l.gladiators.Select(id => state.gladiators[id]).Where(g => g.alive).ToList();
+
+        /// <summary>FM식: 독토레의 '규율'이 탈주·반란을 누른다 (규율 20이면 절반)</summary>
+        static double DisciplineMult(GameState state, Ludus l) =>
+            FmRules.Enabled ? 1 - StaffLogic.AttrOf(state, l, "doctore", "disc") * 0.025 : 1;
 
         /// <summary>탈주와 반란 (docs/05_economy.md)</summary>
         public static void Unrest(GameState state, Rng rng, Ludus player)
@@ -183,7 +204,7 @@ namespace Colosseum.Core
             foreach (var g in roster)
             {
                 if (g.unpaidWeeks < 4 || g.traits.Contains("loyal_hound")) continue;
-                double p = (g.unpaidWeeks - 3) * U("desertBase") * (1 - g.hidden.loyalty / 25.0) * (1 - player.facilities.guard * 0.1);
+                double p = (g.unpaidWeeks - 3) * U("desertBase") * (1 - g.hidden.loyalty / 25.0) * (1 - player.facilities.guard * 0.1) * DisciplineMult(state, player);
                 if (rng.Chance(p))
                 {
                     var gid = g.id;
@@ -203,6 +224,7 @@ namespace Colosseum.Core
             double chance = (100 - avgMorale) * maxUnpaid * U("revoltPerMoralePerWeek");
             chance += left.Count(g => g.traits.Contains("agitator") && g.morale <= 30) * U("agitatorBonus");
             chance -= player.facilities.guard * U("guardReduction");
+            chance *= DisciplineMult(state, player);
             chance -= left.Count(g => g.traits.Contains("loyal_hound") && g.morale >= 70) * U("loyalReduction");
             if (!rng.Chance(Math.Max(0, chance))) return;
 
@@ -274,33 +296,77 @@ namespace Colosseum.Core
                     }
                 }
             }
-            var t2 = Economy.TierRanking(state, 2);
-            int promote = (int)L("promote"), relegate = (int)L("relegate");
-            var promoted = t2.Take(promote).ToList();
-            // slice(-n)
-            var relegated = t1.Skip(Math.Max(0, t1.Count - relegate)).ToList();
-            var finalRank = new Dictionary<string, int>();
-            for (int i = 0; i < t1.Count; i++) finalRank[t1[i].id] = i + 1;
-            for (int i = 0; i < t2.Count; i++) finalRank[t2[i].id] = i + 1;
-            // 역대 기록 (Unity판): 승강을 반영하기 전 순위로
-            Honours.RecordSeason(state, promoted, relegated);
-            foreach (var l in promoted) { l.tier = 1; l.rp = Math.Max(l.rp, L("rpTier1") - 80); }
-            foreach (var l in relegated) { l.tier = 2; l.rp = Math.Min(l.rp, L("rpTier2") + 80); }
+            List<Ludus> promoted, relegated;
+            Dictionary<string, int> finalRank;
+            if (!FmRules.Enabled)
+            {
+                var t2 = Economy.TierRanking(state, 2);
+                int promote = (int)L("promote"), relegate = (int)L("relegate");
+                promoted = t2.Take(promote).ToList();
+                // slice(-n)
+                relegated = t1.Skip(Math.Max(0, t1.Count - relegate)).ToList();
+                finalRank = new Dictionary<string, int>();
+                for (int i = 0; i < t1.Count; i++) finalRank[t1[i].id] = i + 1;
+                for (int i = 0; i < t2.Count; i++) finalRank[t2[i].id] = i + 1;
+                // 역대 기록 (Unity판): 승강을 반영하기 전 순위로
+                Honours.RecordSeason(state, promoted, relegated);
+                foreach (var l in promoted) { l.tier = 1; l.rp = Math.Max(l.rp, L("rpTier1") - 80); }
+                foreach (var l in relegated) { l.tier = 2; l.rp = Math.Min(l.rp, L("rpTier2") + 80); }
 
-            int playerRank = finalRank[player.id];
-            bool wasPromoted = promoted.Contains(player);
-            bool wasRelegated = relegated.Contains(player);
-            Msg(state, "info",
-                $"시즌 {state.season} 종료 — {(wasPromoted ? "승격!" : wasRelegated ? "강등" : $"{playerRank}위")}",
-                $"{Josa.J(player.name, "은/는")} {(wasPromoted ? "2부" : wasRelegated ? "1부" : $"{player.tier}부")} {playerRank}위로 시즌을 마쳤습니다." +
-                $"\n승격: {string.Join(", ", promoted.Select(l => l.name))}\n강등: {string.Join(", ", relegated.Select(l => l.name))}");
+                int playerRank = finalRank[player.id];
+                bool wasPromoted = promoted.Contains(player);
+                bool wasRelegated = relegated.Contains(player);
+                Msg(state, "info",
+                    $"시즌 {state.season} 종료 — {(wasPromoted ? "승격!" : wasRelegated ? "강등" : $"{playerRank}위")}",
+                    $"{Josa.J(player.name, "은/는")} {(wasPromoted ? "2부" : wasRelegated ? "1부" : $"{player.tier}부")} {playerRank}위로 시즌을 마쳤습니다." +
+                    $"\n승격: {string.Join(", ", promoted.Select(l => l.name))}\n강등: {string.Join(", ", relegated.Select(l => l.name))}");
+            }
+            else
+            {
+                // FM식: 모든 나라 1~4부. 부마다 위 2개는 한 부 올라가고 아래 2개는 한 부 내려간다
+                promoted = new List<Ludus>();
+                relegated = new List<Ludus>();
+                finalRank = new Dictionary<string, int>();
+                int promote = (int)L("promote"), relegate = (int)L("relegate");
+                foreach (var n in Data.Nations)
+                {
+                    var tables = new List<Ludus>[FmRules.MaxTier + 2];
+                    for (int t = 1; t <= FmRules.MaxTier; t++)
+                    {
+                        tables[t] = Economy.TierRanking(state, t, n.id);
+                        for (int i = 0; i < tables[t].Count; i++) finalRank[tables[t][i].id] = i + 1;
+                    }
+                    for (int t = 1; t < FmRules.MaxTier; t++)
+                    {
+                        if (tables[t].Count == 0 || tables[t + 1].Count == 0) continue;
+                        relegated.AddRange(tables[t].Skip(Math.Max(0, tables[t].Count - relegate)));
+                        promoted.AddRange(tables[t + 1].Take(promote));
+                    }
+                }
+                Honours.RecordSeason(state, promoted, relegated);
+                int oldTier = player.tier;
+                var upFromMine = promoted.Where(l => l.nation == state.nation && l.tier == oldTier).ToList();
+                var downFromMine = relegated.Where(l => l.nation == state.nation && l.tier == oldTier).ToList();
+                foreach (var l in promoted) { l.tier--; l.rp = Math.Max(l.rp, FmRules.RpBase(l.tier) - 80); }
+                foreach (var l in relegated) { l.tier++; l.rp = Math.Min(l.rp, FmRules.RpBase(l.tier) + 80); }
+                int myRank = finalRank[player.id];
+                bool up = promoted.Contains(player), down = relegated.Contains(player);
+                Msg(state, "info",
+                    $"시즌 {state.season} 종료 — {(up ? $"{player.tier}부로 승격!" : down ? $"{player.tier}부로 강등" : $"{oldTier}부 {myRank}위")}",
+                    $"{Josa.J(player.name, "은/는")} {oldTier}부 {myRank}위로 시즌을 마쳤습니다." +
+                    (up ? $"\n다음 시즌은 {player.tier}부에서 싸웁니다." : down ? $"\n다음 시즌은 {player.tier}부로 내려갑니다." : "") +
+                    $"\n\n{oldTier}부에서 올라간 루두스: {(upFromMine.Count > 0 ? string.Join(", ", upFromMine.Select(l => l.name)) : "없음")}" +
+                    $"\n{oldTier}부에서 내려간 루두스: {(downFromMine.Count > 0 ? string.Join(", ", downFromMine.Select(l => l.name)) : "없음")}" +
+                    "\n\n모든 나라의 순위와 승강 기록은 서열표와 비석의 언덕에서 볼 수 있습니다.");
+                Contracts.SeasonEnd(state, up, down);
+            }
 
             CupLogic.CloseCupSeason(state);
             state.season++;
             state.day = 1;
             foreach (var l in state.ludi.Values.ToList())
             {
-                double @base = l.tier == 1 ? L("rpTier1") : L("rpTier2");
+                double @base = FmRules.Enabled ? FmRules.RpBase(l.tier) : l.tier == 1 ? L("rpTier1") : L("rpTier2");
                 l.rp = JsMath.Round(l.rp - (l.rp - @base) * L("seasonRegression"));
                 l.matchesThisSeason = 0;
                 l.refusalsUsed = 0;
@@ -325,6 +391,16 @@ namespace Colosseum.Core
                 {
                     state.gladiators.TryGetValue(id, out var g);
                     if (g?.contract == null || g.contract.untilSeason >= state.season) continue;
+                    if (FmRules.Enabled)
+                    {
+                        // FM식: 재계약하지 않은 자유민은 계약이 끝나면 무소속으로 떠난다
+                        me.gladiators = me.gladiators.Where(x => x != id).ToList();
+                        g.contract = null;
+                        state.freeAgents.Add(id);
+                        Career.LogCareer(state, g, $"계약이 끝나 {Josa.J(me.name, "을/를")} 떠났습니다", "other");
+                        Msg(state, "warning", $"{g.name} 떠남", $"계약이 끝났는데 재계약하지 않아 무소속이 됐습니다. 다시 데려오려면 이적 시장의 무소속 명단에서 협상해야 합니다.");
+                        continue;
+                    }
                     if (g.morale >= 50)
                     {
                         g.wage = JsMath.Round(g.wage * 1.1);

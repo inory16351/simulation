@@ -124,5 +124,5 @@ console.log("문제 없음");
 // 게임이 읽는 기술 테이블 사본: Resources/Tables (원본은 Tables/, 문제가 없을 때만 복사)
 const RES = "ColosseumUnity/Assets/Resources/Tables";
 mkdirSync(RES, { recursive: true });
-for (const n of ["Skill", "Effect", "SkillLearn", "SkillConst", "Status"]) copyFileSync(`${DIR}/${n}.csv`, `${RES}/${n}.csv`);
+for (const n of ["Skill", "Effect", "SkillLearn", "SkillConst", "Status", "LudusName", "PersonName"]) copyFileSync(`${DIR}/${n}.csv`, `${RES}/${n}.csv`);
 console.log(`기술 테이블 사본 → ${RES}`);

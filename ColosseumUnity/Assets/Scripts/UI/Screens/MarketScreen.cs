@@ -260,7 +260,7 @@ namespace Colosseum.UI
             T(row, "Interest").text = InterestLabel(Reputation.InterestIn(S, g, Reputation.LudusReputation(S, Player)));
             Widgets.SetBar((RectTransform)row.Find("Info/Bar"), k, 100, Theme.BronzeHi);
             T(row, "Wage").text = $"{g.wage} D";
-            T(row, "Value").text = owner != null ? $"{JsMath.Round(Economy.MarketValue(g) / 50) * 50:N0} D" : "-";
+            T(row, "Value").text = owner != null ? $"{JsMath.Round(Economy.MarketValue(g, S) / 50) * 50:N0} D" : "-";
 
             string id = g.id;
             var star = row.Find("Star").GetComponent<Button>();
@@ -297,11 +297,18 @@ namespace Colosseum.UI
                 var g = S.gladiators[o.gladiatorId];
                 NameCell(row, g);
                 T(row, "From").text = Tips.Ludus(S.ludi[o.fromLudus]);
-                T(row, "Fee").text = $"{o.fee:N0} D";
+                T(row, "Fee").text = o.status == "waiting" ? $"{o.fee:N0} D → 우리 {o.ask:N0} D" : $"{o.fee:N0} D";
                 string oid = o.id;
                 var accept = row.Find("Accept").GetComponent<Button>();
                 accept.onClick.RemoveAllListeners();
-                accept.onClick.AddListener(() => G.Mutate(s => Transfers.AcceptOffer(s, oid)));
+                // FM식: 수락·거절·역제안을 고르는 협상 창
+                if (FmRules.Enabled)
+                {
+                    accept.GetComponentInChildren<TMP_Text>().text = o.status == "waiting" ? "답 기다림" : "협상";
+                    accept.interactable = o.status != "waiting";
+                    accept.onClick.AddListener(() => NegotiationPopup.OpenOffer(oid));
+                }
+                else accept.onClick.AddListener(() => G.Mutate(s => Transfers.AcceptOffer(s, oid)));
                 var reject = row.Find("Reject").GetComponent<Button>();
                 reject.onClick.RemoveAllListeners();
                 reject.onClick.AddListener(() => G.Mutate(s => Transfers.RejectOffer(s, oid)));
@@ -343,8 +350,10 @@ namespace Colosseum.UI
             offer.interactable = wage > 0 && pending == null;
             offer.GetComponentInChildren<TMP_Text>().text = pending == null ? "계약 제안" : "답 기다림";
             offer.onClick.RemoveAllListeners();
+            if (FmRules.Enabled) offer.GetComponentInChildren<TMP_Text>().text = pending == null ? "계약 협상" : "답 기다림";
             offer.onClick.AddListener(() =>
             {
+                if (FmRules.Enabled) { NegotiationPopup.OpenContract("terms", g.id, did); return; }
                 var (w, y) = offers[did];
                 HaggleResult res = null;
                 G.Act((s, rng) => res = Transfers.HaggleTransferWage(s, rng, did, w, y));
@@ -363,10 +372,19 @@ namespace Colosseum.UI
                 var g = list[i];
                 NameCell(row, g);
                 T(row, "Style").text = Tips.Style(g.style);
-                T(row, "Wage").text = $"주급 {g.wage} D";
-                T(row, "Value").text = $"추정 가치 {JsMath.Round(Economy.MarketValue(g) / 50) * 50:N0} D";
+                T(row, "Wage").text = g.contract != null ? $"주급 {g.wage} D · 시즌 {g.contract.untilSeason}까지" : $"주급 {g.wage} D";
+                T(row, "Value").text = $"추정 가치 {JsMath.Round(Economy.MarketValue(g, S) / 50) * 50:N0} D";
                 // 웹판 confirm(): 한 번 더 누르면 방출
                 string id = g.id;
+                // FM식: 이적 명단 (희망가를 걸면 제안이 자주 온다)
+                var listB = row.Find("List")?.GetComponent<Button>();
+                if (listB != null)
+                {
+                    listB.gameObject.SetActive(FmRules.Enabled);
+                    listB.GetComponentInChildren<TMP_Text>().text = Transfers.Listed(S, id) ? $"명단 {S.transferList[id]:N0} D" : "이적 명단에 올리기";
+                    listB.onClick.RemoveAllListeners();
+                    listB.onClick.AddListener(() => NegotiationPopup.OpenList(id));
+                }
                 bool asking = confirmRelease == id;
                 var b = row.Find("Release").GetComponent<Button>();
                 b.interactable = g.deployment == null;
@@ -559,7 +577,7 @@ namespace Colosseum.UI
         void NameCell(RectTransform row, Gladiator g)
         {
             row.Find("Name").GetComponentInChildren<PortraitView>(true).Show(g);
-            T(row, "Name/Text").text = g.name;
+            T(row, "Name/Text").text = Tips.Name(g);
             var b = row.Find("Name").GetComponent<Button>();
             if (b == null) return;
             b.onClick.RemoveAllListeners();

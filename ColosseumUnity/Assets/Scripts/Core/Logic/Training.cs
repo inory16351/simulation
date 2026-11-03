@@ -126,7 +126,7 @@ namespace Colosseum.Core
         static readonly string[] InjuryAreas = { "arm", "leg", "torso" };
 
         /// <summary>하루치 훈련. 훈련 중 부상이 나면 설명을 돌려준다 (없으면 null)</summary>
-        public static string DailyTraining(Gladiator g, Rng rng, double facilityLevel, double nationGrowth = 1)
+        public static string DailyTraining(Gladiator g, Rng rng, double facilityLevel, double nationGrowth = 1, double injuryMult = 1)
         {
             var plan = g.training;
             // 급료가 세 번 넘게 밀리면 태업한다
@@ -135,7 +135,7 @@ namespace Colosseum.Core
             double ig = (double)intensity["growth"];
             if (plan.focus == "doctrine")
             {
-                g.doctrine.familiarity = Math.Min(100, g.doctrine.familiarity + (double)T["familiarityPerDay"] * ig);
+                g.doctrine.familiarity = Math.Min(100, g.doctrine.familiarity + (double)T["familiarityPerDay"] * ig * (FmRules.Enabled ? nationGrowth : 1));
             }
             else
             {
@@ -144,7 +144,7 @@ namespace Colosseum.Core
                 Grow(g, rng, plan.focus, 1, ig * nationGrowth, facilityLevel);
             }
             if (plan.intensity == "extreme") g.morale = Math.Max(0, g.morale - 0.4);
-            double injuryChance = (double)intensity["injury"] * (g.traits.Contains("injury_prone") ? 1.5 : 1) * (1 - (facilityLevel - 1) * 0.05);
+            double injuryChance = (double)intensity["injury"] * (g.traits.Contains("injury_prone") ? 1.5 : 1) * (1 - (facilityLevel - 1) * 0.05) * injuryMult;
             if (g.injury == null && rng.Chance(injuryChance))
             {
                 string area = rng.Pick(InjuryAreas);

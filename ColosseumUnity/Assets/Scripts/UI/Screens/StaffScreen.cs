@@ -63,10 +63,10 @@ namespace Colosseum.UI
             pad.Find("Empty").gameObject.SetActive(st == null);
             if (st == null) return;
             card.GetComponentInChildren<PortraitView>(true).Show(Face(st));
-            T(card, "Info/Name").text = st.name;
+            T(card, "Info/Name").text = Tips.Person(st);
             Widgets.SetBar((RectTransform)card.Find("Info/Rating/Bar"), st.rating, 20, Theme.Torch);
             T(card, "Info/Rating/Value").text = StateUtil.Num(st.rating);
-            T(card, "Info/Hint").text = $"주급 {StateUtil.Num(st.wage)} D · {StateUtil.Num(st.age)}세";
+            T(card, "Info/Hint").text = $"주급 {StateUtil.Num(st.wage)} D · {StateUtil.Num(st.age)}세" + (FmRules.Enabled ? $"\n{Tips.StaffKeyAttrs(st, true, 2)}" : "");
             // 웹판 confirm(): 한 번 더 누르면 내보낸다
             string id = st.id;
             bool asking = confirmFire == id;
@@ -111,7 +111,7 @@ namespace Colosseum.UI
         void BindRow(RectTransform row, Staff c, Demand d)
         {
             row.Find("Name").GetComponentInChildren<PortraitView>(true).Show(Face(c));
-            T(row, "Name/Text").text = c.name;
+            T(row, "Name/Text").text = Tips.Person(c);
             T(row, "Name/Age").text = $"{StateUtil.Num(c.age)}세";
             T(row, "Role").text = Tips.StaffRole(c.role);
             Widgets.SetBar((RectTransform)row.Find("Rating/Bar"), c.rating, 20, Theme.Torch);

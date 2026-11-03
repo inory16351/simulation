@@ -102,11 +102,28 @@ namespace Colosseum.Core
             return Range(value, spread, g.portraitSeed, salt, 1, 20);
         }
 
-        /// <summary>현재 능력(CA) 추정</summary>
+        /// <summary>현재 능력(CA) 추정. FM식이면 남의 검투사는 정찰꾼 '능력 판단'만큼, 우리 검투사는 독토레 '능력 판단'만큼 흐리다</summary>
         public static ScoutRange CaRange(GameState s, Gladiator g)
         {
             double k = KnowledgeOf(s, g);
-            return Range(GladiatorRules.ComputeCA(g), IsMine(s, g) ? 0 : JsMath.Round(24 * (1 - k / 100)), g.portraitSeed, 1, 1, 200);
+            if (FmRules.Enabled && IsMine(s, g))
+            {
+                double v = Judged(s, g);
+                return new ScoutRange { lo = v, hi = v, mid = v };
+            }
+            double judge = FmRules.Enabled ? StaffLogic.AttrOf(s, s.ludi[s.playerLudusId], "scout", "judgeA") : 10;
+            double spread = 24 * (1 - k / 100) * (FmRules.Enabled ? 1.3 - judge * 0.035 : 1);
+            return Range(GladiatorRules.ComputeCA(g), IsMine(s, g) ? 0 : JsMath.Round(spread), g.portraitSeed, 1, 1, 200);
+        }
+
+        /// <summary>우리 독토레가 보는 우리 검투사의 실력 (FM 교관 평가 별점). 판단이 서툴수록 시즌마다 다르게 틀린다</summary>
+        public static double Judged(GameState s, Gladiator g)
+        {
+            double ca = GladiatorRules.ComputeCA(g);
+            if (!FmRules.Enabled) return ca;
+            double judge = StaffLogic.AttrOf(s, s.ludi[s.playerLudusId], "doctore", "judgeA");
+            double spread = Math.Max(0, (20 - judge) * 1.1);
+            return Math.Max(1, Math.Min(200, JsMath.Round(ca + Skew(g.portraitSeed, 7 + s.season) * spread)));
         }
 
         /// <summary>잠재력(PA) 추정: 정찰꾼 실력과 정보량에 따라</summary>

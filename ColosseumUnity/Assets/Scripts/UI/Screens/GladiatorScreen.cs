@@ -91,7 +91,7 @@ namespace Colosseum.UI
             Kv("Style", $"{Tips.Style(g.style)} — <color={dim}>{style?.desc}</color>");
             Kv("Status", StatusNames.TryGetValue(g.status, out var st) ? st : g.status);
             Kv("Wage", $"{g.wage} D" + (g.unpaidWeeks > 0 ? $"  <color={Theme.Hex(Neg)}>급료 {g.unpaidWeeks}회 밀림</color>" : ""));
-            if (isMine) Kv("Ca", $"<color={Theme.Hex(Theme.Torch)}>{Widgets.Stars(ca)}</color> <color={faint}>(CA {ca})</color>");
+            if (isMine) Kv("Ca", $"<color={Theme.Hex(Theme.Torch)}>{Widgets.CaStars(S, g)}</color> <color={faint}>(독토레 평가)</color>");
             else { var r = Scouting.CaRange(S, g); Kv("Ca", RangeStars(r.lo, r.hi)); }
             var pr = Scouting.PaRange(S, g);
             Kv("Pa", RangeStars(pr.lo, pr.hi));

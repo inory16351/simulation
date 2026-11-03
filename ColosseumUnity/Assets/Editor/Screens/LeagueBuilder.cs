@@ -13,19 +13,21 @@ namespace Colosseum.EditorTools
         static readonly (string id, string label, float w, bool right)[] Cols =
         {
             ("Rank", "순위", 50, true), ("Name", "루두스", 0, false), ("Personality", "성향", 110, false), ("Count", "검투사", 70, true),
-            ("Avg", "평균 전력", 110, false), ("Record", "승-패", 80, true), ("Rp", "RP", 80, true),
+            ("Avg", "평균 전력", 110, false), ("Record", "승-패", 80, true), ("Rp", "RP", 80, true), ("Last", "지난 시즌", 120, false),
         };
 
         public static ScreenBase Build(Transform main)
         {
             var rt = Rect("Screen_league", main).Stretch(26, 20, 26, 20);
             VCol(rt, 12);
-            ScreenHeader(rt, "서열표", "시즌이 끝나면 RP 순위에 따라 승격과 강등이 갈립니다. 2부 1·2위는 1부로 올라가고, 1부 9·10위는 2부로 떨어집니다. 다른 나라는 1부 리그만 볼 수 있습니다.");
+            ScreenHeader(rt, "서열표", "시즌이 끝나면 RP 순위에 따라 승격과 강등이 갈립니다. 나라마다 1~4부가 있고, 부마다 1·2위는 한 부 위로 올라가고 9·10위는 한 부 아래로 떨어집니다.");
 
             var bar = Rect("Filter", rt);
             HRow(bar, 4);
             var t1 = Button("Tier1", bar, "1부 리그", false, 14).Layout(prefW: 110, prefH: 32);
             var t2 = Button("Tier2", bar, "2부 리그", false, 14).Layout(prefW: 110, prefH: 32);
+            var t3 = Button("Tier3", bar, "3부 리그", false, 14).Layout(prefW: 110, prefH: 32);
+            var t4 = Button("Tier4", bar, "4부 리그", false, 14).Layout(prefW: 110, prefH: 32);
             Rect("Gap", bar).Layout(prefW: 10, flexW: 0);
             var nation = Dropdown("Nation", bar, 220, 32);
 
@@ -47,8 +49,8 @@ namespace Colosseum.EditorTools
             line.rectTransform.Anchor(Vector2.zero, new Vector2(1, 0), Vector2.zero, new Vector2(0, 1));
             foreach (var c in Cols)
             {
-                var color = c.id is "Name" or "Rp" ? Theme.Parchment : c.id == "Personality" ? Theme.TextDim : c.id == "Avg" ? Theme.Torch : Theme.Text;
-                var t = Text(c.id, row.transform, "", c.id == "Avg" ? 13 : 15, color, false, c.id == "Rp" ? FontStyles.Bold : FontStyles.Normal, Align(c.right));
+                var color = c.id is "Name" or "Rp" ? Theme.Parchment : c.id is "Personality" or "Last" ? Theme.TextDim : c.id == "Avg" ? Theme.Torch : Theme.Text;
+                var t = Text(c.id, row.transform, "", c.id is "Avg" or "Last" ? 13 : 15, color, false, c.id == "Rp" ? FontStyles.Bold : FontStyles.Normal, Align(c.right));
                 t.textWrappingMode = TextWrappingModes.NoWrap;
                 Cell(t.rectTransform, c.w);
             }
@@ -58,6 +60,8 @@ namespace Colosseum.EditorTools
             s.screenId = "league";
             Set(s, "tier1", t1);
             Set(s, "tier2", t2);
+            Set(s, "tier3", t3);
+            Set(s, "tier4", t4);
             Set(s, "nation", nation);
             Set(s, "rowTemplate", row.rectTransform);
             rt.gameObject.SetActive(false);

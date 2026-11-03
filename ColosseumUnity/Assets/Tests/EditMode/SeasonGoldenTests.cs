@@ -26,6 +26,8 @@ namespace Colosseum.Tests
             Colosseum.Core.Combat.Exchange.Zones = false;
             // 웹판에는 기술 테이블(습득·새 기술)이 없다
             SkillBook.Enabled = false;
+            // 웹판에는 FM식 규칙(4부 리그·몸값 모델·계약 조항·식솔 능력치 등)이 없다
+            FmRules.Enabled = false;
             // Unity판은 이벤트를 덜 자주 터뜨린다. 골든은 웹판 확률로 뽑았다
             Bal.Events["ludusPerDay"] = 0.12;
             Bal.Events["gladiatorPerDay"] = 0.006;
@@ -41,6 +43,7 @@ namespace Colosseum.Tests
             Uniques.Enabled = true;
             Colosseum.Core.Combat.Exchange.Zones = true;
             SkillBook.Enabled = true;
+            FmRules.Enabled = true;
             Data.LoadFrom(n => File.ReadAllText($"Assets/Resources/Data/{n}.json"));
         }
 

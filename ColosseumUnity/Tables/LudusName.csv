@@ -1,0 +1,915 @@
+id,nation,name
+int,string,string
+번호,나라 id (any = 어느 나라든),루두스 이름
+1,aurelia,황금 독수리 투기단
+2,aurelia,월계관의 집
+3,aurelia,일곱 언덕 루두스
+4,aurelia,대리석 사자 양성소
+5,aurelia,붉은 망토 형제단
+6,aurelia,개선문 루두스
+7,aurelia,백인대장의 집
+8,aurelia,원로원의 칼
+9,aurelia,카피톨의 방패
+10,aurelia,승리의 전차 투기단
+11,aurelia,아퀼라 루두스
+12,aurelia,마그누스 양성소
+13,aurelia,비크토르의 집
+14,aurelia,청동 군단 투기단
+15,aurelia,황제의 모래
+16,aurelia,포룸의 사자들
+17,aurelia,티베르 강 루두스
+18,aurelia,검은 독수리 콜레기움
+19,aurelia,황제의 황소 양성소
+20,aurelia,무패의 말발굽 콜레기움
+21,aurelia,대리석 늑대 투기단
+22,aurelia,자줏빛 기둥 결사
+23,aurelia,붉은 말발굽 양성소
+24,aurelia,자줏빛 방패 투기단
+25,aurelia,백인대 콜레기움
+26,aurelia,늙은 독수리 투기단
+27,aurelia,무패의 독수리 루두스
+28,aurelia,영광의 월계수 투기단
+29,aurelia,황금 창 투기단
+30,aurelia,영광의 독수리 양성소
+31,aurelia,자줏빛 투구의 집
+32,aurelia,대리석 기둥 결사
+33,aurelia,무패의 투구 루두스
+34,aurelia,불굴의 백인대 양성소
+35,aurelia,자줏빛 원형극장 투기단
+36,aurelia,불굴의 개선문의 집
+37,aurelia,무패의 말발굽 양성소
+38,aurelia,영광의 창 루두스
+39,aurelia,대리석 창의 집
+40,aurelia,황제의 월계수 형제단
+41,aurelia,늙은 군단 결사
+42,aurelia,늙은 말발굽의 집
+43,aurelia,개선문 투기단
+44,aurelia,청동 말발굽 루두스
+45,aurelia,피 묻은 전차 결사
+46,aurelia,피 묻은 월계수 루두스
+47,aurelia,황금 백인대 양성소
+48,aurelia,황제의 말발굽 루두스
+49,aurelia,청동 황소 양성소
+50,aurelia,피 묻은 사자 투기단
+51,aurelia,말발굽 형제단
+52,aurelia,붉은 창 루두스
+53,aurelia,청동 월계수 양성소
+54,aurelia,대리석 방패 양성소
+55,aurelia,대리석 원형극장 루두스
+56,aurelia,청동 검 양성소
+57,aurelia,늙은 창 양성소
+58,aurelia,늙은 방패 형제단
+59,aurelia,황제의 방패 콜레기움
+60,aurelia,청동 기둥 루두스
+61,aurelia,피 묻은 전차 형제단
+62,aurelia,청동 원형극장 루두스
+63,aurelia,붉은 늑대의 집
+64,aurelia,자줏빛 백인대의 집
+65,aurelia,황금 황소 결사
+66,aurelia,군단 투기단
+67,aurelia,늙은 창 콜레기움
+68,aurelia,영광의 원형극장 양성소
+69,aurelia,대리석 방패 결사
+70,aurelia,자줏빛 사자 투기단
+71,aurelia,황제의 개선문의 집
+72,aurelia,무패의 사자 형제단
+73,aurelia,대리석 황소의 집
+74,aurelia,무패의 군단 결사
+75,aurelia,방패의 집
+76,aurelia,황제의 창의 집
+77,aurelia,대리석 개선문 양성소
+78,aurelia,황제의 군단 루두스
+79,aurelia,늙은 백인대 콜레기움
+80,aurelia,무패의 투구 콜레기움
+81,aurelia,영광의 사자 콜레기움
+82,aurelia,무패의 기둥 루두스
+83,aurelia,영광의 월계수 루두스
+84,aurelia,늑대 양성소
+85,aurelia,대리석 황소 루두스
+86,aurelia,무패의 군단 투기단
+87,aurelia,황금 늑대 투기단
+88,aurelia,황금 방패의 집
+89,aurelia,늙은 백인대 투기단
+90,aurelia,피 묻은 황소 형제단
+91,aurelia,무패의 개선문 투기단
+92,aurelia,황금 검 형제단
+93,aurelia,늙은 방패 결사
+94,aurelia,피 묻은 기둥의 집
+95,aurelia,늙은 기둥 콜레기움
+96,aurelia,늙은 투구 결사
+97,aurelia,영광의 검 양성소
+98,aurelia,피 묻은 독수리 결사
+99,aurelia,불굴의 군단 양성소
+100,aurelia,늙은 투구 콜레기움
+101,aurelia,대리석 늑대 양성소
+102,aurelia,청동 군단 형제단
+103,aurelia,불굴의 월계수 양성소
+104,aurelia,황금 전차 루두스
+105,aurelia,자줏빛 황소 양성소
+106,aurelia,무패의 개선문 형제단
+107,aurelia,황금 검 루두스
+108,aurelia,대리석 독수리의 집
+109,aurelia,사자 양성소
+110,aurelia,피 묻은 검 결사
+111,aurelia,자줏빛 백인대 투기단
+112,aurelia,늙은 월계수의 집
+113,aurelia,황제의 말발굽 결사
+114,aurelia,황제의 투구 결사
+115,aurelia,황제의 늑대 투기단
+116,aurelia,황제의 사자 루두스
+117,aurelia,붉은 황소 투기단
+118,aurelia,황제의 전차 양성소
+119,aurelia,늙은 전차 결사
+120,aurelia,영광의 백인대 투기단
+121,aurelia,황금 기둥 양성소
+122,aurelia,청동 늑대 양성소
+123,aurelia,붉은 독수리 형제단
+124,aurelia,대리석 기둥 형제단
+125,aurelia,청동 군단 루두스
+126,aurelia,자줏빛 백인대 콜레기움
+127,aurelia,황금 백인대 루두스
+128,aurelia,자줏빛 투구 콜레기움
+129,aurelia,영광의 사자 루두스
+130,aurelia,자줏빛 독수리의 집
+131,aurelia,대리석 개선문 루두스
+132,aurelia,방패 루두스
+133,aurelia,청동 투구 콜레기움
+134,aurelia,월계수 콜레기움
+135,aurelia,자줏빛 창 형제단
+136,aurelia,대리석 창 투기단
+137,aurelia,독수리 투기단
+138,aurelia,붉은 검의 집
+139,dolgar,강철 모루 형제단
+140,dolgar,깊은 갱도의 집
+141,dolgar,화강암 방패 결사
+142,dolgar,룬 망치 투기단
+143,dolgar,산의 심장 루두스
+144,dolgar,철문 수비대
+145,dolgar,용광로 불꽃 양성소
+146,dolgar,은광 사냥꾼들
+147,dolgar,돌수염 형제단
+148,dolgar,높은 고개 투기단
+149,dolgar,얼음 봉우리의 집
+150,dolgar,라케다이몬 방패단
+151,dolgar,청동 성벽 결사
+152,dolgar,산양 뿔 투기단
+153,dolgar,잿빛 룬 결사
+154,dolgar,서리 광맥 투기단
+155,dolgar,은빛 바위 수비대
+156,dolgar,서리 성벽 투기단
+157,dolgar,은빛 대장간의 집
+158,dolgar,서리 룬 투기단
+159,dolgar,녹은 산양의 집
+160,dolgar,룬이 새겨진 광맥 투기단
+161,dolgar,잿빛 바위 투기단
+162,dolgar,화강암 수염 수비대
+163,dolgar,깊은 룬 수비대
+164,dolgar,녹은 바위 방패단
+165,dolgar,녹은 용광로 루두스
+166,dolgar,광맥 방패단
+167,dolgar,무너지지 않는 룬 방패단
+168,dolgar,은빛 곡괭이의 집
+169,dolgar,은빛 도끼 수비대
+170,dolgar,잿빛 곡괭이 방패단
+171,dolgar,녹은 갱도 형제단
+172,dolgar,녹은 수염의 집
+173,dolgar,녹은 방패 수비대
+174,dolgar,화강암 성벽 루두스
+175,dolgar,수염 투기단
+176,dolgar,서리 바위 형제단
+177,dolgar,화강암 산양 투기단
+178,dolgar,깊은 철문 루두스
+179,dolgar,룬이 새겨진 대장간 수비대
+180,dolgar,강철 광맥 루두스
+181,dolgar,깊은 용광로 수비대
+182,dolgar,깊은 산양 방패단
+183,dolgar,룬이 새겨진 도끼 결사
+184,dolgar,녹은 곡괭이 수비대
+185,dolgar,강철 곡괭이 투기단
+186,dolgar,높은 광맥 형제단
+187,dolgar,룬이 새겨진 광맥 결사
+188,dolgar,은빛 광맥 방패단
+189,dolgar,룬이 새겨진 갱도 투기단
+190,dolgar,잿빛 갱도 루두스
+191,dolgar,서리 방패의 집
+192,dolgar,잿빛 대장간 결사
+193,dolgar,녹은 봉우리 결사
+194,dolgar,잿빛 성벽 결사
+195,dolgar,깊은 봉우리 투기단
+196,dolgar,룬이 새겨진 대장간 투기단
+197,dolgar,곡괭이의 집
+198,dolgar,강철 방패의 집
+199,dolgar,서리 곡괭이 방패단
+200,dolgar,은빛 대장간 루두스
+201,dolgar,깊은 방패 결사
+202,dolgar,높은 수염 형제단
+203,dolgar,높은 용광로 방패단
+204,dolgar,서리 도끼의 집
+205,dolgar,모루 결사
+206,dolgar,룬이 새겨진 수염 형제단
+207,dolgar,모루 수비대
+208,dolgar,무너지지 않는 철문 투기단
+209,dolgar,무너지지 않는 수염 방패단
+210,dolgar,서리 산양 수비대
+211,dolgar,잿빛 산양 형제단
+212,dolgar,화강암 바위 형제단
+213,dolgar,화강암 룬 방패단
+214,dolgar,은빛 용광로 루두스
+215,dolgar,높은 곡괭이 결사
+216,dolgar,녹은 광맥의 집
+217,dolgar,높은 철문 루두스
+218,dolgar,깊은 산양 투기단
+219,dolgar,성벽 형제단
+220,dolgar,무너지지 않는 용광로 형제단
+221,dolgar,무너지지 않는 산양 수비대
+222,dolgar,바위 루두스
+223,dolgar,화강암 곡괭이 루두스
+224,dolgar,강철 대장간 형제단
+225,dolgar,룬이 새겨진 철문의 집
+226,dolgar,은빛 성벽 방패단
+227,dolgar,높은 용광로 형제단
+228,dolgar,깊은 산양 루두스
+229,dolgar,잿빛 갱도의 집
+230,dolgar,룬이 새겨진 성벽 수비대
+231,dolgar,강철 곡괭이 루두스
+232,dolgar,봉우리 방패단
+233,dolgar,무너지지 않는 성벽의 집
+234,dolgar,화강암 대장간 투기단
+235,dolgar,룬이 새겨진 곡괭이 수비대
+236,dolgar,무너지지 않는 산양 결사
+237,dolgar,룬이 새겨진 산양 투기단
+238,dolgar,서리 망치 투기단
+239,dolgar,잿빛 방패 루두스
+240,dolgar,무너지지 않는 모루 형제단
+241,dolgar,은빛 곡괭이 수비대
+242,dolgar,깊은 용광로 결사
+243,dolgar,화강암 갱도 결사
+244,dolgar,높은 산양 수비대
+245,dolgar,룬이 새겨진 철문 수비대
+246,dolgar,잿빛 수염 방패단
+247,dolgar,은빛 철문 루두스
+248,dolgar,룬이 새겨진 봉우리 투기단
+249,dolgar,녹은 곡괭이 결사
+250,dolgar,강철 용광로 루두스
+251,dolgar,잿빛 봉우리 루두스
+252,dolgar,서리 철문의 집
+253,dolgar,서리 바위 투기단
+254,dolgar,깊은 모루 방패단
+255,dolgar,화강암 모루 투기단
+256,dolgar,봉우리 형제단
+257,dolgar,강철 모루의 집
+258,dolgar,녹은 도끼 형제단
+259,dolgar,높은 광맥 수비대
+260,dolgar,높은 성벽 결사
+261,dolgar,녹은 봉우리 투기단
+262,dolgar,룬이 새겨진 방패 결사
+263,dolgar,은빛 성벽의 집
+264,dolgar,깊은 룬 루두스
+265,dolgar,녹은 봉우리 수비대
+266,dolgar,무너지지 않는 모루 결사
+267,dolgar,망치 수비대
+268,dolgar,룬이 새겨진 용광로 투기단
+269,dolgar,잿빛 성벽 방패단
+270,dolgar,잿빛 대장간 수비대
+271,dolgar,강철 성벽의 집
+272,dolgar,화강암 광맥의 집
+273,karsea,소금 바람 투기단
+274,karsea,산호 칼날의 집
+275,karsea,닻과 사슬 형제단
+276,karsea,붉은 갑판 루두스
+277,karsea,바다뱀 선단
+278,karsea,등대지기 양성소
+279,karsea,진주 상인 투기단
+280,karsea,폭풍 돛 결사
+281,karsea,검은 조류의 집
+282,karsea,상어 이빨 투기단
+283,karsea,만조의 칼잡이들
+284,karsea,카르세아 항구 루두스
+285,karsea,난파선 형제단
+286,karsea,갈매기 언덕의 집
+287,karsea,푸른 조류의 집
+288,karsea,푸른 상어 루두스
+289,karsea,폭풍의 파도 양성소
+290,karsea,젖은 해협 양성소
+291,karsea,폭풍의 해협 결사
+292,karsea,폭풍의 해협 투기단
+293,karsea,가라앉은 고래의 집
+294,karsea,푸른 선창 결사
+295,karsea,폭풍의 소용돌이 양성소
+296,karsea,붉은 바다뱀의 집
+297,karsea,만조의 갈매기 형제단
+298,karsea,가라앉은 갈매기 양성소
+299,karsea,폭풍의 바다뱀 루두스
+300,karsea,거친 소용돌이 루두스
+301,karsea,검은 산호 선단
+302,karsea,거친 갈매기 루두스
+303,karsea,소금 해협 양성소
+304,karsea,만조의 고래 형제단
+305,karsea,가라앉은 조류 투기단
+306,karsea,가라앉은 소용돌이 루두스
+307,karsea,은빛 상어 양성소
+308,karsea,만조의 파도 선단
+309,karsea,붉은 작살 양성소
+310,karsea,붉은 해협 양성소
+311,karsea,은빛 고래 양성소
+312,karsea,푸른 해협 루두스
+313,karsea,검은 바다뱀 형제단
+314,karsea,거친 작살 투기단
+315,karsea,거친 진주 선단
+316,karsea,검은 소용돌이 루두스
+317,karsea,가라앉은 닻 형제단
+318,karsea,붉은 갑판 양성소
+319,karsea,푸른 산호 양성소
+320,karsea,은빛 상어 투기단
+321,karsea,폭풍의 돛 루두스
+322,karsea,젖은 고래 양성소
+323,karsea,거친 파도 루두스
+324,karsea,검은 해협의 집
+325,karsea,은빛 작살 투기단
+326,karsea,검은 갑판 형제단
+327,karsea,검은 소용돌이 형제단
+328,karsea,바다뱀 루두스
+329,karsea,가라앉은 돛 선단
+330,karsea,푸른 작살 양성소
+331,karsea,은빛 산호 루두스
+332,karsea,붉은 닻 형제단
+333,karsea,젖은 닻의 집
+334,karsea,파도 선단
+335,karsea,젖은 상어 루두스
+336,karsea,푸른 소용돌이 투기단
+337,karsea,만조의 진주의 집
+338,karsea,붉은 산호 선단
+339,karsea,붉은 고래 루두스
+340,karsea,은빛 산호의 집
+341,karsea,고래 형제단
+342,karsea,검은 조류 선단
+343,karsea,만조의 작살 형제단
+344,karsea,젖은 갈매기 결사
+345,karsea,소용돌이 양성소
+346,karsea,가라앉은 조류의 집
+347,karsea,붉은 돛 양성소
+348,karsea,붉은 갈매기의 집
+349,karsea,소금 작살 선단
+350,karsea,만조의 돛 양성소
+351,karsea,붉은 바다뱀 루두스
+352,karsea,거친 작살 형제단
+353,karsea,가라앉은 파도 선단
+354,karsea,검은 산호 투기단
+355,karsea,고래 루두스
+356,karsea,은빛 조류 양성소
+357,karsea,은빛 산호 양성소
+358,karsea,만조의 소용돌이 형제단
+359,karsea,만조의 갈매기 선단
+360,karsea,조류의 집
+361,karsea,가라앉은 상어 형제단
+362,karsea,가라앉은 산호 형제단
+363,karsea,소금 닻의 집
+364,karsea,폭풍의 진주 결사
+365,karsea,만조의 갑판 선단
+366,karsea,만조의 파도 투기단
+367,karsea,붉은 파도 형제단
+368,karsea,검은 작살 선단
+369,karsea,거친 작살 양성소
+370,karsea,파도 양성소
+371,karsea,은빛 갈매기 루두스
+372,karsea,붉은 돛 결사
+373,karsea,검은 돛 투기단
+374,karsea,젖은 상어 결사
+375,karsea,푸른 갈매기 투기단
+376,karsea,폭풍의 진주 선단
+377,karsea,소금 고래 결사
+378,karsea,푸른 갑판 양성소
+379,karsea,붉은 산호 결사
+380,karsea,푸른 상어 결사
+381,karsea,만조의 해협 루두스
+382,karsea,젖은 고래 투기단
+383,karsea,고래 결사
+384,karsea,만조의 등대 루두스
+385,karsea,소금 선창 선단
+386,karsea,소금 해협의 집
+387,karsea,은빛 등대 양성소
+388,karsea,은빛 닻 선단
+389,karsea,폭풍의 상어 형제단
+390,karsea,소금 해협 루두스
+391,karsea,푸른 선창의 집
+392,karsea,폭풍의 갑판의 집
+393,karsea,붉은 조류 루두스
+394,karsea,은빛 갑판 형제단
+395,karsea,가라앉은 등대 루두스
+396,karsea,가라앉은 소용돌이 형제단
+397,karsea,바다뱀 결사
+398,karsea,거친 등대 루두스
+399,karsea,붉은 갈매기 결사
+400,karsea,만조의 고래의 집
+401,karsea,소금 갈매기 투기단
+402,karsea,거친 바다뱀 루두스
+403,karsea,거친 고래의 집
+404,karsea,갑판 양성소
+405,karsea,검은 갑판 양성소
+406,karsea,푸른 해협 결사
+407,kemer,태양 전갈의 집
+408,kemer,황금 자칼 투기단
+409,kemer,스핑크스의 문
+410,kemer,오아시스 루두스
+411,kemer,불타는 사구 형제단
+412,kemer,신전 수호 투사단
+413,kemer,스카라베 결사
+414,kemer,모래시계 양성소
+415,kemer,붉은 사막의 집
+416,kemer,태양왕의 칼
+417,kemer,하늘 매 투기단
+418,kemer,갈대 강 루두스
+419,kemer,검은 오벨리스크 형제단
+420,kemer,사자 머리 신전단
+421,kemer,뜨거운 왕관 형제단
+422,kemer,마른 자칼 투기단
+423,kemer,뜨거운 왕관 루두스
+424,kemer,타오르는 자칼 혈족
+425,kemer,전갈 혈족
+426,kemer,왕관의 집
+427,kemer,모래빛 코브라 루두스
+428,kemer,붉은 스카라베 형제단
+429,kemer,영원한 모래시계의 집
+430,kemer,눈부신 갈대 투기단
+431,kemer,마른 사구 투기단
+432,kemer,모래빛 자칼의 집
+433,kemer,뜨거운 왕관 신전단
+434,kemer,뜨거운 스핑크스 투사단
+435,kemer,모래빛 피라미드 신전단
+436,kemer,붉은 사구 루두스
+437,kemer,오벨리스크 루두스
+438,kemer,모래빛 오아시스 신전단
+439,kemer,모래시계 투기단
+440,kemer,눈부신 오벨리스크 투사단
+441,kemer,뜨거운 스카라베 형제단
+442,kemer,영원한 모래시계 루두스
+443,kemer,신성한 코브라 루두스
+444,kemer,마른 오아시스 투사단
+445,kemer,태양 투사단
+446,kemer,붉은 피라미드 투사단
+447,kemer,모래빛 자칼 루두스
+448,kemer,신성한 사구 루두스
+449,kemer,황금 모래시계 형제단
+450,kemer,사구 혈족
+451,kemer,코브라 혈족
+452,kemer,신성한 갈대 투사단
+453,kemer,검은 피라미드 신전단
+454,kemer,뜨거운 오아시스 형제단
+455,kemer,뜨거운 매 형제단
+456,kemer,황금 낙타 루두스
+457,kemer,눈부신 사구의 집
+458,kemer,태양 혈족
+459,kemer,뜨거운 자칼의 집
+460,kemer,모래빛 매 루두스
+461,kemer,붉은 매 신전단
+462,kemer,눈부신 전갈 루두스
+463,kemer,영원한 피라미드 루두스
+464,kemer,황금 사구 혈족
+465,kemer,뜨거운 오벨리스크 신전단
+466,kemer,마른 코브라 형제단
+467,kemer,뜨거운 신전 형제단
+468,kemer,검은 모래시계 투사단
+469,kemer,자칼의 집
+470,kemer,신성한 자칼 루두스
+471,kemer,영원한 사구 형제단
+472,kemer,검은 스핑크스 투사단
+473,kemer,마른 매 혈족
+474,kemer,타오르는 코브라 루두스
+475,kemer,영원한 코브라 투사단
+476,kemer,황금 모래시계 투사단
+477,kemer,눈부신 모래시계의 집
+478,kemer,붉은 낙타 루두스
+479,kemer,검은 낙타 형제단
+480,kemer,영원한 매 신전단
+481,kemer,검은 스핑크스 루두스
+482,kemer,모래빛 왕관의 집
+483,kemer,마른 모래시계 혈족
+484,kemer,신성한 낙타 투기단
+485,kemer,마른 왕관 혈족
+486,kemer,신성한 오벨리스크의 집
+487,kemer,타오르는 매 투사단
+488,kemer,마른 모래시계 투사단
+489,kemer,신성한 매 신전단
+490,kemer,모래빛 태양 투기단
+491,kemer,눈부신 매의 집
+492,kemer,모래빛 전갈 신전단
+493,kemer,모래빛 자칼 투사단
+494,kemer,황금 낙타의 집
+495,kemer,영원한 낙타 형제단
+496,kemer,타오르는 태양 신전단
+497,kemer,마른 코브라 투기단
+498,kemer,모래빛 피라미드의 집
+499,kemer,모래빛 코브라 형제단
+500,kemer,타오르는 오벨리스크 형제단
+501,kemer,눈부신 코브라 루두스
+502,kemer,황금 오아시스 혈족
+503,kemer,황금 전갈 혈족
+504,kemer,눈부신 낙타 신전단
+505,kemer,눈부신 왕관 신전단
+506,kemer,영원한 낙타 투기단
+507,kemer,황금 피라미드 투사단
+508,kemer,스핑크스 투사단
+509,kemer,붉은 전갈 형제단
+510,kemer,붉은 모래시계 루두스
+511,kemer,뜨거운 피라미드 형제단
+512,kemer,신성한 신전 루두스
+513,kemer,영원한 오아시스의 집
+514,kemer,영원한 태양 혈족
+515,kemer,신성한 코브라 투사단
+516,kemer,붉은 태양 투기단
+517,kemer,오아시스 투기단
+518,kemer,붉은 사구 형제단
+519,kemer,타오르는 오아시스 투사단
+520,kemer,신성한 오벨리스크 투기단
+521,kemer,타오르는 오벨리스크 혈족
+522,kemer,눈부신 매 형제단
+523,kemer,영원한 오아시스 투기단
+524,kemer,마른 스카라베 투사단
+525,kemer,눈부신 태양 혈족
+526,kemer,붉은 스핑크스 투기단
+527,kemer,눈부신 피라미드 혈족
+528,kemer,타오르는 신전 루두스
+529,kemer,모래빛 오아시스 형제단
+530,kemer,눈부신 코브라 투사단
+531,kemer,영원한 스카라베 혈족
+532,kemer,검은 코브라 루두스
+533,kemer,검은 사구 투기단
+534,kemer,타오르는 낙타 형제단
+535,kemer,붉은 신전 신전단
+536,kemer,붉은 낙타 신전단
+537,kemer,황금 오벨리스크 루두스
+538,kemer,붉은 갈대 혈족
+539,kemer,영원한 낙타 신전단
+540,kemer,붉은 오벨리스크 루두스
+541,grommar,해골 도끼 전사단
+542,grommar,부서진 이빨 무리
+543,grommar,뼈 북 부족
+544,grommar,붉은 엄니 투기단
+545,grommar,울부짖는 늑대 패거리
+546,grommar,쇠사슬 미궁의 집
+547,grommar,피의 회합 전사단
+548,grommar,검은 뿔 무리
+549,grommar,전쟁 북 투기단
+550,grommar,썩은 늪 패거리
+551,grommar,까마귀 해골 부족
+552,grommar,도살자의 집
+553,grommar,그롬마르 피투성이들
+554,grommar,꺾인 창 무리
+555,grommar,굶주린 뿔 패거리
+556,grommar,녹슨 뿔 부족
+557,grommar,녹슨 엄니 피의 형제들
+558,grommar,울부짖는 가죽 부족
+559,grommar,녹슨 북의 집
+560,grommar,굶주린 멧돼지 부족
+561,grommar,가죽 피의 형제들
+562,grommar,굶주린 사슬 부족
+563,grommar,검은 도끼 피의 형제들
+564,grommar,피투성이 사슬 무리
+565,grommar,썩은 엄니 투기단
+566,grommar,검은 창 무리
+567,grommar,검은 뼈 패거리
+568,grommar,송곳니 부족
+569,grommar,울부짖는 해골 무리
+570,grommar,엄니 투기단
+571,grommar,성난 늑대 피의 형제들
+572,grommar,뼈의 집
+573,grommar,부서진 멧돼지 무리
+574,grommar,뼈 전사단
+575,grommar,성난 엄니 패거리
+576,grommar,성난 까마귀 부족
+577,grommar,꺾인 주먹의 집
+578,grommar,울부짖는 멧돼지 전사단
+579,grommar,검은 멧돼지 무리
+580,grommar,굶주린 곤봉 부족
+581,grommar,부서진 늑대의 집
+582,grommar,굶주린 사슬의 집
+583,grommar,녹슨 북 투기단
+584,grommar,굶주린 뿔 무리
+585,grommar,피투성이 가죽 투기단
+586,grommar,굶주린 가죽의 집
+587,grommar,검은 까마귀 무리
+588,grommar,검은 북 전사단
+589,grommar,검은 까마귀 전사단
+590,grommar,굶주린 미궁 무리
+591,grommar,붉은 창 패거리
+592,grommar,울부짖는 뼈 무리
+593,grommar,썩은 사슬 부족
+594,grommar,붉은 늑대 피의 형제들
+595,grommar,굶주린 창 전사단
+596,grommar,썩은 뼈 부족
+597,grommar,꺾인 주먹 피의 형제들
+598,grommar,녹슨 뼈 전사단
+599,grommar,피투성이 뼈 피의 형제들
+600,grommar,피투성이 뼈의 집
+601,grommar,성난 멧돼지 패거리
+602,grommar,부서진 뿔 무리
+603,grommar,북 피의 형제들
+604,grommar,울부짖는 사슬 피의 형제들
+605,grommar,울부짖는 창 피의 형제들
+606,grommar,부서진 멧돼지 패거리
+607,grommar,굶주린 뼈 전사단
+608,grommar,꺾인 엄니 피의 형제들
+609,grommar,녹슨 북 전사단
+610,grommar,썩은 북 부족
+611,grommar,부서진 늑대 투기단
+612,grommar,붉은 주먹 부족
+613,grommar,피투성이 도끼 투기단
+614,grommar,부서진 창의 집
+615,grommar,검은 미궁 투기단
+616,grommar,검은 까마귀의 집
+617,grommar,굶주린 도끼 패거리
+618,grommar,검은 뼈 전사단
+619,grommar,꺾인 미궁 무리
+620,grommar,울부짖는 도끼 전사단
+621,grommar,녹슨 뿔 무리
+622,grommar,꺾인 송곳니 전사단
+623,grommar,썩은 늑대 패거리
+624,grommar,썩은 주먹의 집
+625,grommar,사슬 무리
+626,grommar,해골 부족
+627,grommar,성난 멧돼지 부족
+628,grommar,녹슨 뼈 부족
+629,grommar,검은 해골의 집
+630,grommar,썩은 미궁의 집
+631,grommar,녹슨 가죽의 집
+632,grommar,꺾인 미궁 부족
+633,grommar,썩은 엄니 피의 형제들
+634,grommar,울부짖는 곤봉 패거리
+635,grommar,피투성이 사슬 전사단
+636,grommar,성난 엄니 투기단
+637,grommar,성난 엄니 부족
+638,grommar,썩은 까마귀 피의 형제들
+639,grommar,검은 창 투기단
+640,grommar,검은 멧돼지 전사단
+641,grommar,곤봉 무리
+642,grommar,꺾인 도끼 부족
+643,grommar,피투성이 곤봉 투기단
+644,grommar,꺾인 주먹 무리
+645,grommar,부서진 곤봉 부족
+646,grommar,녹슨 사슬의 집
+647,grommar,울부짖는 미궁 전사단
+648,grommar,굶주린 송곳니 피의 형제들
+649,grommar,붉은 미궁 부족
+650,grommar,피투성이 까마귀 전사단
+651,grommar,울부짖는 까마귀 패거리
+652,grommar,녹슨 해골 피의 형제들
+653,grommar,꺾인 창 투기단
+654,grommar,붉은 주먹 투기단
+655,grommar,가죽 패거리
+656,grommar,성난 늑대 전사단
+657,grommar,꺾인 곤봉 부족
+658,grommar,검은 곤봉 전사단
+659,grommar,뼈 투기단
+660,grommar,피투성이 뿔 전사단
+661,grommar,굶주린 북 무리
+662,grommar,피투성이 곤봉 피의 형제들
+663,grommar,피투성이 멧돼지의 집
+664,grommar,굶주린 주먹 투기단
+665,grommar,성난 늑대의 집
+666,grommar,울부짖는 북 무리
+667,grommar,피투성이 북 부족
+668,grommar,꺾인 미궁 패거리
+669,grommar,뼈 부족
+670,grommar,꺾인 엄니 투기단
+671,grommar,해골 피의 형제들
+672,grommar,붉은 미궁 패거리
+673,grommar,썩은 도끼 부족
+674,sylvaren,은잎 검무단
+675,sylvaren,달빛 정원
+676,sylvaren,고목의 집
+677,sylvaren,새벽 이슬 형제단
+678,sylvaren,가시덤불 수호단
+679,sylvaren,흰 사슴 투기단
+680,sylvaren,별빛 검무단
+681,sylvaren,수정 샘의 집
+682,sylvaren,바람의 노래 결사
+683,sylvaren,잠든 숲 루두스
+684,sylvaren,첫서리 수호단
+685,sylvaren,황혼 활시위 형제단
+686,sylvaren,버드나무 검무단
+687,sylvaren,실바렌 이끼의 집
+688,sylvaren,새벽의 부엉이의 정원
+689,sylvaren,고요한 고목 검무단
+690,sylvaren,달빛 잎 검무단
+691,sylvaren,황혼의 사슴 형제단
+692,sylvaren,달빛 백합의 집
+693,sylvaren,오래된 샘 형제단
+694,sylvaren,오래된 이끼의 집
+695,sylvaren,별빛 여우의 정원
+696,sylvaren,푸른 부엉이 수호단
+697,sylvaren,새벽의 잎 루두스
+698,sylvaren,새벽의 고목 수호단
+699,sylvaren,별빛 가시 수호단
+700,sylvaren,샘 검무단
+701,sylvaren,황혼의 버드나무 루두스
+702,sylvaren,푸른 참나무 수호단
+703,sylvaren,푸른 부엉이 루두스
+704,sylvaren,버드나무의 정원
+705,sylvaren,황혼의 이끼 수호단
+706,sylvaren,푸른 버드나무 검무단
+707,sylvaren,오래된 참나무 루두스
+708,sylvaren,은빛 참나무 수호단
+709,sylvaren,황혼의 백합 검무단
+710,sylvaren,잠든 꽃잎 결사
+711,sylvaren,황혼의 여우의 집
+712,sylvaren,푸른 여우의 정원
+713,sylvaren,푸른 참나무 검무단
+714,sylvaren,고요한 버드나무 수호단
+715,sylvaren,황혼의 참나무 검무단
+716,sylvaren,푸른 참나무 결사
+717,sylvaren,이슬 맺힌 꽃잎 루두스
+718,sylvaren,별빛 고목 수호단
+719,sylvaren,황혼의 덩굴의 정원
+720,sylvaren,별빛 꽃잎 검무단
+721,sylvaren,별빛 참나무 루두스
+722,sylvaren,새벽의 활시위 루두스
+723,sylvaren,황혼의 이끼의 정원
+724,sylvaren,달빛 샘 수호단
+725,sylvaren,잠든 샘 수호단
+726,sylvaren,오래된 고목 형제단
+727,sylvaren,고요한 이끼 형제단
+728,sylvaren,새벽의 수정 수호단
+729,sylvaren,참나무의 정원
+730,sylvaren,푸른 안개 루두스
+731,sylvaren,달빛 버드나무 형제단
+732,sylvaren,새벽의 이끼 결사
+733,sylvaren,고요한 사슴의 정원
+734,sylvaren,별빛 수정의 집
+735,sylvaren,고요한 꽃잎 루두스
+736,sylvaren,새벽의 사슴 형제단
+737,sylvaren,황혼의 백합의 정원
+738,sylvaren,별빛 고목의 정원
+739,sylvaren,푸른 이끼 수호단
+740,sylvaren,이슬 맺힌 고목 검무단
+741,sylvaren,새벽의 샘의 정원
+742,sylvaren,잠든 덩굴 검무단
+743,sylvaren,별빛 버드나무 형제단
+744,sylvaren,푸른 버드나무 형제단
+745,sylvaren,푸른 고목 검무단
+746,sylvaren,잎 결사
+747,sylvaren,은빛 고목 결사
+748,sylvaren,오래된 안개 루두스
+749,sylvaren,새벽의 이끼 수호단
+750,sylvaren,황혼의 참나무의 집
+751,sylvaren,새벽의 활시위 결사
+752,sylvaren,고목 결사
+753,sylvaren,고요한 안개 형제단
+754,sylvaren,오래된 고목 결사
+755,sylvaren,잎의 집
+756,sylvaren,이슬 맺힌 덩굴 형제단
+757,sylvaren,고요한 버드나무 결사
+758,sylvaren,오래된 사슴의 정원
+759,sylvaren,잠든 활시위 검무단
+760,sylvaren,달빛 안개의 정원
+761,sylvaren,새벽의 여우의 정원
+762,sylvaren,푸른 버드나무 루두스
+763,sylvaren,이슬 맺힌 안개의 집
+764,sylvaren,고요한 잎 형제단
+765,sylvaren,황혼의 고목 검무단
+766,sylvaren,은빛 여우 형제단
+767,sylvaren,달빛 부엉이 루두스
+768,sylvaren,별빛 고목의 집
+769,sylvaren,새벽의 사슴 수호단
+770,sylvaren,새벽의 부엉이 루두스
+771,sylvaren,오래된 덩굴의 정원
+772,sylvaren,오래된 사슴 결사
+773,sylvaren,고요한 잎 루두스
+774,sylvaren,고요한 수정 루두스
+775,sylvaren,은빛 잎의 집
+776,sylvaren,고요한 사슴 형제단
+777,sylvaren,이슬 맺힌 여우 루두스
+778,sylvaren,이슬 맺힌 백합 수호단
+779,sylvaren,오래된 덩굴 루두스
+780,sylvaren,황혼의 활시위의 집
+781,sylvaren,잠든 수정의 집
+782,sylvaren,고요한 안개 검무단
+783,sylvaren,이슬 맺힌 고목 루두스
+784,sylvaren,가시 검무단
+785,sylvaren,푸른 백합 형제단
+786,sylvaren,달빛 고목 결사
+787,sylvaren,가시 형제단
+788,sylvaren,잠든 활시위 결사
+789,sylvaren,황혼의 활시위의 정원
+790,sylvaren,별빛 덩굴 수호단
+791,sylvaren,은빛 백합 수호단
+792,sylvaren,은빛 잎 결사
+793,sylvaren,달빛 참나무 루두스
+794,sylvaren,달빛 덩굴 수호단
+795,sylvaren,별빛 사슴 결사
+796,sylvaren,황혼의 수정의 정원
+797,sylvaren,푸른 가시 형제단
+798,sylvaren,황혼의 여우 형제단
+799,sylvaren,잠든 샘 형제단
+800,sylvaren,고요한 고목 결사
+801,sylvaren,오래된 여우의 집
+802,sylvaren,별빛 부엉이 결사
+803,sylvaren,푸른 고목 형제단
+804,sylvaren,잠든 활시위 수호단
+805,sylvaren,부엉이 형제단
+806,sylvaren,사슴 수호단
+807,sylvaren,황혼의 꽃잎 수호단
+808,any,철의 집
+809,any,철 루두스
+810,any,철 투기단
+811,any,철의 형제단
+812,any,철 양성소
+813,any,철의 문
+814,any,황금의 집
+815,any,황금 루두스
+816,any,황금 투기단
+817,any,황금의 형제단
+818,any,황금 양성소
+819,any,황금의 문
+820,any,청동의 집
+821,any,청동 루두스
+822,any,청동 투기단
+823,any,청동의 형제단
+824,any,청동 양성소
+825,any,청동의 문
+826,any,피의 집
+827,any,피 루두스
+828,any,피 투기단
+829,any,피의 형제단
+830,any,피 양성소
+831,any,피의 문
+832,any,늑대의 집
+833,any,늑대 루두스
+834,any,늑대 투기단
+835,any,늑대의 형제단
+836,any,늑대의 문
+837,any,사자의 집
+838,any,사자 루두스
+839,any,사자 투기단
+840,any,사자의 형제단
+841,any,사자의 문
+842,any,독수리의 집
+843,any,독수리 루두스
+844,any,독수리의 형제단
+845,any,독수리 양성소
+846,any,독수리의 문
+847,any,모래의 집
+848,any,모래 루두스
+849,any,모래 투기단
+850,any,모래의 형제단
+851,any,모래 양성소
+852,any,모래의 문
+853,any,폭풍의 집
+854,any,폭풍 루두스
+855,any,폭풍 투기단
+856,any,폭풍의 형제단
+857,any,폭풍 양성소
+858,any,폭풍의 문
+859,any,서리의 집
+860,any,서리 루두스
+861,any,서리 투기단
+862,any,서리의 형제단
+863,any,서리 양성소
+864,any,서리의 문
+865,any,황혼의 집
+866,any,황혼 루두스
+867,any,황혼 투기단
+868,any,황혼의 형제단
+869,any,황혼 양성소
+870,any,황혼의 문
+871,any,뿔의 집
+872,any,뿔 루두스
+873,any,뿔 투기단
+874,any,뿔의 형제단
+875,any,뿔 양성소
+876,any,뿔의 문
+877,any,횃불의 집
+878,any,횃불 루두스
+879,any,횃불 투기단
+880,any,횃불의 형제단
+881,any,횃불 양성소
+882,any,횃불의 문
+883,any,가시의 집
+884,any,가시 루두스
+885,any,가시 투기단
+886,any,가시의 형제단
+887,any,가시 양성소
+888,any,가시의 문
+889,any,까마귀의 집
+890,any,까마귀 루두스
+891,any,까마귀 투기단
+892,any,까마귀의 형제단
+893,any,까마귀 양성소
+894,any,까마귀의 문
+895,any,해골의 집
+896,any,해골 루두스
+897,any,해골 투기단
+898,any,해골의 형제단
+899,any,해골 양성소
+900,any,해골의 문
+901,any,강철의 집
+902,any,강철 루두스
+903,any,강철 투기단
+904,any,강철의 형제단
+905,any,강철 양성소
+906,any,강철의 문
+907,any,잿빛 탑의 집
+908,any,잿빛 탑 루두스
+909,any,잿빛 탑 투기단
+910,any,잿빛 탑의 형제단
+911,any,잿빛 탑 양성소
+912,any,잿빛 탑의 문

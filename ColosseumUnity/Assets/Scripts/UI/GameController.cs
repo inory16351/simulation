@@ -99,11 +99,11 @@ namespace Colosseum.UI
             NeedLobby?.Invoke();
         }
 
-        public void NewGame(string nation, string ludusName)
+        public void NewGame(string nation, string ludusName, int startTier = 2)
         {
             PlayerPrefs.SetInt(LastSlotKey, Slot);
             SaveSystem.Clear(SaveDir);
-            State = World.NewGame((double)(DateTime.Now.Ticks % 2147483648L), nation, ludusName);
+            State = World.NewGame((double)(DateTime.Now.Ticks % 2147483648L), nation, ludusName, startTier);
             Screen = "inbox";
             Commit();
         }
@@ -192,16 +192,42 @@ namespace Colosseum.UI
             Go("hall");
         }
 
-        /// <summary>막힌 일이 있으면 그 화면으로 안내한다</summary>
+        /// <summary>막힌 일이 있으면 그 화면으로 안내한다. 받은 이적 제안·협상 역제안이면 협상 창을 연다</summary>
         public void GoToBlocker()
         {
             if (ChallengeLogic.TodaysPlayerMatches(State).Count > 0) Screen = "match";
             else if (CupLogic.TodaysPlayerTie(State) != null) Screen = "cup";
             else if (State.pendingEvents.Count > 0) Screen = "inbox";
+            else if (Transfers.OpenOffers(State).Count > 0 || (State.decisions?.Count ?? 0) > 0)
+            {
+                Screen = "inbox";
+                NegotiationPopup.OpenFirstBlocker();
+            }
         }
 
+        /// <summary>서판에서 열어 줄 소식 (InboxScreen이 읽고 지운다)</summary>
+        public string InboxFocus { get; set; }
+
+        /// <summary>읽지 않은 소식 중 가장 오래된 것 (FM처럼 차례로 읽는다)</summary>
+        public InboxMessage NextUnread() => State.inbox.LastOrDefault(m => !m.read);
+
+        /// <summary>읽지 않은 소식이 있으면 서판에서 그것부터 연다. 열었으면 true</summary>
+        bool ReadNextUnread()
+        {
+            var m = NextUnread();
+            if (m == null) return false;
+            m.read = true;
+            InboxFocus = m.id;
+            Screen = "inbox";
+            Commit();
+            return true;
+        }
+
+        /// <summary>다음 날로 (스페이스 키도 같다). 읽지 않은 소식이 있으면 그것부터 차례로 연다</summary>
         public void NextDay()
         {
+            if (ReadNextUnread()) return;
+            if (Day.Blockers(State).Count > 0) { GoToBlocker(); Changed?.Invoke(); return; }
             var b = Day.AdvanceDay(State);
             if (b.Count > 0) GoToBlocker();
             Commit();
@@ -210,6 +236,7 @@ namespace Colosseum.UI
         /// <summary>결정할 일이 생기거나 새 소식이 올 때까지 여러 날을 넘긴다</summary>
         public void SkipAhead()
         {
+            if (ReadNextUnread()) return;
             int startInbox = State.inbox.Count;
             for (int i = 0; i < 28; i++)
             {

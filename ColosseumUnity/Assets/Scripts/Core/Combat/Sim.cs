@@ -214,6 +214,68 @@ namespace Colosseum.Core.Combat
         }
 
         /// <summary>상태이상을 반영한 전투 중 능력치</summary>
+        // ── FM식 전투 보정 (Unity판 전용, FmRules.Enabled): 능력치만으로 승부가 나지 않게 ──
+
+        /// <summary>그날의 컨디션: 일관성이 낮을수록 들쭉날쭉, 큰 무대(관중 있는 경기)에 강한 자는 더 잘한다</summary>
+        static double DayForm(Rng rng, Gladiator g, string rule)
+        {
+            double sigma = 0.11 + (20 - g.hidden.consistency) * 0.005;
+            double z = (rng.Next() + rng.Next() + rng.Next() - 1.5) * 2; // 대략 정규분포 (표준편차 1)
+            double stage = rule == "training" ? 0 : (g.hidden.bigStage - 10) * 0.004;
+            return Math.Max(0.65, Math.Min(1.4, 1 + z * sigma + stage));
+        }
+
+        /// <summary>자세끼리 상성 (교범 가위바위보): 맹공은 견제를 덮치고, 견제는 철벽을 갉아먹고, 철벽은 맹공을 받아친다.
+        /// 질풍은 균형·쇼를 흔들지만 철벽에 막힌다. 쇼는 맹공에 약하다</summary>
+        static double StanceEdge(string a, string d) => (a, d) switch
+        {
+            ("assault", "harass") or ("harass", "bulwark") or ("bulwark", "assault") => 0.085,
+            ("harass", "assault") or ("bulwark", "harass") or ("assault", "bulwark") => -0.07,
+            ("blitz", "balanced") or ("blitz", "showman") or ("assault", "showman") => 0.07,
+            ("blitz", "bulwark") => -0.08,
+            ("showman", "assault") or ("showman", "blitz") => -0.05,
+            _ => 0,
+        };
+
+        /// <summary>공격성이 침착보다 너무 높으면 무모하다 (빈틈이 생긴다)</summary>
+        static double Reckless(Fighter f) => Math.Max(0, Attr(f, "agg") - Attr(f, "comp") - 3);
+
+        /// <summary>명중 보정: 민첩·반응이 회피를 돕고, 공격성은 지치지 않았을 때만 밀어붙이는 힘, 무모하면 빈틈, 상성·자세 상성</summary>
+        static double FmHit(Fighter att, Fighter def, WeaponDef w)
+        {
+            double h = 0;
+            // 민첩: 몸놀림으로 피하고(크게), 빈틈을 파고든다(작게)
+            h -= (Attr(def, "agi") - 10) * 0.016;
+            h += (Attr(att, "agi") - 10) * 0.006;
+            // 반응: 빠른 무기일수록 반응이 좋아야 따라간다
+            h -= (Attr(def, "rea") - 10) * 0.004 * (1 + Math.Max(0, w.speed) * 0.25);
+            // 공격성: 기력이 남았을 때 밀어붙인다
+            double fresh = att.maxSta > 0 ? Math.Max(0, att.sta / att.maxSta) : 1;
+            h += (Attr(att, "agg") - 10) * 0.007 * fresh;
+            // 무모함: 공격성 > 침착이면 받아치기에 걸린다
+            h += Reckless(def) * 0.01;
+            // 판단력·예측력: 노련한 자는 같은 수에 두 번 안 당한다
+            h -= (Attr(def, "dec") - 10) * 0.004 + (Attr(def, "read") - 10) * 0.007;
+            // 타이밍: 상대 호흡이 끊기는 순간
+            h += (Attr(att, "timing") - 10) * 0.004;
+            // 정확도·회피 차이의 기울기를 조금 눕힌다 (웹판 3%/점 → 2.2%/점)
+            h -= (Attr(att, "acc") - Attr(def, "eva")) * 0.008;
+            // 스타일 상성 강화, 교범 자세 상성
+            if (Data.Style(att.g.style).counters.Contains(def.g.style)) h += 0.05;
+            if (Data.Style(def.g.style).counters.Contains(att.g.style)) h -= 0.04;
+            h += StanceEdge(att.stance, def.stance);
+            return h;
+        }
+
+        /// <summary>피해 보정: 공격성이 실은 힘, 상성, 강인함이 버티는 힘</summary>
+        static double FmDamage(Fighter att, Fighter def)
+        {
+            double m = 1 + (Attr(att, "agg") - 10) * 0.012;
+            if (Data.Style(att.g.style).counters.Contains(def.g.style)) m *= 1.08;
+            m *= 1 - (Attr(def, "tou") - 10) * 0.008;
+            return Math.Max(0.6, m);
+        }
+
         static double Attr(Fighter f, string a)
         {
             double v = GladiatorRules.EffectiveAttr(f.g, a);
@@ -286,6 +348,7 @@ namespace Colosseum.Core.Combat
                     if (r != null) f.hp = Math.Max(1, JsMath.Round(f.maxHp * r.Value));
                     // 일관성이 낮으면 그날그날 읽는 감이 들쭉날쭉하다
                     f.mind.form = (rng.Next() - 0.5) * (21 - f.g.hidden.consistency) * 0.06;
+                    if (FmRules.Enabled) f.perf *= DayForm(rng, f.g, opt.rule);
                 }
                 // 위압감: 마주 서는 것만으로 기세가 꺾인다
                 foreach (var f in F)
@@ -328,6 +391,7 @@ namespace Colosseum.Core.Combat
                     py[f.idx] = Arena.CY + (k - (mates.Count - 1) / 2.0) * spread;
                     Clamp(f.idx);
                     f.mind.form = (rng.Next() - 0.5) * (21 - f.g.hidden.consistency) * 0.06;
+                    if (FmRules.Enabled) f.perf *= DayForm(rng, f.g, opt.rule);
                 }
                 // 위압감: 맞은편에서 가장 무서운 자에게 기세가 꺾인다
                 foreach (var o in F)
@@ -674,7 +738,7 @@ namespace Colosseum.Core.Combat
                     + (HpRatio(def) < 0.3 && def.mind.comp < 12 ? (12 - def.mind.comp) * 0.05 : 0)
                     + (def.Has("exposed") ? 0.5 : 0);
                 var guard = Exchange.PlanGuard(rng, def.mind, def.habits, def.book, att.mind.feint, pressure, plan.feint == "ok" ? plan.shown : null, defBias);
-                string outcome = Exchange.OutcomeOf(rng, plan, guard, Attr(def, "rea"));
+                string outcome = Exchange.OutcomeOf(rng, plan, guard, Attr(def, "rea") * (FmRules.Enabled ? 2.5 : 1));
                 // 곡검: 방패를 돌아 들어가 막기에 완전히 걸리지 않는다
                 if (outcome == "parry" && guard.guard == 0 && (spec.weapon.blockBypass ?? 0) != 0) outcome = "neutral";
                 int c = plan.dir == 3 ? -1 : Exchange.Cell(plan.dir, plan.motion);
@@ -736,6 +800,7 @@ namespace Colosseum.Core.Combat
                 if (att.momentum >= 80) hitChance += 0.1;
                 hitChance += (att.perf - 1) * 0.5 - (def.perf - 1) * 0.3;
                 hitChance += att.Fx("hit") - def.Fx("evade");
+                if (FmRules.Enabled) hitChance += FmHit(att, def, w);
                 if (Attr(att, "str") < w.reqStr) hitChance -= 0.1;
                 if (att.sta <= 0) hitChance -= Bal.C("exhaustedPenalty");
                 if (att.Has("blinded")) hitChance -= 0.4;
@@ -831,6 +896,7 @@ namespace Colosseum.Core.Combat
                 if (blocked) dmg *= 1 - Bal.C("blockReduction");
                 if (part == "head" || part == "neck") dmg *= 1.2;
                 dmg *= att.perf;
+                if (FmRules.Enabled) dmg *= FmDamage(att, def);
                 double dealt = DealDamage(att, def, Math.Max(1, JsMath.Round(dmg)));
                 if (dealt > def.worstHit) { def.worstHit = dealt; def.worstPart = part; }
                 if (allowRiposte && blocked && def.hp > 0) React(def, "OnBlock", att);
@@ -1307,7 +1373,7 @@ namespace Colosseum.Core.Combat
                     var order = alive.Select(f =>
                     {
                         var o = f.target;
-                        double v = Attr(f, "timing") + Attr(f, "rea") / 2 + Attr(f, "agi") / 2 - f.main.speed * 2 + rng.Next() * 8 - (f.Has("exposed") ? 6 : 0)
+                        double v = (Attr(f, "timing") + Attr(f, "rea") / 2 + Attr(f, "agi") / 2) * (FmRules.Enabled ? 0.3 : 1) - f.main.speed * 2 + rng.Next() * 8 - (f.Has("exposed") ? 6 : 0)
                             + (o != null && (o.Has("exposed") || o.sta <= 0) ? Attr(f, "timing") * 0.6 : 0);
                         if (round == 1 && f.g.race == "beastkin") v += 5;
                         v += f.Fx("first");
@@ -1402,7 +1468,7 @@ namespace Colosseum.Core.Combat
                     {
                         // 공격권: 타이밍이 가장 크고, 무너진 쪽은 선공을 잡기 어렵다
                         var o = F[1 - f.idx];
-                        double v = Attr(f, "timing") + Attr(f, "rea") / 2 + Attr(f, "agi") / 2 - f.main.speed * 2 + rng.Next() * 8 - (f.Has("exposed") ? 6 : 0)
+                        double v = (Attr(f, "timing") + Attr(f, "rea") / 2 + Attr(f, "agi") / 2) * (FmRules.Enabled ? 0.3 : 1) - f.main.speed * 2 + rng.Next() * 8 - (f.Has("exposed") ? 6 : 0)
                             // 상대가 무너졌거나 지쳤으면 타이밍 좋은 쪽이 파고든다
                             + (o.Has("exposed") || o.sta <= 0 ? Attr(f, "timing") * 0.6 : 0);
                         if (round == 1 && f.g.race == "beastkin") v += 5;

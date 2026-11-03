@@ -135,6 +135,7 @@ namespace Colosseum.Core
             LoadFrom(name => Resources.Load<TextAsset>("Data/" + name).text);
             // 기술 테이블 (Tables/*.csv의 사본, Tools/check-tables.mjs가 Resources/Tables로 복사)
             if (Resources.Load<TextAsset>("Tables/Skill") != null) SkillBook.LoadFrom(name => Resources.Load<TextAsset>("Tables/" + name).text);
+            if (Resources.Load<TextAsset>("Tables/LudusName") != null) NameBook.LoadFrom(name => Resources.Load<TextAsset>("Tables/" + name).text);
         }
 
         public static void LoadFrom(Func<string, string> read)

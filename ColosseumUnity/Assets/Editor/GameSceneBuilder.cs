@@ -122,6 +122,7 @@ namespace Colosseum.EditorTools
             PopupBuilder.BuildInfoPopup(canvas);
             PopupBuilder.BuildGladiatorPopup(canvas);
             PopupBuilder.BuildItemPicker(canvas);
+            PopupBuilder.BuildNegotiationPopup(canvas);
             PopupBuilder.BuildConfirmPopup(canvas);
             PopupBuilder.BuildTipLayer(canvas);
 
@@ -287,9 +288,9 @@ namespace Colosseum.EditorTools
             Box("Line", detail.transform, Theme.Line).rectTransform.Anchor(new Vector2(0, 1), new Vector2(1, 1), new Vector2(1, -42), new Vector2(-1, -41));
             var left = Rect("Left", detail.transform).Anchor(new Vector2(0, 0), new Vector2(0.5f, 1), new Vector2(16, 14), new Vector2(-10, -54));
             var meta = Text("Meta", left, "", 14, Theme.TextDim, false, FontStyles.Normal, TextAlignmentOptions.TopLeft);
-            ((RectTransform)meta.transform).Anchor(new Vector2(0, 1), new Vector2(1, 1), new Vector2(0, -24), Vector2.zero);
+            ((RectTransform)meta.transform).Anchor(new Vector2(0, 1), new Vector2(1, 1), new Vector2(0, -46), Vector2.zero);
             var lore = Text("Lore", left, "", 16, Theme.Text, false, FontStyles.Normal, TextAlignmentOptions.TopLeft);
-            ((RectTransform)lore.transform).Stretch(0, 32, 0, 0);
+            ((RectTransform)lore.transform).Stretch(0, 54, 0, 0);
             var right = Rect("Right", detail.transform).Anchor(new Vector2(0.5f, 0), new Vector2(1, 1), new Vector2(10, 14), new Vector2(-16, -54));
             var rulesLabel = Text("RulesLabel", right, "리그 특징", 13, Theme.BronzeHi, false, FontStyles.Bold, TextAlignmentOptions.TopLeft);
             ((RectTransform)rulesLabel.transform).Anchor(new Vector2(0, 1), new Vector2(1, 1), new Vector2(0, -20), Vector2.zero);
@@ -311,11 +312,18 @@ namespace Colosseum.EditorTools
             foreach (var t in inputGo.GetComponentsInChildren<TextMeshProUGUI>(true)) { t.font = Sans; t.fontSize = 18; t.color = Theme.Parchment; }
             inputGo.AddComponent<LayoutElement>().preferredWidth = 280;
             inputGo.GetComponent<LayoutElement>().preferredHeight = 44;
+            Text("TierLabel", bottom, "시작 리그", 16, Theme.Text).Layout(prefW: 76);
+            var tierButtons = new Button[4];
+            string[] tierNames = { "1부 · 쉬움", "2부 · 보통", "3부 · 어려움", "4부 · 밑바닥" };
+            for (int i = 0; i < 4; i++) tierButtons[i] = Button("Tier" + (i + 1), bottom, tierNames[i], false, 14).Layout(prefW: 112, prefH: 40);
             var start = Button("StartButton", bottom, "루두스 세우기", true, 17).Layout(prefW: 300, prefH: 48);
             var cancel = Button("CancelButton", bottom, "돌아가기").Layout(prefW: 140, prefH: 44);
 
             void S(string p, Object v) => so.FindProperty(p).objectReferenceValue = v;
             S("detailTitle", dTitle); S("detailMeta", meta); S("detailLore", lore); S("detailRules", rules); S("detailCulture", culture);
+            var tiers = so.FindProperty("tierButtons");
+            tiers.arraySize = 4;
+            for (int i = 0; i < 4; i++) tiers.GetArrayElementAtIndex(i).objectReferenceValue = tierButtons[i];
             S("nameInput", input); S("startButton", start); S("startLabel", start.GetComponentInChildren<TMP_Text>()); S("cancelButton", cancel);
             so.ApplyModifiedPropertiesWithoutUndo();
             root.gameObject.SetActive(false);

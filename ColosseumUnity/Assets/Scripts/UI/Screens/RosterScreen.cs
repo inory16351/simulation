@@ -36,7 +36,7 @@ namespace Colosseum.UI
                 var g = hurt[i];
                 var t = row.transform;
                 row.GetComponentInChildren<PortraitView>(true).Show(g);
-                t.Find("Name").GetComponent<TMP_Text>().text = g.name;
+                t.Find("Name").GetComponent<TMP_Text>().text = Tips.Name(g);
                 t.Find("Injury").GetComponent<TMP_Text>().text = GladiatorTable.InjuryLabel(g);
                 double total = g.injury.total ?? g.injury.daysLeft;
                 Widgets.SetBar((RectTransform)t.Find("Bar"), total - g.injury.daysLeft, total, Theme.Good);
