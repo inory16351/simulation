@@ -1,5 +1,6 @@
 // 웹판 components/common.tsx의 작은 조각들 (Stars, Bar)
 using System;
+using System.Collections.Generic;
 using Colosseum.Core;
 using UnityEngine;
 using UnityEngine.UI;
@@ -112,6 +113,18 @@ namespace Colosseum.UI
             int filled = (int)Math.Ceiling(r * 10);
             return $"인내심 <color={Theme.Hex(c)}>{new string('■', filled)}</color><color={Theme.Hex(Theme.TextFaint)}>{new string('□', 10 - filled)}</color>" +
                 (h.counter > 0 ? $"  다시 부른 값 {h.counter:N0} D" : "");
+        }
+
+        /// <summary>영입 협상 한 줄: 흥정 상태 + 답 기다림 + 알려진 경쟁자. 아무것도 없으면 null</summary>
+        public static string BidLine(GameState s, string key, PendingBid pending, string gladiatorId)
+        {
+            var parts = new List<string>();
+            var h = HaggleLine(s, key);
+            if (h != null) parts.Add(h);
+            if (pending != null) parts.Add($"<color={Theme.Hex(Theme.Torch)}>{Negotiations.WaitLine(s, pending)}</color>");
+            var rival = Negotiations.RivalOf(s, gladiatorId);
+            if (rival != null && rival.known) parts.Add($"<color=#d9a29b>경쟁: {Tips.Ludus(s.ludi[rival.ludusId])}도 노리고 있습니다</color>");
+            return parts.Count == 0 ? null : string.Join("\n", parts);
         }
 
         /// <summary>막대(Bar 오브젝트 아래 Fill)를 값에 맞춰 채운다</summary>

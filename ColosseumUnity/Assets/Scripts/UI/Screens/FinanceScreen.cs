@@ -36,19 +36,21 @@ namespace Colosseum.UI
         public override void Refresh()
         {
             var me = S.ludi[S.playerLudusId];
-            double wages = Economy.WeeklyWages(S, me);
-            double food = JsMath.Round(Economy.WeeklyFood(S, me));
-            double week = wages + food;
-            double weeks = week > 0 ? Math.Floor(me.treasury / week) : 99;
+            // 급료일에 실제로 나가는 돈 전부 (Economy.Payday와 같은 계산)
+            var bill = Economy.NextPayBill(S, me);
+            double week = bill.Weekly;
+            double weeks = week > 0 ? Math.Floor(Math.Max(0, me.treasury - bill.arrears) / week) : 99;
 
             treasury.text = $"{me.treasury:N0} D";
             treasury.color = me.treasury < 0 ? Neg : Theme.Parchment;
-            treasuryHint.text = $"다음 급료일까지 {Calendar.DaysToPayday(S.day)}일";
+            string due = $"다음 급료일 {Calendar.NextPaydayLabel(S.day)}에 {bill.Total:N0} D가 나갑니다";
+            treasuryHint.text = Tips.Pay(bill.Total > me.treasury ? $"<color={Theme.Hex(Neg)}>{due} · {bill.Total - me.treasury:N0} D 모자랍니다</color>" : due);
             weekly.text = $"{week:N0} D";
-            weeklyHint.text = $"주급 {StateUtil.Num(wages)} D · 식비 {StateUtil.Num(food)} D";
+            weeklyHint.text = $"주급 {bill.wages:N0} · 식비 {bill.food:N0} · 시설 {bill.upkeep:N0} · 식솔 {bill.staff:N0} D" +
+                (bill.arrears > 0 ? $"\n<color={Theme.Hex(Neg)}>밀린 급료 {bill.arrears:N0} D도 다음 급료일에 함께 나갑니다</color>" : "");
             runway.text = $"{StateUtil.Num(weeks)}주";
             runway.color = weeks < 4 ? Neg : Theme.Parchment;
-            runwayHint.text = "수입 없이 급료만 낼 때";
+            runwayHint.text = "수입 없이 매주 나가는 돈만 낼 때";
 
             var unpaid = me.gladiators.Select(id => S.gladiators[id]).Where(g => g.unpaidWeeks > 0).ToList();
             unpaidRoot.SetActive(unpaid.Count > 0);

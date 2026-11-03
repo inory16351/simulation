@@ -66,13 +66,46 @@ namespace Colosseum.Core
             return s;
         }
 
-        /// <summary>급료일 처리. 돈이 모자라면 주급이 높은 순으로 주고, 못 받은 검투사는 미납이 쌓인다</summary>
-        public static void Payday(GameState state, Ludus ludus)
+        /// <summary>급료일에 주급을 받는 검투사. 용병 파견 중인 검투사의 주급은 고용국이 낸다 (던전 원정은 루두스가 낸다)</summary>
+        static List<Gladiator> PayRoster(GameState state, Ludus ludus)
         {
-            // 용병 파견 중인 검투사의 주급은 고용국이 낸다 (던전 원정은 루두스가 낸다)
             var roster = new List<Gladiator>();
             foreach (var id in RosterIds(ludus))
                 if (state.gladiators.TryGetValue(id, out var g) && g != null && g.alive && (g.deployment == null || g.deployment.kind == "dungeon")) roster.Add(g);
+            return roster;
+        }
+
+        /// <summary>다음 급료일에 나갈 돈 (Unity판 전용). Payday와 같은 계산이라 그때까지 상태가 그대로면 꼭 이만큼 나간다</summary>
+        public class PayBill
+        {
+            public double wages, arrears, food, upkeep, staff;
+            /// <summary>밀린 급료를 뺀, 매주 나가는 돈</summary>
+            public double Weekly => wages + food + upkeep + staff;
+            public double Total => Weekly + arrears;
+        }
+
+        public static PayBill NextPayBill(GameState state, Ludus ludus)
+        {
+            var b = new PayBill
+            {
+                food = JsMath.Round(WeeklyFood(state, ludus) * Modifiers.ModifierMult(state, "food")),
+                upkeep = FacilitiesLogic.WeeklyUpkeep(ludus),
+                staff = StaffLogic.StaffWages(state, ludus),
+            };
+            if (double.IsNaN(b.upkeep)) b.upkeep = 0;
+            if (double.IsNaN(b.staff)) b.staff = 0;
+            foreach (var g in PayRoster(state, ludus))
+            {
+                b.wages += g.wage;
+                b.arrears += g.wage * g.unpaidWeeks;
+            }
+            return b;
+        }
+
+        /// <summary>급료일 처리. 돈이 모자라면 주급이 높은 순으로 주고, 못 받은 검투사는 미납이 쌓인다</summary>
+        public static void Payday(GameState state, Ludus ludus)
+        {
+            var roster = PayRoster(state, ludus);
             if (!ludus.isPlayer)
             {
                 // AI 루두스는 추상적으로 처리: 급료와 식비를 내고, 상금 외 부수입을 조금 번다
@@ -249,6 +282,22 @@ namespace Colosseum.Core
             var d = FreeAgentDemand(state, g);
             if (d.refuse) return Err($"{g.name}: {d.reason}");
             if (player.treasury < SigningFee(offer)) return Err("계약금이 모자랍니다");
+            string key = WageKey(id);
+            if (Haggling.IsLocked(state, key)) return new HaggleResult { status = "locked", line = Haggling.LockedLine(state, key) };
+            // 답은 바로 오지 않는다: 하루이틀 뒤 서판으로 온다 (Negotiations)
+            return Negotiations.Send(state, rng, "free", id, null, offer, seasons);
+        }
+
+        /// <summary>보낸 주급 제안에 답이 올 때 (Negotiations.Daily)</summary>
+        internal static HaggleResult ResolveFreeAgent(GameState state, Rng rng, string id, double offer, int seasons)
+        {
+            var player = state.ludi[state.playerLudusId];
+            var g = state.gladiators[id];
+            HaggleResult Err(string line) => new HaggleResult { status = "error", line = line };
+            if (player.gladiators.Count >= RosterCapacity(player)) return Err("막사에 빈자리가 없어 계약하지 못했습니다");
+            var d = FreeAgentDemand(state, g);
+            if (d.refuse) return Err(d.reason);
+            if (player.treasury < SigningFee(offer)) return Err("계약금이 모자라 계약하지 못했습니다");
             string key = WageKey(id);
             Haggling.Open(state, rng, key, d.wage, 0.03, 0.12);
             var res = Haggling.Offer(state, key, offer);

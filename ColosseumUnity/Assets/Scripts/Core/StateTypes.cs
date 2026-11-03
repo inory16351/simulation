@@ -208,6 +208,10 @@ namespace Colosseum.Core
         public List<GearListing> gearMarket;
         /// <summary>Unity판 전용: 진행 중인 흥정 (키: gear:매물, fee:검투사, wage:…)</summary>
         public Dictionary<string, Haggle> haggles;
+        /// <summary>Unity판 전용: 답을 기다리는 영입 제안 (Logic/Negotiations.cs)</summary>
+        public List<PendingBid> bids;
+        /// <summary>Unity판 전용: 같은 검투사를 노리는 경쟁 루두스 (키: 검투사 id)</summary>
+        public Dictionary<string, RivalBid> rivals;
         /// <summary>Unity판 전용: 시장에 내놓은 우리 장비</summary>
         public List<Consignment> consignments;
         /// <summary>Unity판 전용: 역대 우승 기록 (리그 1·2부, 판테온 컵). Logic/Honours.cs</summary>

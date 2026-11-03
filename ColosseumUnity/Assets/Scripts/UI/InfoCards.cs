@@ -43,7 +43,7 @@ namespace Colosseum.UI
                 "ludus" => s.ludi.TryGetValue(id, out var l) ? Ludus(s, l) : null,
                 "comp" => Comp(s, id),
                 "item" => Item(id),
-                "race" => Data.Race(id) == null ? null : new InfoCard { title = Data.Race(id).name, sub = "종족", body = Tips.RaceText(id) },
+                "race" or "racial" => Data.Race(id) == null ? null : new InfoCard { title = Data.Race(id).name, sub = "종족", body = Tips.RaceText(id) },
                 "style" => Data.Style(id) == null ? null : new InfoCard { title = Data.Style(id).name, sub = "전투 스타일", body = Tips.StyleText(id) + StyleGear(id) },
                 "skill" => Skill(s, id),
                 "trait" => Data.Trait(id) == null ? null : new InfoCard { title = Data.Trait(id).name, sub = "특성", body = Tips.TraitTip(id).Substring(Tips.TraitTip(id).IndexOf('\n') + 1) },

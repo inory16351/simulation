@@ -113,7 +113,7 @@ namespace Colosseum.UI
             row.Find("Name").GetComponentInChildren<PortraitView>(true).Show(Face(c));
             T(row, "Name/Text").text = c.name;
             T(row, "Name/Age").text = $"{StateUtil.Num(c.age)}세";
-            T(row, "Role").text = StaffLogic.RoleNames[c.role];
+            T(row, "Role").text = Tips.StaffRole(c.role);
             Widgets.SetBar((RectTransform)row.Find("Rating/Bar"), c.rating, 20, Theme.Torch);
             T(row, "Rating/Value").text = StateUtil.Num(c.rating);
 

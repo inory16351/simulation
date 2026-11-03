@@ -160,7 +160,10 @@ namespace Colosseum.UI
             var t = Transfers.TransferOf(S);
             double rep = Reputation.LudusReputation(S, me);
             sub.text = $"우리 명성 {rep} ({Reputation.ReputationNames(rep)}) · 막사 {me.gladiators.Count}/{Economy.RosterCapacity(me)}명 · " +
-                (Transfers.InWindow(S) ? $"<b><color={Theme.Hex(Theme.Good)}>이적 시장 열림</color></b>" : $"다른 루두스 검투사는 {Transfers.WindowLabel}에만 데려올 수 있습니다. 무소속 검투사는 언제든 영입할 수 있습니다");
+                (Transfers.InWindow(S)
+                    ? $"<b><color={Theme.Hex(Theme.Good)}>{Tips.Window(Transfers.WindowLine(S))}</color></b>"
+                    : $"<b><color=#d9a29b>{Tips.Window(Transfers.WindowLine(S))}</color></b> · 그때까지 다른 루두스 검투사에게는 제안할 수 없습니다. 무소속은 언제든 됩니다") +
+                $"\n<color={Theme.Hex(Theme.TextFaint)}>제안을 보내면 하루~사흘 뒤 서판으로 답이 옵니다. 그사이 다른 루두스가 끼어들 수 있습니다</color>";
 
             string[] labels =
             {
@@ -324,7 +327,8 @@ namespace Colosseum.UI
             var (wage, years) = offers[did];
             T(nego, "Want").text = $"요구 주급 {demand.wage} D";
             var mood = T(row, "Info/Mood");
-            string line = Widgets.HaggleLine(S, Transfers.DealKey(did));
+            var pending = Negotiations.Pending(S, "terms", did);
+            string line = Widgets.BidLine(S, Transfers.DealKey(did), pending, g.id);
             mood.gameObject.SetActive(line != null);
             mood.text = line ?? "";
             var input = nego.Find("Wage").GetComponent<TMP_InputField>();
@@ -336,15 +340,15 @@ namespace Colosseum.UI
             dd.onValueChanged.RemoveAllListeners();
             dd.onValueChanged.AddListener(v => offers[did] = (offers[did].wage, v + 1));
             var offer = nego.Find("Offer").GetComponent<Button>();
-            offer.interactable = wage > 0;
+            offer.interactable = wage > 0 && pending == null;
+            offer.GetComponentInChildren<TMP_Text>().text = pending == null ? "계약 제안" : "답 기다림";
             offer.onClick.RemoveAllListeners();
             offer.onClick.AddListener(() =>
             {
                 var (w, y) = offers[did];
                 HaggleResult res = null;
                 G.Act((s, rng) => res = Transfers.HaggleTransferWage(s, rng, did, w, y));
-                msg = res.Accepted ? null : res.line;
-                if (res.status == "countered") offers[did] = (res.counter, y);
+                msg = res.line;
                 Refresh();
             });
         }

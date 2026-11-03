@@ -131,10 +131,16 @@ namespace Colosseum.UI
             clubName.text = p.name;
             clubSub.text = $"{nation.league} {p.tier}부 · {rank}위 · RP {p.rp}";
             dateText.text = $"시즌 {s.season} · {Calendar.DateLabel(s.day)}";
-            paydayText.text = $"급료일까지 {Calendar.DaysToPayday(s.day)}일";
+            var (open, windowDays, _) = Transfers.WindowState(s);
+            string window = open ? $"<color={Theme.Hex(Theme.Good)}>이적 시장 {(windowDays == 0 ? "오늘 마감" : $"{windowDays}일 남음")}</color>" : $"이적 시장 {windowDays}일 뒤 개장";
+            int payIn = Calendar.DaysUntilPayday(s.day);
+            paydayText.text = $"{Tips.Window(window)} · {Tips.Pay(payIn == 1 ? "급료일 내일" : $"급료일까지 {payIn}일")}";
             treasuryText.text = $"{p.treasury:N0} D";
             treasuryText.color = p.treasury < 0 ? Theme.Blood : Theme.Parchment;
-            wagesText.text = $"주급 합계 {Economy.WeeklyWages(s, p):N0} D";
+            // 다음 급료일에 실제로 나갈 돈 (주급 + 밀린 급료 + 식비 + 시설 + 식솔). 금고가 모자라면 붉게
+            double bill = Economy.NextPayBill(s, p).Total;
+            string billText = $"급료일에 낼 돈 {bill:N0} D";
+            wagesText.text = Tips.Pay(bill > p.treasury ? $"<color={Theme.Hex(Theme.Blood)}>{billText}</color>" : billText);
 
             var blocked = Day.Blockers(s);
             skipButton.interactable = blocked.Count == 0;

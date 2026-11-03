@@ -41,6 +41,24 @@ namespace Colosseum.Core
         public static bool InWindow(GameState s) => s.day <= 14 || (s.day >= 78 && s.day <= 91);
         public const string WindowLabel = "서리달 1~14일, 꽃달 22일 ~ 불꽃달 7일";
 
+        /// <summary>이적 시장 형편 (Unity판 전용). 열려 있으면 닫히는 날(마지막 날)까지, 닫혀 있으면 다음에 열리는 날까지 남은 날</summary>
+        public static (bool open, int days, int at) WindowState(GameState s)
+        {
+            int d = s.day;
+            if (d <= 14) return (true, 14 - d, 14);
+            if (d < 78) return (false, 78 - d, 78);
+            if (d <= 91) return (true, 91 - d, 91);
+            return (false, Calendar.DaysPerSeason - d + 1, 1);
+        }
+
+        /// <summary>"이적 시장 열림 · 서리달 14일까지 (3일 남음)" / "이적 시장 닫힘 · 다음 개장 꽃달 22일 (20일 뒤)"</summary>
+        public static string WindowLine(GameState s)
+        {
+            var (open, days, at) = WindowState(s);
+            if (open) return $"이적 시장 열림 · {Calendar.DateLabel(at)}까지 ({(days == 0 ? "오늘 마지막 날" : $"{days}일 남음")})";
+            return $"이적 시장 닫힘 · 다음 개장 {(at == 1 ? "다음 시즌 " : "")}{Calendar.DateLabel(at)} ({days}일 뒤)";
+        }
+
         /// <summary>루두스가 부르는 값: 주전일수록, 육성형 루두스일수록 비싸다</summary>
         public static double AskingPrice(GameState s, Gladiator g, Ludus owner)
         {
@@ -76,7 +94,7 @@ namespace Colosseum.Core
             return new BidResult { status = "rejected", reason = $"{Josa.J(owner.name, "이/가")} 코웃음을 칩니다. \"이 값에는 못 팝니다.\"" };
         }
 
-        static Deal MakeDeal(GameState s, Gladiator g, Ludus owner, double fee)
+        internal static Deal MakeDeal(GameState s, Gladiator g, Ludus owner, double fee)
         {
             var deal = new Deal { id = $"T{s.nextId++}", gladiatorId = g.id, fromLudus = owner.id, fee = fee, expiresAt = Now(s) + 7 };
             TransferOf(s).deals.Add(deal);
@@ -96,39 +114,87 @@ namespace Colosseum.Core
         public static string FeeKey(string gladiatorId) => "fee:" + gladiatorId;
         public static string DealKey(string dealId) => "deal:" + dealId;
 
-        /// <summary>이적료를 흥정한다. 받아들이면 이적료 합의(Deal)가 생긴다</summary>
+        /// <summary>이적료 제안을 보낸다. 답은 며칠 뒤 서판으로 오고, 받아들이면 이적료 합의(Deal)가 생긴다</summary>
         public static HaggleResult HaggleFee(GameState s, Rng rng, string gladiatorId, double fee)
+        {
+            var err = CheckFee(s, gladiatorId, fee);
+            if (err != null) return new HaggleResult { status = "error", line = err };
+            string key = FeeKey(gladiatorId);
+            if (Haggling.IsLocked(s, key)) return new HaggleResult { status = "locked", line = Haggling.LockedLine(s, key) };
+            return Negotiations.Send(s, rng, "fee", gladiatorId, null, fee, 0);
+        }
+
+        /// <summary>이적료 제안을 낼 수 있는가. 되면 null</summary>
+        static string CheckFee(GameState s, string gladiatorId, double fee)
+        {
+            var g = s.gladiators[gladiatorId];
+            var owner = Career.LudusOf(s, gladiatorId);
+            if (owner == null || owner.isPlayer) return "소속 루두스가 없습니다";
+            if (!InWindow(s)) return WindowLine(s);
+            if (g.deployment != null) return g.deployment.kind == "dungeon" ? "던전 원정 중입니다" : "전장에 나가 있습니다";
+            if (fee > s.ludi[s.playerLudusId].treasury) return "금고에 그만한 돈이 없습니다";
+            if (TransferOf(s).deals.Any(d => d.gladiatorId == gladiatorId)) return "이미 이적료에 합의했습니다";
+            return null;
+        }
+
+        /// <summary>그 루두스가 우리에게 부르는 값 (중개인이 있으면 조금 깎는다)</summary>
+        public static double AskingFor(GameState s, Gladiator g, Ludus owner) =>
+            JsMath.Round(AskingPrice(s, g, owner) * StaffLogic.BuyMult(StaffLogic.RatingOf(s, s.ludi[s.playerLudusId], "agent")) / 50) * 50;
+
+        /// <summary>이적료 흥정을 열어 둔다 (답이 올 때). 마지노선은 경쟁 판정에도 쓴다</summary>
+        internal static Haggle OpenFee(GameState s, Rng rng, Gladiator g, Ludus owner)
+        {
+            double r = StaffLogic.RatingOf(s, s.ludi[s.playerLudusId], "agent");
+            return Haggling.Open(s, rng, FeeKey(g.id), AskingFor(s, g, owner), 0.04, 0.18 + r * 0.005, OwnerPatience(owner) + r * 1.5);
+        }
+
+        /// <summary>보낸 이적료 제안에 답이 올 때 (Negotiations.Daily). 이적 시장 기간에 보낸 제안이면 기간이 끝나도 답은 온다</summary>
+        internal static HaggleResult ResolveFee(GameState s, Rng rng, string gladiatorId, double fee)
         {
             var g = s.gladiators[gladiatorId];
             var owner = Career.LudusOf(s, gladiatorId);
             HaggleResult Err(string line) => new HaggleResult { status = "error", line = line };
-            if (owner == null || owner.isPlayer) return Err("소속 루두스가 없습니다");
-            if (!InWindow(s)) return Err($"이적 시장 기간이 아닙니다 ({WindowLabel})");
-            if (g.deployment != null) return Err(g.deployment.kind == "dungeon" ? "던전 원정 중입니다" : "전장에 나가 있습니다");
-            if (fee > s.ludi[s.playerLudusId].treasury) return Err("금고에 그만한 돈이 없습니다");
+            if (owner == null || owner.isPlayer) return Err("이미 소속이 바뀌었습니다");
+            if (fee > s.ludi[s.playerLudusId].treasury) return Err("금고에 그만한 돈이 없어 제안이 무효가 됐습니다");
             if (TransferOf(s).deals.Any(d => d.gladiatorId == gladiatorId)) return Err("이미 이적료에 합의했습니다");
-            double r = StaffLogic.RatingOf(s, s.ludi[s.playerLudusId], "agent");
-            double asking = JsMath.Round(AskingPrice(s, g, owner) * StaffLogic.BuyMult(r) / 50) * 50;
-            string key = FeeKey(gladiatorId);
-            Haggling.Open(s, rng, key, asking, 0.04, 0.18 + r * 0.005, OwnerPatience(owner) + r * 1.5);
-            var res = Haggling.Offer(s, key, fee);
+            OpenFee(s, rng, g, owner);
+            var res = Haggling.Offer(s, FeeKey(gladiatorId), fee);
             if (res.Accepted) MakeDeal(s, g, owner, fee);
             return res;
         }
 
-        /// <summary>개인 계약(주급)을 흥정한다. 받아들이면 이적이 끝나고, 협상이 깨지면 합의도 무산된다</summary>
+        /// <summary>개인 계약(주급) 제안을 보낸다. 답은 하루이틀 뒤 서판으로 온다</summary>
         public static HaggleResult HaggleTransferWage(GameState s, Rng rng, string dealId, double wage, int seasons)
         {
-            var t = TransferOf(s);
-            var deal = t.deals.FirstOrDefault(d => d.id == dealId);
-            HaggleResult Err(string line) => new HaggleResult { status = "error", line = line };
-            if (deal == null) return Err("합의가 사라졌습니다");
+            var err = CheckTerms(s, dealId);
+            if (err != null) return new HaggleResult { status = "error", line = err };
+            string key = DealKey(dealId);
+            if (Haggling.IsLocked(s, key)) return new HaggleResult { status = "locked", line = Haggling.LockedLine(s, key) };
+            return Negotiations.Send(s, rng, "terms", TransferOf(s).deals.First(d => d.id == dealId).gladiatorId, dealId, wage, seasons);
+        }
+
+        static string CheckTerms(GameState s, string dealId)
+        {
+            var deal = TransferOf(s).deals.FirstOrDefault(d => d.id == dealId);
+            if (deal == null) return "합의가 사라졌습니다";
             var me = s.ludi[s.playerLudusId];
             var g = s.gladiators[deal.gladiatorId];
-            if (me.gladiators.Count >= Economy.RosterCapacity(me)) return Err("막사에 빈자리가 없습니다");
-            if (me.treasury < deal.fee) return Err("이적료를 낼 돈이 없습니다");
+            if (me.gladiators.Count >= Economy.RosterCapacity(me)) return "막사에 빈자리가 없습니다";
+            if (me.treasury < deal.fee) return "이적료를 낼 돈이 없습니다";
             var d = TransferDemand(s, g);
-            if (d.refuse) return Err($"{g.name}: {d.reason}");
+            if (d.refuse) return $"{g.name}: {d.reason}";
+            return null;
+        }
+
+        /// <summary>보낸 개인 계약 제안에 답이 올 때. 받아들이면 이적이 끝나고, 협상이 깨지면 합의도 무산된다</summary>
+        internal static HaggleResult ResolveTerms(GameState s, Rng rng, string dealId, double wage, int seasons)
+        {
+            var err = CheckTerms(s, dealId);
+            if (err != null) return new HaggleResult { status = "error", line = err };
+            var t = TransferOf(s);
+            var deal = t.deals.First(x => x.id == dealId);
+            var g = s.gladiators[deal.gladiatorId];
+            var d = TransferDemand(s, g);
             string key = DealKey(dealId);
             Haggling.Open(s, rng, key, d.wage, 0.03, 0.12);
             var res = Haggling.Offer(s, key, wage);

@@ -1,5 +1,6 @@
 // 영입 패널 (웹판 components/AcquirePanel.tsx): 남의 검투사 상세 화면에서 정찰, 관심 명단, 무소속 영입, 이적료 제안.
 // Unity판은 주급·이적료 모두 흥정(Haggling)이다: 여러 번 제안할 수 있지만 상대 인내심이 바닥나면 한동안 상대하지 않는다.
+// 제안은 보내 두면 하루~사흘 뒤 서판으로 답이 온다 (Negotiations). 그동안 버튼은 "답 기다림"으로 잠긴다.
 using System.Collections.Generic;
 using System.Linq;
 using Colosseum.Core;
@@ -75,8 +76,11 @@ namespace Colosseum.UI
                 gid = g.id;
                 msgText = null;
                 years = 2;
-                wage.SetTextWithoutNotify(Economy.FreeAgentDemand(S, g).wage.ToString());
-                fee.SetTextWithoutNotify((JsMath.Round(Economy.MarketValue(g) / 50) * 50).ToString());
+                // 상대가 다시 부른 값이 있으면 그 값부터 채운다 (역제안은 서판으로 온다)
+                double wageCounter = Haggling.Get(S, Economy.WageKey(g.id))?.counter ?? 0;
+                double feeCounter = Haggling.Get(S, Transfers.FeeKey(g.id))?.counter ?? 0;
+                wage.SetTextWithoutNotify((wageCounter > 0 ? wageCounter : Economy.FreeAgentDemand(S, g).wage).ToString());
+                fee.SetTextWithoutNotify((feeCounter > 0 ? feeCounter : JsMath.Round(Economy.MarketValue(g) / 50) * 50).ToString());
             }
             Draw();
         }
@@ -90,8 +94,7 @@ namespace Colosseum.UI
             double w = double.TryParse(wage.text, out var v) ? v : 0;
             HaggleResult res = null;
             G.Act((d, rng) => res = Economy.HaggleFreeAgent(d, rng, id, w, y));
-            if (res.status == "countered") wage.SetTextWithoutNotify(res.counter.ToString());
-            Say(res.Accepted ? "계약했습니다!" : res.line, res.Accepted);
+            Say(res.line, res.status == "sent");
         }
 
         void Bid()
@@ -100,8 +103,7 @@ namespace Colosseum.UI
             double f = double.TryParse(fee.text, out var v) ? v : 0;
             HaggleResult res = null;
             G.Act((d, rng) => res = Transfers.HaggleFee(d, rng, id, f));
-            if (res.status == "countered") fee.SetTextWithoutNotify(res.counter.ToString());
-            Say(res.Accepted ? "이적료에 합의했습니다. 검투사와 개인 계약을 맺으면 영입이 끝납니다." : res.line, res.Accepted);
+            Say(res.line, res.status == "sent");
         }
 
         void Draw()
@@ -125,10 +127,12 @@ namespace Colosseum.UI
             msg.color = good ? Theme.Good : new Color32(0xd9, 0xa2, 0x9b, 0xff);
 
             string key = free ? Economy.WageKey(g.id) : Transfers.FeeKey(g.id);
-            string line = Widgets.HaggleLine(S, key);
+            var pending = Negotiations.Pending(S, free ? "free" : "fee", g.id);
+            string line = Widgets.BidLine(S, key, pending, g.id);
             mood.gameObject.SetActive(line != null);
             mood.text = line ?? "";
-            bool locked = Haggling.IsLocked(S, key);
+            // 답을 기다리는 동안에는 다시 못 보낸다
+            bool locked = Haggling.IsLocked(S, key) || pending != null;
 
             freeRoot.SetActive(free);
             if (free)
@@ -145,6 +149,7 @@ namespace Colosseum.UI
                     seasons[i].GetComponent<Image>().color = on ? Theme.Torch : Theme.Line;
                 }
                 sign.interactable = !d.refuse && !locked;
+                sign.GetComponentInChildren<TMP_Text>().text = pending != null ? "답 기다림" : "계약 제안";
             }
 
             bool club = owner != null && !owner.isPlayer;
@@ -156,7 +161,8 @@ namespace Colosseum.UI
                 value.text = $"추정 가치 {JsMath.Round(Economy.MarketValue(g) / 50) * 50:N0} D";
                 bool open = Transfers.InWindow(S);
                 bid.interactable = open && !locked;
-                if (!open && msgText == null) { msg.gameObject.SetActive(true); msg.text = $"이적 시장 기간: {Transfers.WindowLabel}"; msg.color = Theme.TextDim; }
+                bid.GetComponentInChildren<TMP_Text>().text = pending != null ? "답 기다림" : "이적료 제안";
+                if (!open && msgText == null) { msg.gameObject.SetActive(true); msg.text = $"{Tips.Window(Transfers.WindowLine(S))} · 그때까지는 이적료를 제안할 수 없습니다"; msg.color = Theme.TextDim; }
             }
             if (deal != null) dealText.text = $"이적료 {deal.fee:N0} D에 합의했습니다.";
         }

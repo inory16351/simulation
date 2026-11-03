@@ -120,6 +120,8 @@ namespace Colosseum.Core
             CupLogic.DailyCup(state, rng);
             WarLogic.DailyWar(state, rng);
             DungeonLogic.DailyDungeons(state, rng);
+            // 답장은 합의 기한 정리보다 먼저: 기한 안에 보낸 제안은 답을 받는다
+            Negotiations.Daily(state, rng);
             Transfers.DailyTransfers(state, rng);
             GearLogic.DailyConsignments(state, rng);
             Haggling.Prune(state);

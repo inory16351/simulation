@@ -235,3 +235,10 @@
 - **메인 메뉴 확인 창**: 새 `UI/ConfirmPopup.cs`(예/아니오, ESC=아니오, Enter=예) + `PopupBuilder.BuildConfirmPopup`(GameSceneBuilder에서 ItemPicker 다음). ESC와 사이드바 '로비로' 둘 다 "메인 메뉴로 이동하시겠습니까?"를 묻고 예일 때만 저장 후 로비. 씬을 다시 빌드하기 전엔 확인 창이 없어 바로 간다(`Ask`의 대체 동작). `Colosseum.UI.csproj`에 파일 추가함.
 - **종족 기술은 태어날 때 가짐**: `SkillBook.GiveRaceSkills(g)`(learn_rate 1 = 종족 조건 기술, 서판 알림 없음)를 `GladiatorGen` 생성 직후 호출. 옛 저장 대비로 `WeeklyLearn` 시작 때 살아 있는 모두에게 조용히 챙김. 달마다 굴림에서는 종족 기술을 뺌.
 - 헤드리스 테스트 12/12 통과.
+- (2026-11-03) 사용자 요청:
+  - 급료일 금액: `Economy.NextPayBill` (주급·밀린 급료·식비·시설·식솔, Payday와 같은 계산). 상단 바 "급료일에 낼 돈"(모자라면 붉게), 금고 화면. `Calendar.DaysUntilPayday`(1~7, 급료일 당일은 이미 냈으므로 7).
+  - 이적 시장 기간: `Transfers.WindowState/WindowLine`. 상단 바·이적 시장 머리·영입 패널에 표시. 툴팁 링크 `info:pay`, `info:window` (Tips.InfoTip).
+  - 협상 답장 지연 + 영입 경쟁: `Logic/Negotiations.cs`. 이적료·개인 계약·무소속 주급 제안은 `GameState.bids`에 쌓였다가 1~3일 뒤 서판으로 답이 온다. 처음 제안할 때 같은 나라 AI 루두스가 경쟁자로 붙을 수 있다(`GameState.rivals`). 경쟁자가 마지노선 이상·우리보다 높은 이적료를 부르면 그쪽에 팔리고, 개인 계약은 명성을 감안한 조건 비교로 검투사가 고른다. 보낸 제안이 없으면 난수를 안 쓴다 → 골든 테스트 영향 없음. 장비·식솔 흥정은 그대로 즉시.
+  - 이적료 합의와 개인 계약은 별개 (합의 뒤 검투사가 "무명 루두스엔 안 가"로 거절할 수 있음 — 사용자: 실제로도 그러니 그대로 둔다).
+  - 툴팁: 특성 줄 맨 앞 종족 특성(`racial:`), 단체전 역할 버튼(`role:`), 식솔 후보 자리(`staff:`)에 링크 추가.
+  - Windows 빌드: `Builds/ColosseumWindows/Colosseum.exe` (`Builds/Windows`는 RatWar 빌드라 건드리지 않음).

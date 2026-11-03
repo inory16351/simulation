@@ -111,6 +111,8 @@ namespace Colosseum.UI
                 {
                     var b = c.GetComponent<Button>();
                     Seg(b, c.name == role);
+                    // 올리면 역할 설명 (버튼 이름 = 역할 id)
+                    b.GetComponentInChildren<TMP_Text>().text = Tips.Role(c.name);
                     b.onClick.RemoveAllListeners();
                     string r = c.name, id = g.id;
                     b.onClick.AddListener(() => G.Mutate(s => Tactics.SavedTeam(s.ludi[s.playerLudusId], Format).roles[id] = r));

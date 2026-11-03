@@ -111,7 +111,7 @@ namespace Colosseum.UI
             Kv("Record", $"{g.record.wins}승 {g.record.losses}패 · 살해 {g.record.kills}");
 
             var race = Data.Race(g.race);
-            var tags = new List<string> { $"<color={Theme.Hex(Theme.Parchment)}>◆ {race.racialTrait.name}</color>" };
+            var tags = new List<string> { Tips.Racial(g.race, Theme.Hex(Theme.Parchment)) };
             foreach (var t in g.traits)
             {
                 var def = Data.Trait(t);

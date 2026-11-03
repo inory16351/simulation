@@ -53,8 +53,62 @@ namespace Colosseum.UI
                 "trait" => TraitTip(id),
                 "dungeon" => DungeonTip(id),
                 "status" => StatusTip(id),
+                "info" => InfoTip(id),
+                "racial" => RacialTip(id),
+                "role" => Tactics.RoleDesc.TryGetValue(id, out var rd) ? $"<b>{Tactics.RoleNames[id]}</b>\n{rd}" : null,
+                "staff" => StaffLogic.RoleDesc.TryGetValue(id, out var sd) ? $"<b>{StaffLogic.RoleNames[id]}</b>\n{sd}" : null,
                 _ => null,
             };
+        }
+
+        /// <summary>종족 특성 (특성 줄 맨 앞 ◆). 올리면 설명, 누르면 종족 카드</summary>
+        public static string Racial(string raceId, string color = null)
+        {
+            var r = Data.Race(raceId);
+            if (r == null) return "";
+            string n = $"◆ {r.racialTrait.name}";
+            return $"<link=\"racial:{raceId}\">{(color != null ? $"<color={color}>{n}</color>" : n)}</link>";
+        }
+
+        static string RacialTip(string raceId)
+        {
+            var r = Data.Race(raceId);
+            return r == null ? null : $"<b>◆ {r.racialTrait.name}</b>  <color={Theme.Hex(Theme.TextDim)}>{r.name} 종족 특성</color>\n{r.racialTrait.desc}{More}";
+        }
+
+        /// <summary>단체전 역할 이름 (올리면 설명)</summary>
+        public static string Role(string id) => Tactics.RoleNames.TryGetValue(id, out var n) ? $"<link=\"role:{id}\">{n}</link>" : id;
+
+        /// <summary>식솔 자리 이름 (올리면 설명)</summary>
+        public static string StaffRole(string id) => StaffLogic.RoleNames.TryGetValue(id, out var n) ? $"<link=\"staff:{id}\">{n}</link>" : id;
+
+        // ── 상단 바 설명 (info:pay 다음 급료일 내역, info:window 이적 시장 기간) ──
+
+        public static string Pay(string text) => $"<link=\"info:pay\">{text}</link>";
+        public static string Window(string text) => $"<link=\"info:window\">{text}</link>";
+
+        static string InfoTip(string id)
+        {
+            var s = GameController.I?.State;
+            if (s == null) return null;
+            var me = s.ludi[s.playerLudusId];
+            string dim = Theme.Hex(Theme.TextDim), faint = Theme.Hex(Theme.TextFaint);
+            if (id == "pay")
+            {
+                var b = Economy.NextPayBill(s, me);
+                string Row(string k, double v) => $"\n{k} <color={dim}>{v:N0} D</color>";
+                string tail = b.Total > me.treasury
+                    ? $"\n<color=#d9a29b>금고가 {b.Total - me.treasury:N0} D 모자랍니다. 주급이 높은 검투사부터 주고, 못 받은 자는 급료가 밀립니다</color>"
+                    : $"\n<color={faint}>내고 나면 {me.treasury - b.Total:N0} D가 남습니다</color>";
+                return $"<b>다음 급료일 · {Calendar.NextPaydayLabel(s.day)}</b>" +
+                    Row("검투사 주급", b.wages) + (b.arrears > 0 ? $"\n밀린 급료 <color=#d9a29b>{b.arrears:N0} D</color>" : "") +
+                    Row("식비", b.food) + Row("시설 유지비", b.upkeep) + Row("식솔 급료", b.staff) +
+                    $"\n<b>합계 {b.Total:N0} D</b>{tail}\n<color={faint}>용병으로 나간 검투사의 주급은 고용국이 냅니다</color>";
+            }
+            if (id == "window")
+                return $"<b>{Transfers.WindowLine(s)}</b>\n<color={dim}>이적 시장 기간: {Transfers.WindowLabel}</color>\n" +
+                    $"<color={faint}>다른 루두스 검투사에게는 이 기간에만 이적료를 제안할 수 있습니다. 무소속 검투사는 언제든 영입할 수 있습니다.\n제안을 보내면 하루~사흘 뒤 서판으로 답이 옵니다</color>";
+            return null;
         }
 
         // ── 특성·던전·상태 ──

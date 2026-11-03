@@ -34,5 +34,16 @@ namespace Colosseum.Core
             int r = day % PaydayInterval;
             return r == 0 ? 0 : PaydayInterval - r;
         }
+
+        /// <summary>다음에 급료가 나가는 날까지 1~7일. 급료는 그날 아침에 나가므로 오늘이 급료일이면 이미 냈고 7일 뒤가 다음이다</summary>
+        public static int DaysUntilPayday(int day) => PaydayInterval - day % PaydayInterval;
+
+        /// <summary>"서리달 14일 (3일 뒤)" / "내일"</summary>
+        public static string NextPaydayLabel(int day)
+        {
+            int n = DaysUntilPayday(day);
+            int at = (day + n - 1) % DaysPerSeason + 1;
+            return n == 1 ? $"내일({DateLabel(at)})" : $"{DateLabel(at)} ({n}일 뒤)";
+        }
     }
 }
