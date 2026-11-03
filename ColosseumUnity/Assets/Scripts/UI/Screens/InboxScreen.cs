@@ -39,8 +39,10 @@ namespace Colosseum.UI
             var offers = Transfers.OpenOffers(S);
             var decisions = S.decisions?.ToList() ?? new System.Collections.Generic.List<Decision>();
             int events = S.pendingEvents.Count;
-            cards.Sync(events + offers.Count + decisions.Count, (card, i) =>
+            bool offerCard = OlympicaLogic.Current(S)?.offer == true;
+            cards.Sync(events + offers.Count + decisions.Count + (offerCard ? 1 : 0), (card, i) =>
             {
+                if (i >= events + offers.Count + decisions.Count) { BindOlympica(card); return; }
                 if (i >= events) { BindDeal(card, i - events < offers.Count ? offers[i - events] : null, i - events < offers.Count ? null : decisions[i - events - offers.Count]); return; }
                 var p = S.pendingEvents[i];
                 var def = Events.GetEvent(p.eventId);
@@ -80,6 +82,27 @@ namespace Colosseum.UI
             readTitle.text = msg != null ? Tips.AutoLink(S, msg.title) : "";
             readMeta.text = msg != null ? $"시즌 {msg.season} · {Calendar.DateLabel(msg.day)}" : "";
             readBody.text = msg != null ? Tips.AutoLink(S, msg.body) : "소식이 없습니다.";
+        }
+
+        /// <summary>올림피카 컵 대표팀 감독 제안 카드</summary>
+        void BindOlympica(RectTransform card)
+        {
+            card.Find("Title").GetComponent<TMP_Text>().text = $"결정을 내려야 합니다 — {Tips.Nation(S.nation)} 대표팀 감독 제안";
+            card.Find("Text").GetComponent<TMP_Text>().text = $"{Tips.Olympica()}에서 대표팀을 맡아 달라고 합니다. 맡으면 대표 7명을 직접 뽑고 경기마다 출전 5명을 정합니다.";
+            var choices = ChoiceList(card, card.Find("Choices/ChoiceTemplate").GetComponent<Button>());
+            var acts = new (string label, System.Action act)[]
+            {
+                ("대표팀 맡기", () => { G.Mutate(OlympicaLogic.Accept); G.Go("olympica"); }),
+                ("사양하기", () => G.Mutate(OlympicaLogic.Decline)),
+            };
+            choices.Sync(acts.Length, (b, ci) =>
+            {
+                b.GetComponentInChildren<TMP_Text>().text = acts[ci].label;
+                b.interactable = true;
+                b.onClick.RemoveAllListeners();
+                var a = acts[ci].act;
+                b.onClick.AddListener(() => a());
+            });
         }
 
         /// <summary>받은 이적 제안 / 협상 역제안 카드: 협상 창을 열거나 바로 답한다</summary>

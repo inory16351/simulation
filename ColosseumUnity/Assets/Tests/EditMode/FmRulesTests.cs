@@ -123,6 +123,155 @@ namespace Colosseum.Tests
             Assert.AreEqual("missio", CupLogic.TieRule(s, new CupTie { id = "T2", home = mine.id, away = other.id }));
         }
 
+        /// <summary>이날까지 우리 경기를 기계적으로 치르며 넘긴다</summary>
+        static void RunTo(GameState s, Rng rng, int season, int day)
+        {
+            while ((s.season < season || (s.season == season && s.day < day)) && s.gameOver == null)
+            {
+                foreach (var p in s.pendingEvents.ToList()) Events.ResolveEvent(s, rng, p.id, Events.GetEvent(p.eventId).choices.FindIndex(c => c.cost == null || c.cost == 0));
+                foreach (var o in Transfers.OpenOffers(s)) Transfers.RejectOffer(s, o.id);
+                foreach (var d in (s.decisions ?? new System.Collections.Generic.List<Decision>()).ToList()) Negotiations.Withdraw(s, d.id);
+                foreach (var c in s.challenges.Where(x => x.status == "pending" && s.ludi[x.to].isPlayer).ToList()) ChallengeLogic.Respond(s, c, false, rng);
+                foreach (var c in ChallengeLogic.TodaysPlayerMatches(s)) ChallengeLogic.PlayChallenge(s, c, rng);
+                var ct = CupLogic.TodaysPlayerTie(s);
+                if (ct != null) CupLogic.PlayTie(s, ct.id, rng);
+                var nt = NatCupLogic.TodaysPlayerTie(s);
+                if (nt != null) NatCupLogic.PlayTie(s, s.nation, nt.id, rng);
+                if (OlympicaLogic.Current(s)?.offer == true) OlympicaLogic.Accept(s);
+                var ot = OlympicaLogic.TodaysPlayerTie(s);
+                if (ot != null) OlympicaLogic.PlayTie(s, ot.id, rng);
+                Assert.AreEqual(0, Day.AdvanceDay(s).Count, "막힌 일이 남았다");
+            }
+        }
+
+        [Test]
+        public void DividendFollowsRank()
+        {
+            Assert.AreEqual(1.6, FmRules.DividendCoef(1, 10), 1e-9);
+            Assert.AreEqual(0.6, FmRules.DividendCoef(10, 10), 1e-9);
+            var s = World.NewGame(90, "aurelia", "시험", 2);
+            var top = Economy.TierRanking(s, 1).First();
+            var last = Economy.TierRanking(s, 1).Last();
+            double before = top.treasury, beforeLast = last.treasury;
+            s.day = Calendar.DaysPerSeason;
+            Day.EndSeason(s, new Rng(5));
+            Assert.Greater(top.treasury - before, last.treasury - beforeLast);
+        }
+
+        [Test]
+        public void NationalCupFormatAndFreeze()
+        {
+            var s = World.NewGame(91, "aurelia", "시험", 4);
+            var rng = new Rng(11);
+            s.day = FmRules.RegularEnd;
+            RunTo(s, rng, 1, NatCupLogic.DrawDay);
+            var c = NatCupLogic.Of(s, s.nation);
+            Assert.AreEqual(40, c.teams.Count, "나라 전 루두스 참가");
+            Assert.AreEqual(20, c.ties.Count(t => t.stage == "r40"));
+            var frozen = s.ludi.Values.ToDictionary(l => l.id, l => l.rp);
+            RunTo(s, rng, 1, CupLogic.FmDrawDay);
+            c = NatCupLogic.Of(s, s.nation);
+            Assert.AreEqual(10, c.ties.Count(t => t.stage == "r20"));
+            Assert.AreEqual(5, c.ties.Count(t => t.stage == "r10"));
+            Assert.AreEqual(5, c.final5.Count);
+            Assert.AreEqual(10, c.ties.Count(t => t.stage == "league5"), "5강은 한 번씩");
+            Assert.IsNotNull(c.champion);
+            // 모두가 네 경기씩
+            foreach (var id in c.final5) Assert.AreEqual(4, c.ties.Count(t => t.stage == "league5" && (t.home == id || t.away == id)));
+            Assert.AreEqual(NatCupLogic.LeagueTable(s, c)[0].id, c.champion);
+            foreach (var kv in frozen) Assert.AreEqual(kv.Value, s.ludi[kv.Key].rp, $"컵이 RP를 바꾸면 안 된다: {s.ludi[kv.Key].name}");
+            // 다른 나라도 끝난다
+            foreach (var n in Data.Nations) Assert.IsNotNull(NatCupLogic.Of(s, n.id).champion, n.id);
+        }
+
+        [Test]
+        public void FixtureTieBreaks()
+        {
+            // 셋 다 1승 1패, 쓰러뜨린 수: A 8, B 6, C 8 → A·C 승자승으로 가린다
+            var ties = new[]
+            {
+                new CupTie { home = "A", away = "B", winner = "B", score = new double[] { 3, 5 } },
+                new CupTie { home = "B", away = "C", winner = "C", score = new double[] { 1, 5 } },
+                new CupTie { home = "C", away = "A", winner = "A", score = new double[] { 3, 5 } },
+            };
+            var t = Fixtures.Table(new[] { "A", "B", "C" }, ties, id => 0);
+            Assert.AreEqual(new[] { "A", "C", "B" }, t.Select(r => r.id).ToArray());
+        }
+
+        [Test]
+        public void PantheonPlayoffAndMainDraw()
+        {
+            var s = World.NewGame(92, "aurelia", "시험", 3);
+            var rng = new Rng(13);
+            s.day = FmRules.RegularEnd;
+            RunTo(s, rng, 1, CupLogic.FmDrawDay + 1);
+            var cup = s.cup;
+            Assert.AreEqual(true, cup.fm);
+            Assert.AreEqual(2, cup.poGroups.Count);
+            Assert.IsTrue(cup.poGroups.All(g => g.Count == 3));
+            Assert.AreEqual(18, cup.teams.Count, "직행 12 + 플레이오프 6");
+            foreach (var n in Data.Nations)
+            {
+                var top = Economy.TierRanking(s, 1, n.id);
+                Assert.IsTrue(top.Take(2).All(l => cup.teams.Contains(l.id) && !cup.poGroups.Any(g => g.Contains(l.id))), "1부 1·2위는 본선 직행");
+                var champ = NatCupLogic.Of(s, n.id).champion;
+                string po = top.Take(2).Any(l => l.id == champ) ? top[2].id : champ;
+                Assert.IsTrue(cup.poGroups.Any(g => g.Contains(po)), "국내 컵 우승(또는 1부 3위)이 플레이오프");
+            }
+            RunTo(s, rng, 1, CupLogic.FmFinalDay + 1);
+            Assert.AreEqual(4, s.cup.groups.Count);
+            Assert.IsTrue(s.cup.groups.All(g => g.Count == 4));
+            Assert.AreEqual(6, s.cup.ties.Count(t => t.stage == "po"));
+            Assert.AreEqual(24, s.cup.ties.Count(t => t.stage == "group"));
+            Assert.AreEqual(4, s.cup.ties.Count(t => t.stage == "qf"));
+            Assert.AreEqual(1, s.cup.ties.Count(t => t.stage == "final"));
+            Assert.IsNotNull(s.cup.champion);
+            Assert.Less(CupLogic.FmFinalDay, Calendar.DaysPerSeason);
+        }
+
+        [Test]
+        public void OlympicaEveryFourSeasons()
+        {
+            Assert.IsFalse(OlympicaLogic.IsYear(3));
+            Assert.IsTrue(OlympicaLogic.IsYear(4));
+            var s = World.NewGame(93, "aurelia", "시험", 2);
+            var rng = new Rng(17);
+            s.season = 4;
+            s.day = 1;
+            RunTo(s, rng, 4, OlympicaLogic.SetupDay + 1);
+            var o = OlympicaLogic.Current(s);
+            Assert.IsNotNull(o);
+            Assert.AreEqual(6, o.squads.Count);
+            Assert.IsTrue(o.squads.Values.All(q => q.Count == OlympicaLogic.Squad), "5명 + 후보 2명");
+            Assert.AreEqual(30, o.ties.Count, "6개국 홈·원정 10라운드");
+            foreach (var n in Data.Nations)
+            {
+                Assert.AreEqual(5, o.ties.Count(t => t.home == n.id));
+                Assert.AreEqual(5, o.ties.Count(t => t.away == n.id));
+            }
+            foreach (var day in OlympicaLogic.MatchDays) Assert.AreEqual(3, o.ties.Count(t => t.day == day));
+            RunTo(s, rng, 4, OlympicaLogic.MatchDays[9] + 1);
+            o = OlympicaLogic.Current(s);
+            Assert.IsNotNull(o.champion);
+            Assert.AreEqual(OlympicaLogic.Table(s, o)[0].id, o.champion);
+            Assert.IsTrue(s.honours.Any(h => h.kind == "olympica" && h.season == 4));
+        }
+
+        [Test]
+        public void ForfeitKnocksOut()
+        {
+            var s = World.NewGame(94, "aurelia", "시험", 4);
+            var rng = new Rng(19);
+            s.day = FmRules.RegularEnd;
+            RunTo(s, rng, 1, NatCupLogic.KoDays[0]);
+            var t = NatCupLogic.TodaysPlayerTie(s);
+            Assert.IsNotNull(t);
+            Assert.IsTrue(Day.Blockers(s).Any(b => b.Contains("컵")));
+            Assert.IsNull(NatCupLogic.Forfeit(s, t.id));
+            Assert.AreNotEqual(s.playerLudusId, t.winner);
+            Assert.IsNull(NatCupLogic.TodaysPlayerTie(s));
+        }
+
         [Test]
         public void StaffHaveAttributes()
         {

@@ -207,10 +207,30 @@ namespace Colosseum.UI
         public static string CompLink(string trophyName)
         {
             if (trophyName == Honours.CupName) return Tips.Cup();
+            if (trophyName == OlympicaLogic.Name) return Tips.Olympica();
             foreach (var n in Data.Nations)
-                for (int t = 1; t <= 2; t++)
+            {
+                if (NatCupLogic.Name(n.id) == trophyName) return Tips.NatCup(n.id);
+                for (int t = 1; t <= FmRules.MaxTier; t++)
                     if (Honours.LeagueName(n.id, t) == trophyName) return Tips.League(n.id, t);
+            }
             return trophyName;
+        }
+
+        /// <summary>대회 이름에 맞는 트로피 그림 (없으면 null)</summary>
+        public static UnityEngine.Sprite TrophySprite(string compName)
+        {
+            string key = null;
+            if (compName == Honours.CupName) key = "pantheon";
+            else if (compName == OlympicaLogic.Name) key = "olympica";
+            else
+                foreach (var n in Data.Nations)
+                {
+                    if (NatCupLogic.Name(n.id) == compName) key = "natcup_" + n.id;
+                    for (int t = 1; t <= FmRules.MaxTier; t++)
+                        if (Honours.LeagueName(n.id, t) == compName) key = "league_" + t;
+                }
+            return key == null ? null : UnityEngine.Resources.Load<UnityEngine.Sprite>("Art/icon/trophy/" + key);
         }
 
         // ── 대회 ──
@@ -233,12 +253,44 @@ namespace Colosseum.UI
                     : $"시즌 {cup.season} 진행 중 · 출전 {cup.teams.Count}곳: " + string.Join(", ", cup.teams.Where(t => s.ludi.ContainsKey(t)).Select(t => Tips.Ludus(s.ludi[t])));
                 return new InfoCard
                 {
-                    title = Honours.CupName, sub = "여섯 나라 1부 상위 루두스 16곳이 겨루는 대륙 대회",
+                    title = Honours.CupName, sub = "국내 컵 우승 팀과 나라별 1부 1·2위가 겨루는 대륙 대회",
                     body = now + "\n" + Past(hist.Where(h => h.kind == "cup")),
+                    iconSprite = TrophySprite(Honours.CupName),
                     actionLabel = "판테온 컵으로", action = () => GameController.I.Go("cup"),
                 };
             }
+            if (id == "olympica")
+            {
+                var o = OlympicaLogic.Current(s) ?? s.olympica;
+                string now = o == null ? $"<color={Faint}>다음 대회는 시즌 {OlympicaLogic.NextSeason(s.season)}입니다</color>"
+                    : !string.IsNullOrEmpty(o.champion) ? $"시즌 {o.season} 우승: <color={Torch}>★</color> {Tips.Nation(o.champion)}"
+                    : $"시즌 {o.season} 진행 중";
+                var past = hist.Where(h => h.kind == "olympica").OrderByDescending(h => h.season).Take(10)
+                    .Select(h => $"시즌 {h.season}  <color={Torch}>★</color> {Tips.Nation(h.winnerId)}  <color={Faint}>준우승</color> {Tips.Nation(h.runnerUpId)}").ToList();
+                return new InfoCard
+                {
+                    title = OlympicaLogic.Name, sub = "4년에 한 번 여섯 나라 대표가 겨루는 국가 대항전",
+                    body = now + "\n" + Head("역대 우승") + (past.Count == 0 ? $"<color={Faint}>아직 기록이 없습니다</color>" : string.Join("\n", past)),
+                    iconSprite = TrophySprite(OlympicaLogic.Name),
+                    actionLabel = "올림피카 컵으로", action = () => GameController.I.Go("olympica"),
+                };
+            }
             var parts = id.Split(':');
+            if (parts.Length == 2 && parts[0] == "natcup")
+            {
+                string n = parts[1];
+                var c = NatCupLogic.Of(s, n);
+                string now = c == null ? $"<color={Faint}>정규 리그가 끝나면 시작합니다</color>"
+                    : !string.IsNullOrEmpty(c.champion) ? $"시즌 {c.season} 우승: <color={Torch}>★</color> {Tips.Ludus(s.ludi[c.champion])}"
+                    : $"시즌 {c.season} 진행 중";
+                return new InfoCard
+                {
+                    title = NatCupLogic.Name(n), sub = $"{Tips.Nation(n)}의 1~4부 루두스 40곳이 모두 나오는 컵",
+                    body = now + "\n" + Past(hist.Where(h => h.kind == "natcup" && h.nation == n)),
+                    iconSprite = TrophySprite(NatCupLogic.Name(n)),
+                    actionLabel = "국내 컵으로", action = () => GameController.I.Go("natcup"),
+                };
+            }
             if (parts.Length != 3 || parts[0] != "league") return null;
             string nation = parts[1];
             int tier = int.TryParse(parts[2], out var tt) ? tt : 1;
@@ -249,6 +301,7 @@ namespace Colosseum.UI
             {
                 title = Honours.LeagueName(nation, tier), sub = $"{Tips.Nation(nation)}의 {tier}부 리그 · {table.Count}곳",
                 body = body,
+                iconSprite = TrophySprite(Honours.LeagueName(nation, tier)),
                 actionLabel = "서열표로", action = () => GameController.I.Go("league"),
             };
         }

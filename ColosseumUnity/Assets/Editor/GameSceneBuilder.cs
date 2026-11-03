@@ -28,6 +28,8 @@ namespace Colosseum.EditorTools
             ["match"] = MatchBuilder.Build,
             ["league"] = LeagueBuilder.Build,
             ["cup"] = CupBuilder.Build,
+            ["natcup"] = CompBuilder.BuildNatCup,
+            ["olympica"] = CompBuilder.BuildOlympica,
             ["market"] = MarketBuilder.Build,
             ["staff"] = StaffBuilder.Build,
             ["facilities"] = FacilitiesBuilder.Build,
@@ -203,7 +205,7 @@ namespace Colosseum.EditorTools
 
         static MenuButton MenuItem(Transform parent, string id, string label, bool icon = true)
         {
-            var bg = Box("Menu_" + id, parent, new Color(0, 0, 0, 0)).Layout(minH: 42, prefH: 42);
+            var bg = Box("Menu_" + id, parent, new Color(0, 0, 0, 0)).Layout(minH: 36, prefH: 36);
             var btn = bg.gameObject.AddComponent<Button>();
             btn.targetGraphic = bg;
             var colors = btn.colors;

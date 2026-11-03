@@ -42,5 +42,18 @@ namespace Colosseum.Core
         public static double TierValueMult(int tier) => tier switch { 1 => 1.35, 2 => 1.0, 3 => 0.78, _ => 0.62 };
 
         public static string TierName(int tier) => $"{tier}부";
+
+        // ── 시즌 흐름: 정규 리그 15~105일 → 국내 컵 106~129일 → 판테온 컵 131~157일 ──
+
+        /// <summary>정규 리그 마지막 날. 다음 날 순위가 굳고(이후 RP 변동 없음) 국내 컵 대진을 뽑는다</summary>
+        public const int RegularEnd = 105;
+        /// <summary>새 도전장을 받는 마지막 날 (잡힌 경기가 리그 안에 끝나게)</summary>
+        public const int ChallengeClose = 98;
+
+        /// <summary>리그 순위가 굳었는가 (RP가 더 움직이지 않는다)</summary>
+        public static bool Frozen(GameState s) => Enabled && s.day > RegularEnd;
+
+        /// <summary>시즌 배당 비율: 순위에 비례 (10팀이면 1위 ×1.6 ~ 10위 ×0.6)</summary>
+        public static double DividendCoef(int rank, int teams) => teams <= 1 ? 1 : 1.6 - (rank - 1) / (double)(teams - 1);
     }
 }

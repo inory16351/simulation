@@ -247,7 +247,7 @@ namespace Colosseum.Core
         {
             var rule = Bal.Rule(ruleId);
             var nr = NationRules.RulesOfNation(ll.nation);
-            if (!o.noLeague)
+            if (!o.noLeague && !FmRules.Frozen(state))
             {
                 wl.matchesThisSeason++;
                 ll.matchesThisSeason++;

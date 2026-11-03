@@ -391,7 +391,7 @@ namespace Colosseum.Core
                 {
                     q.status = "done";
                     Economy.AddMoney(s, me, q.bounty, $"{Data.Nation(q.nation).@short} 토벌 현상금");
-                    me.rp += q.rp;
+                    if (!FmRules.Frozen(s)) me.rp += q.rp;
                     me.favor ??= new Dictionary<string, double>();
                     me.favor[q.nation] = Math.Min(100, (me.favor.TryGetValue(q.nation, out var fv) ? fv : 0) + 10);
                     foreach (var id in ex.party)

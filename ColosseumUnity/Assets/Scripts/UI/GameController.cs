@@ -197,6 +197,8 @@ namespace Colosseum.UI
         {
             if (ChallengeLogic.TodaysPlayerMatches(State).Count > 0) Screen = "match";
             else if (CupLogic.TodaysPlayerTie(State) != null) Screen = "cup";
+            else if (NatCupLogic.TodaysPlayerTie(State) != null) Screen = "natcup";
+            else if (OlympicaLogic.TodaysPlayerTie(State) != null || OlympicaLogic.Current(State)?.offer == true) Screen = "olympica";
             else if (State.pendingEvents.Count > 0) Screen = "inbox";
             else if (Transfers.OpenOffers(State).Count > 0 || (State.decisions?.Count ?? 0) > 0)
             {

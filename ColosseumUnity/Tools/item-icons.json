@@ -6,6 +6,8 @@
     "skills": "ONE square image, a 3x3 grid of equal square cells, flat solid MAGENTA background (#FF00FF) in every cell (must stay magenta, no gradient, no frames, no grid lines, no shadows on the background). No text, no labels. Each cell: one square SKILL ICON that shows the action as a simple bold emblem (weapon or body part plus a motion arc or symbol), centered, filling about 75% of the cell, no frame, no circle background, no text. Keep every icon fully inside its own cell.",
     "status": "ONE square image, a 3x3 grid of equal square cells, flat solid MAGENTA background (#FF00FF) in every cell (must stay magenta, no gradient, no frames, no grid lines, no shadows on the background). No text, no labels. Each cell: one tiny STATUS EFFECT ICON as a very simple bold symbol, centered, filling about 70% of the cell, no frame, no background, no text. Must read at 20px. Keep every icon fully inside its own cell.",
     "menux": "ONE square image, a 3x3 grid of equal square cells, flat solid MAGENTA background (#FF00FF) in every cell (must stay magenta, no gradient, no frames, no grid lines, no shadows on the background). No text, no labels. Each cell: one game inventory ICON of a single item, centered, filling about 75% of the cell, slight 3/4 view, no hands, no person, no ground. Keep every item fully inside its own cell. Very simple bold shape, readable as a tiny 26px menu icon.",
+    "menuy": "ONE square image, a 3x3 grid of equal square cells, flat solid MAGENTA background (#FF00FF) in every cell (must stay magenta, no gradient, no frames, no grid lines, no shadows on the background). No text, no labels. Each cell: one game inventory ICON of a single item, centered, filling about 75% of the cell, slight 3/4 view, no hands, no person, no ground. Keep every item fully inside its own cell. Very simple bold shape, readable as a tiny 26px menu icon.",
+    "trophy": "ONE square image, a 3x3 grid of equal square cells, flat solid MAGENTA background (#FF00FF) in every cell (must stay magenta, no gradient, no frames, no grid lines, no shadows on the background). No text, no labels. Each cell: one TROPHY object, upright, front view, centered, filling about 80% of the cell, no pedestal shadow, no people, no text, no letters. Keep every trophy fully inside its own cell.",
     "fx": "ONE square image, a 3x3 grid of equal square cells, flat solid MAGENTA background (#FF00FF) in every cell (must stay magenta, no gradient, no frames, no grid lines, no shadows on the background). No text, no labels. Each cell: one 2D combat effect sprite, centered, filling about 75% of the cell, no ground, no characters, edges made of loose gouache brush strokes. Keep every effect fully inside its own cell."
   },
   "style": "Art style: FLAT simplified dark-fantasy graphic novel painted with gouache, matching the attached reference (the portrait panels and the cut-out helmet/armor parts on the right are the exact target look): bold uniform black ink outline around every shape, a FEW LARGE flat color shapes, at most 3 flat tones per material (base, one blocky shadow, one small warm highlight) laid with loose visible brush strokes, desaturated muted palette (bone, rust, dull bronze, iron grey, dark leather, muted red), warm torchlight from the left. Keep detail LOW: no rust speckles or grime texture, no fine engraving, no glossy metal specular shine, no smooth gradients, no photo-real rendering, no bright saturated cartoon colors, NOT chibi, NOT cute storybook. VALUES ARE DARK like the reference: mostly mid-to-dark tones, big blocky near-black shadow shapes covering about 40% of each object on the side away from the light, only thin warm highlights on the lit edge, colors greyed and dirty (old bronze, dull ochre, brick red, ash grey), rough dry-brush gouache texture visible inside the flat shapes. Grim mature illustration, NOT a clean bright mobile-game icon, NOT vector art. The silhouette must read clearly at 48px.",
@@ -17,6 +19,8 @@
     "skills",
     "status",
     "menux",
+    "menuy",
+    "trophy",
     "fx"
   ],
   "items": [
@@ -419,6 +423,44 @@
       "prompt": "Cells left-to-right, top-to-bottom:\n1. a sand-table tactics board with three tokens and arrows\n2-9. leave empty (flat magenta)",
       "cells": [
         "strategy"
+      ]
+    },
+    {
+      "id": "menuy_01",
+      "preset": "menuy",
+      "out": "art/source/icon_sheets/menuy_01.png",
+      "prompt": "Cells left-to-right, top-to-bottom:\n1. a small two-handled bronze cup on a square plinth\n2. a laurel wreath encircling six tiny shields\n3-9. leave empty (flat magenta)",
+      "cells": [
+        "natcup",
+        "olympica"
+      ]
+    },
+    {
+      "id": "trophy_01",
+      "preset": "trophy",
+      "out": "art/source/icon_sheets/trophy_01.png",
+      "prompt": "Cells left-to-right, top-to-bottom:\n1. the grand continental trophy: a tall ornate golden chalice with two big curled handles, a temple-pillar stem and a small winged victory figure on the lid, the most splendid trophy of all\n2. the national-team trophy: a broad silver and gold laurel crown resting on a stepped marble pedestal with six small heraldic shields around its base\n3. a golden two-handled cup topped by a spread-winged eagle, red enamel band\n4. a heavy iron and bronze cup shaped like a dwarven forge crucible with hammer-shaped handles and engraved runes\n5. a pearl-white and teal cup shaped like a seashell on a coral stem with ship-anchor handles\n6. a slender golden cup with a sun disk on top and handles shaped like jackal heads, lapis blue inlay\n7. a brutal black iron cup with horned handles and a bone skull on its front, dented and blood-red rim\n8. a slim silver goblet whose stem is a twisting tree with silver leaves as handles, green gem\n9. a large gold shield-shaped plate on a stand with a crown on top, league champion prize",
+      "cells": [
+        "pantheon",
+        "olympica",
+        "natcup_aurelia",
+        "natcup_dolgar",
+        "natcup_karsea",
+        "natcup_kemer",
+        "natcup_grommar",
+        "natcup_sylvaren",
+        "league_1"
+      ]
+    },
+    {
+      "id": "trophy_02",
+      "preset": "trophy",
+      "out": "art/source/icon_sheets/trophy_02.png",
+      "prompt": "Cells left-to-right, top-to-bottom:\n1. a medium silver shield-shaped plate on a stand with laurel leaves\n2. a small bronze shield-shaped plate on a stand with a single star\n3. a small dark iron shield-shaped plate on a wooden stand, humble and battered\n4-9. leave empty (flat magenta)",
+      "cells": [
+        "league_2",
+        "league_3",
+        "league_4"
       ]
     },
     {

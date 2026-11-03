@@ -22,7 +22,7 @@ namespace Colosseum.UI
         public static readonly (string id, string label)[] Menu =
         {
             ("inbox", "서판"), ("overview", "안뜰"), ("roster", "막사"), ("strategy", "전략"), ("training", "연무장"), ("challenge", "도전장"),
-            ("match", "모래 마당"), ("league", "서열표"), ("cup", "판테온 컵"), ("market", "이적 시장"), ("dungeon", "던전"),
+            ("match", "모래 마당"), ("league", "서열표"), ("natcup", "국내 컵"), ("cup", "판테온 컵"), ("olympica", "올림피카 컵"), ("market", "이적 시장"), ("dungeon", "던전"),
             ("youth", "유소년 학당"), ("staff", "식솔"), ("facilities", "증축"), ("finance", "금고"), ("world", "대륙 정세"), ("hall", "비석의 언덕"),
         };
 
@@ -166,7 +166,10 @@ namespace Colosseum.UI
                 m.label.fontStyle = active ? FontStyles.Bold : FontStyles.Normal;
                 string badge = m.id == "inbox" && unread > 0 ? unread.ToString()
                     : m.id == "challenge" && incoming > 0 ? incoming.ToString()
-                    : m.id == "match" && matchToday ? "!" : null;
+                    : m.id == "match" && matchToday ? "!"
+                    : m.id == "natcup" && NatCupLogic.TodaysPlayerTie(s) != null ? "!"
+                    : m.id == "cup" && CupLogic.TodaysPlayerTie(s) != null ? "!"
+                    : m.id == "olympica" && (OlympicaLogic.TodaysPlayerTie(s) != null || OlympicaLogic.Current(s)?.offer == true) ? "!" : null;
                 m.badge.SetActive(badge != null);
                 if (badge != null) m.badgeText.text = badge;
             }

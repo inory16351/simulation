@@ -113,7 +113,7 @@ namespace Colosseum.Core
                     {
                         // 징발령을 무시하면 조국이 등을 돌린다
                         AddFavor(s, c.employer, -30);
-                        s.ludi[s.playerLudusId].rp -= 50;
+                        if (!FmRules.Frozen(s)) s.ludi[s.playerLudusId].rp -= 50;
                         Msg(s, "warning", "징발령을 거부했습니다", $"{Josa.J(Data.Nation(c.employer).name, "이/가")} 분노했습니다. 호감도 -30, RP -50. 사람들은 우리를 매국 루두스라 부릅니다.");
                     }
                 }

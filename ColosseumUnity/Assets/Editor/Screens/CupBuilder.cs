@@ -17,8 +17,9 @@ namespace Colosseum.EditorTools
             var rt = Rect("Screen_cup", main).Stretch(26, 20, 26, 20);
             var content = ScrollView("Scroll", rt, out var scroll, 14);
             scroll.Stretch();
-            ScreenHeader(content, "판테온 컵", "여섯 나라의 1부 상위 루두스 16곳이 겨루는 대륙 대회입니다. 나라 계수가 높을수록 출전권을 많이 받습니다. 대결마다 세 명씩 나와 미시오 난전으로 한꺼번에 싸우고, 상대 편을 모두 쓰러뜨리면 이깁니다. 리그 RP는 오가지 않지만 큰 상금과 명성을 얻습니다.");
+            ScreenHeader(content, "판테온 컵", "국내 컵이 끝나면 열리는 대륙 대회입니다. 나라별 국내 컵 우승 6팀이 플레이오프(3팀씩 2개 조)를 치러 4팀이 오르고, 나라별 1부 1·2위 12팀과 함께 16강 조별 리그(4팀씩 4개 조)를 치릅니다. 조 상위 2팀이 8강에 오릅니다. 모든 경기는 5:5 미시오 단판이고, 리그 RP는 오가지 않습니다.");
             content.Find("Sub").GetComponent<TMP_Text>().Layout(prefH: 44);
+            var (cupTrophy, cupStatus) = CompBuilder.Top(content);
 
             // 오늘의 컵 경기
             var todayPad = TitledPanel("Today", content, "오늘의 컵 경기", 8);
@@ -31,14 +32,14 @@ namespace Colosseum.EditorTools
             var lineup = Rect("Lineup", todayPad);
             HRow(lineup, 8);
             var slots = new List<TMP_Dropdown>();
-            foreach (var p in new[] { "출전 1", "출전 2", "출전 3" })
+            foreach (var p in new[] { "출전 1", "출전 2", "출전 3", "출전 4", "출전 5" })
             {
                 var slot = Rect("Slot", lineup);
                 VCol(slot, 2);
                 Text("Label", slot, p, 12, Theme.TextDim);
-                slots.Add(Dropdown("Pick", slot, 200));
+                slots.Add(Dropdown("Pick", slot, 190));
             }
-            var warn = Text("Warn", todayPad, "세 명을 채우지 못하면 빈 자리는 기권패입니다.", 13, Neg);
+            var warn = Text("Warn", todayPad, "인원을 채우지 못하면 있는 인원으로만 싸웁니다.", 13, Neg);
             var speedRow = Rect("Speed", todayPad);
             HRow(speedRow, 4);
             Text("Label", speedRow, "중계 속도", 13, Theme.TextDim).Layout(prefW: 70, flexW: 0);
@@ -53,12 +54,11 @@ namespace Colosseum.EditorTools
             HRow(cols, 14, 0, 0, 0, 0, TextAnchor.UpperLeft);
             var coefPad = TitledPanel("Coef", cols, "나라 계수", 0);
             coefPad.parent.Layout(minW: 0, prefW: 0, flexW: 1);
-            Head(coefPad, ("나라", 0), ("최근 3시즌", 150), ("합계", 60), ("출전권", 60));
+            Head(coefPad, ("나라", 0), ("최근 3시즌", 150), ("합계", 60));
             var coef = Row("CoefTemplate", coefPad);
             Cell(Team("Nation", coef, 0, 14), 0);
             Cell(Text("Recent", coef, "", 13, Theme.TextDim).rectTransform, 150);
             Cell(Text("Sum", coef, "", 14).rectTransform, 60);
-            Cell(Text("Slots", coef, "", 14).rectTransform, 60);
             coef.gameObject.SetActive(false);
             Text("Note", coefPad, "대결에서 이기면 2점, 8강과 4강, 결승에 오를 때마다 1점씩, 우승하면 2점을 얻습니다. 출전한 루두스의 평균 점수가 그 시즌의 나라 계수입니다.", 13, Theme.TextDim).margin = new Vector4(0, 8, 0, 0);
 
@@ -71,6 +71,25 @@ namespace Colosseum.EditorTools
             Cell(Team("Opp", our, 0, 14), 0);
             Cell(Text("Result", our, "", 14, Theme.Text, false, FontStyles.Bold).rectTransform, 60);
             our.gameObject.SetActive(false);
+
+            // 플레이오프 두 조
+            var poRow = Rect("Playoff", content);
+            HRow(poRow, 14, 0, 0, 0, 0, TextAnchor.UpperLeft);
+            var poPanels = new List<RectTransform>();
+            for (int gi = 0; gi < 2; gi++)
+            {
+                var pad = TitledPanel("Po" + gi, poRow, "플레이오프", 0);
+                pad.parent.Layout(minW: 0, prefW: 0, flexW: 1);
+                Head(pad, ("루두스", 0), ("경기", 36), ("승", 30), ("득실", 40), ("승점", 40));
+                var row = Row("RowTemplate", pad);
+                Cell(Team("Team", row, 0, 13), 0);
+                Cell(Text("Played", row, "", 13).rectTransform, 36);
+                Cell(Text("Won", row, "", 13).rectTransform, 30);
+                Cell(Text("Diff", row, "", 13).rectTransform, 40);
+                Cell(Text("Pts", row, "", 13, Theme.Parchment).rectTransform, 40);
+                row.gameObject.SetActive(false);
+                poPanels.Add((RectTransform)pad.parent);
+            }
 
             // 조별 순위
             var groups = Rect("Groups", content);
@@ -125,6 +144,10 @@ namespace Colosseum.EditorTools
             Set(s, "ourHint", ourHint);
             Set(s, "ourTemplate", our);
             Set(s, "groupsRow", groups.gameObject);
+            Set(s, "poRow", poRow.gameObject);
+            Set(s, "trophy", cupTrophy);
+            Set(s, "status", cupStatus);
+            SetList(s, "poPanels", poPanels);
             Set(s, "bracketPanel", bracketPad.parent.gameObject);
             Set(s, "champion", champ);
             SetList(s, "lineupSlots", slots);
@@ -136,7 +159,7 @@ namespace Colosseum.EditorTools
         }
 
         /// <summary>문장 + 이름 (웹판 TeamName)</summary>
-        static RectTransform Team(string name, Transform parent, float w, float size)
+        internal static RectTransform Team(string name, Transform parent, float w, float size)
         {
             var t = Rect(name, parent);
             if (w > 0) t.Layout(prefW: w, flexW: 0);
@@ -148,14 +171,14 @@ namespace Colosseum.EditorTools
             return t;
         }
 
-        static void Head(Transform parent, params (string label, float w)[] cols)
+        internal static void Head(Transform parent, params (string label, float w)[] cols)
         {
             var head = Box("Head", parent, Theme.Bg2).Layout(minH: 26, prefH: 26);
             HRow(head.transform, 8, 8, 8);
             foreach (var (label, w) in cols) Cell(Text("H", head.transform, label, 12, Theme.TextDim, false, FontStyles.Bold).rectTransform, w);
         }
 
-        static RectTransform Row(string name, Transform parent)
+        internal static RectTransform Row(string name, Transform parent)
         {
             var row = Box(name, parent, Color.clear).Layout(minH: 32, prefH: 32);
             HRow(row.transform, 8, 8, 8);
@@ -165,13 +188,13 @@ namespace Colosseum.EditorTools
             return row.rectTransform;
         }
 
-        static void Cell(RectTransform rt, float w)
+        internal static void Cell(RectTransform rt, float w)
         {
             if (w > 0) rt.Layout(minW: w, prefW: w, flexW: 0);
             else rt.Layout(minW: 60, flexW: 1);
         }
 
-        static void SetList<T>(Object target, string prop, List<T> items) where T : Object
+        internal static void SetList<T>(Object target, string prop, List<T> items) where T : Object
         {
             var so = new UnityEditor.SerializedObject(target);
             var p = so.FindProperty(prop);

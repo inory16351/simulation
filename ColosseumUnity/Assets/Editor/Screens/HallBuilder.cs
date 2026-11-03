@@ -44,6 +44,14 @@ namespace Colosseum.EditorTools
             Set(s, "clubPick", Dropdown("Club", bar, 300, 32));
             var cab = TitledPanel("Cabinet", club, "우승컵 진열장", 4);
             ((RectTransform)cab.parent).Layout(flexH: 0);
+            var icons = Rect("Icons", cab);
+            HRow(icons, 10);
+            var iconT = Rect("IconTemplate", icons).Layout(prefW: 72, flexW: 0);
+            VCol(iconT, 2).childAlignment = TextAnchor.UpperCenter;
+            Sprite("Icon", iconT, "icon/trophy/pantheon", 64, 64);
+            Text("Count", iconT, "", 13, Theme.Parchment, false, FontStyles.Bold, TextAlignmentOptions.Center);
+            iconT.gameObject.SetActive(false);
+            Set(s, "cabinetIconTemplate", iconT);
             Set(s, "cabinet", Text("Text", cab, "", 15, Theme.Text, false, FontStyles.Normal, TextAlignmentOptions.TopLeft));
             var (clubEmpty, clubRow) = Table(club, "Seasons", ClubCols, "아직 끝난 시즌이 없습니다. 시즌이 끝나면 성적이 여기에 새겨집니다.");
             Set(s, "clubEmpty", clubEmpty);

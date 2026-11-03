@@ -19,6 +19,8 @@ namespace Colosseum.UI
         [Header("연혁")]
         [SerializeField] TMP_Dropdown clubPick;
         [SerializeField] TMP_Text cabinet;
+        [SerializeField] RectTransform cabinetIconTemplate;
+        TemplateList<RectTransform> cabinetIcons;
         [SerializeField] GameObject clubEmpty;
         [SerializeField] RectTransform clubTemplate;
 
@@ -83,6 +85,17 @@ namespace Colosseum.UI
 
             var trophies = Honours.TrophiesOf(S, club.id);
             string torch = Theme.Hex(Theme.Torch), dim = Theme.Hex(Theme.TextDim);
+            if (cabinetIconTemplate != null)
+            {
+                cabinetIcons ??= new TemplateList<RectTransform>(cabinetIconTemplate);
+                cabinetIcons.Sync(trophies.Count, (ic, i) =>
+                {
+                    var img = ic.Find("Icon").GetComponent<Image>();
+                    img.sprite = InfoCards.TrophySprite(trophies[i].name);
+                    img.enabled = img.sprite != null;
+                    ic.Find("Count").GetComponent<TMP_Text>().text = $"×{trophies[i].seasons.Count}";
+                });
+            }
             cabinet.text = trophies.Count == 0
                 ? $"<color={dim}>아직 든 우승컵이 없습니다.</color>"
                 : string.Join("\n", trophies.Select(t => $"<color={torch}>★</color> <b>{InfoCards.CompLink(t.name)}</b> ×{t.seasons.Count}  <color={dim}>(시즌 {string.Join(", ", t.seasons)})</color>"));
@@ -116,16 +129,19 @@ namespace Colosseum.UI
         {
             comps.Clear();
             comps.Add((null, 0));
+            // tier: 0 판테온 컵, -1 국내 컵, -2 올림피카 컵, 1~ 리그
+            comps.Add((null, -2));
             foreach (var n in Data.Nations.OrderByDescending(n => n.id == S.nation))
             {
-                comps.Add((n.id, 1));
-                comps.Add((n.id, 2));
+                comps.Add((n.id, -1));
+                for (int t = 1; t <= FmRules.MaxTier; t++) comps.Add((n.id, t));
             }
             compIdx = Mathf.Clamp(compIdx, 0, comps.Count - 1);
-            Fill(compPick, comps.Select(x => x.nation == null ? Honours.CupName : Honours.LeagueName(x.nation, x.tier)), compIdx);
+            Fill(compPick, comps.Select(x => x.tier == 0 ? Honours.CupName : x.tier == -2 ? OlympicaLogic.Name : x.tier == -1 ? NatCupLogic.Name(x.nation) : Honours.LeagueName(x.nation, x.tier)), compIdx);
             var (nation, tier) = comps[compIdx];
+            bool olympica = tier == -2;
             var list = (S.honours ?? new List<HonourEntry>())
-                .Where(h => nation == null ? h.kind == "cup" : h.kind == "league" && h.nation == nation && h.tier == tier)
+                .Where(h => tier == 0 ? h.kind == "cup" : olympica ? h.kind == "olympica" : tier == -1 ? h.kind == "natcup" && h.nation == nation : h.kind == "league" && h.nation == nation && h.tier == tier)
                 .OrderByDescending(h => h.season)
                 .ToList();
             honourEmpty.SetActive(list.Count == 0);
@@ -135,6 +151,13 @@ namespace Colosseum.UI
                 var h = list[i];
                 row.GetComponent<Image>().color = h.winnerId == me ? new Color(0.89f, 0.6f, 0.23f, 0.10f) : Color.clear;
                 T(row, "Season").text = $"시즌 {h.season}";
+                if (olympica)
+                {
+                    // 올림피카 컵 우승은 나라
+                    T(row, "Winner").text = $"<color={Theme.Hex(Theme.Torch)}>★</color> {Tips.Nation(h.winnerId)}";
+                    T(row, "RunnerUp").text = h.runnerUpId == null ? "—" : Tips.Nation(h.runnerUpId);
+                    return;
+                }
                 T(row, "Winner").text = $"<color={Theme.Hex(Theme.Torch)}>★</color> " + (h.winnerId == me ? $"<b>{Tips.Ludus(h.winnerId, h.winnerName)}</b>" : Tips.Ludus(h.winnerId, h.winnerName)) + Nation(h.winnerId, nation == null);
                 T(row, "RunnerUp").text = h.runnerUpName == null ? "—" : (h.runnerUpId == me ? $"<b>{Tips.Ludus(h.runnerUpId, h.runnerUpName)}</b>" : Tips.Ludus(h.runnerUpId, h.runnerUpName)) + Nation(h.runnerUpId, nation == null);
             });

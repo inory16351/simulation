@@ -34,7 +34,7 @@ namespace Colosseum.Core
         public static double MedicalOf(GameState state, Ludus l) => l.facilities.medical + StaffLogic.RatingOf(state, l, "medicus") / 8;
 
         /// <summary>정규 기간에만 도전 경기를 치른다</summary>
-        public static bool InRegularPeriod(GameState state) => state.day >= 15 && state.day <= 154;
+        public static bool InRegularPeriod(GameState state) => state.day >= 15 && state.day <= (FmRules.Enabled ? FmRules.RegularEnd : 154);
 
         /// <summary>오늘 출전할 수 있는가 (쉬는 기간·부상·예약된 경기 확인). null이면 출전 가능</summary>
         public static string Availability(GameState state, Gladiator g, double? atOpt = null)
@@ -56,6 +56,7 @@ namespace Colosseum.Core
         {
             if (from.id == to.id) return "자기 자신";
             if (from.nation != to.nation) return "다른 나라";
+            if (FmRules.Enabled && (state.day < 15 || state.day > FmRules.ChallengeClose)) return $"도전장은 {Calendar.DateLabel(15)}부터 {Calendar.DateLabel(FmRules.ChallengeClose)}까지만 보낼 수 있습니다 (정규 리그 기간)";
             if (!InRegularPeriod(state)) return "정규 기간(서리달 15일 ~ 그림자달 14일)이 아닙니다";
             double range = L("challengeRange");
             if (from.tier != to.tier && Math.Abs(from.rp - to.rp) > range) return $"다른 리그는 RP ±{N(range)} 안에서만";
@@ -132,7 +133,9 @@ namespace Colosseum.Core
                 .ToList();
             double rest = L("restDays");
             double day = Now(state) + rng.Int(LI("matchDelayMin"), LI("matchDelayMax"));
-            while (others.Any(d => Math.Abs(d - day) < rest)) day++;
+            // 대표 주간(올림피카)에는 리그 경기를 잡지 않는다
+            bool Intl(double abs) { var (se, dd) = Calendar.FromAbs(abs); return se == state.season && OlympicaLogic.IsMatchDay(state, dd); }
+            while (others.Any(d => Math.Abs(d - day) < rest) || Intl(day)) day++;
             c.matchAt = day;
         }
 
@@ -172,7 +175,7 @@ namespace Colosseum.Core
             if (to.refusalsUsed > free)
             {
                 penalty = L("refusalPenalty") * (c.rule == "sudden" ? 0.5 : 1) * (from.rp < to.rp ? 2 : 1);
-                to.rp -= JsMath.Round(penalty);
+                if (!FmRules.Frozen(state)) to.rp -= JsMath.Round(penalty);
             }
             if (from.isPlayer)
             {
@@ -211,10 +214,11 @@ namespace Colosseum.Core
             double chance = AcceptChance[p];
             if (c.rule == "sudden") chance *= p == "aggressive" || p == "grudge" ? 0.8 : 0.35;
             double diff = GladiatorRules.ComputeCA(best) - GladiatorRules.ComputeCA(challenger);
-            chance += diff / 100;
+            // FM식: 정규 리그가 짧아 강한 상대를 무작정 피하지 않는다 (차이 영향 절반, 최소 30%)
+            chance += diff / (FmRules.Enabled ? 200 : 100);
             // 무료 거절을 다 쓰면 웬만하면 받는다
             if (to.refusalsUsed >= L("freeRefusals")) chance += 0.25;
-            return rng.Chance(Math.Max(0.05, Math.Min(0.97, chance)));
+            return rng.Chance(Math.Max(FmRules.Enabled ? 0.3 : 0.05, Math.Min(0.97, chance)));
         }
 
         static readonly Dictionary<string, double[]> RuleWeights = new()
@@ -288,7 +292,8 @@ namespace Colosseum.Core
                 break;
             }
 
-            // AI 루두스끼리의 경기 (바로 치르고 결과만 반영)
+            // AI 루두스끼리의 경기 (바로 치르고 결과만 반영). 대표 주간에는 쉰다
+            if (OlympicaLogic.IsMatchDay(state, state.day)) return;
             var groupKeys = new List<string>();
             var groups = new Dictionary<string, List<Ludus>>();
             foreach (var l in state.ludi.Values)
@@ -303,7 +308,8 @@ namespace Colosseum.Core
                 var ludi = groups[key];
                 foreach (var a in ludi)
                 {
-                    if (!rng.Chance(L("aiMatchChancePerDay"))) continue;
+                    // FM식은 정규 리그가 90일로 짧아진 만큼 자주 붙는다
+                    if (!rng.Chance(L("aiMatchChancePerDay") * (FmRules.Enabled ? 1.4 : 1))) continue;
                     var opponents = ludi.Where(x => x != a).ToList();
                     var b = rng.Pick(opponents);
                     string rule = PickRule(rng, a);
@@ -386,7 +392,7 @@ namespace Colosseum.Core
                 if (la.Count == 0 || lb.Count == 0)
                 {
                     var loser = la.Count == 0 ? from : to;
-                    loser.rp -= 25;
+                    if (!FmRules.Frozen(state)) loser.rp -= 25;
                     loser.matchesThisSeason++;
                     return new PlayedMatch
                     {
@@ -411,7 +417,7 @@ namespace Colosseum.Core
             {
                 // 기권: 나오지 못한 쪽이 RP를 잃는다
                 var loser = a == null ? from : to;
-                loser.rp -= 15;
+                if (!FmRules.Frozen(state)) loser.rp -= 15;
                 loser.matchesThisSeason++;
                 return new PlayedMatch { challenge = c, result = null, a = a ?? b, b = b ?? a, forfeit = $"{loser.name} 기권 (출전 가능한 검투사가 없습니다)" };
             }

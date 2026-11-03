@@ -33,6 +33,12 @@ namespace Colosseum.UI
         /// <summary>대회 이름 (누르면 대회 카드): 나라·부 리그</summary>
         public static string League(string nation, int tier) => $"<link=\"comp:league:{nation}:{tier}\">{Honours.LeagueName(nation, tier)}</link>";
 
+        /// <summary>국내 컵 이름 (누르면 대회 카드)</summary>
+        public static string NatCup(string nation) => $"<link=\"comp:natcup:{nation}\">{NatCupLogic.Name(nation)}</link>";
+
+        /// <summary>올림피카 컵 이름 (누르면 대회 카드)</summary>
+        public static string Olympica() => $"<link=\"comp:olympica\">{OlympicaLogic.Name}</link>";
+
         /// <summary>장비 이름 (등급 색, 올리면 성능, 누르면 장비 카드)</summary>
         public static string Item(string id) => string.IsNullOrEmpty(id) ? "" : $"<link=\"item:{id}\">{Widgets.ItemLabel(id)}</link>";
 
@@ -61,9 +67,11 @@ namespace Colosseum.UI
                 foreach (var n in Data.Nations)
                 {
                     for (int t = 1; t <= FmRules.MaxTier; t++) Add(Honours.LeagueName(n.id, t), $"comp:league:{n.id}:{t}");
+                    Add(NatCupLogic.Name(n.id), "comp:natcup:" + n.id);
                     Add(n.name, "nation:" + n.id);
                 }
                 Add(Honours.CupName, "comp:cup");
+                Add(OlympicaLogic.Name, "comp:olympica");
                 foreach (var l in s.ludi.Values) Add(l.name, "ludus:" + l.id);
                 foreach (var st in s.staff.Values) if (st.name.Contains(' ')) Add(st.name, "person:" + st.id);
                 // 한 단어 이름은 다른 낱말과 겹치기 쉬워 두 단어(이름 성)이거나 세 글자 이상만
@@ -282,6 +290,8 @@ namespace Colosseum.UI
         static string CompName(string id)
         {
             var p = id.Split(':');
+            if (id == "olympica") return OlympicaLogic.Name;
+            if (p.Length == 2 && p[0] == "natcup") return NatCupLogic.Name(p[1]);
             return p.Length == 3 && int.TryParse(p[2], out int t) ? Honours.LeagueName(p[1], t) : id;
         }
 

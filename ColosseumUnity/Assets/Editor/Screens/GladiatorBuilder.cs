@@ -346,7 +346,7 @@ namespace Colosseum.EditorTools
         static readonly (string id, string label, float w)[] CareerCols =
         {
             ("Season", "시즌", 36), ("Ludus", "루두스", 0), ("Apps", "출전", 38), ("Wins", "승", 32), ("Losses", "패", 32), ("Kills", "살해", 38),
-            ("Injuries", "부상", 38), ("Ca", "능력", 72), ("Pop", "인기", 40), ("Earnings", "수익", 92),
+            ("Injuries", "부상", 38), ("Ca", "능력", 104), ("Pop", "인기", 40), ("Earnings", "수익", 92),
         };
 
         /// <summary>경력 패널 (웹판 CareerPanel, grid2 1.3fr 1fr): 시즌별 기록 표 + 일대기</summary>

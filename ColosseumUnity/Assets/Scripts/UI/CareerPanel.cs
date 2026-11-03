@@ -50,6 +50,10 @@ namespace Colosseum.UI
 
             var history = g.history.OrderBy(h => h.season).ToList();
             int last = history.Count > 0 ? history[history.Count - 1].season : -1;
+            var s = GameController.I.State;
+            // FM식: 능력 숫자는 숨긴다. 별점(우리 검투사는 독토레 평가, 남은 정찰 범위)과 오르내림 화살표만
+            var now = Scouting.CaRange(s, g);
+            double blur = (now.hi - now.lo) / 2;
             seasonRows.Sync(history.Count, (row, i) =>
             {
                 var h = history[i];
@@ -57,6 +61,13 @@ namespace Colosseum.UI
                 double delta = caEnd - h.caStart;
                 var dc = delta > 0 ? Theme.Good : delta < 0 ? Warn : Theme.TextFaint;
                 string ds = delta > 0 ? $"+{N(delta)}" : delta < 0 ? N(delta) : "±0";
+                if (FmRules.Enabled)
+                {
+                    string stars = h.season == last && g.alive ? Widgets.CaStars(s, g) : Widgets.RangeStars(caEnd - blur, caEnd + blur);
+                    // 시즌 동안 별 반 개(CA 10) 넘게 움직였을 때만 화살표
+                    string arrow = delta >= 10 ? $" <color={Theme.Hex(Theme.Good)}>▲</color>" : delta <= -10 ? $" <color={Theme.Hex(Warn)}>▼</color>" : "";
+                    T(row, "Ca").text = $"<size=85%><color={Theme.Hex(Theme.Torch)}>{stars}</color>{arrow}</size>";
+                }
                 T(row, "Season").text = h.season.ToString();
                 T(row, "Ludus").text = $"{h.ludus} <color={faint}><size=80%>{(h.tier != 0 ? $"{N(h.tier)}부" : "")}</size></color>";
                 T(row, "Apps").text = N(h.apps);
@@ -64,7 +75,7 @@ namespace Colosseum.UI
                 T(row, "Losses").text = N(h.losses);
                 T(row, "Kills").text = N(h.kills);
                 T(row, "Injuries").text = N(h.injuries);
-                T(row, "Ca").text = $"{N(caEnd)} <size=75%><color={Theme.Hex(dc)}>{ds}</color></size>";
+                if (!FmRules.Enabled) T(row, "Ca").text = $"{N(caEnd)} <size=75%><color={Theme.Hex(dc)}>{ds}</color></size>";
                 T(row, "Pop").text = N(h.popularity);
                 T(row, "Earnings").text = h.earnings.ToString("N0");
             });

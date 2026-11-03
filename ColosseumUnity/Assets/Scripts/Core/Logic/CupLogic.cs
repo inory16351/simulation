@@ -60,8 +60,126 @@ namespace Colosseum.Core
     {
         public static readonly Dictionary<string, string> StageNames = new()
         {
-            ["group"] = "조별 리그", ["qf"] = "8강", ["sf"] = "4강", ["final"] = "결승",
+            ["po"] = "플레이오프", ["group"] = "조별 리그", ["qf"] = "8강", ["sf"] = "4강", ["final"] = "결승",
         };
+
+        // ── FM식 판테온 컵 (Unity판): 국내 컵 우승 6팀 플레이오프(3팀 2개 조, 상위 2팀) → 나라별 1부 1·2위 12팀과 함께 16강 조별(4팀 4개 조, 상위 2팀) → 8강·4강·결승. 전부 5:5 미시오 단판 ──
+
+        public const int FmDrawDay = 131;
+        public static readonly int[] FmPoDays = { 133, 136, 139 };
+        public static readonly int[] FmGroupDays = { 142, 145, 148 };
+        public const int FmQfDay = 151, FmSfDay = 154, FmFinalDay = 157;
+        public const double PrizePoEntry = 2000;
+
+        /// <summary>한 경기에 나오는 인원</summary>
+        public static int Bouts(GameState s) => s.cup?.fm == true ? 5 : CupConst.Bouts;
+
+        /// <summary>단계별 날짜 (화면용)</summary>
+        public static int StageDay(Cup cup, string stage) => cup?.fm == true
+            ? stage switch { "qf" => FmQfDay, "sf" => FmSfDay, _ => FmFinalDay }
+            : stage switch { "qf" => CupConst.QfDay, "sf" => CupConst.SfDay, _ => CupConst.FinalDay };
+
+        static Cup DrawCupFm(GameState state, Rng rng)
+        {
+            var direct = new List<Ludus>();
+            var playoff = new List<Ludus>();
+            foreach (var n in Data.Nations)
+            {
+                var top = Economy.TierRanking(state, 1, n.id);
+                direct.AddRange(top.Take(2));
+                // 국내 컵 우승팀이 플레이오프에 나간다. 그 팀이 이미 1부 1·2위면 3위가 대신 나간다
+                var nc = NatCupLogic.Of(state, n.id);
+                Ludus champ = nc != null && nc.season == state.season && !string.IsNullOrEmpty(nc.champion) ? state.ludi[nc.champion] : null;
+                bool alreadyIn = champ == null || top.Take(2).Contains(champ);
+                var po = alreadyIn ? top.Skip(2).FirstOrDefault() : champ;
+                if (po != null) playoff.Add(po);
+            }
+            var shuffled = rng.Shuffle(playoff);
+            var a = shuffled.Take(shuffled.Count / 2).ToList();
+            var b = shuffled.Skip(shuffled.Count / 2).ToList();
+            var cup = new Cup
+            {
+                fm = true, season = state.season, points = new Dictionary<string, double>(),
+                teams = direct.Concat(playoff).Select(l => l.id).ToList(),
+                groups = new List<List<string>>(),
+                poGroups = new List<List<string>> { a.Select(l => l.id).ToList(), b.Select(l => l.id).ToList() },
+                ties = new List<CupTie>(),
+            };
+            for (int gi = 0; gi < cup.poGroups.Count; gi++)
+            {
+                var g = cup.poGroups[gi];
+                var rounds = Fixtures.RoundRobin(g.Count);
+                for (int r = 0; r < rounds.Count; r++)
+                    foreach (var (x, y) in rounds[r])
+                        cup.ties.Add(new CupTie { id = $"T{state.nextId++}", stage = "po", day = FmPoDays[Math.Min(r, FmPoDays.Length - 1)], home = g[x], away = g[y], group = gi });
+            }
+            foreach (var t in cup.teams) cup.points[t] = 0;
+            foreach (var l in playoff) Economy.AddMoney(state, l, PrizePoEntry, "판테온 컵 플레이오프 출전 수당");
+            foreach (var l in direct) Economy.AddMoney(state, l, CupConst.Prize.Entry, "판테온 컵 본선 출전 수당");
+            return cup;
+        }
+
+        /// <summary>플레이오프가 끝나면 본선 16팀을 4팀 4개 조로 (RP 단지, 같은 나라는 되도록 다른 조)</summary>
+        static void DrawMainFm(GameState state, Rng rng, Cup cup)
+        {
+            var poAll = cup.poGroups.SelectMany(g => g).ToList();
+            var through = cup.poGroups.SelectMany((_, gi) => PlayoffTable(state, cup, gi).Take(2).Select(r => r.id)).ToList();
+            foreach (var id in through) Economy.AddMoney(state, state.ludi[id], CupConst.Prize.Entry, "판테온 컵 본선 진출 상금");
+            var main = cup.teams.Where(id => !poAll.Contains(id)).Concat(through).Select(id => state.ludi[id]).OrderByDescending(l => l.rp).ToList();
+            var groups = new List<List<Ludus>>();
+            for (int attempt = 0; attempt < 60; attempt++)
+            {
+                groups = new List<List<Ludus>> { new(), new(), new(), new() };
+                for (int pot = 0; pot < 4; pot++)
+                {
+                    var potTeams = rng.Shuffle(main.Skip(pot * 4).Take(4).ToList());
+                    for (int i = 0; i < potTeams.Count; i++) groups[i].Add(potTeams[i]);
+                }
+                if (groups.All(g => g.Select(l => l.nation).Distinct().Count() == g.Count)) break;
+            }
+            cup.groups = groups.Select(g => g.Select(l => l.id).ToList()).ToList();
+            for (int gi = 0; gi < cup.groups.Count; gi++)
+            {
+                var g = cup.groups[gi];
+                var rounds = Fixtures.RoundRobin(g.Count);
+                for (int r = 0; r < rounds.Count; r++)
+                    foreach (var (x, y) in rounds[r])
+                        cup.ties.Add(new CupTie { id = $"T{state.nextId++}", stage = "group", day = FmGroupDays[Math.Min(r, FmGroupDays.Length - 1)], home = g[x], away = g[y], group = gi });
+            }
+            string me = state.playerLudusId;
+            if (poAll.Contains(me))
+                StateUtil.PushMessage(state, "info", through.Contains(me) ? "판테온 컵 본선 진출!" : "판테온 컵 플레이오프 탈락",
+                    through.Contains(me) ? "플레이오프 조 2위 안에 들어 본선 16강 조별 리그에 나갑니다." : "플레이오프에서 조 2위 안에 들지 못해 탈락했습니다. 남은 시간은 던전 원정이나 훈련에 쓸 수 있습니다.");
+        }
+
+        /// <summary>플레이오프 조 순위</summary>
+        public static List<GroupRow> PlayoffTable(GameState state, Cup cup, int gi) => TableOf(state, cup, cup.poGroups[gi], "po", gi);
+
+        static void DailyCupFm(GameState state, Rng rng)
+        {
+            if (state.day == FmDrawDay)
+            {
+                state.cup = DrawCupFm(state, rng);
+                string me = state.playerLudusId;
+                bool po = state.cup.poGroups.Any(g => g.Contains(me));
+                bool direct = !po && state.cup.teams.Contains(me);
+                StateUtil.PushMessage(state, "info",
+                    direct ? "판테온 컵 본선에 바로 나갑니다!" : po ? "판테온 컵 플레이오프에 나갑니다!" : "판테온 컵 대진 추첨",
+                    (direct ? $"우리 나라 1부 2위 안에 들어 본선 출전 수당 {N0(CupConst.Prize.Entry)} D를 받았습니다.\n" : po ? $"플레이오프 출전 수당 {N0(PrizePoEntry)} D를 받았습니다.\n" : "") +
+                    "나라마다 국내 컵 우승 팀 6곳이 플레이오프(3팀씩 2개 조)를 치르고 상위 2팀씩 4곳이 본선에 오릅니다. 국내 컵 우승 팀이 이미 1부 1·2위면 1부 3위가 대신 나갑니다.\n" +
+                    "본선은 플레이오프를 통과한 4곳과 나라별 1부 1·2위 12곳, 모두 16곳이 4개 조로 겨루고 조 상위 2팀이 8강에 오릅니다. 모든 경기는 5:5 미시오 단판입니다.");
+            }
+            var cup = state.cup;
+            if (cup == null || cup.season != state.season) return;
+            AdvanceBracket(state, cup, rng);
+            string my = state.playerLudusId;
+            for (int i = 0; i < cup.ties.Count; i++)
+            {
+                var t = cup.ties[i];
+                if (t.day != state.day || Truthy(t.winner) || t.home == my || t.away == my) continue;
+                PlayTie(state, t.id, rng);
+            }
+        }
 
         /// <summary>같은 조 4팀이 홈·원정 한 번씩 (6라운드)</summary>
         static readonly int[][][] RoundRobin =
@@ -142,11 +260,13 @@ namespace Colosseum.Core
             return cup;
         }
 
-        public static List<GroupRow> GroupTable(GameState state, Cup cup, int gi)
+        public static List<GroupRow> GroupTable(GameState state, Cup cup, int gi) => TableOf(state, cup, cup.groups[gi], "group", gi);
+
+        static List<GroupRow> TableOf(GameState state, Cup cup, List<string> ids, string stage, int gi)
         {
             var rows = new Dictionary<string, GroupRow>();
             var order = new List<string>();
-            foreach (var id in cup.groups[gi])
+            foreach (var id in ids)
             {
                 // new Map(entries): 같은 키가 또 오면 값은 바뀌고 자리는 처음 그대로
                 if (!rows.ContainsKey(id)) order.Add(id);
@@ -154,7 +274,7 @@ namespace Colosseum.Core
             }
             foreach (var t in cup.ties)
             {
-                if (t.stage != "group" || t.group != gi || t.score == null) continue;
+                if (t.stage != stage || t.group != gi || t.score == null) continue;
                 var h = rows[t.home];
                 var a = rows[t.away];
                 h.played++; a.played++;
@@ -182,10 +302,19 @@ namespace Colosseum.Core
             gi < t.Count && ri < t[gi].Count ? t[gi][ri].id : null;
 
         /// <summary>단계가 끝났으면 다음 단계 대진을 만든다</summary>
-        static void AdvanceBracket(GameState state, Cup cup)
+        static void AdvanceBracket(GameState state, Cup cup, Rng rng = null)
         {
             bool Has(string s) => cup.ties.Any(t => t.stage == s);
             bool Done(string s) => cup.ties.Where(t => t.stage == s).All(t => Truthy(t.winner));
+            bool fm = cup.fm == true;
+            if (fm && Has("po") && Done("po") && !Has("group"))
+            {
+                // 난수가 없는 자리(경기 직후)에서는 다음 날 아침에 뽑는다
+                if (rng != null) DrawMainFm(state, rng, cup);
+                return;
+            }
+            if (fm && !Has("group")) return;
+            int qfDay = fm ? FmQfDay : CupConst.QfDay, sfDay = fm ? FmSfDay : CupConst.SfDay, finalDay = fm ? FmFinalDay : CupConst.FinalDay;
             void Add(string stage, int day, (string h, string a)[] pairs)
             {
                 foreach (var (h, a) in pairs)
@@ -194,7 +323,7 @@ namespace Colosseum.Core
             if (!Has("qf") && Done("group"))
             {
                 var t = cup.groups.Select((_, gi) => GroupTable(state, cup, gi)).ToList();
-                Add("qf", CupConst.QfDay, new[]
+                Add("qf", qfDay, new[]
                 {
                     (IdAt(t, 0, 0), IdAt(t, 1, 1)), (IdAt(t, 1, 0), IdAt(t, 0, 1)), (IdAt(t, 2, 0), IdAt(t, 3, 1)), (IdAt(t, 3, 0), IdAt(t, 2, 1)),
                 });
@@ -202,12 +331,12 @@ namespace Colosseum.Core
             }
             else if (Has("qf") && !Has("sf") && Done("qf"))
             {
-                Add("sf", CupConst.SfDay, new[] { (WinnerOf(cup, "qf", 0), WinnerOf(cup, "qf", 2)), (WinnerOf(cup, "qf", 1), WinnerOf(cup, "qf", 3)) });
+                Add("sf", sfDay, new[] { (WinnerOf(cup, "qf", 0), WinnerOf(cup, "qf", 2)), (WinnerOf(cup, "qf", 1), WinnerOf(cup, "qf", 3)) });
                 foreach (var tt in cup.ties.Where(x => x.stage == "qf").ToList()) Reach(state, cup, tt.winner, "sf");
             }
             else if (Has("sf") && !Has("final") && Done("sf"))
             {
-                Add("final", CupConst.FinalDay, new[] { (WinnerOf(cup, "sf", 0), WinnerOf(cup, "sf", 1)) });
+                Add("final", finalDay, new[] { (WinnerOf(cup, "sf", 0), WinnerOf(cup, "sf", 1)) });
                 foreach (var tt in cup.ties.Where(x => x.stage == "sf").ToList()) Reach(state, cup, tt.winner, "final");
             }
         }
@@ -235,8 +364,9 @@ namespace Colosseum.Core
             var home = state.ludi[tie.home];
             var away = state.ludi[tie.away];
             int at = (int)Calendar.AbsDay(state.season, state.day);
-            var lh = SeriesLogic.AutoLineup(state, home, CupConst.Bouts, at, home.isPlayer ? lineup : null);
-            var la = SeriesLogic.AutoLineup(state, away, CupConst.Bouts, at, away.isPlayer ? lineup : null);
+            int bouts = Bouts(state);
+            var lh = SeriesLogic.AutoLineup(state, home, bouts, at, home.isPlayer ? lineup : null);
+            var la = SeriesLogic.AutoLineup(state, away, bouts, at, away.isPlayer ? lineup : null);
             string rule = TieRule(state, tie);
             var series = SeriesLogic.RunSeries(state, new[] { home, away }, new[] { lh, la }, new RunOptions { rule = rule, mode = "best_of", homeLudusId = home.id }, rng);
             tie.score = series.score;
@@ -247,6 +377,7 @@ namespace Colosseum.Core
             MatchLogic.Settle(state, w, l, rule, new SettleOptions { homeLudusId = home.id, crowd = crowd + 20, popularity = 120, moneyMult = 2, noLeague = true }, summary);
             cup.points[w.id] = (cup.points.TryGetValue(w.id, out var wp) ? wp : 0) + CupConst.Coef.Win;
             if (tie.stage == "group") Economy.AddMoney(state, w, CupConst.Prize.GroupWin, "판테온 컵 조별 리그 승리 수당");
+            if (tie.stage == "po") Economy.AddMoney(state, w, CupConst.Prize.GroupWin / 2, "판테온 컵 플레이오프 승리 수당");
             if (tie.stage == "final")
             {
                 cup.champion = w.id;
@@ -274,7 +405,7 @@ namespace Colosseum.Core
                     body = $"상대 {opp.name}({Data.Nation(opp.nation).name}) · {N(series.score[home.id == me ? 0 : 1])}:{N(series.score[home.id == me ? 1 : 0])}" +
                         (rule == "sudden" ? "\n두 나라가 전쟁 중이라 사투로 치렀습니다." : "") +
                         $"\n수입 {N0(summary.money.TryGetValue(me, out var mm) ? mm : 0)} D (세전)" +
-                        (tie.stage != "group" && !won ? "\n여기서 탈락했습니다." : ""),
+                        (tie.stage != "group" && tie.stage != "po" && !won ? "\n여기서 탈락했습니다." : ""),
                 });
             }
             AdvanceBracket(state, cup);
@@ -291,6 +422,7 @@ namespace Colosseum.Core
         /// <summary>매일: 추첨, 다음 단계 대진, AI끼리의 컵 경기</summary>
         public static void DailyCup(GameState state, Rng rng)
         {
+            if (FmRules.Enabled) { DailyCupFm(state, rng); return; }
             if (state.day == CupConst.DrawDay)
             {
                 state.cup = DrawCup(state, rng);

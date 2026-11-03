@@ -21,6 +21,8 @@ class Program
         string mode = args.Length > 0 ? args[0] : "all";
         if (mode is "combat" or "all") Combat();
         if (mode is "econ" or "all") Econ(args.Length > 1 ? int.Parse(args[1]) : 2);
+        if (mode == "melee") MeleeCost();
+        if (mode == "chal") ChallengeDebug();
         return 0;
     }
 
@@ -169,6 +171,51 @@ class Program
         Console.WriteLine($"\n(전투 {sw.Elapsed.TotalSeconds:0.0}초)");
     }
 
+    /// <summary>5:5 난전 한 판 비용 (국내 컵 하루 최대 120판을 견디는지)</summary>
+    static void MeleeCost()
+    {
+        var s = World.NewGame(5, "aurelia", "시험", 2);
+        var rng = new Rng(7);
+        var ludi = s.ludi.Values.Where(l => !l.isPlayer).ToList();
+        var sw = Stopwatch.StartNew();
+        int n = 0;
+        for (int i = 0; i + 1 < ludi.Count && n < 100; i += 2)
+        {
+            var la = SeriesLogic.AutoLineup(s, ludi[i], 5, 10);
+            var lb = SeriesLogic.AutoLineup(s, ludi[i + 1], 5, 10);
+            if (la.Count == 0 || lb.Count == 0) continue;
+            SeriesLogic.RunSeries(s, new[] { ludi[i], ludi[i + 1] }, new[] { la, lb }, new RunOptions { rule = "missio", mode = "best_of", homeLudusId = ludi[i].id }, rng);
+            n++;
+        }
+        Console.WriteLine($"5:5 난전 {n}판 {sw.ElapsedMilliseconds} ms (판당 {sw.ElapsedMilliseconds / (double)n:0.0} ms)");
+    }
+
+    /// <summary>우리 도전장이 왜 안 나가는지, 리그 경기 수가 얼마나 되는지</summary>
+    static void ChallengeDebug()
+    {
+        var s = World.NewGame(1001, "aurelia", "시험", 1);
+        var rng = new Rng(100);
+        var me = s.ludi[s.playerLudusId];
+        var why = new Dictionary<string, int>();
+        for (int d = 0; d < 168 * 2 && s.gameOver == null; d++)
+        {
+            if (s.day % 3 == 0 && s.day >= 15 && s.day <= FmRules.ChallengeClose)
+            {
+                foreach (var l in s.ludi.Values.Where(l => !l.isPlayer && l.nation == me.nation && l.tier == me.tier))
+                {
+                    var e = ChallengeLogic.CanChallenge(s, me, l) ?? "가능";
+                    why[e] = (why.TryGetValue(e, out var v) ? v : 0) + 1;
+                }
+                var g = ChallengeLogic.PickFighter(s, me, "missio", ChallengeLogic.Now(s));
+                var k = g == null ? $"우리 출전자 없음 ({string.Join(",", me.gladiators.Select(id => ChallengeLogic.Availability(s, s.gladiators[id]) ?? (Condition.IsJaded(s.gladiators[id]) ? "지침" : "ok")).Distinct())})" : "우리 출전자 있음";
+                why[k] = (why.TryGetValue(k, out var w) ? w : 0) + 1;
+            }
+            if (s.day == FmRules.RegularEnd + 1) { Console.WriteLine($"시즌 {s.season} 리그 끝: 우리 {me.matchesThisSeason}경기, AI 평균 {s.ludi.Values.Where(l => !l.isPlayer).Average(l => l.matchesThisSeason):0.0}경기"); }
+            Autoplay(s, rng);
+        }
+        foreach (var kv in why.OrderByDescending(x => x.Value)) Console.WriteLine($"  {kv.Value,5}  {kv.Key}");
+    }
+
     // ── 경제 ──
 
     static void Econ(int seasons)
@@ -201,6 +248,9 @@ class Program
                 {
                     var rank = Economy.TierRanking(s, me.tier, me.nation).FindIndex(l => l.isPlayer) + 1;
                     var last = me.seasons?.LastOrDefault();
+                    var hon = (s.honours ?? new List<HonourEntry>()).Where(h => h.season == s.season - 1 && h.kind != "league").Select(h => $"{Honours.CompNameOf(h)} {h.winnerName}");
+                    Console.WriteLine($"    컵: {string.Join(" / ", hon)}");
+                    Console.WriteLine($"    판테온 출전 {s.cup?.teams.Count}곳, 경기 {s.cup?.ties.Count}판, 우리 국내 컵 경기 {NatCupLogic.Of(s, s.nation)?.ties.Count(t => t.home == me.id || t.away == me.id)}판");
                     Console.WriteLine($"  시즌 {s.season - 1} 끝: {last?.tier}부 {last?.rank}위 {last?.wins}승 {last?.losses}패 → 지금 {me.tier}부 · 금고 {me.treasury:N0} D · 최저 {minTreasury:N0} D · 검투사 {me.gladiators.Count}명 주급 {Economy.WeeklyWages(s, me):N0}/주 · 영입 {Signed}명 · 전사 {s.fallen.Count(id => me.gladiators.Contains(id) || true)}");
                     minTreasury = me.treasury;
                 }
@@ -265,6 +315,11 @@ class Program
         foreach (var c in ChallengeLogic.TodaysPlayerMatches(s)) ChallengeLogic.PlayChallenge(s, c, rng);
         var tie = CupLogic.TodaysPlayerTie(s);
         if (tie != null) CupLogic.PlayTie(s, tie.id, rng);
+        var nc = NatCupLogic.TodaysPlayerTie(s);
+        if (nc != null) NatCupLogic.PlayTie(s, s.nation, nc.id, rng);
+        if (OlympicaLogic.Current(s)?.offer == true) OlympicaLogic.Accept(s);
+        var ol = OlympicaLogic.TodaysPlayerTie(s);
+        if (ol != null) OlympicaLogic.PlayTie(s, ol.id, rng);
         if (s.day % 3 == 0)
         {
             var targets = s.ludi.Values.Where(l => !l.isPlayer && l.nation == me.nation && l.tier == me.tier && ChallengeLogic.CanChallenge(s, me, l) == null).ToList();

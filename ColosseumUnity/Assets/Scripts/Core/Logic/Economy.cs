@@ -33,14 +33,16 @@ namespace Colosseum.Core
         }
 
         /// <summary>시즌 배당금 지급. coef가 없으면 현재 순위로 계산</summary>
-        public static void PayDividend(GameState state, Ludus ludus, double? coef = null)
+        public static double PayDividend(GameState state, Ludus ludus, double? coef = null, int? playedTier = null)
         {
             int rank = TierRanking(state, ludus.tier, ludus.nation).FindIndex(l => l.id == ludus.id) + 1;
-            double c = coef ?? 1.5 - rank / (double)Data.Balance["league"]["teamsPerTier"];
-            double amount = JsMath.Round((FmRules.Enabled ? FmRules.TierMoney("dividendBaseFm", ludus.tier) : (double)E["dividendBase"][ludus.tier.ToString()]) * c);
+            double teams = (double)Data.Balance["league"]["teamsPerTier"];
+            double c = coef ?? (FmRules.Enabled ? FmRules.DividendCoef(rank, (int)teams) : 1.5 - rank / teams);
+            double amount = JsMath.Round((FmRules.Enabled ? FmRules.TierMoney("dividendBaseFm", playedTier ?? ludus.tier) : (double)E["dividendBase"][ludus.tier.ToString()]) * c);
             ludus.treasury += amount;
             if (ludus.isPlayer)
                 state.ledger.Insert(0, new LedgerEntry { at = Calendar.AbsDay(state.season, state.day), amount = amount, desc = $"시즌 {state.season} 배당금" });
+            return amount;
         }
 
         static IEnumerable<string> RosterIds(Ludus ludus)
@@ -103,7 +105,7 @@ namespace Colosseum.Core
         }
 
         /// <summary>FM식: AI 루두스의 주간 부수입 (후원·관중 외 수입)</summary>
-        public static double AiSideIncome(int tier) => tier switch { 1 => 420, 2 => 240, 3 => 170, _ => 120 };
+        public static double AiSideIncome(int tier) => tier switch { 1 => 650, 2 => 330, 3 => 190, _ => 110 };
 
         /// <summary>급료일 처리. 돈이 모자라면 주급이 높은 순으로 주고, 못 받은 검투사는 미납이 쌓인다</summary>
         public static void Payday(GameState state, Ludus ludus)

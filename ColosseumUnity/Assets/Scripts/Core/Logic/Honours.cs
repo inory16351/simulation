@@ -40,6 +40,7 @@ namespace Colosseum.Core
                         var trophies = new List<string>();
                         if (i == 0) trophies.Add(LeagueName(n.id, tier));
                         if (cupDone && state.cup.champion == l.id) trophies.Add(CupName);
+                        if (state.natCups != null && state.natCups.TryGetValue(l.nation, out var nc) && nc.season == state.season && nc.champion == l.id) trophies.Add(NatCupLogic.Name(l.nation));
                         l.seasons.Add(new LudusSeason
                         {
                             season = state.season, nation = l.nation, tier = tier, rank = i + 1, teams = table.Count,
@@ -63,6 +64,39 @@ namespace Colosseum.Core
             }
         }
 
+        /// <summary>국내 컵이 끝나면 부른다</summary>
+        public static void RecordNatCup(GameState state, string nation, Ludus winner, Ludus runnerUp)
+        {
+            if (!Enabled) return;
+            state.honours ??= new List<HonourEntry>();
+            state.honours.Add(new HonourEntry
+            {
+                season = state.season, kind = "natcup", nation = nation,
+                winnerId = winner.id, winnerName = winner.name, runnerUpId = runnerUp.id, runnerUpName = runnerUp.name,
+            });
+        }
+
+        /// <summary>올림피카 컵이 끝나면 부른다 (우승은 나라)</summary>
+        public static void RecordOlympica(GameState state, string champion, string runnerUp)
+        {
+            if (!Enabled) return;
+            state.honours ??= new List<HonourEntry>();
+            state.honours.Add(new HonourEntry
+            {
+                season = state.season, kind = "olympica", nation = champion,
+                winnerId = champion, winnerName = Data.Nation(champion).name, runnerUpId = runnerUp, runnerUpName = Data.Nation(runnerUp).name,
+            });
+        }
+
+        /// <summary>우승 기록 한 건의 대회 이름</summary>
+        public static string CompNameOf(HonourEntry h) => h.kind switch
+        {
+            "cup" => CupName,
+            "natcup" => NatCupLogic.Name(h.nation),
+            "olympica" => OlympicaLogic.Name,
+            _ => LeagueName(h.nation, h.tier),
+        };
+
         /// <summary>판테온 컵 결승이 끝나면 부른다</summary>
         public static void RecordCup(GameState state, Ludus winner, Ludus runnerUp)
         {
@@ -79,7 +113,7 @@ namespace Colosseum.Core
         public static List<(string name, List<int> seasons)> TrophiesOf(GameState state, string ludusId) =>
             (state.honours ?? new List<HonourEntry>())
                 .Where(h => h.winnerId == ludusId)
-                .GroupBy(h => h.kind == "cup" ? CupName : LeagueName(h.nation, h.tier))
+                .GroupBy(CompNameOf)
                 .Select(g => (g.Key, g.Select(h => h.season).OrderBy(x => x).ToList()))
                 .OrderBy(x => x.Key == CupName ? 0 : 1).ThenBy(x => x.Key)
                 .ToList();

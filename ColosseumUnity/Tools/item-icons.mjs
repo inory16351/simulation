@@ -249,6 +249,24 @@ const STATUS = {
   ward: "a glowing rune ring", adapt: "a swirl of changing arrows", wind_step: "wind swirls", earth_stance: "a rooted stone foot", enraged: "a red angry face with steam",
 };
 const STRATEGY_MENU = { strategy: "a sand-table tactics board with three tokens and arrows" };
+const COMP_MENU = {
+  natcup: "a small two-handled bronze cup on a square plinth",
+  olympica: "a laurel wreath encircling six tiny shields",
+};
+const TROPHY = {
+  pantheon: "the grand continental trophy: a tall ornate golden chalice with two big curled handles, a temple-pillar stem and a small winged victory figure on the lid, the most splendid trophy of all",
+  olympica: "the national-team trophy: a broad silver and gold laurel crown resting on a stepped marble pedestal with six small heraldic shields around its base",
+  natcup_aurelia: "a golden two-handled cup topped by a spread-winged eagle, red enamel band",
+  natcup_dolgar: "a heavy iron and bronze cup shaped like a dwarven forge crucible with hammer-shaped handles and engraved runes",
+  natcup_karsea: "a pearl-white and teal cup shaped like a seashell on a coral stem with ship-anchor handles",
+  natcup_kemer: "a slender golden cup with a sun disk on top and handles shaped like jackal heads, lapis blue inlay",
+  natcup_grommar: "a brutal black iron cup with horned handles and a bone skull on its front, dented and blood-red rim",
+  natcup_sylvaren: "a slim silver goblet whose stem is a twisting tree with silver leaves as handles, green gem",
+  league_1: "a large gold shield-shaped plate on a stand with a crown on top, league champion prize",
+  league_2: "a medium silver shield-shaped plate on a stand with laurel leaves",
+  league_3: "a small bronze shield-shaped plate on a stand with a single star",
+  league_4: "a small dark iron shield-shaped plate on a wooden stand, humble and battered",
+};
 const csvKeys = (file) => readFileSync(file, "utf8").split(/\r?\n/).slice(3).filter(Boolean).map((l) => l.split(",")[1]);
 const skillList = csvKeys(`${ROOT}/Tables/Skill.csv`).map((id) => ({ id, desc: SKILL[id] ?? id }));
 const statusList = csvKeys(`${ROOT}/Tables/Status.csv`).map((k) => k.replace(/([a-z])([A-Z])/g, "$1_$2").toLowerCase()).map((id) => ({ id, desc: STATUS[id] ?? id }));
@@ -261,6 +279,8 @@ const GROUPS = {
   skills: { dir: "icon/skills", size: 128, clean: true, cell: "Each cell: one square SKILL ICON that shows the action as a simple bold emblem (weapon or body part plus a motion arc or symbol), centered, filling about 75% of the cell, no frame, no circle background, no text. Keep every icon fully inside its own cell.", list: skillList },
   status: { dir: "icon/status", size: 64, clean: true, cell: "Each cell: one tiny STATUS EFFECT ICON as a very simple bold symbol, centered, filling about 70% of the cell, no frame, no background, no text. Must read at 20px. Keep every icon fully inside its own cell.", list: statusList },
   menux: { dir: "icon/menu", size: 64, clean: true, cell: `${ICON} Very simple bold shape, readable as a tiny 26px menu icon.`, list: Object.entries(STRATEGY_MENU).map(([id, desc]) => ({ id, desc })) },
+  menuy: { dir: "icon/menu", size: 64, clean: true, cell: `${ICON} Very simple bold shape, readable as a tiny 26px menu icon.`, list: Object.entries(COMP_MENU).map(([id, desc]) => ({ id, desc })) },
+  trophy: { dir: "icon/trophy", size: 256, clean: true, cell: "Each cell: one TROPHY object, upright, front view, centered, filling about 80% of the cell, no pedestal shadow, no people, no text, no letters. Keep every trophy fully inside its own cell.", list: Object.entries(TROPHY).map(([id, desc]) => ({ id, desc })) },
   fx: { dir: "fx", size: 256, clean: false, cell: "Each cell: one 2D combat effect sprite, centered, filling about 75% of the cell, no ground, no characters, edges made of loose gouache brush strokes. Keep every effect fully inside its own cell.", list: Object.entries(FX).map(([id, desc]) => ({ id, desc })) },
 };
 

@@ -107,6 +107,23 @@ namespace Colosseum.Core
             };
         }
 
+        /// <summary>나라 대표끼리 난전 (올림피카 컵). 돈과 RP는 오가지 않고 사람마다 전적·성장·부상·죽음만 남는다</summary>
+        public static Series RunNations(GameState state, string nationA, string nationB, List<Gladiator>[] lineups, string rule, Rng rng)
+        {
+            var snaps = lineups.Select(l => l.Select(MatchLogic.CloneGladiator).ToList()).ToArray();
+            var result = Sim.RunTeam(lineups[0], lineups[1], new MatchOptions
+            {
+                rule = rule,
+                seed = MatchLogic.Seed31(rng),
+                missioDeathMult = NationRules.RulesOfNation(nationB).missioDeathMult,
+                medicalLevel = new double[] { 2, 2 },
+                teamTactics = new[] { Tactics.AutoTeam(null, lineups[0]), Tactics.AutoTeam(null, lineups[1]) },
+            });
+            var summary = MatchLogic.ApplyTeamResult(state, result, rule, rng);
+            double Downed(int side) => result.downs.Count(d => result.sides[1 - side].Contains(d.Key));
+            return new Series { melee = result, meleeSides = snaps, meleeSummary = summary, score = new[] { Downed(0), Downed(1) }, winner = result.winnerSide };
+        }
+
         /// <summary>두 루두스가 명단대로 여러 판을 치른다. 개인 성장·부상·죽음은 판마다, RP와 돈은 호출한 쪽에서 정산한다</summary>
         public static Series RunSeries(GameState state, Ludus[] sides, List<Gladiator>[] lineups, RunOptions o, Rng rng)
         {

@@ -16,6 +16,12 @@ namespace Colosseum.UI
         static readonly Color Neg = new Color32(0xd9, 0xa2, 0x9b, 0xff);
 
         [SerializeField] MatchScreen match;
+        [SerializeField] Image trophy;
+        [SerializeField] TMP_Text status;
+        [Header("플레이오프 (FM식)")]
+        [SerializeField] GameObject poRow;
+        [SerializeField] List<RectTransform> poPanels = new();
+        readonly List<TemplateList<RectTransform>> poRows = new();
         [Header("오늘의 컵 경기")]
         [SerializeField] GameObject todayPanel;
         [SerializeField] TMP_Text todayTitle;
@@ -46,6 +52,7 @@ namespace Colosseum.UI
             coefRows = new TemplateList<RectTransform>(coefTemplate);
             ourRows = new TemplateList<RectTransform>(ourTemplate);
             foreach (var g in groupPanels) groupRows.Add(new TemplateList<RectTransform>((RectTransform)g.Find("Pad/RowTemplate")));
+            foreach (var g in poPanels) poRows.Add(new TemplateList<RectTransform>((RectTransform)g.Find("Pad/RowTemplate")));
             foreach (var c in bracketCols) bracketTies.Add(new TemplateList<RectTransform>((RectTransform)c.Find("TieTemplate")));
             for (int i = 0; i < speedButtons.Count; i++) { string s = MatchScreen.Speeds[i].id; speedButtons[i].onClick.AddListener(() => { speed = s; Refresh(); }); }
             enter.onClick.AddListener(Play);
@@ -55,7 +62,7 @@ namespace Colosseum.UI
 
         List<Gladiator> Pool => Player.gladiators.Select(id => S.gladiators[id]).Where(g => GladiatorRules.CanFight(g) && ChallengeLogic.Availability(S, g) == null).ToList();
 
-        List<string> Lineup => order ?? SeriesLogic.AutoLineup(S, Player, CupConst.Bouts, ChallengeLogic.Now(S)).Select(g => g.id).ToList();
+        List<string> Lineup => order ?? SeriesLogic.AutoLineup(S, Player, CupLogic.Bouts(S), ChallengeLogic.Now(S)).Select(g => g.id).ToList();
 
         void Play()
         {
@@ -68,7 +75,7 @@ namespace Colosseum.UI
             if (r.error != null) return;
             order = null;
             bool homeIsMe = tie.home == S.playerLudusId;
-            if (r.series.bouts.Count == 0) { G.Replace(draft); return; }
+            if (r.series.melee == null && r.series.bouts.Count == 0) { G.Replace(draft); return; }
             match.RunSeries(MatchScreen.SeriesLives(r.series, homeIsMe, r.rule, $"판테온 컵 {CupLogic.StageNames[tie.stage]}{(r.rule == "sudden" ? " · 사투 (전쟁 중)" : "")}"), draft, speed, "cup");
         }
 
@@ -76,6 +83,9 @@ namespace Colosseum.UI
         {
             var cup = S.cup;
             var player = Player;
+            var cupSprite = Resources.Load<Sprite>("Art/icon/trophy/pantheon");
+            if (trophy != null) { trophy.sprite = cupSprite; trophy.enabled = cupSprite != null; }
+            if (status != null) status.text = StatusLine(cup);
 
             // 오늘의 컵 경기
             var tie = CupLogic.TodaysPlayerTie(S);
@@ -93,6 +103,7 @@ namespace Colosseum.UI
                 for (int i = 0; i < lineupSlots.Count; i++)
                 {
                     var dd = lineupSlots[i];
+                    dd.transform.parent.gameObject.SetActive(i < CupLogic.Bouts(S));
                     if (!dd.options.Select(o => o.text).SequenceEqual(options)) { dd.ClearOptions(); dd.AddOptions(options); }
                     dd.SetValueWithoutNotify(i < lineup.Count ? pool.FindIndex(g => g.id == lineup[i]) + 1 : 0);
                     dd.onValueChanged.RemoveAllListeners();
@@ -109,7 +120,7 @@ namespace Colosseum.UI
                         Refresh();
                     });
                 }
-                shortWarn.SetActive(lineup.Count < CupConst.Bouts);
+                shortWarn.SetActive(lineup.Count < CupLogic.Bouts(S));
                 for (int i = 0; i < speedButtons.Count; i++) Seg(speedButtons[i], speed == MatchScreen.Speeds[i].id);
             }
 
@@ -123,13 +134,12 @@ namespace Colosseum.UI
                 T(row, "Nation/Name").text = Tips.Nation(r.nation);
                 T(row, "Recent").text = S.coefficients != null && S.coefficients.TryGetValue(r.nation, out var list) ? string.Join(" · ", list) : "";
                 T(row, "Sum").text = r.coef.ToString();
-                T(row, "Slots").text = r.slots.ToString();
             });
 
             // 우리 루두스
             var mine = cup?.ties.Where(t => t.home == player.id || t.away == player.id).ToList() ?? new List<CupTie>();
-            string hint = cup == null || cup.season != S.season ? $"이번 시즌 조 추첨은 {Calendar.DateLabel(CupConst.DrawDay)}에 합니다. 그날까지 우리 나라 1부에서 출전권 순위 안에 들어야 나갈 수 있습니다."
-                : !cup.teams.Contains(player.id) ? "이번 시즌에는 출전권이 없습니다. 1부에 올라 상위권에 들어야 합니다." : null;
+            string hint = cup == null || cup.season != S.season ? $"이번 시즌 대진은 {Calendar.DateLabel(CupLogic.FmDrawDay)}에 뽑습니다. 1부 1·2위는 본선에 바로, 국내 컵 우승 팀은 몇 부든 플레이오프에 나갑니다."
+                : !cup.teams.Contains(player.id) ? "이번 시즌에는 출전권이 없습니다. 국내 컵을 우승하거나 1부 2위 안에 들어야 합니다." : null;
             ourHint.gameObject.SetActive(hint != null);
             ourHint.text = hint ?? "";
             ourRows.Sync(hint == null ? mine.Count : 0, (row, i) =>
@@ -149,9 +159,20 @@ namespace Colosseum.UI
                 else { res.text = "예정"; res.color = Theme.TextDim; }
             });
 
+            // 플레이오프
+            bool hasPo = cup?.poGroups != null;
+            if (poRow != null) poRow.SetActive(hasPo);
+            if (hasPo)
+                for (int gi = 0; gi < poPanels.Count && gi < cup.poGroups.Count; gi++)
+                {
+                    poPanels[gi].Find("Head/Text").GetComponent<TMP_Text>().text = $"◆  플레이오프 {CupLogic.GroupLetters[gi]}조";
+                    var table = CupLogic.PlayoffTable(S, cup, gi);
+                    poRows[gi].Sync(table.Count, (row, i) => BindGroupRow(row, table[i], i));
+                }
+
             // 조별 순위
-            groupsRow.SetActive(cup != null);
-            bracketPanel.SetActive(cup != null);
+            groupsRow.SetActive(cup != null && cup.groups.Count > 0);
+            bracketPanel.SetActive(cup != null && cup.groups.Count > 0);
             if (cup == null) return;
             for (int gi = 0; gi < groupPanels.Count; gi++)
             {
@@ -160,17 +181,7 @@ namespace Colosseum.UI
                 if (gi >= cup.groups.Count) continue;
                 panel.Find("Head/Text").GetComponent<TMP_Text>().text = $"◆  {CupLogic.GroupLetters[gi]}조";
                 var table = CupLogic.GroupTable(S, cup, gi);
-                groupRows[gi].Sync(table.Count, (row, i) =>
-                {
-                    var r = table[i];
-                    row.GetComponent<Image>().color = S.ludi.TryGetValue(r.id, out var l) && l.isPlayer ? new Color(0.89f, 0.6f, 0.23f, 0.08f) : Color.clear;
-                    Team((RectTransform)row.Find("Team"), r.id, "", i < 2 ? "▲ " : "");
-                    T(row, "Played").text = r.played.ToString();
-                    T(row, "Won").text = r.won.ToString();
-                    double diff = r.boutsFor - r.boutsAgainst;
-                    T(row, "Diff").text = (diff >= 0 ? "+" : "") + diff;
-                    T(row, "Pts").text = $"<b>{r.pts}</b>";
-                });
+                groupRows[gi].Sync(table.Count, (row, i) => BindGroupRow(row, table[i], i));
             }
 
             // 토너먼트
@@ -180,7 +191,7 @@ namespace Colosseum.UI
             {
                 string stage = Stages[si];
                 var col = bracketCols[si];
-                int day = stage == "qf" ? CupConst.QfDay : stage == "sf" ? CupConst.SfDay : CupConst.FinalDay;
+                int day = CupLogic.StageDay(cup, stage);
                 T(col, "Title").text = $"{CupLogic.StageNames[stage]} · {Calendar.DateLabel(day)}";
                 var ties = cup.ties.Where(t => t.stage == stage).ToList();
                 col.Find("Empty").gameObject.SetActive(ties.Count == 0);
@@ -197,6 +208,25 @@ namespace Colosseum.UI
                     }
                 });
             }
+        }
+
+        void BindGroupRow(RectTransform row, GroupRow r, int i)
+        {
+            row.GetComponent<Image>().color = S.ludi.TryGetValue(r.id, out var l) && l.isPlayer ? new Color(0.89f, 0.6f, 0.23f, 0.08f) : Color.clear;
+            Team((RectTransform)row.Find("Team"), r.id, "", i < 2 ? "▲ " : "");
+            T(row, "Played").text = r.played.ToString();
+            T(row, "Won").text = r.won.ToString();
+            double diff = r.boutsFor - r.boutsAgainst;
+            T(row, "Diff").text = (diff >= 0 ? "+" : "") + diff;
+            T(row, "Pts").text = $"<b>{r.pts}</b>";
+        }
+
+        string StatusLine(Cup cup)
+        {
+            string flow = $"플레이오프 {Calendar.DateLabel(CupLogic.FmPoDays[0])} → 16강 조별 {Calendar.DateLabel(CupLogic.FmGroupDays[0])} → 8강 {Calendar.DateLabel(CupLogic.FmQfDay)} → 4강 {Calendar.DateLabel(CupLogic.FmSfDay)} → 결승 {Calendar.DateLabel(CupLogic.FmFinalDay)}";
+            if (cup == null || cup.season != S.season) return $"대진 추첨 {Calendar.DateLabel(CupLogic.FmDrawDay)} · {flow}";
+            if (!string.IsNullOrEmpty(cup.champion) && S.ludi.TryGetValue(cup.champion, out var ch)) return $"시즌 {cup.season} 우승: <color={Theme.Hex(Theme.Torch)}>★</color> {Tips.Ludus(ch)}";
+            return $"시즌 {cup.season} 진행 중 · {flow}";
         }
 
         /// <summary>문장 + 루두스 이름 (웹판 TeamName). 우리 루두스는 횃불색 굵게</summary>

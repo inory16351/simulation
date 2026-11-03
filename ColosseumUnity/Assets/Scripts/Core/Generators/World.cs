@@ -14,10 +14,10 @@ namespace Colosseum.Core
         };
 
         /// <summary>FM식: 시작 리그별 금고 (아래 부일수록 적다)</summary>
-        public static double StartTreasury(int tier) => tier switch { 1 => 9000, 2 => 6000, 3 => 4500, _ => 3800 };
+        public static double StartTreasury(int tier) => tier switch { 1 => 16000, 2 => 9000, 3 => 5500, _ => 3500 };
 
         /// <summary>FM식: AI 루두스 시작 금고 범위 (부마다 최소·최대)</summary>
-        static readonly int[,] AiTreasury = { { 6000, 18000 }, { 3000, 9000 }, { 2000, 6000 }, { 1200, 4000 } };
+        static readonly int[,] AiTreasury = { { 10000, 26000 }, { 4500, 13000 }, { 2500, 7500 }, { 1500, 4500 } };
 
         static readonly string[] Personalities = { "aggressive", "stable", "grudge", "merchant", "developer" };
 

@@ -62,7 +62,7 @@ namespace Colosseum.Core
     public class HonourEntry
     {
         public int season;
-        /// <summary>league | cup</summary>
+        /// <summary>league | cup | natcup | olympica (올림피카는 winnerId가 나라 id)</summary>
         public string kind;
         /// <summary>리그 우승이면 나라와 부</summary>
         public string nation;
@@ -183,10 +183,38 @@ namespace Colosseum.Core
         public int day;
         public int? group;
         public double[] score;
+        /// <summary>Unity판: 한쪽이 나오지 않아 끝난 경기</summary>
+        public bool? forfeit;
+    }
+
+    /// <summary>국내 컵 (Unity판, Logic/NatCupLogic.cs). stage: r40 | r20 | r10 | league5</summary>
+    public class NatCup
+    {
+        public int season;
+        public string nation, champion, runnerUp;
+        public List<string> teams = new();
+        public List<string> final5;
+        public List<CupTie> ties = new();
+    }
+
+    /// <summary>올림피카 컵 (Unity판, Logic/OlympicaLogic.cs). 경기의 home·away·winner는 나라 id</summary>
+    public class Olympica
+    {
+        public int season;
+        public string champion, runnerUp;
+        public Dictionary<string, List<string>> squads = new();
+        public List<CupTie> ties = new();
+        /// <summary>우리에게 온 감독 제안에 아직 답하지 않았다</summary>
+        public bool? offer;
+        public bool? playerManager;
     }
 
     public class Cup
     {
+        /// <summary>Unity판 FM식 대회 (플레이오프 → 16강 조별 → 8강). stage: po | group | qf | sf | final</summary>
+        public bool? fm;
+        /// <summary>플레이오프 두 조 (FM식)</summary>
+        public List<List<string>> poGroups;
         public int season;
         public List<string> teams = new();
         public List<List<string>> groups = new();
@@ -249,6 +277,10 @@ namespace Colosseum.Core
         public List<PendingBid> bids;
         /// <summary>Unity판 전용: 같은 검투사를 노리는 경쟁 루두스 (키: 검투사 id)</summary>
         public Dictionary<string, RivalBid> rivals;
+        /// <summary>Unity판 전용: 이번 시즌 국내 컵 (키: 나라)</summary>
+        public Dictionary<string, NatCup> natCups;
+        /// <summary>Unity판 전용: 올림피카 컵 (4시즌마다)</summary>
+        public Olympica olympica;
         /// <summary>Unity판 전용: 결정해야 다음 날로 가는 협상 역제안 (FM처럼)</summary>
         public List<Decision> decisions;
         /// <summary>Unity판 전용: 이적 명단에 올린 우리 검투사 (id → 희망 이적료)</summary>

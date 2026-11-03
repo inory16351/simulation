@@ -43,6 +43,9 @@ namespace Colosseum.Core
                 if (offers > 0) o.Add($"답할 이적 제안 {offers}건");
                 int decisions = state.decisions?.Count ?? 0;
                 if (decisions > 0) o.Add($"답할 협상 {decisions}건");
+                if (NatCupLogic.TodaysPlayerTie(state) != null) o.Add($"오늘 {NatCupLogic.Name(state.nation)} 경기");
+                if (OlympicaLogic.Current(state)?.offer == true) o.Add("대표팀 감독 제안");
+                if (OlympicaLogic.TodaysPlayerTie(state) != null) o.Add($"오늘 {OlympicaLogic.Name} 경기");
             }
             return o;
         }
@@ -133,7 +136,10 @@ namespace Colosseum.Core
             }
 
             // 4. 도전과 경기
+            if (FmRules.Enabled && state.day == FmRules.RegularEnd + 1) LeagueEnd(state);
             ChallengeLogic.DailyChallenges(state, rng);
+            OlympicaLogic.Daily(state, rng);
+            NatCupLogic.Daily(state, rng);
             CupLogic.DailyCup(state, rng);
             WarLogic.DailyWar(state, rng);
             DungeonLogic.DailyDungeons(state, rng);
@@ -268,15 +274,32 @@ namespace Colosseum.Core
                 $"{Josa.J(string.Join(", ", rebels.Select(g => g.name)), "이/가")} 들고일어났지만 진압됐습니다.{(dead.Count > 0 ? $"\n죽은 자: {string.Join(", ", dead)}" : "")}\n금고에서 {Num(lost)} D를 잃었습니다.");
         }
 
+        /// <summary>FM식: 정규 리그 종료. 최소 경기 수 페널티를 매기고 순위를 굳힌다 (승강과 판테온 컵 출전은 이 순위로)</summary>
+        static void LeagueEnd(GameState state)
+        {
+            foreach (var l in state.ludi.Values)
+            {
+                double missing = Math.Max(0, L("minMatches") - l.matchesThisSeason);
+                if (missing != 0) l.rp -= missing * L("minMatchPenalty");
+            }
+            var me = state.ludi[state.playerLudusId];
+            var table = Economy.TierRanking(state, me.tier, me.nation);
+            int rank = table.FindIndex(l => l.isPlayer) + 1;
+            string pantheon = me.tier == 1 && rank <= 2 ? "\n1부 2위 안에 들어 판테온 컵 본선에 바로 나갑니다." : me.tier == 1 && rank == 3 ? "\n1부 3위입니다. 1·2위 루두스가 국내 컵까지 우승하면 판테온 컵 플레이오프에 나갑니다." : "";
+            Msg(state, "info", $"정규 리그 종료 — {me.tier}부 {rank}위",
+                $"이번 시즌 정규 리그가 끝나 순위가 정해졌습니다. {me.tier}부 {rank}위로, 승강과 시즌 배당은 이 순위를 따릅니다.{pantheon}\n\n이제 국내 컵과 판테온 컵이 이어집니다. 컵에서 일찍 떨어지거나 나가지 않으면 던전 원정이나 훈련에 시간을 쓸 수 있습니다.");
+        }
+
         /// <summary>시즌 종료: 승강, 페널티, 나이, RP 회귀, 배당금</summary>
         public static void EndSeason(GameState state, Rng rng)
         {
             var player = state.ludi[state.playerLudusId];
             foreach (var g in state.gladiators.Values.ToList()) if (g.alive) Career.CloseSeason(state, g);
 
-            // 최소 경기 수 페널티
+            // 최소 경기 수 페널티 (FM식은 정규 리그가 끝날 때 이미 매겼다)
             foreach (var l in state.ludi.Values.ToList())
             {
+                if (FmRules.Enabled) break;
                 double missing = Math.Max(0, L("minMatches") - l.matchesThisSeason);
                 if (missing != 0) l.rp -= missing * L("minMatchPenalty");
             }
@@ -298,6 +321,7 @@ namespace Colosseum.Core
             }
             List<Ludus> promoted, relegated;
             Dictionary<string, int> finalRank;
+            var playedTier = new Dictionary<string, int>();
             if (!FmRules.Enabled)
             {
                 var t2 = Economy.TierRanking(state, 2);
@@ -345,6 +369,7 @@ namespace Colosseum.Core
                 }
                 Honours.RecordSeason(state, promoted, relegated);
                 int oldTier = player.tier;
+                foreach (var l in state.ludi.Values) playedTier[l.id] = l.tier;
                 var upFromMine = promoted.Where(l => l.nation == state.nation && l.tier == oldTier).ToList();
                 var downFromMine = relegated.Where(l => l.nation == state.nation && l.tier == oldTier).ToList();
                 foreach (var l in promoted) { l.tier--; l.rp = Math.Max(l.rp, FmRules.RpBase(l.tier) - 80); }
@@ -372,6 +397,15 @@ namespace Colosseum.Core
                 l.refusalsUsed = 0;
                 // 다른 나라 루두스는 자기 나라 순위대로 배당을 받는다
                 double? coef;
+                if (FmRules.Enabled)
+                {
+                    // FM식: 배당은 뛴 리그와 그 순위에 비례한다 (승격·강등과 무관)
+                    int r = finalRank[l.id];
+                    int tp = playedTier[l.id];
+                    double paid = Economy.PayDividend(state, l, FmRules.DividendCoef(r, (int)L("teamsPerTier")), tp);
+                    if (l.isPlayer) Msg(state, "info", $"시즌 배당금 {Loc(paid)} D", $"지난 시즌 {tp}부 {r}위 몫으로 배당금 {Loc(paid)} D를 받았습니다. 순위가 높고 리그가 높을수록 많이 받습니다.");
+                    continue;
+                }
                 if (!finalRank.TryGetValue(l.id, out int rank)) coef = null;
                 else if (promoted.Contains(l)) coef = (double)Bal.Economy["promotedDividendCoef"];
                 else if (relegated.Contains(l)) coef = (double)Bal.Economy["relegatedDividendCoef"];
