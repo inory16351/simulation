@@ -1,0 +1,7 @@
+zone,name,desc
+enum:Zone,string,string
+높이,이름,설명
+Auto,자동,공격은 상대의 약한 방어 지대 / 방어는 상대 무기가 강한 지대
+High,상단,머리·어깨 높이
+Mid,중단,몸통 높이
+Low,하단,다리 높이

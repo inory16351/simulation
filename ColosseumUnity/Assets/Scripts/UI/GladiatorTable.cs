@@ -75,9 +75,9 @@ namespace Colosseum.UI
             var nick = t.Find("Name/Text/Nick").GetComponent<TMP_Text>();
             nick.gameObject.SetActive(!string.IsNullOrEmpty(g.nickname));
             nick.text = $"\"{g.nickname}\"";
-            Txt(t, "Race", Data.Race(g.race).name, text);
+            Txt(t, "Race", Tips.Race(g.race), text);
             Txt(t, "Age", $"{g.age} <size=75%><color={Theme.Hex(Theme.TextFaint)}>{GladiatorRules.AgeStageNames[stage]}</color></size>", text);
-            Txt(t, "Style", Data.Style(g.style)?.name ?? g.style, text);
+            Txt(t, "Style", Tips.Style(g.style), text);
             Txt(t, "Ca", Widgets.Stars(ca), Theme.Torch);
             var pa = t.Find("Pa");
             if (pa != null)
@@ -100,7 +100,7 @@ namespace Colosseum.UI
 
             row.onClick.RemoveAllListeners();
             string id = g.id;
-            row.onClick.AddListener(() => GameController.I.OpenGladiator(id));
+            row.onClick.AddListener(() => GameController.I.ShowGladiator(id));
         }
 
         /// <summary>웹판 InjuryTag 글자</summary>

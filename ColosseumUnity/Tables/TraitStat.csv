@@ -1,0 +1,16 @@
+trait,stat,value
+string,enum:Stat,int
+Trait.key,능력치,증감
+iron_heart,Comp,3
+coward,Grit,-4
+berserker,Agg,5
+berserker,Blk,-3
+calculator,Dec,3
+calculator,Show,-2
+crowd_darling,Show,3
+one_eyed,Acc,-3
+one_eyed,Comp,1
+lame,Agi,-3
+lame,Eva,-2
+war_hero,Lead,2
+war_hero,Grit,1

@@ -62,9 +62,9 @@ namespace Colosseum.UI
             row.GetComponentInChildren<PortraitView>(true).Show(g);
             var nameBtn = row.Find("Name").GetComponent<Button>();
             nameBtn.onClick.RemoveAllListeners();
-            nameBtn.onClick.AddListener(() => G.OpenGladiator(id));
+            nameBtn.onClick.AddListener(() => G.ShowGladiator(id));
             row.Find("Name/Text").GetComponent<TMP_Text>().text = g.name;
-            row.Find("Style").GetComponent<TMP_Text>().text = Data.Style(g.style)?.name ?? g.style;
+            row.Find("Style").GetComponent<TMP_Text>().text = Tips.Style(g.style);
 
             var focus = row.Find("Focus").GetComponent<TMP_Dropdown>();
             if (focus.options.Count != foci.Count) Fill(focus, foci.Select(f => Training.FocusNames[f]));

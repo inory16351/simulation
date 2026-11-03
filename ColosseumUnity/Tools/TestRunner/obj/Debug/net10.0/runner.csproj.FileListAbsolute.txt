@@ -1,0 +1,15 @@
+C:\Project\simulation\ColosseumUnity\Tools\TestRunner\bin\Debug\net10.0\runner.exe
+C:\Project\simulation\ColosseumUnity\Tools\TestRunner\bin\Debug\net10.0\runner.deps.json
+C:\Project\simulation\ColosseumUnity\Tools\TestRunner\bin\Debug\net10.0\runner.runtimeconfig.json
+C:\Project\simulation\ColosseumUnity\Tools\TestRunner\bin\Debug\net10.0\runner.dll
+C:\Project\simulation\ColosseumUnity\Tools\TestRunner\bin\Debug\net10.0\runner.pdb
+C:\Project\simulation\ColosseumUnity\Tools\TestRunner\obj\Debug\net10.0\runner.GeneratedMSBuildEditorConfig.editorconfig
+C:\Project\simulation\ColosseumUnity\Tools\TestRunner\obj\Debug\net10.0\runner.AssemblyInfoInputs.cache
+C:\Project\simulation\ColosseumUnity\Tools\TestRunner\obj\Debug\net10.0\runner.AssemblyInfo.cs
+C:\Project\simulation\ColosseumUnity\Tools\TestRunner\obj\Debug\net10.0\runner.csproj.CoreCompileInputs.cache
+C:\Project\simulation\ColosseumUnity\Tools\TestRunner\obj\Debug\net10.0\runner.sourcelink.json
+C:\Project\simulation\ColosseumUnity\Tools\TestRunner\obj\Debug\net10.0\runner.dll
+C:\Project\simulation\ColosseumUnity\Tools\TestRunner\obj\Debug\net10.0\refint\runner.dll
+C:\Project\simulation\ColosseumUnity\Tools\TestRunner\obj\Debug\net10.0\runner.pdb
+C:\Project\simulation\ColosseumUnity\Tools\TestRunner\obj\Debug\net10.0\runner.genruntimeconfig.cache
+C:\Project\simulation\ColosseumUnity\Tools\TestRunner\obj\Debug\net10.0\ref\runner.dll

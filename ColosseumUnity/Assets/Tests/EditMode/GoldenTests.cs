@@ -19,10 +19,22 @@ namespace Colosseum.Tests
             golden = JObject.Parse(File.ReadAllText("Assets/Tests/Golden/golden.json"));
             // 웹판에는 경기장 좌표 규칙이 없다
             Arena.Enabled = false;
+            // 웹판에는 팔·다리 칸과 고유 장비가 없다
+            Uniques.Enabled = false;
+            // 웹판에는 지대 상성·높이 지시가 없다
+            Colosseum.Core.Combat.Exchange.Zones = false;
+            // 웹판에는 기술 테이블(습득·새 기술)이 없다
+            SkillBook.Enabled = false;
         }
 
         [OneTimeTearDown]
-        public void TearDown() => Arena.Enabled = true;
+        public void TearDown()
+        {
+            Arena.Enabled = true;
+            Uniques.Enabled = true;
+            Colosseum.Core.Combat.Exchange.Zones = true;
+            SkillBook.Enabled = true;
+        }
 
         [Test]
         public void RngMatchesTs()

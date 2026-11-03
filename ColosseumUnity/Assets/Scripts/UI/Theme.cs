@@ -11,8 +11,10 @@ namespace Colosseum.UI
         public static readonly Color Bg2 = C(0x1b1714);
         public static readonly Color Panel = C(0x221c18);
         public static readonly Color Panel2 = C(0x2a231e);
-        public static readonly Color Line = C(0x3a2f25);
+        public static readonly Color Line = C(0x56442f);
         public static readonly Color Bronze = C(0x7a5c33);
+        /// <summary>붓 패널 테두리 (UiKit.Panel)</summary>
+        public static readonly Color PanelFrame = C(0x6a4e2c);
         public static readonly Color BronzeHi = C(0xb08a4f);
         public static readonly Color Parchment = C(0xd9cbb0);
         public static readonly Color Text = C(0xcfc2a8);

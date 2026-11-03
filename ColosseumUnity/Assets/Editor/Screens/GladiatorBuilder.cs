@@ -52,8 +52,22 @@ namespace Colosseum.EditorTools
 
             var acquire = BuildAcquire(content);
 
+            // 탭: 정보 / 장비 / 전술 — 한 번에 하나만 보여 장비와 교범이 섞이지 않게
+            var tabRow = Rect("Tabs", content);
+            HRow(tabRow, 4);
+            var tabs = new List<Button>();
+            var roots = new List<GameObject>();
+            foreach (var (id, label) in new[] { ("Info", "정보"), ("Gear", "장비"), ("Tactics", "전술") })
+            {
+                tabs.Add(Button("Tab_" + id, tabRow, label, false, 15).Layout(prefW: 140, prefH: 36));
+                var root = Rect("Tab" + id, content);
+                VCol(root, 14);
+                roots.Add(root.gameObject);
+            }
+            var infoTab = roots[0].transform;
+
             // 능력치 네 묶음 + 무기 숙련 (웹판 1fr 1fr 1fr 1fr 1.2fr)
-            var grid = Rect("Attrs", content);
+            var grid = Rect("Attrs", infoTab);
             HRow(grid, 14, 0, 0, 0, 0, TextAnchor.UpperLeft);
             var blocks = new List<RectTransform>
             {
@@ -73,18 +87,21 @@ namespace Colosseum.EditorTools
                 Text("Value", row, "0", 14, Theme.Parchment, false, FontStyles.Normal, TextAlignmentOptions.MidlineRight).Layout(minW: 30, prefW: 30, flexW: 0);
             }
 
-            var doctrine = BuildDoctrine(content);
+            // 기술: 아이콘 + 이름 칸 격자 (이름에 마우스를 올리면 발동 조건·효과 툴팁)
+            var sk = TitledPanel("Skills", infoTab, "기술");
+            var skGrid = Rect("Grid", sk);
+            var sg = skGrid.gameObject.AddComponent<GridLayoutGroup>();
+            sg.cellSize = new Vector2(250, 48);
+            sg.spacing = new Vector2(8, 6);
+            var skTpl = Panel("SkillTemplate", skGrid, Theme.Panel2);
+            Sprite("Icon", skTpl.transform, "icon/skills/power_strike", 38, 38).rectTransform.Anchor(new Vector2(0, 0.5f), new Vector2(0, 0.5f), new Vector2(6, -19), new Vector2(44, 19));
+            Text("Name", skTpl.transform, "", 14, Theme.Parchment).rectTransform.Anchor(new Vector2(0, 0), new Vector2(1, 1), new Vector2(52, 0), new Vector2(-6, 0));
+            skTpl.gameObject.SetActive(false);
+            var skills = Text("Empty", sk, "", 13, Theme.TextFaint);
+            var career = BuildCareer(infoTab);
 
-            // 기술 | 장비 (웹판 grid2)
-            var pair = Rect("SkillsEquip", content);
-            HRow(pair, 14, 0, 0, 0, 0, TextAnchor.UpperLeft);
-            var sk = TitledPanel("Skills", pair, "기술");
-            sk.parent.Layout(minW: 0, prefW: 0, flexW: 1);
-            var skills = Text("Text", sk, "", 15, Theme.Text);
-            skills.lineSpacing = 20;
-            var equip = BuildEquip(pair);
-
-            var career = BuildCareer(content);
+            var equip = BuildEquip(roots[1].transform);
+            var doctrine = BuildDoctrine(roots[2].transform);
 
             var s = rt.gameObject.AddComponent<GladiatorScreen>();
             s.screenId = "gladiator";
@@ -96,6 +113,7 @@ namespace Colosseum.EditorTools
             Set(s, "traits", traits);
             Set(s, "profBlock", prof);
             Set(s, "skills", skills);
+            Set(s, "skillTemplate", skTpl.rectTransform);
             Set(s, "acquire", acquire);
             Set(s, "doctrine", doctrine);
             Set(s, "equip", equip);
@@ -104,6 +122,12 @@ namespace Colosseum.EditorTools
             var ab = so.FindProperty("attrBlocks");
             ab.arraySize = blocks.Count;
             for (int i = 0; i < blocks.Count; i++) ab.GetArrayElementAtIndex(i).objectReferenceValue = blocks[i];
+            var tp = so.FindProperty("tabButtons");
+            tp.arraySize = tabs.Count;
+            for (int i = 0; i < tabs.Count; i++) tp.GetArrayElementAtIndex(i).objectReferenceValue = tabs[i];
+            var rp = so.FindProperty("tabRoots");
+            rp.arraySize = roots.Count;
+            for (int i = 0; i < roots.Count; i++) rp.GetArrayElementAtIndex(i).objectReferenceValue = roots[i];
             so.ApplyModifiedPropertiesWithoutUndo();
             rt.gameObject.SetActive(false);
             return s;
@@ -164,7 +188,7 @@ namespace Colosseum.EditorTools
 
         /// <summary>전투 교범 패널 (웹판 DoctrinePanel, styles.css .doctrine-*).
         /// select 자리는 버튼이고, 누르면 조건 명령 아래 선택지(Picker)가 펼쳐진다</summary>
-        static DoctrinePanel BuildDoctrine(Transform parent)
+        public static DoctrinePanel BuildDoctrine(Transform parent)
         {
             var pad = TitledPanel("Doctrine", parent, "전투 교범", 12);
             var p = pad.parent.gameObject.AddComponent<DoctrinePanel>();
@@ -182,6 +206,13 @@ namespace Colosseum.EditorTools
             var stance = ChoiceBlock(grid, "Stance", "자세", Tactics.StanceNames, 1.4f, true, out var stanceDesc);
             var range = ChoiceBlock(grid, "Range", "거리", Tactics.RangeNames, 1f, false, out _);
             var focus = ChoiceBlock(grid, "Focus", "노리는 곳", Tactics.FocusNames, 1.2f, true, out var focusDesc);
+
+            // 노릴 높이·막을 높이 (지대 상성) + 무기 힌트
+            var zones = Rect("Zones", pad);
+            HRow(zones, 16, 0, 0, 0, 0, TextAnchor.UpperLeft);
+            var atkZone = ChoiceBlock(zones, "AtkZone", "노릴 높이", Colosseum.Core.Combat.Exchange.ZoneNames, 1f, false, out _);
+            var guardZone = ChoiceBlock(zones, "GuardZone", "막을 높이", Colosseum.Core.Combat.Exchange.ZoneNames, 1f, false, out _);
+            var zoneHint = Text("ZoneHint", zones, "", 12, Theme.Text, false, FontStyles.Normal, TextAlignmentOptions.TopLeft).Layout(minW: 0, prefW: 0, flexW: 1.2f);
 
             // 기술 순서 (220px) | 조건 명령
             var cols = Rect("Cols", pad);
@@ -239,6 +270,7 @@ namespace Colosseum.EditorTools
             void S(string prop, Object v) => so.FindProperty(prop).objectReferenceValue = v;
             S("famValue", famValue); S("famBar", famBar); S("famHint", famHint.gameObject);
             S("stanceGrid", stance); S("rangeGrid", range); S("focusGrid", focus); S("stanceDesc", stanceDesc); S("focusDesc", focusDesc);
+            S("atkZoneGrid", atkZone); S("guardZoneGrid", guardZone); S("zoneHint", zoneHint);
             S("orderTemplate", order.rectTransform); S("orderEmpty", orderEmpty.gameObject);
             S("ruleTemplate", rule); S("picker", picker.gameObject); S("pickerTitle", pickerTitle); S("pickTemplate", pick);
             S("addRule", add); S("surrender", sur);
@@ -268,8 +300,8 @@ namespace Colosseum.EditorTools
             pad.parent.Layout(minW: 0, prefW: 0, flexW: 1);
             var p = pad.parent.gameObject.AddComponent<EquipPanel>();
             var slots = new List<RectTransform>();
-            string[] ids = { "main", "off", "armor", "helmet" };
-            for (int r = 0; r < 2; r++)
+            string[] ids = Colosseum.Core.Equipment.Slots;
+            for (int r = 0; r < 3; r++)
             {
                 var row = Rect("Row" + r, pad);
                 HRow(row, 10, 0, 0, 0, 0, TextAnchor.UpperLeft);
@@ -280,34 +312,29 @@ namespace Colosseum.EditorTools
                     box.color = new Color32(0x5a, 0x3f, 0x32, 0xff);
                     box.transform.Find("Fill").gameObject.AddComponent<LayoutElement>().ignoreLayout = true;
                     box.Layout(minW: 0, prefW: 0, flexW: 1);
-                    VCol(box.transform, 4, 10, 10, 8, 8);
-                    Text("Name", box.transform, GearLogic.SlotNames[id], 12, Theme.TextDim);
-                    Text("Item", box.transform, "", 15);
-                    Text("Stats", box.transform, "", 12, Theme.TextFaint);
-                    Button("Change", box.transform, "바꾸기", false, 13).Layout(minH: 28, prefH: 28);
+                    // 왼쪽 아이템 슬롯 + 오른쪽 글 (EquipPanel은 Slot, Info/Item·Stats·Change로 찾는다)
+                    HRow(box.transform, 10, 10, 10, 8, 8, TextAnchor.UpperLeft);
+                    // 슬롯을 누르면 장비 고르기 팝업 (ItemPicker)
+                    var slotBtn = ItemSlot("Slot", box.transform, 72).gameObject.AddComponent<Button>();
+                    slotBtn.targetGraphic = slotBtn.GetComponent<Image>();
+                    slotBtn.GetComponent<Image>().raycastTarget = true;
+                    var info = Rect("Info", box.transform);
+                    info.Layout(flexW: 1);
+                    VCol(info, 4);
+                    Text("Name", info, GearLogic.SlotNames[id], 12, Theme.TextDim);
+                    Text("Item", info, "", 15);
+                    Text("Stats", info, "", 12, Theme.TextFaint);
+                    Button("Change", info, "바꾸기", false, 13).Layout(minH: 28, prefH: 28);
                     slots.Add(box.rectTransform);
                 }
             }
 
-            var picker = Box("Picker", pad, Theme.Bg2);
-            VCol(picker.transform, 4, 8, 8, 8, 8);
-            var pickerTitle = Text("Title", picker.transform, "", 13, Theme.BronzeHi, false, FontStyles.Bold);
-            var pickerEmpty = Text("Empty", picker.transform, "창고에 맞는 장비가 없습니다.", 13, Theme.TextFaint);
-            var pick = Button("PickTemplate", picker.transform, "", false, 13).Layout(minH: 28, prefH: 28);
-            pick.GetComponentInChildren<TMP_Text>().alignment = TextAlignmentOptions.MidlineLeft;
-            pick.gameObject.SetActive(false);
-            var btns = Rect("Buttons", picker.transform);
-            HRow(btns, 8, 0, 0, 4, 0);
-            var none = Button("None", btns, "벗기", false, 13).Layout(prefW: 110, prefH: 28);
-            var close = Button("Close", btns, "닫기", false, 13).Layout(prefW: 80, prefH: 28);
-            picker.gameObject.SetActive(false);
             var msg = Text("Msg", pad, "", 14, new Color32(0xd9, 0xa2, 0x9b, 0xff));
 
             var so = new UnityEditor.SerializedObject(p);
             void S(string prop, Object v) => so.FindProperty(prop).objectReferenceValue = v;
             S("title", pad.parent.Find("Head/Text").GetComponent<TMP_Text>());
-            S("picker", picker.gameObject); S("pickerTitle", pickerTitle); S("pickerEmpty", pickerEmpty.gameObject);
-            S("pickTemplate", pick); S("pickNone", none); S("pickClose", close); S("msg", msg);
+            S("msg", msg);
             var sp = so.FindProperty("slots");
             sp.arraySize = slots.Count;
             for (int i = 0; i < slots.Count; i++) sp.GetArrayElementAtIndex(i).objectReferenceValue = slots[i];

@@ -21,7 +21,7 @@ namespace Colosseum.UI
     {
         public static readonly (string id, string label)[] Menu =
         {
-            ("inbox", "서판"), ("overview", "안뜰"), ("roster", "막사"), ("training", "연무장"), ("challenge", "도전장"),
+            ("inbox", "서판"), ("overview", "안뜰"), ("roster", "막사"), ("strategy", "전략"), ("training", "연무장"), ("challenge", "도전장"),
             ("match", "모래 마당"), ("league", "서열표"), ("cup", "판테온 컵"), ("market", "이적 시장"), ("dungeon", "던전"),
             ("youth", "유소년 학당"), ("staff", "식솔"), ("facilities", "증축"), ("finance", "금고"), ("world", "대륙 정세"), ("hall", "비석의 언덕"),
         };
@@ -51,16 +51,49 @@ namespace Colosseum.UI
         [Header("새 게임")]
         [SerializeField] GameObject gameRoot;
         [SerializeField] GameObject newGameRoot;
+        [Tooltip("로비(타이틀) 화면")]
+        [SerializeField] GameObject lobbyRoot;
+
+        /// <summary>이 프레임에 팝업이 ESC로 닫혔으면 그 번호 (같은 ESC로 로비까지 가지 않게)</summary>
+        public static int EscUsedFrame = -1;
+
+        /// <summary>ESC = 저장하고 로비로. 팝업은 각자 Update에서 먼저 닫히므로 LateUpdate에서 본다</summary>
+        void LateUpdate()
+        {
+            if (!Input.GetKeyDown(KeyCode.Escape) || EscUsedFrame == Time.frameCount) return;
+            if (ConfirmPopup.I != null && ConfirmPopup.I.IsOpen) return;
+            if (!gameRoot.activeInHierarchy || GameController.I.State == null) return;
+            var sel = UnityEngine.EventSystems.EventSystem.current?.currentSelectedGameObject;
+            if (sel != null && sel.GetComponentInParent<TMP_Dropdown>()?.IsExpanded == true) return;
+            AskToLobby();
+        }
+
+        /// <summary>메인 메뉴로 가기 전에 묻는다 (ESC·사이드바 버튼 공통)</summary>
+        static void AskToLobby() =>
+            ConfirmPopup.Ask("메인 메뉴로 이동하시겠습니까?", "지금까지 진행한 내용은 저장됩니다.", () => GameController.I.ToLobby());
+
+        /// <summary>스페이스 키 = 다음 날로 버튼. 글 입력·드롭다운 펼침 중에는 막는다</summary>
+        void Update()
+        {
+            if (!Input.GetKeyDown(KeyCode.Space)) return;
+            if (ConfirmPopup.I != null && ConfirmPopup.I.IsOpen) return;
+            if (!gameRoot.activeInHierarchy || !nextButton.gameObject.activeInHierarchy || !nextButton.interactable) return;
+            var sel = UnityEngine.EventSystems.EventSystem.current?.currentSelectedGameObject;
+            if (sel != null && (sel.GetComponent<TMP_InputField>()?.isFocused == true || sel.GetComponentInParent<TMP_Dropdown>()?.IsExpanded == true)) return;
+            nextButton.onClick.Invoke();
+        }
 
         void Awake()
         {
             var g = GetComponentInParent<GameController>() ?? FindFirstObjectByType<GameController>();
             g.Changed += Refresh;
             g.NeedNewGame += ShowNewGame;
+            g.NeedLobby += ShowLobby;
             skipButton.onClick.AddListener(() => GameController.I.SkipAhead());
             nextButton.onClick.AddListener(() => GameController.I.NextDay());
             alertButton.onClick.AddListener(() => { GameController.I.GoToBlocker(); GameController.I.Go(GameController.I.Screen); });
-            restartButton.onClick.AddListener(() => GameController.I.RequestNewGame());
+            // 사이드바 맨 아래: 저장하고 로비로
+            restartButton.onClick.AddListener(AskToLobby);
             foreach (var m in menuButtons)
             {
                 var id = m.id;
@@ -71,7 +104,15 @@ namespace Colosseum.UI
         void ShowNewGame()
         {
             gameRoot.SetActive(false);
+            if (lobbyRoot != null) lobbyRoot.SetActive(false);
             newGameRoot.SetActive(true);
+        }
+
+        void ShowLobby()
+        {
+            gameRoot.SetActive(false);
+            newGameRoot.SetActive(false);
+            lobbyRoot.SetActive(true);
         }
 
         void Refresh()
@@ -81,6 +122,7 @@ namespace Colosseum.UI
             if (s == null) return;
             gameRoot.SetActive(true);
             newGameRoot.SetActive(false);
+            if (lobbyRoot != null) lobbyRoot.SetActive(false);
             var p = G.Player;
             var nation = Data.Nation(s.nation);
             var tierLudi = s.ludi.Values.Where(l => l.tier == p.tier && l.nation == s.nation).OrderByDescending(l => l.rp).ToList();
@@ -108,10 +150,10 @@ namespace Colosseum.UI
             bool matchToday = ChallengeLogic.TodaysPlayerMatches(s).Count > 0;
             foreach (var m in menuButtons)
             {
-                bool active = G.Screen == m.id || (G.Screen == "gladiator" && m.id == "roster");
+                bool active = G.Screen == m.id || (G.Screen == "gladiator" && m.id == G.ReturnScreen);
                 m.bg.color = active ? Theme.Panel2 : new Color(0, 0, 0, 0);
                 m.accent.enabled = active;
-                m.label.color = active ? Theme.Parchment : m.id == "hall" ? Theme.TextFaint : Theme.Text;
+                m.label.color = active ? Theme.Parchment : Theme.Text;
                 m.label.fontStyle = active ? FontStyles.Bold : FontStyles.Normal;
                 string badge = m.id == "inbox" && unread > 0 ? unread.ToString()
                     : m.id == "challenge" && incoming > 0 ? incoming.ToString()

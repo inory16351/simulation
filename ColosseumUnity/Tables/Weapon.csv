@@ -1,0 +1,21 @@
+id,key,name,class,damage,speed,pierce,range,req_str,crit,two_handed,offhand_only,ammo,block_bypass,stun,bound_bonus,magic_bonus
+int,string,string,enum:WeaponClass,int,int,float,int,int,float,int,int,int,float,float,float,float
+고유 번호,코드 키,이름,무기 계열,피해,속도,방어 관통,사거리,필요 근력,치명타율,양손 (1),보조 손 전용 (1),투척물 수,방패 우회,기절 확률,속박 상대 추가 피해,주술 강화
+101,gladius,글라디우스,Sword,10,2,0.15,0,8,0,0,0,0,0,0,0,0
+102,sica,곡검,Sword,9,2,0.1,0,7,0,0,0,0,0.15,0,0,0
+103,longsword,롱소드,Sword,12,3,0.15,0,10,0,0,0,0,0,0,0,0
+104,greatsword,대검,Greatsword,20,4,0.2,0,14,0,1,0,0,0,0,0,0
+105,greataxe,양손도끼,Axe,22,4,0.25,0,15,0,1,0,0,0,0,0,0
+106,battleaxe,전투도끼,Axe,13,3,0.2,0,11,0,0,0,0,0,0,0,0
+107,mace,철퇴,Mace,12,3,0.3,0,11,0,0,0,0,0,0.1,0,0
+108,warhammer,전쟁망치,Mace,21,5,0.4,0,16,0,1,0,0,0,0.2,0,0
+109,hasta,하스타,Spear,11,3,0.25,1,9,0,0,0,0,0,0,0,0
+110,hunting_spear,사냥창,Spear,13,3,0.3,1,10,0,0,0,0,0,0,0,0
+111,trident,삼지창,TridentNet,12,3,0.2,1,9,0,0,0,0,0,0,0.3,0
+112,net,그물,TridentNet,0,2,0,1,6,0,0,1,0,0,0,0,0
+113,pugio,푸기오,Dagger,6,1,0.1,0,5,0.1,0,0,0,0,0,0,0
+114,javelin,투창,Throwing,12,3,0.3,2,9,0,0,1,2,0,0,0,0
+115,cestus,가죽 주먹띠,Unarmed,7,1,0,0,0,0,0,0,0,0,0,0,0
+116,knuckles,강철 너클,Unarmed,10,1,0.1,0,8,0,0,0,0,0,0,0,0
+117,rune_charm,룬 부적,Focus,0,2,0,0,0,0,0,1,0,0,0,0,0.1
+118,staff,주술 지팡이,Focus,6,3,0,1,6,0,1,0,0,0,0,0,0.25

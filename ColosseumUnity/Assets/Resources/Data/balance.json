@@ -90,9 +90,9 @@
     "fightFatigue": 25
   },
   "events": {
-    "ludusPerDay": 0.12,
-    "gladiatorPerDay": 0.006,
-    "worldPerDay": 0.023,
+    "ludusPerDay": 0.04,
+    "gladiatorPerDay": 0.002,
+    "worldPerDay": 0.008,
     "disasterCooldownDays": 28
   }
 }

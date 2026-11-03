@@ -22,6 +22,7 @@ namespace Colosseum.EditorTools
             ["inbox"] = InboxBuilder.Build,
             ["overview"] = OverviewBuilder.Build,
             ["roster"] = RosterBuilder.Build,
+            ["strategy"] = StrategyBuilder.Build,
             ["training"] = TrainingBuilder.Build,
             ["challenge"] = ChallengeBuilder.Build,
             ["match"] = MatchBuilder.Build,
@@ -34,6 +35,7 @@ namespace Colosseum.EditorTools
             ["youth"] = YouthBuilder.Build,
             ["dungeon"] = DungeonBuilder.Build,
             ["world"] = WorldBuilder.Build,
+            ["hall"] = HallBuilder.Build,
         };
 
         [MenuItem("Colosseum/Build Game Scene")]
@@ -99,7 +101,7 @@ namespace Colosseum.EditorTools
             var menuButtons = new List<MenuButton>();
             foreach (var (id, label) in Shell.Menu) menuButtons.Add(MenuItem(side.transform, id, label));
             Box("Sep", side.transform, Theme.Line).Layout(minH: 1, prefH: 1);
-            var restart = MenuItem(side.transform, "restart", "새 루두스 세우기", false).button;
+            var restart = MenuItem(side.transform, "restart", "로비로", false).button;
 
             var main = Rect("Main", body).Layout(flexW: 1);
             var screens = new List<ScreenBase>();
@@ -113,6 +115,15 @@ namespace Colosseum.EditorTools
 
             // ── 새 게임 ──
             var newGame = BuildNewGame(canvas);
+            // ── 로비 (타이틀) ──
+            var lobby = LobbyBuilder.Build(canvas);
+
+            // ── 맨 위: 정보 카드, 검투사 팝업 카드, 툴팁 ──
+            PopupBuilder.BuildInfoPopup(canvas);
+            PopupBuilder.BuildGladiatorPopup(canvas);
+            PopupBuilder.BuildItemPicker(canvas);
+            PopupBuilder.BuildConfirmPopup(canvas);
+            PopupBuilder.BuildTipLayer(canvas);
 
             var so = new SerializedObject(shell);
             void S(string p, Object v) => so.FindProperty(p).objectReferenceValue = v;
@@ -120,7 +131,7 @@ namespace Colosseum.EditorTools
             S("treasuryText", treasury); S("wagesText", wages); S("skipButton", skip); S("nextButton", next);
             S("nextLabel", next.GetComponentInChildren<TMP_Text>()); S("alertBar", alert.gameObject); S("alertText", alertText); S("alertButton", alertBtn);
             S("restartButton", restart); S("gameOverPanel", gameOver.gameObject); S("gameOverText", goText);
-            S("gameRoot", gameRoot.gameObject); S("newGameRoot", newGame);
+            S("gameRoot", gameRoot.gameObject); S("newGameRoot", newGame); S("lobbyRoot", lobby);
             var mb = so.FindProperty("menuButtons");
             mb.arraySize = menuButtons.Count;
             for (int i = 0; i < menuButtons.Count; i++) mb.GetArrayElementAtIndex(i).objectReferenceValue = menuButtons[i];

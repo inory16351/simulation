@@ -33,6 +33,9 @@ namespace Colosseum.UI
         [SerializeField] TMP_Dropdown minPa;
         [SerializeField] TMP_InputField maxWage;
         [SerializeField] TMP_InputField nameFilter;
+        [Tooltip("이적 관심도 하한 (FM처럼): 제한 없음 / 낮음 이상 / 보통 이상 / 높음 이상 / 매우 높음")]
+        [SerializeField] TMP_Dropdown minInterest;
+        [SerializeField] TMP_Dropdown sortBy;
         [SerializeField] TMP_Text searchTitle;
         [SerializeField] TMP_Text searchMsg;
         [SerializeField] GameObject searchEmpty;
@@ -134,13 +137,15 @@ namespace Colosseum.UI
             Fill(style, new[] { "전부" }.Concat(Data.Styles.Select(s => s.name)), 0);
             Fill(minCa, CaSteps.Select(v => v == 0 ? "제한 없음" : "★" + v / 40.0), 0);
             Fill(minPa, PaSteps.Select(v => v == 0 ? "제한 없음" : "★" + v / 40.0), 0);
+            Fill(minInterest, new[] { "제한 없음", "낮음 이상", "보통 이상", "높음 이상", "매우 높음" }, 0);
+            Fill(sortBy, new[] { "추정 능력 순", "추정 잠재 순", "관심도 순", "주급 낮은 순", "나이 어린 순" }, 0);
             kindKeys = GearLogic.ItemKindNames.Keys.ToList();
             Fill(gearKind, new[] { "전부" }.Concat(kindKeys.Select(k => GearLogic.ItemKindNames[k])), 0);
             Fill(gearQuality, GearLogic.QualityNames.Take(3).Select(q => q == "" ? "보통" : q), 0);
             Fill(gearNation, new[] { "전부" }.Concat(Data.Nations.Select(n => n.name)), 0);
             Fill(gearSort, new[] { "품질 높은 순", "싼 순" }, 0);
 
-            foreach (var d in new[] { scope, race, style, minCa, minPa, gearKind, gearQuality, gearNation, gearSort })
+            foreach (var d in new[] { scope, race, style, minCa, minPa, minInterest, sortBy, gearKind, gearQuality, gearNation, gearSort })
                 d.onValueChanged.AddListener(_ => Refresh());
             nation.onValueChanged.AddListener(i => { nationId = i == 0 ? "" : Data.Nations[i - 1].id; Refresh(); });
             foreach (var f in new[] { maxAge, maxWage, nameFilter, gearMaxPrice, gearName })
@@ -200,16 +205,24 @@ namespace Colosseum.UI
             string styleId = style.value == 0 ? null : Data.Styles[style.value - 1].id;
             double? ageCap = Num(maxAge), wageCap = Num(maxWage);
             string name = nameFilter.text;
-            int caMin = CaSteps[minCa.value], paMin = PaSteps[minPa.value];
-            var results = pool
+            int caMin = CaSteps[minCa.value], paMin = PaSteps[minPa.value], interestMin = minInterest.value;
+            double rep = Reputation.LudusReputation(S, me);
+            var matched = pool
                 .Where(g => raceId == null || g.race == raceId)
                 .Where(g => styleId == null || g.style == styleId)
                 .Where(g => ageCap == null || g.age <= ageCap)
                 .Where(g => wageCap == null || g.wage <= wageCap)
                 .Where(g => name == "" || g.name.Contains(name))
-                .Select(g => (g, ca: Scouting.CaRange(S, g), pa: Scouting.PaRange(S, g)))
-                .Where(r => r.ca.mid >= caMin && r.pa.mid >= paMin)
-                .OrderByDescending(r => r.ca.mid)
+                .Select(g => (g, ca: Scouting.CaRange(S, g), pa: Scouting.PaRange(S, g), interest: Reputation.InterestIn(S, g, rep)))
+                .Where(r => r.ca.mid >= caMin && r.pa.mid >= paMin && r.interest >= interestMin);
+            var results = (sortBy.value switch
+                {
+                    1 => matched.OrderByDescending(r => r.pa.mid),
+                    2 => matched.OrderByDescending(r => r.interest).ThenByDescending(r => r.ca.mid),
+                    3 => matched.OrderBy(r => r.g.wage),
+                    4 => matched.OrderBy(r => r.g.age).ThenByDescending(r => r.pa.mid),
+                    _ => matched.OrderByDescending(r => r.ca.mid),
+                })
                 .Take(80)
                 .Select(r => r.g)
                 .ToList();
@@ -235,12 +248,13 @@ namespace Colosseum.UI
             bool scouting = sc.assignments.Contains(g.id);
 
             NameCell(row, g);
-            T(row, "Race").text = Data.Race(g.race).name;
+            T(row, "Race").text = Tips.Race(g.race);
             T(row, "Age").text = g.age.ToString();
-            T(row, "Style").text = Data.Style(g.style)?.name ?? g.style;
-            T(row, "Owner").text = owner != null ? owner.name : $"<color={Theme.Hex(Theme.Good)}>무소속</color>";
+            T(row, "Style").text = Tips.Style(g.style);
+            T(row, "Owner").text = owner != null ? Tips.Ludus(owner) : $"<color={Theme.Hex(Theme.Good)}>무소속</color>";
             T(row, "Ca").text = Widgets.RangeStars(ca.lo, ca.hi);
             T(row, "Pa").text = Widgets.RangeStars(pa.lo, pa.hi);
+            T(row, "Interest").text = InterestLabel(Reputation.InterestIn(S, g, Reputation.LudusReputation(S, Player)));
             Widgets.SetBar((RectTransform)row.Find("Info/Bar"), k, 100, Theme.BronzeHi);
             T(row, "Wage").text = $"{g.wage} D";
             T(row, "Value").text = owner != null ? $"{JsMath.Round(Economy.MarketValue(g) / 50) * 50:N0} D" : "-";
@@ -279,7 +293,7 @@ namespace Colosseum.UI
                 var o = offs[i];
                 var g = S.gladiators[o.gladiatorId];
                 NameCell(row, g);
-                T(row, "From").text = S.ludi[o.fromLudus].name;
+                T(row, "From").text = Tips.Ludus(S.ludi[o.fromLudus]);
                 T(row, "Fee").text = $"{o.fee:N0} D";
                 string oid = o.id;
                 var accept = row.Find("Accept").GetComponent<Button>();
@@ -296,7 +310,7 @@ namespace Colosseum.UI
         {
             var g = S.gladiators[deal.gladiatorId];
             NameCell(row, g);
-            T(row, "Info/Desc").text = $"{S.ludi[deal.fromLudus].name} · 이적료 {deal.fee:N0} D";
+            T(row, "Info/Desc").text = $"{Tips.Ludus(S.ludi[deal.fromLudus])} · 이적료 {deal.fee:N0} D";
             var demand = Transfers.TransferDemand(S, g);
             var refuse = T(row, "Refuse");
             var nego = row.Find("Negotiate");
@@ -344,7 +358,7 @@ namespace Colosseum.UI
             {
                 var g = list[i];
                 NameCell(row, g);
-                T(row, "Style").text = Data.Style(g.style)?.name ?? g.style;
+                T(row, "Style").text = Tips.Style(g.style);
                 T(row, "Wage").text = $"주급 {g.wage} D";
                 T(row, "Value").text = $"추정 가치 {JsMath.Round(Economy.MarketValue(g) / 50) * 50:N0} D";
                 // 웹판 confirm(): 한 번 더 누르면 방출
@@ -417,7 +431,7 @@ namespace Colosseum.UI
             if (l == null) return;
             var armory = GearLogic.ArmoryOf(S);
             tradePicks.RemoveAll(i => i >= armory.Count);
-            haggleTitle.text = $"◆  흥정 — {Widgets.ItemLabel(l.item)}  {Widgets.GradeTag(l.item)}  · 부른 값 {l.price:N0} D · {l.seller}";
+            haggleTitle.text = $"◆  흥정 — {Tips.Item(l.item)}  {Widgets.GradeTag(l.item)}  · 부른 값 {l.price:N0} D · {l.seller}";
             string key = GearLogic.HaggleKey(l.id);
             haggleStatus.text = Widgets.HaggleLine(S, key) ?? $"<color={Theme.Hex(Theme.TextDim)}>현금에 창고 장비를 보태 값을 맞춥니다. 맞교환 장비는 기준가의 {GearLogic.TradeInRate * 100:0}%로 쳐 줍니다. 값을 낮게 부를수록 상인이 짜증을 냅니다. 너무 깎으면 거래를 끊습니다.</color>";
 
@@ -476,7 +490,7 @@ namespace Colosseum.UI
             if (consignItem != null)
             {
                 double price = Num(consignPrice) ?? 0;
-                consignTitle.text = $"◆  내놓기 — {Widgets.ItemLabel(consignItem)}  {Widgets.GradeTag(consignItem)} · 기준가 {GearLogic.ItemPrice(consignItem):N0} D";
+                consignTitle.text = $"◆  내놓기 — {Tips.Item(consignItem)}  {Widgets.GradeTag(consignItem)} · 기준가 {GearLogic.ItemPrice(consignItem):N0} D";
                 var direct = new Consignment { item = consignItem, price = Math.Max(1, price) };
                 var agent = new Consignment { item = consignItem, price = Math.Max(1, price), viaAgent = true };
                 consignHint.text = price <= 0 ? "내놓을 값을 정합니다." :
@@ -527,7 +541,8 @@ namespace Colosseum.UI
 
         void ItemCells(RectTransform row, string id)
         {
-            T(row, "Item").text = Widgets.ItemLabel(id);
+            T(row, "Item").text = Tips.Item(id);
+            Widgets.SetSlot(row.Find("Slot"), id);
             var kind = GearLogic.ItemKind(id);
             T(row, "Kind").text = kind != null && GearLogic.ItemKindNames.TryGetValue(kind, out var k) ? k : "";
             T(row, "Stats").text = GearLogic.ItemStats(id);
@@ -545,7 +560,7 @@ namespace Colosseum.UI
             if (b == null) return;
             b.onClick.RemoveAllListeners();
             string id = g.id;
-            b.onClick.AddListener(() => G.OpenGladiator(id));
+            b.onClick.AddListener(() => G.ShowGladiator(id));
         }
 
         void ShowMsg(TMP_Text t)
@@ -557,6 +572,13 @@ namespace Colosseum.UI
 
         static double? Num(TMP_InputField f) => double.TryParse(f.text, out var v) ? v : null;
         static TMP_Text T(Transform row, string path) => row.Find(path).GetComponent<TMP_Text>();
+
+        static string InterestLabel(int i)
+        {
+            var c = i switch { 0 => Neg, 1 => Theme.TextFaint, 2 => Theme.Text, _ => Theme.Good };
+            string t = Reputation.InterestNames[i];
+            return $"<color={Theme.Hex(c)}>{(i == 4 ? $"<b>{t}</b>" : t)}</color>";
+        }
 
         static void Fill(TMP_Dropdown d, IEnumerable<string> labels, int value)
         {

@@ -9,17 +9,17 @@ namespace Colosseum.Core
 {
     public static class GearLogic
     {
-        /// <summary>slot: main | off | armor | helmet</summary>
-        public static readonly Dictionary<string, string> SlotNames = new() { ["main"] = "주무기", ["off"] = "보조", ["armor"] = "갑옷", ["helmet"] = "투구" };
+        /// <summary>slot: main | off | armor | helmet | arms | legs (팔·다리는 Unity판)</summary>
+        public static readonly Dictionary<string, string> SlotNames = new() { ["main"] = "주무기", ["off"] = "보조", ["armor"] = "갑옷", ["helmet"] = "투구", ["arms"] = "팔", ["legs"] = "다리" };
 
         /// <summary>버려도 아깝지 않은 기본 장비: 벗기면 창고에 남기지 않는다</summary>
         static readonly HashSet<string> Basic = new() { "loincloth", "cestus" };
         /// <summary>빈손일 때 대신 드는 것</summary>
         static readonly Dictionary<string, string> Fallback = new() { ["main"] = "cestus", ["armor"] = "loincloth" };
 
-        public static readonly Dictionary<string, string> ItemKindNames = new() { ["weapon"] = "무기", ["armor"] = "갑옷", ["helmet"] = "투구", ["shield"] = "방패" };
+        public static readonly Dictionary<string, string> ItemKindNames = new() { ["weapon"] = "무기", ["armor"] = "갑옷", ["helmet"] = "투구", ["shield"] = "방패", ["arms"] = "팔 보호구", ["legs"] = "다리 보호구" };
 
-        /// <summary>weapon | armor | helmet | shield, 아니면 null</summary>
+        /// <summary>weapon | armor | helmet | shield | arms | legs, 아니면 null</summary>
         public static string ItemKind(string id)
         {
             if (Data.Weapon(id) != null) return "weapon";
@@ -45,6 +45,7 @@ namespace Colosseum.Core
             else if (a?.slot == "armor") bs = 50 + (a.defense ?? 0) * 70 + (a.crowd ?? 0) * 600;
             else if (a?.slot == "helmet") bs = 70 + (a.defense ?? 0) * 70 + (a.showBonus ?? 0) * 60 + (a.netResist ?? 0) * 300;
             else if (a?.slot == "shield") bs = 80 + (a.block ?? 0) * 900;
+            else if (Uniques.IsLimb(a?.slot)) bs = 45 + (a.defense ?? 0) * 60;
             return JsMath.Round((bs * QualityPriceMult[q]) / 10) * 10;
         }
 
@@ -72,7 +73,7 @@ namespace Colosseum.Core
 
         static string GetSlot(Equipment e, string slot) => slot switch
         {
-            "main" => e.main, "off" => e.off, "armor" => e.armor, "helmet" => e.helmet, _ => null,
+            "main" => e.main, "off" => e.off, "armor" => e.armor, "helmet" => e.helmet, "arms" => e.arms, "legs" => e.legs, _ => null,
         };
 
         static void SetSlot(Equipment e, string slot, string v)
@@ -83,6 +84,8 @@ namespace Colosseum.Core
                 case "off": e.off = v; break;
                 case "armor": e.armor = v; break;
                 case "helmet": e.helmet = v; break;
+                case "arms": e.arms = v; break;
+                case "legs": e.legs = v; break;
             }
         }
 
@@ -108,6 +111,10 @@ namespace Colosseum.Core
                     return null;
                 case "helmet":
                     return a?.slot == "helmet" ? null : "투구가 아닙니다";
+                case "arms":
+                    return a?.slot == "arms" ? null : "팔 보호구가 아닙니다";
+                case "legs":
+                    return a?.slot == "legs" ? null : "다리 보호구가 아닙니다";
             }
             return null;
         }
@@ -220,8 +227,8 @@ namespace Colosseum.Core
         {
             var armory = ArmoryOf(s);
             if (!armory.Contains(item)) return "창고에 없습니다";
-            if (price <= 0) return "값을 정하십시오";
-            if (viaAgent && StaffLogic.StaffOf(s, s.ludi[s.playerLudusId], "agent") == null) return "중개인이 없습니다. 식솔에서 중개인을 들이거나 직접 내놓으십시오";
+            if (price <= 0) return "먼저 값을 정해야 합니다";
+            if (viaAgent && StaffLogic.StaffOf(s, s.ludi[s.playerLudusId], "agent") == null) return "중개인이 없습니다. 식솔 화면에서 중개인을 들이거나 직접 내놓아야 합니다";
             armory.RemoveAt(armory.IndexOf(item));
             ConsignmentsOf(s).Add(new Consignment { id = $"C{s.nextId++}", item = item, price = price, viaAgent = viaAgent, listedAt = Today(s) });
             return null;
@@ -274,17 +281,19 @@ namespace Colosseum.Core
         static readonly string[] Sellers = { "떠돌이 대장장이", "군수 상인", "전리품 상인", "명장 공방", "항구 밀수꾼", "노병의 유품 가게" };
 
         static List<string> allItems;
+        static bool allItemsExtended;
         /// <summary>데이터가 읽힌 뒤 처음 쓸 때 만든다</summary>
         static List<string> AllItems
         {
             get
             {
-                if (allItems == null || allItems.Count == 0)
+                if (allItems == null || allItems.Count == 0 || allItemsExtended != Uniques.Enabled)
                 {
                     var l = new List<string>();
                     foreach (var w in Data.Weapons) l.Add(w.id);
                     foreach (var a in Data.Armors) l.Add(a.id);
-                    allItems = l.Where(id => !Basic.Contains(id)).ToList();
+                    allItems = l.Where(id => !Basic.Contains(id) && Uniques.InPool(id)).ToList();
+                    allItemsExtended = Uniques.Enabled;
                 }
                 return allItems;
             }
@@ -301,7 +310,7 @@ namespace Colosseum.Core
             string b = rng.Chance(0.55) ? rng.Pick(taste) : rng.Pick(AllItems);
             // 시장엔 명품까지만. 전설은 던전에서만 나온다
             string q = rng.Weighted(QualityWeights);
-            string item = q == "0" ? b : $"{b}+{q}";
+            string item = Uniques.Assign(rng, q == "0" ? b : $"{b}+{q}");
             var listing = new GearListing { id = $"G{s.nextId++}", item = item, nation = nation };
             listing.price = JsMath.Round((ItemPrice(item) * rng.Range(0.85, 1.3)) / 10) * 10;
             listing.seller = $"{Data.Nation(nation).@short} {rng.Pick(Sellers)}";
@@ -326,7 +335,7 @@ namespace Colosseum.Core
         public static List<string> LootFallen(GameState s, Gladiator killer, Gladiator dead)
         {
             var e = dead.equipment;
-            var got = new[] { e.main, e.off, e.armor, e.helmet }.Where(x => !string.IsNullOrEmpty(x) && !Basic.Contains(x)).ToList();
+            var got = new[] { e.main, e.off, e.armor, e.helmet, e.arms, e.legs }.Where(x => !string.IsNullOrEmpty(x) && !Basic.Contains(x)).ToList();
             if (got.Count == 0) return got;
             ArmoryOf(s).AddRange(got);
             StateUtil.PushMessage(s, "info", $"전리품: {dead.name}의 장비",

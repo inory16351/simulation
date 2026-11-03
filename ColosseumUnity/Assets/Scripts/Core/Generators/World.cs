@@ -165,9 +165,9 @@ namespace Colosseum.Core
                 kind = "info",
                 title = $"{nationDef.league} 2부 입성",
                 body =
-                    $"라니스타, {ludusName}의 문이 열렸다.\n\n" +
-                    $"금고엔 {StateUtil.Locale(startTreasury)} 데나리, 막사엔 검투사 {startRoster}명. " +
-                    "다들 급료 날만 기다린다. 돈줄이 끊기면 저 칼끝이 누구를 향할지 잊지 마라.\n\n" +
+                    $"라니스타, {ludusName}의 문이 열렸습니다.\n\n" +
+                    $"금고엔 {StateUtil.Locale(startTreasury)} 데나리, 막사엔 검투사 {startRoster}명이 있습니다. " +
+                    "다들 급료 날만 기다립니다. 돈줄이 끊기면 저 칼끝이 누구를 향할지 잊어서는 안 됩니다.\n\n" +
                     "이번 시즌 목표: 2부 리그 2위 안에 들어 승격.\n\n" +
                     $"{nationDef.name}의 {nationDef.league} 특징:\n{string.Join("\n", nationDef.ruleText.Select(t => $"· {t}"))}",
                 read = false,
@@ -186,7 +186,7 @@ namespace Colosseum.Core
                 {
                     var g = state.gladiators[id];
                     Career.SeasonRecord(state, g);
-                    Career.LogCareer(state, g, $"{l.name}에 들어왔다", "join");
+                    Career.LogCareer(state, g, $"{l.name}에 들어왔습니다", "join");
                 }
             }
 

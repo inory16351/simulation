@@ -63,6 +63,13 @@ namespace Colosseum.EditorTools
             VCol(info, 2);
             Text("Rule", info, "", 14, Theme.Text, false, FontStyles.Bold);
             Text("Hint", info, "", 13, Theme.TextDim);
+            // 이 경기 전술: 팀 방침 · 집중 대상(상대 명단) · 역할은 전략 화면에서
+            var tactic = Rect("Tactic", info);
+            HRow(tactic, 6, 0, 0, 4, 0);
+            Text("Label", tactic, "전술", 12, Theme.BronzeHi, false, FontStyles.Bold).Layout(minW: 32, prefW: 32, flexW: 0);
+            Dropdown("Policy", tactic, 130, 26);
+            Dropdown("Focus", tactic, 220, 26);
+            Button("Roles", tactic, "역할 정하기", false, 12).Layout(minW: 100, prefW: 100, prefH: 26, flexW: 0);
             var lineup = Rect("Lineup", team);
             HRow(lineup, 6);
             for (int i = 0; i < 5; i++)
@@ -75,74 +82,15 @@ namespace Colosseum.EditorTools
             Button("Enter", team, "경기장 들어가기", true, 15).Layout(prefW: 180, minW: 180, prefH: 40, flexW: 0);
             team.gameObject.SetActive(false);
 
-            Text("PracticeSub", root, "연습 시합은 RP와 상금이 오가지 않습니다. 대신 성장과 피로, 혹사는 실전과 똑같이 쌓입니다. 생사 규칙도 실전과 같아서 죽으면 끝입니다.", 15, Theme.TextDim);
-
-            var cols = Rect("Setup", root);
-            HRow(cols, 14, 0, 0, 0, 0, TextAnchor.UpperLeft);
-            var minePad = TitledPanel("Mine", cols, "우리 검투사", 0);
-            minePad.parent.Layout(minW: 0, prefW: 0, flexW: 1);
-            var mineEmpty = Text("Empty", minePad, "싸울 수 있는 검투사가 없습니다.", 14, Theme.TextDim);
-            var mineRow = PickRow("MineTemplate", minePad);
-
-            var oppPad = TitledPanel("Opp", cols, "상대", 6);
-            oppPad.parent.Layout(minW: 0, prefW: 0, flexW: 1);
-            Text("Label", oppPad, "루두스", 13, Theme.TextDim);
-            var oppLudus = Dropdown("Ludus", oppPad, 0);
-            oppLudus.Layout(minH: 30, prefH: 30);
-            var oppEmpty = Text("Empty", oppPad, "싸울 수 있는 검투사가 없습니다.", 14, Theme.TextDim);
-            var oppRow = PickRow("OppTemplate", oppPad);
-
-            var condPad = TitledPanel("Cond", cols, "조건", 8);
-            condPad.parent.Layout(minW: 0, prefW: 0, flexW: 1);
-            Text("RuleLabel", condPad, "생사 규칙", 13, Theme.TextDim);
-            var ruleRow = Rect("Rules", condPad);
-            HRow(ruleRow, 4);
-            var rules = new List<Button>();
-            foreach (var r in new[] { "training", "missio", "sudden" }) rules.Add(Button("Rule_" + r, ruleRow, r, false, 14).Layout(prefW: 100, prefH: 32));
-            var ruleHint = Text("RuleHint", condPad, "", 12, Theme.TextFaint);
-            var doc = Rect("Doctrine", condPad);
-            VCol(doc, 4);
-            Text("Label", doc, "전투 교범", 13, Theme.TextDim);
-            var docRow = Rect("Row", doc);
-            HRow(docRow, 8);
-            var docTags = Text("Tags", docRow, "", 14, Theme.Text).Layout(flexW: 1);
-            var docEdit = Button("Edit", docRow, "교범 고치기", false, 13).Layout(prefW: 100, minW: 100, prefH: 28, flexW: 0);
-            Text("StanceLabel", doc, "이번 경기만 자세 바꾸기", 13, Theme.TextDim);
-            var stance = Dropdown("Stance", doc, 0);
-            stance.Layout(minH: 30, prefH: 30);
-            var start = Button("Start", condPad, "경기 시작", true, 16).Layout(prefH: 42, minH: 42);
+            // 연습 시합은 없다: 정식으로 수락된 경기만 치른다
+            var noMatch = Text("NoMatch", root, "오늘 치를 경기가 없습니다. 도전장을 보내 상대가 받아들이면, 잡힌 날에 이곳에서 경기를 치릅니다.", 15, Theme.TextDim);
 
             Set(s, "setupRoot", root.gameObject);
+            Set(s, "noMatch", noMatch);
             SetList(s, "speedButtons", speeds);
             Set(s, "officialPanel", off.parent.gameObject);
             Set(s, "officialTemplate", single);
             Set(s, "teamTemplate", team);
-            Set(s, "mineTemplate", mineRow);
-            Set(s, "mineEmpty", mineEmpty);
-            Set(s, "oppLudus", oppLudus);
-            Set(s, "oppTemplate", oppRow);
-            Set(s, "oppEmpty", oppEmpty);
-            SetList(s, "ruleButtons", rules);
-            Set(s, "ruleHint", ruleHint);
-            Set(s, "doctrineField", doc.gameObject);
-            Set(s, "doctrineTags", docTags);
-            Set(s, "doctrineEdit", docEdit);
-            Set(s, "stance", stance);
-            Set(s, "start", start);
-        }
-
-        static Button PickRow(string name, Transform parent)
-        {
-            var row = Box(name, parent, Clear).Layout(minH: 38, prefH: 38);
-            var b = row.gameObject.AddComponent<Button>();
-            b.targetGraphic = row;
-            HRow(row.transform, 8, 4, 8);
-            Portrait("Portrait", row.transform, 28);
-            Text("Name", row.transform, "", 15, Theme.Parchment, false, FontStyles.Bold).Layout(flexW: 1);
-            Text("Style", row.transform, "", 13, Theme.TextDim).Layout(prefW: 96, flexW: 0);
-            Text("Stars", row.transform, "", 13, Theme.Torch).Layout(prefW: 60, flexW: 0);
-            row.gameObject.SetActive(false);
-            return b;
         }
 
         // ───────── 중계 화면 ─────────

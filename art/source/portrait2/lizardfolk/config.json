@@ -5,21 +5,21 @@
   "m",
   "f",
   "m",
-  "m",
   "f",
+  "m",
   "m",
   "f"
  ],
  "front": [
-  null,
-  null,
-  null,
-  null,
-  null,
-  null,
-  null,
+  "helmet_crest",
+  "helmet_crest_2",
+  "helmet_visor",
   "armor_harness",
-  "armor_plate"
+  "armor_plate",
+  "armor_harness_2",
+  "armor_harness_3",
+  null,
+  null
  ],
  "side": [
   null,
@@ -34,27 +34,21 @@
  ],
  "extra": [
   {
-   "heads": [
-    "m",
-    "f",
-    "m",
-    "f",
-    "m",
-    "f",
-    "m",
-    "m",
-    "f"
-   ],
+   "heads": [],
+   "front": []
+  },
+  {
+   "heads": [],
    "front": [
+    "mark_scar_brow",
+    "mark_scar_nose",
+    null,
+    "mark_scar_forehead",
+    "mark_scar_claw",
+    "mark_tattoo_forehead",
     null,
     null,
-    null,
-    null,
-    null,
-    "helmet_crest_2",
-    null,
-    "armor_harness_2",
-    "armor_plate_2"
+    "mark_paint_eyes"
    ]
   }
  ]

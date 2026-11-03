@@ -1,0 +1,8 @@
+aim,name,hit_mod,crit_mod,desc
+enum:AimPart,string,float,float,string
+노릴 부위,이름,명중 가산,치명타 가산,설명
+Spread,고르게,0,0,효과 없음
+Head,머리,-0.15,0.1,명중 -15% 치명타 +10% 기절 확률
+Body,몸통,0.1,0,명중 +10% 안정적인 피해
+Legs,다리,-0.05,0,명중 -5% 맞히면 30% 확률로 다리 부상
+Arm,무기 든 팔,-0.1,0,명중 -10% 맞히면 30% 확률로 팔 부상

@@ -1,4 +1,4 @@
-// 폰트 설정: TextMeshPro 기본 리소스를 들이고, 웹판과 같은 Noto Sans KR / Noto Serif KR로 동적 SDF 폰트를 만든다.
+// 폰트 설정: TextMeshPro 기본 리소스를 들이고, 본문 Noto Sans KR / 제목 마루 부리(네이버, MaruBuri-Bold)로 동적 SDF 폰트를 만든다.
 // 동적 아틀라스라 한글 전체를 미리 굽지 않아도 쓰는 글자만 채워진다. MCP(execute_code)나 메뉴로 부른다.
 using System.IO;
 using TMPro;
@@ -11,7 +11,8 @@ namespace Colosseum.EditorTools
     public static class FontSetup
     {
         public const string SansPath = "Assets/Resources/Fonts/NotoSansKR SDF.asset";
-        public const string SerifPath = "Assets/Resources/Fonts/NotoSerifKR SDF.asset";
+        /// <summary>제목·이름용 (UiKit.Serif). 2026-11-03 Noto Serif KR → 마루 부리</summary>
+        public const string SerifPath = "Assets/Resources/Fonts/MaruBuri SDF.asset";
 
         [MenuItem("Colosseum/Setup Fonts")]
         public static string Run()
@@ -25,7 +26,7 @@ namespace Colosseum.EditorTools
             }
             Directory.CreateDirectory("Assets/Resources/Fonts");
             var sans = Make("Assets/Fonts/NotoSansKR-VF.ttf", SansPath);
-            var serif = Make("Assets/Fonts/NotoSerifKR-VF.ttf", SerifPath);
+            var serif = Make("Assets/Fonts/MaruBuri-Bold.ttf", SerifPath);
             // 기본 폰트를 산세리프로
             var settings = Resources.Load<TMP_Settings>("TMP Settings");
             if (settings != null)

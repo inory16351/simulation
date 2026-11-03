@@ -1,0 +1,226 @@
+kind,race,text
+enum:NameKind,enum:Race,string
+종류,종족 (Any = 공용),글
+Gladiator,Human,마르쿠스
+Gladiator,Human,가이우스
+Gladiator,Human,루키우스
+Gladiator,Human,티투스
+Gladiator,Human,퀸투스
+Gladiator,Human,섹스투스
+Gladiator,Human,카시우스
+Gladiator,Human,발레리우스
+Gladiator,Human,율리아
+Gladiator,Human,리비아
+Gladiator,Human,코르넬리아
+Gladiator,Human,아울루스
+Gladiator,Human,데키무스
+Gladiator,Human,플라비우스
+Gladiator,Human,세베루스
+Gladiator,Human,크라수스
+Gladiator,Human,옥타비아
+Gladiator,Human,네로
+Gladiator,Human,브루투스
+Gladiator,Human,칼리스타
+Gladiator,Human,아리오
+Gladiator,Human,베리쿠스
+Gladiator,Human,도미티아
+Gladiator,Human,가니쿠스
+Gladiator,Orc,가르크
+Gladiator,Orc,두락
+Gladiator,Orc,모그
+Gladiator,Orc,우르자크
+Gladiator,Orc,그롬
+Gladiator,Orc,카즈
+Gladiator,Orc,볼그
+Gladiator,Orc,슈라크
+Gladiator,Orc,녹타
+Gladiator,Orc,그리샤
+Gladiator,Orc,아르크
+Gladiator,Orc,하스크
+Gladiator,Orc,무르그
+Gladiator,Orc,자그
+Gladiator,Orc,우그라
+Gladiator,Minotaur,아스테리온
+Gladiator,Minotaur,토룸
+Gladiator,Minotaur,브론
+Gladiator,Minotaur,카르나크
+Gladiator,Minotaur,몰로크
+Gladiator,Minotaur,하르곤
+Gladiator,Minotaur,타우로스
+Gladiator,Minotaur,볼루크
+Gladiator,Minotaur,그라흐
+Gladiator,Minotaur,엘두라
+Gladiator,Elf,실레스
+Gladiator,Elf,아엘린
+Gladiator,Elf,타리엘
+Gladiator,Elf,엘로란
+Gladiator,Elf,니엔
+Gladiator,Elf,파엘라스
+Gladiator,Elf,이실디엔
+Gladiator,Elf,로세아
+Gladiator,Elf,카엘리스
+Gladiator,Elf,베렌실
+Gladiator,Elf,아란디르
+Gladiator,Elf,세릴
+Gladiator,Dwarf,도린
+Gladiator,Dwarf,브람
+Gladiator,Dwarf,투르긴
+Gladiator,Dwarf,골다크
+Gladiator,Dwarf,바린
+Gladiator,Dwarf,흐로딕
+Gladiator,Dwarf,케일라
+Gladiator,Dwarf,스벤다
+Gladiator,Dwarf,모르김
+Gladiator,Dwarf,다그나
+Gladiator,Dwarf,트로르
+Gladiator,Dwarf,볼린
+Gladiator,Lizardfolk,스섀크
+Gladiator,Lizardfolk,자르크
+Gladiator,Lizardfolk,트시스
+Gladiator,Lizardfolk,카샤
+Gladiator,Lizardfolk,이크사
+Gladiator,Lizardfolk,슬리스
+Gladiator,Lizardfolk,흐사르
+Gladiator,Lizardfolk,베쉬크
+Gladiator,Lizardfolk,타즈크
+Gladiator,Lizardfolk,시렉
+Gladiator,Beastkin,아누크
+Gladiator,Beastkin,세크렛
+Gladiator,Beastkin,라하트
+Gladiator,Beastkin,바스테
+Gladiator,Beastkin,켄수
+Gladiator,Beastkin,마헤스
+Gladiator,Beastkin,네페르
+Gladiator,Beastkin,아메크
+Gladiator,Beastkin,타리크
+Gladiator,Beastkin,사흐메
+Gladiator,Beastkin,호루안
+Gladiator,Beastkin,자칼라
+Female,Any,율리아
+Female,Any,리비아
+Female,Any,코르넬리아
+Female,Any,옥타비아
+Female,Any,칼리스타
+Female,Any,도미티아
+Female,Any,녹타
+Female,Any,그리샤
+Female,Any,우그라
+Female,Any,엘두라
+Female,Any,아엘린
+Female,Any,니엔
+Female,Any,이실디엔
+Female,Any,로세아
+Female,Any,세릴
+Female,Any,케일라
+Female,Any,스벤다
+Female,Any,다그나
+Female,Any,카샤
+Female,Any,이크사
+Female,Any,바스테
+Female,Any,세크렛
+Female,Any,네페르
+Female,Any,사흐메
+Female,Any,자칼라
+Surname,Human,바루스
+Surname,Human,렌투스
+Surname,Human,막시무스
+Surname,Human,드루수스
+Surname,Human,카토
+Surname,Human,갈바
+Surname,Human,피소
+Surname,Human,레피두스
+Surname,Human,킨나
+Surname,Human,루푸스
+Surname,Human,니게르
+Surname,Human,스카이볼라
+Surname,Human,아그리파
+Surname,Human,폴리오
+Surname,Human,메텔루스
+Surname,Human,세네카
+Surname,Orc,뼈부수기
+Surname,Orc,피송곳니
+Surname,Orc,검은손
+Surname,Orc,쇠주먹
+Surname,Orc,늑대가죽
+Surname,Orc,붉은눈
+Surname,Orc,해골깃발
+Surname,Orc,서리발톱
+Surname,Minotaur,철뿔
+Surname,Minotaur,검은갈기
+Surname,Minotaur,돌발굽
+Surname,Minotaur,피뿔
+Surname,Minotaur,미궁의 자식
+Surname,Minotaur,붉은코
+Surname,Elf,은잎
+Surname,Elf,달그림자
+Surname,Elf,바람노래
+Surname,Elf,서리가지
+Surname,Elf,새벽이슬
+Surname,Elf,고요한숲
+Surname,Elf,별빛
+Surname,Dwarf,철수염
+Surname,Dwarf,돌망치
+Surname,Dwarf,깊은굴
+Surname,Dwarf,불모루
+Surname,Dwarf,청동배
+Surname,Dwarf,강철발
+Surname,Dwarf,바위심장
+Surname,Lizardfolk,진흙꼬리
+Surname,Lizardfolk,녹색비늘
+Surname,Lizardfolk,늪눈
+Surname,Lizardfolk,독혀
+Surname,Lizardfolk,검은비늘
+Surname,Lizardfolk,갈퀴손
+Surname,Beastkin,황금갈기
+Surname,Beastkin,모래발톱
+Surname,Beastkin,밤사냥꾼
+Surname,Beastkin,태양의 아들
+Surname,Beastkin,검은귀
+Surname,Beastkin,붉은모래
+Epithet,Any,모래의 늑대
+Epithet,Any,붉은 송곳니
+Epithet,Any,황혼의 칼날
+Epithet,Any,철벽
+Epithet,Any,피의 춤꾼
+Epithet,Any,북방의 도끼
+Epithet,Any,쓰러지지 않는 자
+Epithet,Any,그물의 거미
+Epithet,Any,검은 황소
+Epithet,Any,사막의 사자
+Epithet,Any,고요한 죽음
+Epithet,Any,관중의 연인
+LudusSuffix,Any,의 집
+LudusSuffix,Any, 루두스
+LudusSuffix,Any, 투기단
+LudusSuffix,Any,의 형제단
+LudusSuffix,Any, 양성소
+LudusSuffix,Any,의 문
+LudusNoun,Any,철
+LudusNoun,Any,황금
+LudusNoun,Any,청동
+LudusNoun,Any,피
+LudusNoun,Any,늑대
+LudusNoun,Any,사자
+LudusNoun,Any,독수리
+LudusNoun,Any,모래
+LudusNoun,Any,폭풍
+LudusNoun,Any,서리
+LudusNoun,Any,황혼
+LudusNoun,Any,뿔
+LudusNoun,Any,횃불
+LudusNoun,Any,가시
+LudusNoun,Any,까마귀
+LudusNoun,Any,해골
+LudusNoun,Any,강철
+LudusNoun,Any,잿빛 탑
+LudusAdj,Any,붉은
+LudusAdj,Any,검은
+LudusAdj,Any,하얀
+LudusAdj,Any,굶주린
+LudusAdj,Any,부서진
+LudusAdj,Any,잠들지 않는
+LudusAdj,Any,타오르는
+LudusSuffixAfterAdj,Any, 루두스
+LudusSuffixAfterAdj,Any, 투기단
+LudusSuffixAfterAdj,Any, 양성소
+LudusSuffixAfterAdj,Any, 형제단

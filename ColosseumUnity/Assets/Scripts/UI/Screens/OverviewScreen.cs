@@ -67,7 +67,7 @@ namespace Colosseum.UI
                 b.GetComponentInChildren<PortraitView>(true).Show(g);
                 b.onClick.RemoveAllListeners();
                 string id = g.id;
-                b.onClick.AddListener(() => G.OpenGladiator(id));
+                b.onClick.AddListener(() => G.ShowGladiator(id));
             });
         }
     }

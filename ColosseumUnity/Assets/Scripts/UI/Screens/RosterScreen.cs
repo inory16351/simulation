@@ -45,7 +45,7 @@ namespace Colosseum.UI
                     (g.training.focus == "rest" ? "휴식 중 (회복 1.5배)" : "연무장에서 휴식으로 바꾸면 빨리 낫습니다");
                 row.onClick.RemoveAllListeners();
                 string id = g.id;
-                row.onClick.AddListener(() => G.OpenGladiator(id));
+                row.onClick.AddListener(() => G.ShowGladiator(id));
             });
 
             var fallen = S.fallen.Select(id => S.gladiators[id]).ToList();

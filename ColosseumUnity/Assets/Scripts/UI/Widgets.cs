@@ -42,6 +42,50 @@ namespace Colosseum.UI
             return $"<color={Theme.Hex(QualityColors[q])}>{(q >= 2 ? $"<b>{name}</b>" : name)}</color>";
         }
 
+        /// <summary>장비 아이콘 (Resources/Art/icon/items/고유 id 또는 기본 장비 id). 고유 그림이 없으면 바탕 장비 그림</summary>
+        public static Sprite ItemIcon(string id)
+        {
+            if (string.IsNullOrEmpty(id)) return null;
+            string b = Data.SplitItemId(id).Item1;
+            string u = Data.UniqueOf(id);
+            return (u != null ? Resources.Load<Sprite>("Art/icon/items/" + u) : null) ?? Resources.Load<Sprite>("Art/icon/items/" + b);
+        }
+
+        /// <summary>아이콘 칸 채우기: 그림이 없으면 숨긴다</summary>
+        public static void SetIcon(Image img, string id)
+        {
+            if (img == null) return;
+            var s = ItemIcon(id);
+            img.sprite = s;
+            img.enabled = s != null;
+            img.preserveAspect = true;
+        }
+
+        /// <summary>빈 슬롯에 흐리게 보일 자리 그림 (부위별 기본 장비)</summary>
+        static readonly System.Collections.Generic.Dictionary<string, string> SlotHints = new()
+        {
+            ["main"] = "gladius", ["off"] = "parmula", ["helmet"] = "open_helm", ["armor"] = "leather", ["arms"] = "leather_bracer", ["legs"] = "leather_greaves",
+        };
+
+        /// <summary>아이템 슬롯 채우기 (UiKit.ItemSlot: Rim·Icon). 장비가 없으면 부위 자리 그림을 흐리게, 부위도 모르면 빈 틀</summary>
+        public static void SetSlot(Transform slot, string id, string slotKind = null)
+        {
+            if (slot == null) return;
+            var icon = slot.Find("Icon")?.GetComponent<Image>();
+            var rim = slot.Find("Rim")?.GetComponent<Image>();
+            bool has = !string.IsNullOrEmpty(id);
+            int q = has ? Math.Clamp(GearLogic.QualityOf(id), 0, 3) : 0;
+            if (rim != null)
+            {
+                rim.enabled = q >= 1;
+                rim.color = QualityColors[q];
+            }
+            if (icon == null) return;
+            if (has) { SetIcon(icon, id); icon.color = Color.white; return; }
+            SetIcon(icon, slotKind != null && SlotHints.TryGetValue(slotKind, out var hint) ? hint : null);
+            icon.color = new Color(0.45f, 0.38f, 0.3f, 0.22f);
+        }
+
         /// <summary>등급 딱지: 등급 색 글자</summary>
         public static string GradeTag(string id)
         {

@@ -1,0 +1,20 @@
+nation,seq,text
+string,int,string
+Nation.key,순서,규칙 설명 한 줄
+aurelia,1,관중 수입 +25%
+aurelia,2,명성 +20%
+aurelia,3,세금 20% (기본 10%)
+dolgar,1,아고게: 훈련·실전 성장 +15%
+dolgar,2,검소한 관중: 관중 수입 -15%
+dolgar,3,"항복하면 인기 -10, RP -5"
+karsea,1,검투사 몸값·주급 -20%
+karsea,2,상금 +15%
+karsea,3,세금 5%
+kemer,1,"신전 후원: 시즌이 끝나면 1부 상위 3팀에 3,000 D"
+kemer,2,명성 +10%
+grommar,1,사투 상금 +30%
+grommar,2,다른 루두스가 사투를 훨씬 자주 겁니다
+grommar,3,관중 수입 -10%
+sylvaren,1,국내 리그 사투 금지
+sylvaren,2,미시오에서 죽을 확률 -40%
+sylvaren,3,주술을 쓰는 검투사 명성 +50%

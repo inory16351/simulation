@@ -104,7 +104,7 @@ namespace Colosseum.UI
                 var q = open[i];
                 bool on = questId == q.id;
                 row.Find("Fill").GetComponent<Image>().color = on ? QuestOn : new Color(0, 0, 0, 0);
-                T(row, "Info/Title").text = $"{Data.Nation(q.nation).@short}: {DungeonLogic.GetDungeon(q.dungeon).name} 토벌";
+                T(row, "Info/Title").text = $"{Tips.Nation(q.nation, true)}: {Tips.Dungeon(q.dungeon)} 토벌";
                 T(row, "Info/Hint").text = $"몬스터 실력 ×{q.hard:0.00} · 현상금 {q.bounty:N0} D · RP +{q.rp} · {q.expiresAt - t}일 안에 출발";
                 var b = row.Find("Pick").GetComponent<Button>();
                 b.GetComponentInChildren<TMP_Text>().text = on ? "의뢰 취소" : "이 의뢰 맡기";
@@ -175,7 +175,7 @@ namespace Colosseum.UI
             {
                 var ex = done[i];
                 var dd = DungeonLogic.GetDungeon(ex.dungeon);
-                T(row, "Dungeon").text = dd.name + (string.IsNullOrEmpty(ex.questId) ? "" : " (토벌)");
+                T(row, "Dungeon").text = Tips.Dungeon(dd.id) + (string.IsNullOrEmpty(ex.questId) ? "" : " (토벌)");
                 T(row, "Result").text = (ex.status == "done" ? $"<color={Theme.Hex(Theme.Good)}>완주</color>" : $"<color={Theme.Hex(Neg)}>퇴각</color>") + $" · {ex.floor}/{dd.floors}층";
                 T(row, "Loot").text = LootLine(ex.loot);
             });
@@ -227,7 +227,7 @@ namespace Colosseum.UI
         }
 
         /// <summary>전리품 이름을 등급 색으로 늘어놓는다 (웹판 .tag ItemName)</summary>
-        static string LootLine(List<string> items) => string.Join("   ", items.Select(Widgets.ItemLabel));
+        static string LootLine(List<string> items) => string.Join("   ", items.Select(Tips.Item));
 
         /// <summary>웹판 .dungeon-card.tierN 바탕 (그라디언트 대신 가운데 색)</summary>
         static Color TierFill(int tier) => tier switch

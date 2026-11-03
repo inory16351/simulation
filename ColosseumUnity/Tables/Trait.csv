@@ -1,0 +1,29 @@
+id,key,name,category,desc,spawn,negative,hidden
+int,string,string,enum:TraitCategory,string,float,int,int
+고유 번호,코드 키,이름,분류,설명,생성 가중치,나쁜 특성 (1),숨은 특성 (1)
+1,iron_heart,강철 심장,Personality,"침착 +3, 큰 무대 보정 2배",3,0,0
+2,coward,겁쟁이,Personality,"투지 -4, 궁지에 몰리면 쉽게 항복합니다",3,1,0
+3,berserker,광전사,Personality,"공격성 +5, 막기 -3",3,0,0
+4,calculator,냉정한 계산가,Personality,"판단력 +3, 쇼맨십 -2",3,0,0
+5,greedy,탐욕스러운 자,Personality,급료를 2배로 올려 달라고 요구합니다. 급료가 밀리면 사기가 1.5배 더 떨어집니다,3,1,1
+6,loyal_hound,충견,Personality,"충성 최대, 반란에 끼지 않습니다",2,0,0
+7,agitator,선동가,Personality,사기가 30 이하면 반란을 일으킬 확률이 오릅니다,2,1,1
+8,ambitious,야심가,Personality,"성장 +15%, 이적이나 해방을 요구합니다",3,0,0
+9,late_bloomer,늦게 피는 꽃,Personality,전성기가 3년 늦게 시작하고 늦게 끝납니다,2,0,1
+10,prodigy,조숙,Personality,"성장기에는 성장 +30%, 대신 전성기가 짧습니다",2,0,1
+11,open_minded,편견 없음,Personality,다른 종족을 가리지 않습니다,3,0,0
+12,homesick,향수병,Personality,출신국 밖에서는 매주 사기 -2,3,1,0
+13,crowd_darling,관중의 총아,Combat,"쇼맨십 +3, 인기가 2배 빨리 오릅니다",1,0,0
+14,executioner,처형자,Combat,사투에서 이기면 관중이 더 크게 열광합니다,0,0,0
+15,deathless,불사신,Combat,"시즌당 1회, 죽을 고비를 넘기고 살아남습니다",0,0,0
+16,shadow,그림자,Combat,첫 3턴 회피 +20%,2,0,0
+17,iron_jaw,강철 턱,Combat,기절하지 않습니다,2,0,0
+18,glass_jaw,유리 턱,Combat,기절 확률 2배,2,1,1
+19,ambidextrous,양손잡이,Combat,쌍수 무기를 써도 불이익이 없습니다,2,0,0
+20,scarred,흉터투성이,Body,"인기 +5, 상대 투지 -1",1,0,0
+21,one_eyed,외눈,Body,"정확도 -3, 침착 +1",1,1,0
+22,injury_prone,부상 체질,Body,부상 확률 +50%,2,1,1
+23,ironman,철인,Body,피로가 절반만 쌓입니다,2,0,0
+24,lame,절름발이,Body,"무릎 부상 후유증이 남았습니다. 민첩 -3, 회피 -2",0,1,0
+25,academy,학당 출신,Personality,"루두스 학당에서 자랐습니다. 충성 +3, 사기가 쉽게 꺾이지 않습니다",0,0,0
+26,war_hero,전쟁 영웅,Combat,"전장에서 이름을 떨쳤습니다. 리더십 +2, 투지 +1",0,0,0

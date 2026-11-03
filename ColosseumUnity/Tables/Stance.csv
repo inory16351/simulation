@@ -1,0 +1,9 @@
+stance,name,desc
+enum:Stance,string,string
+자세,이름,설명
+Assault,맹공,쉴 새 없이 몰아칩니다. 방어는 뒷전
+Balanced,균형,상황을 보며 싸웁니다
+Bulwark,철벽,막고 버티며 상대가 지치길 기다립니다. 받는 피해 감소
+Harass,견제,거리를 지키며 치고 빠집니다
+Showman,쇼맨십,관중을 홀립니다. 미시오에서 목숨을 건질 보험
+Blitz,속전속결,비싼 기술을 초반에 몰아 씁니다

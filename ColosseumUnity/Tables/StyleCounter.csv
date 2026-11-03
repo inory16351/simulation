@@ -1,0 +1,22 @@
+style,counter
+string,string
+Style.key,상성상 이기는 Style.key
+murmillo,dimachaerus
+murmillo,thraex
+secutor,retiarius
+retiarius,murmillo
+retiarius,crusher
+thraex,retiarius
+thraex,hoplomachus
+hoplomachus,secutor
+hoplomachus,pankratiast
+dimachaerus,sorcerer
+dimachaerus,hoplomachus
+pankratiast,sorcerer
+pankratiast,runeblade
+crusher,murmillo
+crusher,secutor
+runeblade,secutor
+runeblade,dimachaerus
+sorcerer,crusher
+sorcerer,murmillo

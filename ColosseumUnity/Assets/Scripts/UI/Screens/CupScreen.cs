@@ -11,7 +11,7 @@ namespace Colosseum.UI
 {
     public class CupScreen : ScreenBase
     {
-        static readonly string[] Positions = { "선봉", "중견", "대장" };
+        static readonly string[] Positions = { "출전 1", "출전 2", "출전 3" };
         static readonly string[] Stages = { "qf", "sf", "final" };
         static readonly Color Neg = new Color32(0xd9, 0xa2, 0x9b, 0xff);
 
@@ -118,7 +118,7 @@ namespace Colosseum.UI
                 var r = ranking[i];
                 row.GetComponent<Image>().color = r.nation == S.nation ? new Color(0.89f, 0.6f, 0.23f, 0.08f) : Color.clear;
                 row.Find("Nation/Crest").GetComponent<Image>().sprite = Resources.Load<Sprite>("Art/crest/" + r.nation);
-                T(row, "Nation/Name").text = Data.Nation(r.nation).name;
+                T(row, "Nation/Name").text = Tips.Nation(r.nation);
                 T(row, "Recent").text = S.coefficients != null && S.coefficients.TryGetValue(r.nation, out var list) ? string.Join(" · ", list) : "";
                 T(row, "Sum").text = r.coef.ToString();
                 T(row, "Slots").text = r.slots.ToString();
@@ -173,7 +173,7 @@ namespace Colosseum.UI
 
             // 토너먼트
             champion.gameObject.SetActive(!string.IsNullOrEmpty(cup.champion));
-            champion.text = !string.IsNullOrEmpty(cup.champion) && S.ludi.TryGetValue(cup.champion, out var ch) ? $"우승: {ch.name}" : "";
+            champion.text = !string.IsNullOrEmpty(cup.champion) && S.ludi.TryGetValue(cup.champion, out var ch) ? $"우승: {Tips.Ludus(ch)}" : "";
             for (int si = 0; si < Stages.Length; si++)
             {
                 string stage = Stages[si];
@@ -203,7 +203,7 @@ namespace Colosseum.UI
             var name = holder.Find("Name").GetComponent<TMP_Text>();
             if (!S.ludi.TryGetValue(id ?? "", out var l)) { name.text = prefix + "?"; return; }
             holder.Find("Crest").GetComponent<Image>().sprite = Resources.Load<Sprite>("Art/crest/" + l.nation);
-            name.text = prefix + l.name + suffix;
+            name.text = prefix + Tips.Ludus(l) + suffix;
             name.color = l.isPlayer ? Theme.Torch : Theme.Parchment;
             name.fontStyle = l.isPlayer ? FontStyles.Bold : FontStyles.Normal;
         }

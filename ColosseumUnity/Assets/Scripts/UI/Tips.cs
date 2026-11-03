@@ -1,0 +1,218 @@
+// 마우스를 올리면 설명이 뜨는 글자 (웹판 common.tsx RaceTag/StyleTag).
+// TMP <link="race:id">·<link="style:id">로 감싸 두면 TipLayer가 알아서 툴팁을 띄우고,
+// <link="g:id">로 감싼 검투사 이름은 누르면 팝업 카드가 뜬다.
+using System.Collections.Generic;
+using System.Linq;
+using Colosseum.Core;
+using UnityEngine;
+
+namespace Colosseum.UI
+{
+    public static class Tips
+    {
+        /// <summary>종족 이름 (툴팁 링크)</summary>
+        public static string Race(string id) => $"<link=\"race:{id}\">{Data.Race(id)?.name ?? id}</link>";
+
+        /// <summary>스타일 이름 (툴팁 링크)</summary>
+        public static string Style(string id) => $"<link=\"style:{id}\">{Data.Style(id)?.name ?? id}</link>";
+
+        /// <summary>검투사 이름 (누르면 팝업)</summary>
+        public static string Name(Gladiator g) => g == null ? "" : $"<link=\"g:{g.id}\">{g.name}</link>";
+
+        /// <summary>나라 이름 (누르면 나라 카드)</summary>
+        public static string Nation(string id, bool shortName = false) =>
+            id == null ? "" : $"<link=\"nation:{id}\">{(shortName ? Data.Nation(id).@short : Data.Nation(id).name)}</link>";
+
+        /// <summary>루두스 이름 (누르면 루두스 카드)</summary>
+        public static string Ludus(Ludus l) => l == null ? "무소속" : $"<link=\"ludus:{l.id}\">{l.name}</link>";
+        public static string Ludus(string id, string name) => id == null ? (name ?? "") : $"<link=\"ludus:{id}\">{name}</link>";
+
+        /// <summary>대회 이름 (누르면 대회 카드): 판테온 컵</summary>
+        public static string Cup() => $"<link=\"comp:cup\">{Honours.CupName}</link>";
+
+        /// <summary>대회 이름 (누르면 대회 카드): 나라·부 리그</summary>
+        public static string League(string nation, int tier) => $"<link=\"comp:league:{nation}:{tier}\">{Honours.LeagueName(nation, tier)}</link>";
+
+        /// <summary>장비 이름 (등급 색, 올리면 성능, 누르면 장비 카드)</summary>
+        public static string Item(string id) => string.IsNullOrEmpty(id) ? "" : $"<link=\"item:{id}\">{Widgets.ItemLabel(id)}</link>";
+
+        /// <summary>링크 id에 맞는 툴팁 글. 툴팁 없이 누르기만 하는 링크면 null</summary>
+        public static string For(string link)
+        {
+            int i = link.IndexOf(':');
+            if (i < 0) return null;
+            string kind = link.Substring(0, i), id = link.Substring(i + 1);
+            return kind switch
+            {
+                "race" => RaceText(id), "style" => StyleText(id), "item" => ItemTip(id),
+                "nation" => $"<b>{Data.Nation(id).name}</b>\n<color={Theme.Hex(Theme.TextDim)}>{Data.Nation(id).motif}</color>{More}",
+                "ludus" => LudusTip(id),
+                "comp" => $"<b>{(id == "cup" ? Honours.CupName : CompName(id))}</b>{More}",
+                "g" => GladiatorTip(id),
+                "skill" => SkillTip(id),
+                "trait" => TraitTip(id),
+                "dungeon" => DungeonTip(id),
+                "status" => StatusTip(id),
+                _ => null,
+            };
+        }
+
+        // ── 특성·던전·상태 ──
+
+        /// <summary>특성 이름 링크. color가 있으면 그 색으로 (나쁜 특성 붉게 등)</summary>
+        public static string Trait(string id, string color = null)
+        {
+            string n = Data.Trait(id)?.name ?? id;
+            return $"<link=\"trait:{id}\">{(color != null ? $"<color={color}>{n}</color>" : n)}</link>";
+        }
+
+        public static string TraitTip(string id)
+        {
+            var t = Data.Trait(id);
+            return t == null ? null : $"<b>{t.name}</b>  <color={Theme.Hex(Theme.TextDim)}>{(t.cat == "personality" ? "성격" : t.cat == "combat" ? "전투" : "몸")}{(t.negative ? " · 나쁨" : "")}</color>\n{t.desc}";
+        }
+
+        public static string Dungeon(string id) => $"<link=\"dungeon:{id}\">{DungeonLogic.GetDungeon(id).name}</link>";
+
+        public static string DungeonTip(string id)
+        {
+            var d = DungeonLogic.Dungeons.FirstOrDefault(x => x.id == id);
+            return d == null ? null : $"<b>{d.name}</b>  <color={Theme.Hex(Theme.TextDim)}>{d.tier}등급 · {d.floors}층 · {d.days}일</color>\n{d.desc}{More}";
+        }
+
+        /// <summary>상태 이상 링크 (표의 Status 키, 예: Bleed)</summary>
+        public static string Status(string key)
+        {
+            var s = SkillBook.Statuses.TryGetValue(key, out var r) ? r : null;
+            return s == null ? key : $"<link=\"status:{key}\">{s.name}</link>";
+        }
+
+        public static string StatusTip(string key)
+        {
+            if (!SkillBook.Statuses.TryGetValue(key, out var s)) return null;
+            string fx = string.Join(" · ", SkillBook.EffectsOfStatus(s).Select(EffectLine));
+            return $"<b>{s.name}</b>  <color={Theme.Hex(Theme.TextDim)}>{(s.kind == "Buff" ? "강화" : s.kind == "Control" ? "제압" : "약화")} · 최대 {s.maxDuration}라운드</color>\n{s.desc}\n<color={Theme.Hex(Theme.TextFaint)}>{fx}</color>";
+        }
+
+        // ── 기술 (기술 테이블) ──
+
+        public static string Skill(string id) => $"<link=\"skill:{id}\">{SkillBook.Row(id)?.name ?? Data.Skill(id)?.name ?? id}</link>";
+
+        public static Sprite SkillIcon(string id)
+        {
+            var r = SkillBook.Row(id);
+            return r != null ? Resources.Load<Sprite>("Art/icon/" + r.icon) : null;
+        }
+
+        static readonly Dictionary<string, string> SkillTypeNames = new() { ["Active"] = "능동", ["Reaction"] = "반응", ["Passive"] = "상시" };
+        static readonly Dictionary<string, string> TriggerText = new()
+        {
+            ["Always"] = "늘", ["OnTurn"] = "내 차례에", ["OnMatchStart"] = "경기 시작에", ["OnRoundAtLeast"] = "{0}라운드부터", ["OnHpBelow"] = "내 HP {0:0%} 이하일 때",
+            ["OnOppHpBelow"] = "상대 HP {0:0%} 이하일 때", ["OnStaBelow"] = "기력 {0:0%} 이하일 때", ["OnOppDisabled"] = "상대가 묶이거나 넘어졌을 때", ["OnAttackHit"] = "공격이 맞을 때",
+            ["OnCrit"] = "치명타일 때", ["OnParry"] = "흘려냈을 때", ["OnBlock"] = "방패로 막았을 때", ["OnDodge"] = "피했을 때", ["OnDamaged"] = "맞았을 때",
+            ["OnAllyDown"] = "동료가 쓰러졌을 때", ["OnAllyHpBelow"] = "동료 HP {0:0%} 이하일 때",
+        };
+        static readonly Dictionary<string, string> EffectText = new()
+        {
+            ["Damage"] = "피해", ["ExtraHit"] = "추가 타격", ["MagicDamage"] = "주술 피해", ["Heal"] = "HP 회복", ["RestoreSta"] = "기력 회복", ["Momentum"] = "기세", ["Crowd"] = "관중",
+            ["HitMod"] = "명중", ["CritMod"] = "치명타", ["PierceMod"] = "관통", ["BlockMod"] = "막기", ["EvadeMod"] = "회피", ["DamageMod"] = "주는 피해", ["DamageTakenMod"] = "받는 피해",
+            ["CounterMod"] = "되받아치기", ["MercyMod"] = "관중 자비", ["CloseIn"] = "거리 좁히기", ["Disengage"] = "거리 벌리기", ["AutoHit"] = "반드시 명중", ["Endure"] = "치명상 버팀",
+        };
+        static readonly Dictionary<string, string> StatusText = new()
+        {
+            ["Stun"] = "기절", ["Prone"] = "넘어짐", ["Bound"] = "속박", ["Grappled"] = "붙잡힘", ["Blinded"] = "실명", ["Poison"] = "중독", ["Bleed"] = "출혈", ["Weakened"] = "쇠약",
+            ["ArmorBreak"] = "갑옷 깨짐", ["Exposed"] = "빈틈", ["Hobbled"] = "다리 부상", ["ArmWound"] = "팔 부상", ["Guard"] = "방어 태세", ["EvadeUp"] = "회피 태세", ["Flame"] = "화염 무기",
+            ["Ward"] = "수호막", ["Adapt"] = "임기응변", ["WindStep"] = "바람 걸음", ["EarthStance"] = "대지 버팀", ["Enraged"] = "격노",
+        };
+
+        static string EffectLine(SkillBook.EffectRow e)
+        {
+            string who = e.target switch { "Self" => "", "Enemy" => "상대 ", "Ally" => "동료 ", "AllAllies" => "우리 편 ", _ => "" };
+            string chance = e.chance < 1 ? $" ({e.chance:0%})" : "";
+            if (e.effect == "ApplyStatus") return $"{who}{(SkillBook.Statuses.ContainsKey(e.status) ? Status(e.status) : StatusText.TryGetValue(e.status, out var sn) ? sn : e.status)} {e.duration}라운드{chance}";
+            if (e.effect == "StatMod") return $"{Attrs.Names.GetValueOrDefault(e.stat.ToLowerInvariant(), e.stat)} {e.value:+0;-0} ({e.duration}라운드)";
+            string name = EffectText.TryGetValue(e.effect, out var n) ? n : e.effect;
+            string v = e.valueType switch
+            {
+                "Multiplier" => $"×{e.value:0.##}",
+                "Additive" => $"{e.value * 100:+0;-0}%",
+                "PercentMax" => $"최대치의 {e.value:0%}",
+                "PerStat" => $"{Attrs.Names.GetValueOrDefault(e.stat.ToLowerInvariant(), e.stat)}×{e.value:0.##}",
+                _ => e.effect is "CloseIn" or "Disengage" or "AutoHit" ? "" : $"{e.value:+0;-0}",
+            };
+            return $"{who}{name} {v}{chance}".Trim();
+        }
+
+        public static string SkillTip(string id)
+        {
+            var r = SkillBook.Row(id);
+            string dim = Theme.Hex(Theme.TextDim), faint = Theme.Hex(Theme.TextFaint);
+            if (r == null) return $"<b>{Data.Skill(id)?.name ?? id}</b>";
+            string when = TriggerText.TryGetValue(r.trigger, out var t) ? string.Format(t, r.triggerValue) : r.trigger;
+            var cost = new List<string>();
+            if (r.cooldown > 0 && r.cooldown < 99) cost.Add($"쿨타임 {r.cooldown}라운드");
+            if (r.cooldown >= 99) cost.Add("경기에 한 번");
+            if (r.sta > 0) cost.Add($"기력 {r.sta}");
+            if (r.mana > 0) cost.Add($"마나 {r.mana}");
+            if (r.type != "Passive") cost.Add($"발동 {r.procRate:0%}{(r.procStat != "None" ? $" + {Attrs.Names.GetValueOrDefault(r.procStat.ToLowerInvariant(), r.procStat)}" : "")}");
+            string fx = string.Join(" · ", SkillBook.EffectsOf(r).Select(EffectLine));
+            return $"<b>{r.name}</b>  <color={dim}>{SkillTypeNames.GetValueOrDefault(r.type, r.type)} · {new string('★', r.tier)}</color>\n{r.desc}\n" +
+                   $"<color={Theme.Hex(Theme.BronzeHi)}>{when}</color> {fx}\n<color={faint}>{string.Join(" · ", cost)}</color>";
+        }
+
+        static string More =>$"\n<size=85%><color={Theme.Hex(Theme.TextFaint)}>눌러서 자세히</color></size>";
+
+        static string CompName(string id)
+        {
+            var p = id.Split(':');
+            return p.Length == 3 && int.TryParse(p[2], out int t) ? Honours.LeagueName(p[1], t) : id;
+        }
+
+        static string LudusTip(string id)
+        {
+            var s = GameController.I?.State;
+            if (s == null || !s.ludi.TryGetValue(id, out var l)) return null;
+            return $"<b>{l.name}</b>\n<color={Theme.Hex(Theme.TextDim)}>{Data.Nation(l.nation).@short} {l.tier}부 · RP {l.rp} · {l.record.wins}승 {l.record.losses}패</color>{More}";
+        }
+
+        static string GladiatorTip(string id)
+        {
+            var s = GameController.I?.State;
+            if (s == null || !s.gladiators.TryGetValue(id, out var g)) return null;
+            return $"<b>{g.name}</b>\n<color={Theme.Hex(Theme.TextDim)}>{Data.Race(g.race)?.name} · {Data.Style(g.style)?.name} · {g.age}세</color>\n<size=85%><color={Theme.Hex(Theme.TextFaint)}>눌러서 카드 보기</color></size>";
+        }
+
+        public static string ItemTip(string id) =>
+            $"<b>{Widgets.ItemLabel(id)}</b>  <color={Theme.Hex(Theme.TextDim)}>{GearLogic.ItemKindNames.GetValueOrDefault(GearLogic.ItemKind(id) ?? "", "")}</color>\n{GearLogic.ItemStats(id)}{UniqueLines(id)}{More}";
+
+        /// <summary>고유 장비 효과 줄 (툴팁)</summary>
+        static string UniqueLines(string id)
+        {
+            var u = Uniques.Of(id);
+            return u == null ? "" : "\n" + string.Join("\n", u.effects.Select(e => $"<color={Theme.Hex(Theme.Torch)}>◆</color> {Uniques.Describe(e)}"));
+        }
+
+        public static string RaceText(string id)
+        {
+            var r = Data.Race(id);
+            if (r == null) return null;
+            string dim = Theme.Hex(Theme.TextDim);
+            string mods = string.Join(", ", r.attrMods.Select(kv => $"{(Attrs.Names.TryGetValue(kv.Key, out var n) ? n : kv.Key)} {(kv.Value > 0 ? "+" : "")}{kv.Value}"));
+            return $"<b>{r.name}</b>\n<color={Theme.Hex(Theme.BronzeHi)}>◆ {r.racialTrait.name}</color>: {r.racialTrait.desc}\n" +
+                $"<color={dim}>능력치</color> {(mods.Length > 0 ? mods : "보정 없음")}\n" +
+                $"<color={dim}>나이</color> 데뷔 {r.age.debut}세 · 전성기 {r.age.growthEnd + 1}~{r.age.primeEnd}세 · 은퇴 무렵 {r.age.retire}세" +
+                (r.wageMult != 1 ? $"\n<color={dim}>주급</color> ×{r.wageMult}" : "");
+        }
+
+        public static string StyleText(string id)
+        {
+            var s = Data.Style(id);
+            if (s == null) return null;
+            string strong = string.Join(", ", s.counters.Select(c => Data.Style(c)?.name ?? c));
+            string weak = string.Join(", ", Data.Styles.Where(o => o.counters.Contains(id)).Select(o => o.name));
+            return $"<b>{s.name}</b>\n{s.desc}" +
+                (strong.Length > 0 ? $"\n<color={Theme.Hex(Theme.Good)}>유리한 상대</color> {strong}" : "") +
+                (weak.Length > 0 ? $"\n<color=#d9a29b>불리한 상대</color> {weak}" : "");
+        }
+    }
+}

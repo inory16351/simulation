@@ -73,6 +73,8 @@ namespace Colosseum.Core
                 Economy.WeeklyFreeAgents(state, rng);
                 GearLogic.RefreshGearMarket(state, rng, state.gearMarket == null || state.gearMarket.Count == 0);
                 DungeonLogic.WeeklyQuests(state, rng);
+                // 기술 습득 판정 (기술 테이블, 주 1회)
+                SkillBook.WeeklyLearn(state, rng);
             }
 
             // 3. 훈련과 회복 (모든 루두스)
@@ -134,7 +136,7 @@ namespace Colosseum.Core
                 double days = at - player.bankruptSince.Value;
                 double bankruptDays = (double)Bal.Economy["bankruptDays"];
                 if (days >= bankruptDays) state.gameOver = "파산: 채권자들이 루두스를 압류했습니다.";
-                else if (days == 0) Msg(state, "warning", "금고가 바닥났습니다", $"{Num(bankruptDays)}일 안에 빚을 갚지 못하면 루두스를 압류당합니다. 검투사를 팔거나 경기로 돈을 버십시오.");
+                else if (days == 0) Msg(state, "warning", "금고가 바닥났습니다", $"{Num(bankruptDays)}일 안에 빚을 갚지 못하면 루두스를 압류당합니다. 검투사를 팔거나 경기로 돈을 벌어야 합니다.");
             }
             else player.bankruptSince = null;
 
@@ -278,6 +280,8 @@ namespace Colosseum.Core
             var finalRank = new Dictionary<string, int>();
             for (int i = 0; i < t1.Count; i++) finalRank[t1[i].id] = i + 1;
             for (int i = 0; i < t2.Count; i++) finalRank[t2[i].id] = i + 1;
+            // 역대 기록 (Unity판): 승강을 반영하기 전 순위로
+            Honours.RecordSeason(state, promoted, relegated);
             foreach (var l in promoted) { l.tier = 1; l.rp = Math.Max(l.rp, L("rpTier1") - 80); }
             foreach (var l in relegated) { l.tier = 2; l.rp = Math.Min(l.rp, L("rpTier2") + 80); }
 

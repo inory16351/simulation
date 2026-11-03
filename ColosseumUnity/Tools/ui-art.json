@@ -1,0 +1,23 @@
+{
+  "presets": {
+    "logo": "ONE wide image (16:9), flat solid MAGENTA background (#FF00FF) everywhere outside the artwork (no gradient, no frame, no shadow on the background).",
+    "ui": "ONE square image, flat solid MAGENTA background (#FF00FF) between the pieces (no gradient, no shadows on the background). No text, no labels, no icons."
+  },
+  "style": "Art style: FLAT simplified dark-fantasy graphic novel painted with gouache, matching the attached reference: bold black ink outlines, a few large flat shapes, 2-3 flat tones per material with loose dry-brush strokes, desaturated old bronze, dark leather and charcoal, warm torchlight from the left. NOT glossy, NOT photoreal, NOT vector, NOT cute.",
+  "styleRef": "art/source/style/flat_ref.png",
+  "styleRefPresets": ["logo", "ui"],
+  "items": [
+    {
+      "id": "logo",
+      "preset": "logo",
+      "out": "art/source/ui/logo.png",
+      "prompt": "Game title logo for a gladiator-management game: a centered heraldic emblem (a crested gladiator helmet over two crossed short swords inside a laurel wreath, dull bronze with ink outlines) and directly below it the words ARENA DOMINUS in large carved Roman capital letters (bronze, ink outline, slight chips), perfectly spelled A-R-E-N-A D-O-M-I-N-U-S. Everything centered, filling about 80% of the width, nothing touching the edges."
+    },
+    {
+      "id": "ui_frames",
+      "preset": "ui",
+      "out": "art/source/ui/ui_frames.png",
+      "prompt": "A UI kit sheet with exactly three separate pieces stacked vertically with wide magenta gaps between them, each piece perfectly rectangular, front-facing, no perspective, not rotated: 1) TOP third: a wide rectangular PANEL frame (about 3:2), thick hand-painted dull bronze border about 6% of the width with rivets only at the four corners, ink outline, the inside is a flat dark charcoal-brown painted surface with subtle dry-brush texture, EMPTY. 2) MIDDLE: a long horizontal BUTTON plate (about 6:1), bronze rim with ink outline, dark leather-brown inner surface, plain and empty. 3) BOTTOM: a long horizontal TITLE BAR strip (about 10:1), worn bronze plate with brushed texture and ink outline, plain and empty. All borders are even thickness on all sides so they can be 9-sliced."
+    }
+  ]
+}

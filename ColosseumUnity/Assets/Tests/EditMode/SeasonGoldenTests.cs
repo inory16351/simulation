@@ -19,10 +19,30 @@ namespace Colosseum.Tests
             Data.LoadFrom(n => File.ReadAllText($"Assets/Resources/Data/{n}.json"));
             // 웹판에는 경기장 좌표 규칙이 없다
             Colosseum.Core.Combat.Arena.Enabled = false;
+            SeriesLogic.Melee = false;
+            Honours.Enabled = false;
+            Uniques.Enabled = false;
+            // 웹판에는 지대 상성·높이 지시가 없다
+            Colosseum.Core.Combat.Exchange.Zones = false;
+            // 웹판에는 기술 테이블(습득·새 기술)이 없다
+            SkillBook.Enabled = false;
+            // Unity판은 이벤트를 덜 자주 터뜨린다. 골든은 웹판 확률로 뽑았다
+            Bal.Events["ludusPerDay"] = 0.12;
+            Bal.Events["gladiatorPerDay"] = 0.006;
+            Bal.Events["worldPerDay"] = 0.023;
         }
 
         [OneTimeTearDown]
-        public void TearDown() => Colosseum.Core.Combat.Arena.Enabled = true;
+        public void TearDown()
+        {
+            Colosseum.Core.Combat.Arena.Enabled = true;
+            SeriesLogic.Melee = true;
+            Honours.Enabled = true;
+            Uniques.Enabled = true;
+            Colosseum.Core.Combat.Exchange.Zones = true;
+            SkillBook.Enabled = true;
+            Data.LoadFrom(n => File.ReadAllText($"Assets/Resources/Data/{n}.json"));
+        }
 
         static List<string> AutoplayDay(GameState state, Rng rng)
         {

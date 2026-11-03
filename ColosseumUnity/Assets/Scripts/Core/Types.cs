@@ -51,7 +51,39 @@ namespace Colosseum.Core
     }
 
     public class Skills { public List<string> active = new(), passive = new(); }
-    public class Equipment { public string main, off, armor, helmet; }
+    public class Equipment
+    {
+        public string main, off, armor, helmet;
+        /// <summary>Unity판 전용 칸: 팔(팔보호대·팔갑), 다리(각반·정강이받이)</summary>
+        public string arms, legs;
+
+        /// <summary>칸 순서 (화면·전투 공용)</summary>
+        public static readonly string[] Slots = { "main", "off", "helmet", "armor", "arms", "legs" };
+
+        public string Get(string slot) => slot switch
+        {
+            "main" => main, "off" => off, "armor" => armor, "helmet" => helmet, "arms" => arms, "legs" => legs, _ => null,
+        };
+
+        public void Set(string slot, string v)
+        {
+            switch (slot)
+            {
+                case "main": main = v; break;
+                case "off": off = v; break;
+                case "armor": armor = v; break;
+                case "helmet": helmet = v; break;
+                case "arms": arms = v; break;
+                case "legs": legs = v; break;
+            }
+        }
+
+        /// <summary>낀 장비 전부 (빈 칸 빼고)</summary>
+        public IEnumerable<string> Items()
+        {
+            foreach (var s in Slots) { var v = Get(s); if (!string.IsNullOrEmpty(v)) yield return v; }
+        }
+    }
     public class Record { public int wins, losses, kills; }
     public class TrainingPlan { public string focus = "physical", intensity = "normal"; }
 
@@ -70,7 +102,24 @@ namespace Colosseum.Core
         public List<string> order = new();
         public List<DoctrineRule> rules = new();
         public bool allowSurrender = true;
+        /// <summary>노릴 높이 null(자동) | high | mid | low (Unity판, auto = 상대의 약한 방어 지대)</summary>
+        public string atkZone;
+        /// <summary>막을 높이 null(자동) | high | mid | low (auto = 상대 무기가 강한 지대)</summary>
+        public string guardZone;
         public double familiarity;
+    }
+
+    /// <summary>단체 전술 (Unity판): 3:3·5:5 난전에서 누구를 노리고 어디 설지. 자세·부위는 개인 교범 그대로</summary>
+    public class TeamTactic
+    {
+        /// <summary>focus | spread | weak | strong</summary>
+        public string policy = "focus";
+        /// <summary>집중 공격의 첫 목표 (상대 검투사 id). null이면 상대 중 가장 강한 자</summary>
+        public string focusTarget;
+        /// <summary>검투사 id → front | hunter | guard | harass. 없으면 자동</summary>
+        public Dictionary<string, string> roles = new();
+        /// <summary>호위가 지킬 우리 편 id. 없으면 가장 약한 동료</summary>
+        public Dictionary<string, string> guardOf = new();
     }
 
     public class Gladiator

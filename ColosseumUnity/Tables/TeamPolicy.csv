@@ -1,0 +1,7 @@
+policy,name,desc
+enum:TeamPolicy,string,string
+팀 방침,이름,설명
+Focus,집중 공격,여럿이 한 명씩 달려듭니다. 첫 목표를 지정할 수 있습니다
+Spread,분산,일대일로 흩어져 붙습니다
+Weak,약한 적 먼저,HP가 낮은 적부터 노립니다
+Strong,강한 적 먼저,가장 위험한 적부터 묶습니다

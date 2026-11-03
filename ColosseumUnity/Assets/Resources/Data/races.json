@@ -4,7 +4,7 @@
     "attrMods": {},
     "age": { "debut": 16, "growthEnd": 23, "primeEnd": 30, "retire": 36 },
     "growthMult": 1.1, "wageMult": 1.0, "upkeepMult": 1.0,
-    "racialTrait": { "name": "적응력", "desc": "훈련 효율 +10%. 어떤 무기군을 쓰든 숙련이 더디게 오르지 않습니다" },
+    "racialTrait": { "name": "적응력", "desc": "훈련 효율 +10%. 어떤 무기를 써도 숙련이 고르게 오릅니다" },
     "raceSkill": "skill.adapt"
   },
   {

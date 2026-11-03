@@ -107,7 +107,7 @@ namespace Colosseum.UI
 
             myList = alive;
             if (myId == null || myList.All(g => g.id != myId)) myId = myList.FirstOrDefault(g => ChallengeLogic.Availability(S, g) == null)?.id;
-            myLabel.text = format > 1 ? "선봉 (나머지 순서는 경기 날 정합니다)" : "우리 출전자";
+            myLabel.text = format > 1 ? "주장 (나머지 출전자는 경기 날 정합니다)" : "우리 출전자";
             Fill(mine, myList.Select(g => { var busy = ChallengeLogic.Availability(S, g); return FighterLabel(g) + (busy != null ? $" — {busy}" : ""); }),
                 myId == null ? 0 : myList.FindIndex(g => g.id == myId));
 
@@ -147,9 +147,9 @@ namespace Colosseum.UI
             outgoing.Sync(outs.Count, (row, i) =>
             {
                 var c = outs[i];
-                T(row, "Opp").text = S.ludi[c.to].name;
+                T(row, "Opp").text = Tips.Ludus(S.ludi[c.to]);
                 T(row, "Rule").text = RuleName(c.rule);
-                T(row, "Fighter").text = S.gladiators[c.fromGladiator].name;
+                T(row, "Fighter").text = Tips.Name(S.gladiators[c.fromGladiator]);
             });
         }
 
@@ -160,9 +160,9 @@ namespace Colosseum.UI
             var ready = alive.Where(g => ChallengeLogic.Availability(S, g, at) == null).ToList();
             if (!defenders.TryGetValue(c.id, out var pick) || ready.All(g => g.id != pick)) pick = ready.FirstOrDefault()?.id;
 
-            T(row, "Opp").text = $"{from.name} <size=80%><color={Theme.Hex(Theme.TextDim)}>RP {from.rp}</color></size>";
+            T(row, "Opp").text = $"{Tips.Ludus(from)} <size=80%><color={Theme.Hex(Theme.TextDim)}>RP {from.rp}</color></size>";
             row.GetComponentInChildren<PortraitView>(true).Show(their);
-            T(row, "Their/Name").text = $"{their.name} <color={Theme.Hex(Theme.Torch)}>{Widgets.Stars(GladiatorRules.ComputeCA(their))}</color>";
+            T(row, "Their/Name").text = $"{Tips.Name(their)} <color={Theme.Hex(Theme.Torch)}>{Widgets.Stars(GladiatorRules.ComputeCA(their))}</color>";
             var rt = T(row, "Rule");
             rt.text = RuleLabel(c);
             rt.color = c.rule == "sudden" ? Neg : Theme.Text;
@@ -202,8 +202,8 @@ namespace Colosseum.UI
             var rt = T(row, "Rule");
             rt.text = RuleLabel(c);
             rt.color = c.rule == "sudden" ? Neg : Theme.Text;
-            T(row, "Desc").text = c.format is int f && f != 0 ? $"{Josa.J(opp.name, "과/와")} 단체전 (선봉 {me?.name ?? "미정"})" : $"{me?.name} vs {them?.name}";
-            T(row, "Opp").text = opp.name;
+            T(row, "Desc").text = c.format is int f && f != 0 ? $"{Josa.J(opp.name, "과/와")} 단체전 (주장 {me?.name ?? "미정"})" : $"{me?.name} vs {them?.name}";
+            T(row, "Opp").text = Tips.Ludus(opp);
             var go = row.Find("Go").GetComponent<Button>();
             go.gameObject.SetActive(today);
             go.onClick.RemoveAllListeners();

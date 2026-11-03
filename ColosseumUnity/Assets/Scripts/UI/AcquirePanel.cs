@@ -109,7 +109,7 @@ namespace Colosseum.UI
             if (gid == null || !S.gladiators.TryGetValue(gid, out var g)) return;
             var owner = Career.LudusOf(S, g.id);
             bool free = S.freeAgents.Contains(g.id);
-            title.text = "◆  " + (free ? "무소속 — 영입 협상" : $"{owner?.name} 소속 — 이적");
+            title.text = "◆  " + (free ? "무소속 — 영입 협상" : $"{Tips.Ludus(owner)} 소속 — 이적");
 
             double k = Scouting.KnowledgeOf(S, g);
             bool scouting = Scouting.ScoutingOf(S).assignments.Contains(g.id);
@@ -135,7 +135,7 @@ namespace Colosseum.UI
             {
                 var d = Economy.FreeAgentDemand(S, g);
                 freeHint.text = d.refuse
-                    ? $"<color=#d9a29b>관심 없음 · {d.reason}</color> <color={Theme.Hex(Theme.TextFaint)}>루두스 명성이 오르면 협상에 응합니다</color>"
+                    ? $"<color=#d9a29b>거절 · {d.reason}</color> <color={Theme.Hex(Theme.TextFaint)}>루두스 명성이 오르면 협상에 응합니다</color>"
                     : $"계약금은 제안 주급의 4주치로, {Economy.SigningFee(d.wage):N0} D 안팎입니다. {d.reason}";
                 want.text = $"요구 주급 {d.wage} D";
                 for (int i = 0; i < seasons.Count; i++)

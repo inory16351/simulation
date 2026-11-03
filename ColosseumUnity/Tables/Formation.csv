@@ -1,0 +1,7 @@
+formation,name,desc,dealt,taken,ranged,focus
+enum:Formation,string,string,float,float,float,enum:FormationFocus
+진형 (던전),이름,설명,주는 피해 배율,받는 피해 배율,원거리 배율,노리는 적
+Shieldwall,방패벽,전열 3·후열 2. 받는 피해가 줄지만 느리게 이깁니다,0.9,0.8,1,Front
+Wedge,쐐기,중앙 돌파. 약한 적부터 몰아칩니다. 받는 피해도 늘어납니다,1.2,1.1,1,Weakest
+Flank,포위,양 날개 전진. 수가 많을수록 강합니다,1,1,1,Strongest
+Spread,산개,흩어져 싸웁니다. 투척·창·주술이 강해지고 근접은 약해집니다,0.95,1,1.3,Front

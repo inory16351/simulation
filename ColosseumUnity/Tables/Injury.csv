@@ -1,0 +1,19 @@
+id,key,name,part,tier,days_min,days_max,permanent
+int,string,string,enum:BodyPart,enum:InjuryTier,int,int,float
+고유 번호,코드 키,이름,부위,정도,회복 최소 (일),회복 최대 (일),후유증 확률
+1,bruise,타박상,Torso,Minor,3,6,0
+2,cut_arm,팔이 베임,Arm,Minor,4,8,0
+3,sprain,발목 삠,Leg,Minor,5,10,0
+4,split_brow,찢어진 눈썹,Head,Minor,3,7,0.03
+5,cracked_rib,금 간 갈비뼈,Torso,Minor,7,12,0
+6,broken_ribs,갈비뼈 골절,Torso,Moderate,21,35,0.06
+7,deep_thigh,깊게 베인 허벅지,Leg,Moderate,18,30,0.08
+8,broken_arm,팔 골절,Arm,Moderate,28,42,0.1
+9,concussion,뇌진탕,Head,Moderate,10,20,0.05
+10,dislocated,어깨 탈구,Arm,Moderate,14,24,0.05
+11,gashed_face,얼굴이 찢어짐,Head,Moderate,12,20,0.35
+12,skull,두개골 골절,Head,Severe,40,70,0.3
+13,torn_knee,무릎 인대 파열,Leg,Severe,50,90,0.45
+14,eye,눈을 다침,Eye,Severe,30,50,0.4
+15,severed_fingers,손가락이 잘림,Arm,Severe,30,45,1
+16,gut_wound,배를 찔림,Torso,Severe,35,60,0.2

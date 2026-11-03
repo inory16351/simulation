@@ -1,0 +1,24 @@
+id,key,name,slot,weight,defense,agi_penalty,sta_cost,crowd,acc_penalty,block,net_resist,show_bonus
+int,string,string,enum:ItemSlot,enum:ArmorWeight,int,float,float,float,int,float,float,int
+고유 번호,코드 키,이름,칸,무게,방어,민첩 감소,기력 소모 비율,관중 호감 비율,정확도 감소,막기 (방패),그물 저항,쇼맨십 보너스
+201,loincloth,천 허리감개,Armor,Light,0,0,0,0.1,0,0,0,0
+202,leather,가죽 갑옷,Armor,Light,3,0,0.05,0.05,0,0,0,0
+203,manica,마니카,Armor,Light,1,0,0,0.05,0,0,0,0
+204,chainmail,사슬 갑옷,Armor,Medium,6,1,0.15,0,0,0,0,0
+205,scale,비늘 갑옷,Armor,Medium,7,1,0.15,0,0,0,0,0
+206,muscle_cuirass,근육갑,Armor,Heavy,9,2,0.25,-0.05,0,0,0,0
+207,plate,판금 갑옷,Armor,Heavy,12,3,0.35,-0.1,0,0,0,0
+208,open_helm,개방형 투구,Helmet,None,1,0,0,0,0,0,0,0
+209,brimmed_helm,챙 투구,Helmet,None,2,0,0,0,0,0,0,0
+210,sealed_helm,밀폐 투구,Helmet,None,4,0,0,0,1,0,0.3,0
+211,crested_helm,볏 투구,Helmet,None,2,0,0,0,0,0,0,2
+212,parmula,소방패,Shield,Light,0,0,0,0,0,0.1,0,0
+213,aspis,원형방패,Shield,Medium,0,0,0,0,0,0.2,0,0
+214,scutum,대방패,Shield,Heavy,0,0,0,0,0,0.35,0,0
+215,leather_bracer,가죽 팔보호대,Arms,Light,1,0,0,0,0,0,0,0
+216,bronze_vambrace,청동 팔갑,Arms,Medium,2,0,0,0,0,0,0,0
+217,chain_sleeve,사슬 소매,Arms,Medium,2,0.5,0,0,0,0,0,0
+218,plate_vambrace,판금 팔갑,Arms,Heavy,3,1,0,0,0,0,0,0
+219,leather_greaves,가죽 각반,Legs,Light,1,0,0,0,0,0,0,0
+220,ocrea,청동 정강이받이,Legs,Medium,2,0,0,0,0,0,0,0
+221,plate_greaves,판금 다리갑,Legs,Heavy,3,1,0,0,0,0,0,0

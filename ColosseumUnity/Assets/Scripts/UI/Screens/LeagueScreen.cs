@@ -60,7 +60,7 @@ namespace Colosseum.UI
                 row.GetComponent<Image>().color = l.isPlayer ? new Color(0.89f, 0.6f, 0.23f, 0.08f) : Color.clear;
                 T(row, "Rank").text = (i + 1).ToString();
                 var name = T(row, "Name");
-                name.text = l.name;
+                name.text = Tips.Ludus(l);
                 name.fontStyle = l.isPlayer ? FontStyles.Bold : FontStyles.Normal;
                 T(row, "Personality").text = l.isPlayer ? "—" : PersonalityNames.TryGetValue(l.aiPersonality ?? "", out var p) ? p : l.aiPersonality;
                 T(row, "Count").text = alive.Count.ToString();

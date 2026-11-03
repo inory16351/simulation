@@ -25,9 +25,10 @@ namespace Colosseum.Core.Combat
     /// 거리 단계(0 근접·1 중거리·2 원거리)는 두 사람 사이 실제 거리에서 나온다.</summary>
     public static class Arena
     {
-        public const double CX = 200, CY = 82;
-        /// <summary>말이 설 수 있는 타원 (모래 타원 188×76에서 말 반지름만큼 안쪽)</summary>
-        public const double RX = 172, RY = 60;
+        /// <summary>모래 마당 가운데: 탑뷰 경기장 그림(Resources/Art/ui/arena_crowd.png)의 모래 타원 가운데에 맞췄다</summary>
+        public const double CX = 197, CY = 77;
+        /// <summary>말이 설 수 있는 타원 (그림의 모래 타원 반지름 162×60에서 말 반지름만큼 안쪽)</summary>
+        public const double RX = 146, RY = 46;
         /// <summary>거리 단계 경계: 이보다 가까우면 근접, 그다음은 중거리</summary>
         public const double CloseMax = 40, MidMax = 85;
         /// <summary>단계를 바꿀 때 서는 간격</summary>
@@ -52,6 +53,8 @@ namespace Colosseum.Core.Combat
         public bool noDeath;
         public double? missioDeathMult;
         public double?[] startHp;
+        /// <summary>난전 단체 전술 [편0, 편1]. null이면 예전처럼 가까운·약한 적</summary>
+        public TeamTactic[] teamTactics;
     }
 
     public class MatchResult
@@ -62,12 +65,29 @@ namespace Colosseum.Core.Combat
         public double crowd;
         public Dictionary<string, double> damageDealt, crowdContribution, hpLeft;
         public Dictionary<string, Injury> injuries;
+
+        // ── 난전(Unity판 전용, Sim.RunTeam)만 채운다. 1:1이면 null ──
+        /// <summary>양쪽 검투사 id. 경기장 좌표 pos는 sides[0] 다음 sides[1] 순서</summary>
+        public List<string>[] sides;
+        /// <summary>이긴 쪽 0 | 1</summary>
+        public int winnerSide = -1;
+        /// <summary>쓰러진 순서대로 (쓰러진 자 → 쓰러뜨린 자)</summary>
+        public List<KeyValuePair<string, string>> downs;
+        /// <summary>죽은 검투사들 (died는 그중 첫 번째)</summary>
+        public List<string> deaths;
+        public bool IsTeam => sides != null;
     }
 
     class Fighter
     {
         public Gladiator g;
         public int idx;
+        /// <summary>편 (1:1이면 idx와 같다)</summary>
+        public int side;
+        /// <summary>노리는 상대 (1:1이면 맞은편)</summary>
+        public Fighter target;
+        /// <summary>난전에서 쓰러졌다</summary>
+        public bool down;
         public double hp, maxHp, sta, maxSta, mana, momentum;
         // 순서가 있는 상태/쿨다운 (JS Map처럼 넣은 순서를 지킨다)
         public List<string> statusKeys = new();
@@ -76,6 +96,10 @@ namespace Colosseum.Core.Combat
         public Dictionary<string, double> cooldowns = new();
         public WeaponDef main, off;
         public ArmorDef shield, armor, helmet;
+        /// <summary>Unity판: 팔·다리 보호구, 고유 장비 효과 합 (Uniques)</summary>
+        public ArmorDef arms, legs;
+        public Dictionary<string, double> fx = new();
+        public double Fx(string k) => fx.TryGetValue(k, out var v) ? v : 0;
         public double ammo;
         public bool netReady;
         public double wardHp;
@@ -110,6 +134,8 @@ namespace Colosseum.Core.Combat
             cooldowns[s] = v;
         }
         public bool HasPassive(string id) => g.skills.passive.Contains(id);
+        /// <summary>사건에 반응하는 기술 (기술 테이블). 없으면 null</summary>
+        public List<SkillBook.SkillRow> reactions;
     }
 
     class AttackSpec
@@ -146,6 +172,15 @@ namespace Colosseum.Core.Combat
             ["assault"] = 1.35, ["balanced"] = 1, ["bulwark"] = 0.85, ["harass"] = 0.95, ["showman"] = 0.85, ["blitz"] = 1.15,
         };
 
+        /// <summary>장비 고유 효과 + 상시 기술 보정치를 더한다 (기술이 없으면 장비 사전 그대로)</summary>
+        static Dictionary<string, double> MergeFx(Dictionary<string, double> a, Dictionary<string, double> b)
+        {
+            if (b.Count == 0) return a;
+            var o = new Dictionary<string, double>(a);
+            foreach (var kv in b) o[kv.Key] = (o.TryGetValue(kv.Key, out var v) ? v : 0) + kv.Value;
+            return o;
+        }
+
         static Fighter MakeFighter(Gladiator g, int idx, Doctrine doctrine)
         {
             var main = Data.Weapon(g.equipment.main) ?? Data.Weapon("cestus");
@@ -165,6 +200,10 @@ namespace Colosseum.Core.Combat
                 main = main, off = offW,
                 shield = offA?.slot == "shield" ? offA : null,
                 armor = armor, helmet = helmet,
+                arms = Uniques.Enabled && g.equipment.arms != null ? Data.Armor(g.equipment.arms) : null,
+                legs = Uniques.Enabled && g.equipment.legs != null ? Data.Armor(g.equipment.legs) : null,
+                reactions = SkillBook.Reactions(g),
+                fx = MergeFx(Uniques.Enabled ? Uniques.Sum(g.equipment.Items()) : new Dictionary<string, double>(), SkillBook.PassiveFx(g)),
                 ammo = offW?.ammo ?? main.ammo ?? 0,
                 netReady = offW?.id == "net",
                 doctrine = doctrine, stance = doctrine.stance,
@@ -181,12 +220,19 @@ namespace Colosseum.Core.Combat
             if (f.Has("weakened") && (a == "str" || a == "acc")) v -= 3;
             if (f.Has("hobbled") && (a == "agi" || a == "eva")) v -= 4;
             if (a == "agi" && f.armor != null && f.g.race != "dwarf") v -= f.armor.agiPenalty ?? 0;
+            if (a == "agi" && f.g.race != "dwarf") v -= (f.arms?.agiPenalty ?? 0) + (f.legs?.agiPenalty ?? 0);
+            if (a == "aura") v += f.Fx("aura");
             if (a == "acc" && f.helmet?.accPenalty is double ap && ap != 0) v -= ap;
             if (a == "show" && f.helmet?.showBonus is double sb && sb != 0) v += sb;
             return Math.Max(1, v);
         }
 
         public static MatchResult Run(Gladiator a, Gladiator b, MatchOptions opt) => new Match(a, b, opt).Play();
+
+        /// <summary>단체전 난전 (Unity판 전용): 양쪽 전원이 한 경기장에서 동시에 싸운다.
+        /// 각자 가까운·약한 적을 노리고, 쓰러지면 그 자리에서 생사를 판정한다. 한쪽이 전멸하거나 마지막 한 명이 항복하면 끝.
+        /// medicalLevel은 편마다 [0쪽, 1쪽]</summary>
+        public static MatchResult RunTeam(List<Gladiator> side0, List<Gladiator> side1, MatchOptions opt) => new Match(side0, side1, opt).PlayTeam();
 
         sealed class Match
         {
@@ -195,9 +241,26 @@ namespace Colosseum.Core.Combat
             readonly Rng rng;
             readonly Fighter[] F;
             readonly List<CombatEvent> events = new();
-            int dist = 2;
-            /// <summary>두 사람의 경기장 좌표</summary>
-            readonly double[] px = { Arena.Start[0], Arena.Start[2] }, py = { Arena.Start[1], Arena.Start[3] };
+            /// <summary>난전인가 (사람 수와 상관없이 RunTeam으로 불렀으면)</summary>
+            readonly bool team;
+            int dist2 = 2;
+            /// <summary>지금 맞붙은 둘 (행동하는 쪽과 그 상대). 거리 단계·좌표 계산의 기준</summary>
+            Fighter ctxA, ctxB;
+            /// <summary>거리 단계. 1:1은 저장한 값, 난전은 지금 맞붙은 둘의 실제 거리에서 낸다</summary>
+            int dist
+            {
+                get => team ? Arena.Bucket(SepOf(ctxA.idx, ctxB.idx)) : dist2;
+                set { if (!team) dist2 = value; }
+            }
+            /// <summary>경기장 좌표 (F 순서)</summary>
+            readonly double[] px, py;
+            /// <summary>난전 단체 전술 [편0, 편1]과 각자의 능력(CA). 1:1이면 null</summary>
+            readonly TeamTactic[] tac;
+            readonly double[] power;
+            readonly List<KeyValuePair<string, string>> downs = new();
+            readonly List<string> deaths = new();
+            int? winSide;
+            string teamReason;
             double crowd;
             int stall;
             int round;
@@ -211,6 +274,11 @@ namespace Colosseum.Core.Combat
                 var d0 = opt.doctrines?.ElementAtOrDefault(0) ?? a.doctrine ?? GladiatorRules.DefaultDoctrine(a);
                 var d1 = opt.doctrines?.ElementAtOrDefault(1) ?? b.doctrine ?? GladiatorRules.DefaultDoctrine(b);
                 F = new[] { MakeFighter(a, 0, d0), MakeFighter(b, 1, d1) };
+                F[0].side = 0; F[1].side = 1;
+                F[0].target = F[1]; F[1].target = F[0];
+                ctxA = F[0]; ctxB = F[1];
+                px = new[] { Arena.Start[0], Arena.Start[2] };
+                py = new[] { Arena.Start[1], Arena.Start[3] };
                 for (int i = 0; i < 2; i++)
                 {
                     var f = F[i];
@@ -235,12 +303,159 @@ namespace Colosseum.Core.Combat
                 hasCrowd = (bool)Bal.Rule(opt.rule)["crowd"];
             }
 
+            /// <summary>난전: 양쪽이 마당 왼쪽·오른쪽에 줄지어 선다</summary>
+            public Match(List<Gladiator> side0, List<Gladiator> side1, MatchOptions opt)
+            {
+                team = true;
+                this.opt = opt;
+                a = side0[0]; b = side1[0];
+                rng = new Rng(opt.seed);
+                var all = side0.Select(g => (g, side: 0)).Concat(side1.Select(g => (g, side: 1))).ToList();
+                F = all.Select((x, i) =>
+                {
+                    var f = MakeFighter(x.g, i, x.g.doctrine ?? GladiatorRules.DefaultDoctrine(x.g));
+                    f.side = x.side;
+                    return f;
+                }).ToArray();
+                px = new double[F.Length];
+                py = new double[F.Length];
+                foreach (var f in F)
+                {
+                    var mates = F.Where(o => o.side == f.side).ToList();
+                    int k = mates.IndexOf(f);
+                    double spread = Math.Min(30, 80.0 / Math.Max(1, mates.Count - 1));
+                    px[f.idx] = Arena.CX + (f.side == 0 ? -75 : 75) + (k % 2 == 0 ? 0 : (f.side == 0 ? -14 : 14));
+                    py[f.idx] = Arena.CY + (k - (mates.Count - 1) / 2.0) * spread;
+                    Clamp(f.idx);
+                    f.mind.form = (rng.Next() - 0.5) * (21 - f.g.hidden.consistency) * 0.06;
+                }
+                // 위압감: 맞은편에서 가장 무서운 자에게 기세가 꺾인다
+                foreach (var o in F)
+                {
+                    double d = F.Where(f => f.side != o.side).Max(f => Math.Max(0, GladiatorRules.EffectiveAttr(f.g, "aura") - GladiatorRules.EffectiveAttr(o.g, "comp")));
+                    o.momentum = Math.Max(0, o.momentum - d / 2 * (GladiatorRules.EffectiveAttr(o.g, "grit") < 10 ? 2 : 1));
+                }
+                // 단체 전술: 편마다 역할·방침. 강한 적 판단용 능력(CA)은 한 번만 잰다
+                tac = opt.teamTactics;
+                power = F.Select(f => (double)GladiatorRules.ComputeCA(f.g)).ToArray();
+                foreach (var f in F) f.target = PickTarget(f);
+                ctxA = F[0]; ctxB = F[0].target;
+                crowd = Bal.C("crowdStart");
+                hasCrowd = (bool)Bal.Rule(opt.rule)["crowd"];
+            }
+
             void Emit(CombatEvent e) => events.Add(e);
+
+            // ───────── 난전: 상대 고르기 ─────────
+
+            IEnumerable<Fighter> Standing(int side) => F.Where(f => f.side == side && !f.down);
+
+            /// <summary>가까운 적, 약한 적을 노린다. 돌격형 자세는 빈사인 적을 끝내러 가고, 이미 노리던 적은 웬만하면 계속 노린다</summary>
+            Fighter PickTarget(Fighter f)
+            {
+                Fighter best = null;
+                double bestScore = double.MaxValue;
+                bool hunter = f.stance == "assault" || f.stance == "blitz" || Attr(f, "kill") >= 14;
+                var t = tac?.ElementAtOrDefault(f.side);
+                if (t != null) return PickByTactic(f, t, hunter);
+                foreach (var e in Standing(1 - f.side))
+                {
+                    double s = SepOf(f.idx, e.idx) + HpRatio(e) * (hunter ? 60 : 25);
+                    // 여럿이 한 명에게 몰리지 않게 조금 흩어진다
+                    s += F.Count(m => m != f && !m.down && m.side == f.side && m.target == e) * 12;
+                    if (e == f.target) s -= 25;
+                    if (s < bestScore) { bestScore = s; best = e; }
+                }
+                return best;
+            }
+
+            /// <summary>
+            /// 단체 전술대로 상대 고르기 (점수가 낮을수록 좋다). 거리는 늘 조금 본다.
+            /// 방침: 집중(몰릴수록 좋고 첫 목표 우선) / 분산(몰리면 크게 손해) / 약한 적(HP) / 강한 적(능력).
+            /// 역할: 전열(가까운 적) / 사냥꾼(빈사) / 호위(지킬 동료를 노리는 적) / 견제(아무도 안 붙은 강한 적).
+            /// </summary>
+            Fighter PickByTactic(Fighter f, TeamTactic t, bool hunterStance)
+            {
+                string role = t.roles != null && t.roles.TryGetValue(f.g.id, out var r) ? r : "hunter";
+                var enemies = Standing(1 - f.side).ToList();
+                if (enemies.Count == 0) return null;
+                double maxPow = enemies.Max(e => power[e.idx]);
+                // 호위: 지정한 동료, 없으면 서 있는 동료 중 가장 약한 자
+                Fighter ward = null;
+                if (role == "guard")
+                {
+                    string wid = t.guardOf != null && t.guardOf.TryGetValue(f.g.id, out var w) ? w : null;
+                    ward = F.FirstOrDefault(m => m.side == f.side && !m.down && m != f && m.g.id == wid)
+                        ?? F.Where(m => m.side == f.side && !m.down && m != f).OrderBy(HpRatio).FirstOrDefault();
+                }
+                // 집중 공격의 첫 목표: 지정한 적, 없으면 가장 강한 적
+                var focus = t.policy == "focus" ? enemies.FirstOrDefault(e => e.g.id == t.focusTarget) ?? enemies.OrderByDescending(e => power[e.idx]).First() : null;
+
+                Fighter best = null;
+                double bestScore = double.MaxValue;
+                foreach (var e in enemies)
+                {
+                    int crowding = F.Count(m => m != f && !m.down && m.side == f.side && m.target == e);
+                    double strength = maxPow > 0 ? power[e.idx] / maxPow : 1;
+                    double s = SepOf(f.idx, e.idx) * (role == "front" ? 1.6 : 0.7);
+                    s += t.policy switch
+                    {
+                        "focus" => -crowding * 18 + (e == focus ? -60 : 0),
+                        "spread" => crowding * 30,
+                        "weak" => HpRatio(e) * 70 + crowding * 8,
+                        "strong" => (1 - strength) * 70 + crowding * 8,
+                        _ => crowding * 12,
+                    };
+                    s += role switch
+                    {
+                        "hunter" => HpRatio(e) * (hunterStance ? 70 : 50),
+                        "guard" => ward != null && e.target == ward ? -90 : 25,
+                        "harass" => crowding * 40 - strength * 30,
+                        _ => 0,
+                    };
+                    if (e == f.target) s -= 20;
+                    if (s < bestScore) { bestScore = s; best = e; }
+                }
+                return best;
+            }
+
+            /// <summary>행동할 사람과 그 상대를 맞붙은 둘로 둔다</summary>
+            void Engage(Fighter f)
+            {
+                ctxA = f;
+                ctxB = f.target;
+            }
+
+            /// <summary>난전에서 서로 겹쳐 서지 않게 살짝 떼어 놓는다</summary>
+            void Separate()
+            {
+                const double minGap = 22;
+                for (int i = 0; i < F.Length; i++)
+                    for (int j = i + 1; j < F.Length; j++)
+                    {
+                        if (F[i].down || F[j].down) continue;
+                        double dx = px[j] - px[i], dy = py[j] - py[i], d = Math.Sqrt(dx * dx + dy * dy);
+                        if (d >= minGap) continue;
+                        if (d < 0.5) { dx = F[i].side == 0 ? 1 : -1; dy = 0.3; d = 1; }
+                        double push = (minGap - d) / 2;
+                        px[i] -= dx / d * push; py[i] -= dy / d * push;
+                        px[j] += dx / d * push; py[j] += dy / d * push;
+                        Clamp(i); Clamp(j);
+                    }
+            }
 
             // ───────── 경기장 좌표 ─────────
 
-            double[] Pos() => new[] { px[0], py[0], px[1], py[1] };
-            double Sep() => Math.Sqrt((px[0] - px[1]) * (px[0] - px[1]) + (py[0] - py[1]) * (py[0] - py[1]));
+            double[] Pos()
+            {
+                var p = new double[F.Length * 2];
+                for (int i = 0; i < F.Length; i++) { p[i * 2] = px[i]; p[i * 2 + 1] = py[i]; }
+                return p;
+            }
+            double SepOf(int i, int j) => Math.Sqrt((px[i] - px[j]) * (px[i] - px[j]) + (py[i] - py[j]) * (py[i] - py[j]));
+            double Sep() => SepOf(ctxA.idx, ctxB.idx);
+            /// <summary>i의 맞상대: 맞붙은 둘 중 하나면 다른 하나, 아니면 i가 노리는 적</summary>
+            int Other(int i) => !team ? 1 - i : ctxA.idx == i ? ctxB.idx : ctxB.idx == i ? ctxA.idx : F[i].target?.idx ?? i;
             double WallNorm(Fighter f) => Arena.Norm(px[f.idx], py[f.idx]);
 
             /// <summary>벽에 몰림: 벽 가까이 섰고 상대가 더 안쪽(가운데 쪽)에 있다</summary>
@@ -258,9 +473,9 @@ namespace Colosseum.Core.Combat
             /// <summary>상대에게서 나를 향한 단위 벡터</summary>
             (double x, double y) Away(int i)
             {
-                int o = 1 - i;
+                int o = Other(i);
                 double x = px[i] - px[o], y = py[i] - py[o], len = Math.Sqrt(x * x + y * y);
-                return len < 1 ? (i == 0 ? -1 : 1, 0) : (x / len, y / len);
+                return len < 1 ? (F[i].side == 0 ? -1 : 1, 0) : (x / len, y / len);
             }
 
             static (double x, double y) Rot((double x, double y) v, double deg)
@@ -272,7 +487,7 @@ namespace Colosseum.Core.Combat
             /// <summary>상대 둘레의 어느 방향으로 설지 골라 간격 gap에 선다. 고른 방향 중 벽에서 가장 먼 쪽</summary>
             void StandAt(int i, double gap, params (double x, double y)[] dirs)
             {
-                int o = 1 - i;
+                int o = Other(i);
                 (double x, double y) best = dirs[0];
                 double bestN = double.MaxValue;
                 foreach (var d in dirs)
@@ -324,7 +539,7 @@ namespace Colosseum.Core.Combat
             /// <summary>다가서기: 상대보다 가운데 쪽으로 돌아 들어가 상대를 벽으로 몬다</summary>
             void Approach(int i, double gap)
             {
-                int o = 1 - i;
+                int o = Other(i);
                 var u = Away(i);
                 double cx = Arena.CX - px[o], cy = Arena.CY - py[o], cl = Math.Sqrt(cx * cx + cy * cy);
                 (double x, double y) c = cl < 1 ? u : (cx / cl, cy / cl);
@@ -342,7 +557,7 @@ namespace Colosseum.Core.Combat
                 Clamp(def.idx);
                 Rebucket();
             }
-            Fighter Opp(Fighter f) => F[1 - f.idx];
+            Fighter Opp(Fighter f) => team ? f.target : F[1 - f.idx];
             double Reach(Fighter f) => Math.Max(f.main.range, 0);
             static double HpRatio(Fighter f) => f.hp / f.maxHp;
 
@@ -371,6 +586,8 @@ namespace Colosseum.Core.Combat
                 double dmg = amount;
                 if (def.Has("adapt")) dmg = JsMath.Round(dmg * 0.5);
                 if (def.stance == "bulwark") dmg = JsMath.Round(dmg * 0.9);
+                // 상시 기술 '쇠가죽' 같은 받는 피해 감소 (기술 테이블)
+                if (def.Fx("taken") != 0) dmg = JsMath.Round(dmg * Math.Max(0.5, 1 + def.Fx("taken")));
                 else if (def.stance == "assault") dmg = JsMath.Round(dmg * 1.05);
                 if (def.wardHp > 0)
                 {
@@ -390,6 +607,51 @@ namespace Colosseum.Core.Combat
                 return dmg;
             }
 
+            /// <summary>
+            /// 반응 기술 (기술 테이블): 사건이 나면 그 trigger의 기술을 우선순위대로 하나만 굴린다.
+            /// other = 사건 상대(적), ally = 대상 동료(엄호·쓰러진 동료). 반응 기술이 없으면 난수를 쓰지 않는다
+            /// </summary>
+            void React(Fighter f, string trigger, Fighter other, Fighter ally = null)
+            {
+                if (f.reactions == null || f.reactions.Count == 0 || f.down) return;
+                foreach (var s in f.reactions.Where(r => r.trigger == trigger).OrderByDescending(r => r.priority))
+                {
+                    if ((f.cooldowns.TryGetValue(s.Id, out var cd) ? cd : 0) > 0 || s.sta > f.sta) continue;
+                    if (s.require == "Shield" && f.shield == null) continue;
+                    if (trigger == "OnAllyHpBelow" && (ally == null || HpRatio(ally) > s.triggerValue)) continue;
+                    double p = s.procRate + (s.procStat != "None" ? Attr(f, s.procStat.ToLowerInvariant()) * s.procPerStat : 0);
+                    if (!rng.Chance(Math.Max(SkillBook.C("ProcMin", 0.02), Math.Min(SkillBook.C("ProcMax", 0.85), p)))) continue;
+                    f.sta -= s.sta;
+                    f.SetCd(s.Id, s.cooldown);
+                    Emit(new CombatEvent { t = "react", actor = f.g.id, skill = s.Id, target = (ally ?? other)?.g.id });
+                    foreach (var e in SkillBook.EffectsOf(s))
+                    {
+                        if (e.chance < 1 && !rng.Chance(e.chance)) continue;
+                        var who = e.target switch { "Self" => f, "Enemy" => other, "Ally" => ally, _ => null };
+                        switch (e.effect)
+                        {
+                            case "Damage" when other != null && !other.down && other.hp > 0:
+                                var spec = BasicSpec(f);
+                                spec.mult = e.value;
+                                spec.counter = true;
+                                ResolveHit(f, other, spec, false);
+                                break;
+                            case "ApplyStatus" when who != null && !who.down:
+                                ApplyStatus(who, SkillBook.StatusName(e.status), Math.Max(1, e.duration));
+                                break;
+                            case "Momentum":
+                                foreach (var m in e.target == "AllAllies" ? Standing(f.side).ToList() : who != null ? new List<Fighter> { who } : new List<Fighter>())
+                                    m.momentum = Math.Max(0, Math.Min(100, m.momentum + e.value));
+                                break;
+                            case "Disengage" when !f.Has("bound") && other != null:
+                                Move(f, 1);
+                                break;
+                        }
+                    }
+                    return;
+                }
+            }
+
             /// <summary>한 합의 수 싸움. 근접 공격이고 방어자가 움직일 수 있을 때만</summary>
             bool CanExchange(Fighter def, AttackSpec spec) =>
                 spec.magicDamage == null && !spec.autoHit && !spec.counter && !(spec.skill?.ranged ?? false) && spec.weapon.@class != "throwing"
@@ -399,12 +661,19 @@ namespace Colosseum.Core.Combat
             {
                 int? fix = spec.skill != null && Exchange.SkillMotion.TryGetValue(spec.skill.id, out var m) ? m : null;
                 double feintBias = att.stance == "harass" || att.stance == "showman" ? 0.05 : 0;
-                var plan = Exchange.PlanAttack(rng, att.mind, att.habits, def.book, att.book, spec.weapon.@class, fix, def.mind.read, feintBias);
+                // 지대 상성: 공격자는 노릴 높이, 방어자는 막을 높이 지시대로 방향을 기울인다
+                double[] atkBias = null, defBias = null;
+                if (Exchange.Zones)
+                {
+                    atkBias = Exchange.AttackBias(att.doctrine.atkZone ?? "auto", Exchange.DefZones(def.main.@class, def.shield != null), Attr(att, "dec"));
+                    defBias = Exchange.GuardBias(def.doctrine.guardZone ?? "auto", Exchange.AtkZones(spec.weapon.@class), Attr(def, "dec"));
+                }
+                var plan = Exchange.PlanAttack(rng, att.mind, att.habits, def.book, att.book, spec.weapon.@class, fix, def.mind.read, feintBias, atkBias);
                 if (plan.feint != null) att.sta = Math.Max(0, att.sta - 4);
                 double pressure = Math.Max(0, Attr(att, "aura") - Attr(def, "comp")) * 0.06
                     + (HpRatio(def) < 0.3 && def.mind.comp < 12 ? (12 - def.mind.comp) * 0.05 : 0)
                     + (def.Has("exposed") ? 0.5 : 0);
-                var guard = Exchange.PlanGuard(rng, def.mind, def.habits, def.book, att.mind.feint, pressure, plan.feint == "ok" ? plan.shown : null);
+                var guard = Exchange.PlanGuard(rng, def.mind, def.habits, def.book, att.mind.feint, pressure, plan.feint == "ok" ? plan.shown : null, defBias);
                 string outcome = Exchange.OutcomeOf(rng, plan, guard, Attr(def, "rea"));
                 // 곡검: 방패를 돌아 들어가 막기에 완전히 걸리지 않는다
                 if (outcome == "parry" && guard.guard == 0 && (spec.weapon.blockBypass ?? 0) != 0) outcome = "neutral";
@@ -441,7 +710,7 @@ namespace Colosseum.Core.Combat
                     def.momentum = Math.Min(100, def.momentum + 6);
                     att.momentum = Math.Max(0, att.momentum - 4 - Math.Max(0, Attr(def, "aura") - Attr(att, "comp")) / 3);
                     AddCrowd(2, def);
-                    if (dist <= Reach(def) && rng.Chance(0.2 + Attr(def, "timing") * 0.04))
+                    if (dist <= Reach(def) && rng.Chance(0.2 + Attr(def, "timing") * 0.04 + def.Fx("parryCounter")))
                     {
                         var cs = BasicSpec(def);
                         cs.counter = true;
@@ -456,6 +725,7 @@ namespace Colosseum.Core.Combat
                     hitChance += Exchange.AffinityHit(w.@class, e.motion) + (e.outcome == "clean" ? 0.15 : 0) + (e.dir == 3 ? -0.15 : 0)
                         // 타이밍: 상대 호흡이 끊기는 순간에 들어간다
                         + (Attr(att, "timing") - 10) * 0.012;
+                    if (Exchange.Zones) hitChance += Exchange.ZoneHit(Exchange.AtkZones(w.@class), Exchange.DefZones(def.main.@class, def.shield != null), e.dir);
                 }
                 // 마무리 본능: 빈사·무너진 상대를 놓치지 않는다 (낮으면 오히려 머뭇거린다)
                 bool finishing = HpRatio(def) < 0.3 || def.Has("exposed");
@@ -465,6 +735,7 @@ namespace Colosseum.Core.Combat
                 if (Counters(def, att)) hitChance -= Bal.C("counterEvade");
                 if (att.momentum >= 80) hitChance += 0.1;
                 hitChance += (att.perf - 1) * 0.5 - (def.perf - 1) * 0.3;
+                hitChance += att.Fx("hit") - def.Fx("evade");
                 if (Attr(att, "str") < w.reqStr) hitChance -= 0.1;
                 if (att.sta <= 0) hitChance -= Bal.C("exhaustedPenalty");
                 if (att.Has("blinded")) hitChance -= 0.4;
@@ -492,6 +763,7 @@ namespace Colosseum.Core.Combat
                     Emit(missEv);
                     def.momentum = Math.Min(100, def.momentum + 4);
                     att.momentum = Math.Max(0, att.momentum - 2);
+                    if (allowRiposte) React(def, "OnDodge", att);
                     if (allowRiposte && def.Has("riposte") && dist <= Reach(def))
                     {
                         def.Del("riposte");
@@ -509,11 +781,12 @@ namespace Colosseum.Core.Combat
                     if (def.Has("guard")) blockChance += 0.5;
                     if (def.Has("earth_stance")) blockChance += 0.2;
                     blockChance -= w.blockBypass ?? 0;
+                    blockChance += def.Fx("block");
                     blocked = rng.Chance(Math.Max(0, Math.Min(0.85, blockChance)));
                 }
 
                 double raw;
-                double critChance = Attr(att, "acc") * Bal.C("critPerAcc") + w.crit + spec.critAdd + (att.doctrine.focus == "head" ? 0.1 : 0);
+                double critChance = Attr(att, "acc") * Bal.C("critPerAcc") + w.crit + spec.critAdd + (att.doctrine.focus == "head" ? 0.1 : 0) + att.Fx("crit");
                 if (ex?.outcome == "clean" && ex.Value.adv > 0) critChance += 0.15;
                 if (magic)
                 {
@@ -536,6 +809,7 @@ namespace Colosseum.Core.Combat
                 else if (ex?.outcome == "break") raw *= 0.9;
                 if (finishing) raw *= 1 + Attr(att, "kill") * 0.015;
                 if (att.g.race == "orc" && HpRatio(att) <= 0.3) raw *= 1.25;
+                raw *= 1 + att.Fx("dmg") + (HpRatio(att) <= 0.3 ? att.Fx("fury") : 0);
                 if (def.g.race == "orc" && HpRatio(def) <= 0.3) raw *= 1.1;
                 bool crit = !blocked && rng.Chance(critChance);
 
@@ -544,8 +818,12 @@ namespace Colosseum.Core.Combat
                 {
                     defense = (def.armor?.defense ?? 0) + (def.helmet?.defense ?? 0);
                     if (part == "head" || part == "neck") defense = (def.helmet?.defense ?? 0) + 1;
+                    // 팔·다리 보호구는 그 부위를 맞을 때만 막는다
+                    else if (part == "arm" || part == "shoulder") defense += def.arms?.defense ?? 0;
+                    else if (part == "thigh" || part == "leg") defense += def.legs?.defense ?? 0;
+                    defense += def.Fx("def");
                     if (def.Has("armor_break")) defense *= 0.7;
-                    defense *= 1 - Math.Min(1, w.pierce + spec.pierceAdd);
+                    defense *= 1 - Math.Min(1, w.pierce + spec.pierceAdd + att.Fx("pierce"));
                 }
                 // 방어구는 비율로 피해를 줄인다 (고정 차감은 약한 무기를 무력화하므로)
                 double dmg = Math.Max(1, raw * (1 - defense / (defense + Bal.C("armorScale"))));
@@ -555,6 +833,11 @@ namespace Colosseum.Core.Combat
                 dmg *= att.perf;
                 double dealt = DealDamage(att, def, Math.Max(1, JsMath.Round(dmg)));
                 if (dealt > def.worstHit) { def.worstHit = dealt; def.worstPart = part; }
+                if (allowRiposte && blocked && def.hp > 0) React(def, "OnBlock", att);
+                // 단체전: 위험해진 동료를 엄호한다
+                if (team && def.hp > 0)
+                    foreach (var mate in F.Where(m => m.side == def.side && m != def && !m.down && m.reactions != null))
+                        React(mate, "OnAllyHpBelow", att, def);
 
                 var hitEv = new CombatEvent { t = "attack", actor = att.g.id, target = def.g.id, skill = spec.skill?.id, hit = true, blocked = blocked, crit = crit, damage = dealt, part = part, hpAfter = Math.Max(0, def.hp), maxHp = def.maxHp, magic = magic, counter = spec.counter, cornered = cornered };
                 // 큰 타격은 맞은 쪽을 뒤로 밀어낸다 (벽 쪽으로 몰리거나 간격이 벌어진다)
@@ -575,6 +858,7 @@ namespace Colosseum.Core.Combat
                     Emit(new CombatEvent { t = "highlight", kind = spec.skill?.id == "skill.execute" ? "execute" : "crit", actors = new[] { att.g.id, def.g.id } });
                 }
                 else if (dealt > def.maxHp * 0.15) AddCrowd(3, att);
+                if (att.Fx("crowd") > 0 && (crit || dealt > def.maxHp * 0.12)) AddCrowd(att.Fx("crowd"), att);
 
                 if (!blocked && !magic && def.hp > 0)
                 {
@@ -587,6 +871,17 @@ namespace Colosseum.Core.Combat
                 {
                     double p = w.stun.Value * (def.g.traits.Contains("glass_jaw") ? 2 : 1);
                     if (rng.Chance(p)) ApplyStatus(def, "stun", 1);
+                }
+                // 고유 장비: 출혈·기절, 근접 피격 되갚기
+                if (!blocked && def.hp > 0 && att.Fx("bleed") > 0 && rng.Chance(att.Fx("bleed"))) ApplyStatus(def, "poison", 2);
+                if (!blocked && def.hp > 0 && att.Fx("stun") > 0 && rng.Chance(att.Fx("stun"))) ApplyStatus(def, "stun", 1);
+                if (!magic && def.Fx("thorns") > 0 && dealt > 0)
+                {
+                    double back = Math.Max(1, JsMath.Round(dealt * def.Fx("thorns")));
+                    att.hp -= back;
+                    att.damageTaken += back;
+                    def.damageDealt += back;
+                    Emit(new CombatEvent { t = "thorns", actor = def.g.id, target = att.g.id, damage = back, hpAfter = Math.Max(0, att.hp), maxHp = att.maxHp });
                 }
                 if (spec.skill?.apply != null && def.hp > 0 && !blocked && rng.Chance(spec.skill.apply.chance))
                     ApplyStatus(def, spec.skill.apply.status, spec.skill.apply.turns);
@@ -727,6 +1022,8 @@ namespace Colosseum.Core.Combat
                 {
                     var s = Data.Skill(sid);
                     if (s == null || !SkillUsable(f, s)) continue;
+                    // 기술 테이블의 새 기술: 발동 시점이 맞고 확률을 넘어야 후보가 된다 (기존 기술은 그대로)
+                    if (!SkillBook.ProcGate(sid, k => Attr(f, k), HpRatio(f), HpRatio(t), f.maxSta > 0 ? f.sta / f.maxSta : 1, round, t.Has("bound") || t.Has("prone") || t.Has("stun"), round <= 1, () => rng.Next())) continue;
                     options.Add((ScoreSkill(f, s) + rng.Next() * noise, () => UseSkill(f, t, s)));
                 }
                 if (dist <= Reach(f))
@@ -785,13 +1082,13 @@ namespace Colosseum.Core.Combat
 
             void BasicAttack(Fighter f, Fighter t)
             {
-                f.sta = Math.Max(0, f.sta - Bal.C("basicAttackSta") * (1 + (f.armor?.staCost ?? 0)));
+                f.sta = Math.Max(0, f.sta - Bal.C("basicAttackSta") * (1 + (f.armor?.staCost ?? 0)) * (1 - f.Fx("sta")));
                 ResolveHit(f, t, BasicSpec(f));
             }
 
             void UseSkill(Fighter f, Fighter t, SkillDef s)
             {
-                f.sta = Math.Max(0, f.sta - (s.cost ?? 0) * (1 + (f.armor?.staCost ?? 0)));
+                f.sta = Math.Max(0, f.sta - (s.cost ?? 0) * (1 + (f.armor?.staCost ?? 0)) * (1 - f.Fx("sta")));
                 f.mana -= s.mana ?? 0;
                 f.SetCd(s.id, (s.cd ?? 0) + 1);
                 if (!string.IsNullOrEmpty(s.race) && !f.usedRaceSkill)
@@ -855,6 +1152,15 @@ namespace Colosseum.Core.Combat
             bool StartTurn(Fighter f)
             {
                 foreach (var k in f.cdKeys) f.cooldowns[k] = Math.Max(0, f.cooldowns[k] - 1);
+                // 장비 고유 '재생': HP 회복. 화면이 막대를 맞출 수 있게 이벤트로 남긴다
+                if (f.Fx("regen") > 0 && f.hp > 0 && f.hp < f.maxHp)
+                {
+                    double before = f.hp;
+                    f.hp = Math.Min(f.maxHp, f.hp + Math.Max(1, JsMath.Round(f.maxHp * f.Fx("regen"))));
+                    Emit(new CombatEvent { t = "regen", target = f.g.id, damage = f.hp - before, hpAfter = f.hp, maxHp = f.maxHp });
+                }
+                // 상시 기술 '강철 폐': 기력 회복 (기술 테이블)
+                if (f.Fx("staRegen") > 0) f.sta = Math.Min(f.maxSta, f.sta + f.Fx("staRegen"));
                 bool canAct = true;
                 if (f.Has("poison"))
                 {
@@ -862,7 +1168,7 @@ namespace Colosseum.Core.Combat
                     f.hp -= dmg;
                     f.damageTaken += dmg;
                     Opp(f).damageDealt += dmg;
-                    Emit(new CombatEvent { t = "poison", target = f.g.id, damage = dmg, hpAfter = Math.Max(0, f.hp) });
+                    Emit(new CombatEvent { t = "poison", target = f.g.id, damage = dmg, hpAfter = Math.Max(0, f.hp), maxHp = f.maxHp });
                 }
                 if (f.Has("stun")) { Emit(new CombatEvent { t = "skip", actor = f.g.id, reason = "stun" }); canAct = false; }
                 else if (f.Has("grappled"))
@@ -917,6 +1223,170 @@ namespace Colosseum.Core.Combat
                 return false;
             }
 
+            /// <summary>쓰러지거나 항복한 자의 생사 판정. 죽었으면 true</summary>
+            bool Verdict(Fighter loser, Fighter winner, bool crit)
+            {
+                double medical = opt.medicalLevel?.ElementAtOrDefault(loser.side) ?? 0;
+                double deathChance;
+                if (opt.rule == "training") deathChance = crit ? Bal.D("trainingCritKo") : Bal.D("trainingKo");
+                else if (opt.rule == "missio")
+                {
+                    deathChance = Bal.D("missioBase") - loser.g.popularity * Bal.D("missioPerPopularity") - Math.Max(0, loser.crowdContribution) * Bal.D("missioPerCrowd");
+                    if (loser.HasPassive("skill.crowd_hand")) deathChance -= Bal.D("missioCrowdHand");
+                    deathChance = Math.Max(Bal.D("missioMin"), Math.Min(Bal.D("missioMax"), deathChance)) * (opt.missioDeathMult ?? 1);
+                    Emit(new CombatEvent { t = "highlight", kind = "missio", actors = new[] { loser.g.id } });
+                }
+                else deathChance = Math.Max(Bal.D("suddenMin"), Bal.D("suddenBase") - medical * Bal.D("suddenPerMedical"));
+                bool isDead = !opt.noDeath && rng.Chance(deathChance);
+                Emit(new CombatEvent { t = "verdict", target = loser.g.id, rule = opt.rule, deathChance = deathChance, died = isDead });
+                if (isDead) Emit(new CombatEvent { t = "highlight", kind = "death", actors = new[] { loser.g.id, winner.g.id } });
+                return isDead;
+            }
+
+            // ───────── 난전 진행 ─────────
+
+            /// <summary>쓰러진 자를 치우고 그 자리에서 생사를 판정한다. 한쪽이 전멸하면 true</summary>
+            bool CheckDowns()
+            {
+                foreach (var f in F)
+                {
+                    if (f.down || f.hp > 0) continue;
+                    var lastHit = events.LastOrDefault(e => e.t == "attack" && e.target == f.g.id && e.hit);
+                    var by = (lastHit != null ? F.FirstOrDefault(x => x.g.id == lastHit.actor) : null) ?? F.Where(x => x.side != f.side && !x.down).OrderBy(x => SepOf(x.idx, f.idx)).FirstOrDefault() ?? f.target;
+                    bool crit = lastHit != null && lastHit.crit;
+                    f.down = true;
+                    f.hp = 0;
+                    downs.Add(new KeyValuePair<string, string>(f.g.id, by.g.id));
+                    Emit(new CombatEvent { t = "ko", target = f.g.id, actor = by.g.id, crit = crit });
+                    AddCrowd(10, by);
+                    foreach (var mate in Standing(f.side).Where(m => m.reactions != null).ToList()) React(mate, "OnAllyDown", by, f);
+                    if (Verdict(f, by, crit)) deaths.Add(f.g.id);
+                    if (!Standing(f.side).Any())
+                    {
+                        winSide = 1 - f.side;
+                        teamReason = "ko";
+                        return true;
+                    }
+                }
+                return false;
+            }
+
+            /// <summary>혼자 남은 자만 항복할 수 있다 (동료가 서 있으면 버틴다)</summary>
+            bool CheckTeamSurrender(Fighter f)
+            {
+                if (Standing(f.side).Count() > 1) return false;
+                if (!f.doctrine.allowSurrender || f.momentum > Bal.C("surrenderMomentum") || HpRatio(f) > Bal.C("surrenderHpRatio")) return false;
+                double grit = Attr(f, "grit");
+                if (grit >= 20 || !rng.Chance((20 - grit) * Bal.C("surrenderPerGrit"))) return false;
+                Emit(new CombatEvent { t = "surrender", actor = f.g.id });
+                AddCrowd(-8, f);
+                winSide = 1 - f.side;
+                teamReason = "surrender";
+                var by = f.target ?? Standing(1 - f.side).First();
+                if (opt.rule != "training" && Verdict(f, by, false)) deaths.Add(f.g.id);
+                f.down = true;
+                downs.Add(new KeyValuePair<string, string>(f.g.id, by.g.id));
+                return true;
+            }
+
+            public MatchResult PlayTeam()
+            {
+                Emit(new CombatEvent { t = "start", a = a.id, b = b.id, rule = opt.rule, actors = F.Select(f => f.g.id).ToArray(), turns = F.Count(f => f.side == 0), pos = Pos() });
+                Emit(new CombatEvent { t = "highlight", kind = "entrance", actors = F.Select(f => f.g.id).ToArray() });
+                int maxRounds = (int)Bal.C("maxRounds");
+                for (round = 1; round <= maxRounds && winSide == null; round++)
+                {
+                    Separate();
+                    Emit(new CombatEvent { t = "round", round = round, pos = Pos() });
+                    var alive = F.Where(f => !f.down).ToList();
+                    foreach (var f in alive)
+                    {
+                        f.mind.late = (f.mind.adapt - 8) * 0.01 * Math.Min(round, 20);
+                        f.target = PickTarget(f);
+                    }
+                    var order = alive.Select(f =>
+                    {
+                        var o = f.target;
+                        double v = Attr(f, "timing") + Attr(f, "rea") / 2 + Attr(f, "agi") / 2 - f.main.speed * 2 + rng.Next() * 8 - (f.Has("exposed") ? 6 : 0)
+                            + (o != null && (o.Has("exposed") || o.sta <= 0) ? Attr(f, "timing") * 0.6 : 0);
+                        if (round == 1 && f.g.race == "beastkin") v += 5;
+                        v += f.Fx("first");
+                        return (f, v);
+                    }).OrderByDescending(x => x.v).Select(x => x.f).ToList();
+                    double dmgBefore = F.Sum(f => f.damageTaken);
+
+                    foreach (var f in order)
+                    {
+                        if (winSide != null) break;
+                        if (f.down) continue;
+                        if (f.target == null || f.target.down) f.target = PickTarget(f);
+                        if (f.target == null) break;
+                        Engage(f);
+                        bool canAct = StartTurn(f);
+                        if (CheckDowns()) break;
+                        if (f.down) continue;
+                        if (CheckTeamSurrender(f)) break;
+                        if (canAct) Act(f);
+                        if (CheckDowns()) break;
+                        if (canAct && !f.down && !f.target.down && f.main.speed <= 1 && dist <= Reach(f) && rng.Chance(0.2))
+                        {
+                            BasicAttack(f, f.target);
+                            if (CheckDowns()) break;
+                        }
+                    }
+                    foreach (var f in F) if (!f.down) f.sta = Math.Min(f.maxSta, f.sta + Attr(f, "end") * Bal.C("staRegenPerEnd") + 2);
+
+                    if (F.Sum(f => f.damageTaken) == dmgBefore)
+                    {
+                        stall++;
+                        if (stall >= 5) AddCrowd(-3);
+                    }
+                    else stall = 0;
+                }
+
+                if (winSide == null)
+                {
+                    Emit(new CombatEvent { t = "timeout" });
+                    double Score(int side) => F.Where(f => f.side == side).Sum(f => f.damageDealt + f.crowdContribution * 0.5 + (f.down ? 0 : 30));
+                    winSide = Score(0) >= Score(1) ? 0 : 1;
+                    teamReason = "timeout";
+                }
+                int ws = winSide.Value;
+                var winners = F.Where(f => f.side == ws).ToList();
+                var losers = F.Where(f => f.side != ws).ToList();
+                var best = winners.OrderByDescending(f => f.down ? 0 : 1).ThenByDescending(f => f.damageDealt).First();
+                var lastDown = downs.LastOrDefault(d => losers.Any(l => l.g.id == d.Key)).Key;
+                var worst = lastDown != null ? losers.First(l => l.g.id == lastDown) : losers.OrderBy(f => f.damageDealt).First();
+                if (deaths.Count == 0 && HpRatio(best) <= 0.3 && !best.down) Emit(new CombatEvent { t = "highlight", kind = "comeback", actors = new[] { best.g.id } });
+                Emit(new CombatEvent { t = "end", winner = best.g.id, loser = worst.g.id, reason = teamReason });
+
+                var injuries = new Dictionary<string, Injury>();
+                double injMult = (double)Bal.Rule(opt.rule)["injuryMult"];
+                foreach (var f in F)
+                {
+                    if (deaths.Contains(f.g.id)) continue;
+                    injuries[f.g.id] = RollInjury(rng, f, f.down, injMult);
+                }
+                return new MatchResult
+                {
+                    events = events,
+                    winnerId = best.g.id,
+                    loserId = worst.g.id,
+                    reason = teamReason,
+                    died = deaths.FirstOrDefault(),
+                    rounds = Math.Min(round, maxRounds),
+                    crowd = crowd,
+                    damageDealt = F.ToDictionary(f => f.g.id, f => f.damageDealt),
+                    crowdContribution = F.ToDictionary(f => f.g.id, f => f.crowdContribution),
+                    injuries = injuries,
+                    hpLeft = F.ToDictionary(f => f.g.id, f => Math.Max(0, f.hp / f.maxHp)),
+                    sides = new[] { F.Where(f => f.side == 0).Select(f => f.g.id).ToList(), F.Where(f => f.side == 1).Select(f => f.g.id).ToList() },
+                    winnerSide = ws,
+                    downs = downs,
+                    deaths = deaths,
+                };
+            }
+
             public MatchResult Play()
             {
                 Emit(new CombatEvent { t = "start", a = a.id, b = b.id, rule = opt.rule, pos = Pos() });
@@ -936,6 +1406,7 @@ namespace Colosseum.Core.Combat
                             // 상대가 무너졌거나 지쳤으면 타이밍 좋은 쪽이 파고든다
                             + (o.Has("exposed") || o.sta <= 0 ? Attr(f, "timing") * 0.6 : 0);
                         if (round == 1 && f.g.race == "beastkin") v += 5;
+                        v += f.Fx("first");
                         return v;
                     }).ToArray();
                     var order = init[0] >= init[1] ? new[] { F[0], F[1] } : new[] { F[1], F[0] };
@@ -976,27 +1447,7 @@ namespace Colosseum.Core.Combat
                 var (winner, loser, reason, crit) = ended.Value;
 
                 string died = null;
-                if (reason != "timeout" && !(reason == "surrender" && opt.rule == "training"))
-                {
-                    double medical = opt.medicalLevel?.ElementAtOrDefault(loser.idx) ?? 0;
-                    double deathChance;
-                    if (opt.rule == "training") deathChance = crit ? Bal.D("trainingCritKo") : Bal.D("trainingKo");
-                    else if (opt.rule == "missio")
-                    {
-                        deathChance = Bal.D("missioBase") - loser.g.popularity * Bal.D("missioPerPopularity") - Math.Max(0, loser.crowdContribution) * Bal.D("missioPerCrowd");
-                        if (loser.HasPassive("skill.crowd_hand")) deathChance -= Bal.D("missioCrowdHand");
-                        deathChance = Math.Max(Bal.D("missioMin"), Math.Min(Bal.D("missioMax"), deathChance)) * (opt.missioDeathMult ?? 1);
-                        Emit(new CombatEvent { t = "highlight", kind = "missio", actors = new[] { loser.g.id } });
-                    }
-                    else deathChance = Math.Max(Bal.D("suddenMin"), Bal.D("suddenBase") - medical * Bal.D("suddenPerMedical"));
-                    bool isDead = !opt.noDeath && rng.Chance(deathChance);
-                    Emit(new CombatEvent { t = "verdict", target = loser.g.id, rule = opt.rule, deathChance = deathChance, died = isDead });
-                    if (isDead)
-                    {
-                        died = loser.g.id;
-                        Emit(new CombatEvent { t = "highlight", kind = "death", actors = new[] { loser.g.id, winner.g.id } });
-                    }
-                }
+                if (reason != "timeout" && !(reason == "surrender" && opt.rule == "training") && Verdict(loser, winner, crit)) died = loser.g.id;
                 if (died == null && HpRatio(winner) <= 0.3) Emit(new CombatEvent { t = "highlight", kind = "comeback", actors = new[] { winner.g.id } });
                 Emit(new CombatEvent { t = "end", winner = winner.g.id, loser = loser.g.id, reason = reason });
 

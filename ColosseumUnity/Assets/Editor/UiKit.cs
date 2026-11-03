@@ -52,13 +52,22 @@ namespace Colosseum.EditorTools
             return img;
         }
 
-        /// <summary>테두리 있는 패널 (웹판 .panel: 배경 --panel, 1px --line)</summary>
+        /// <summary>붓 그림 9-slice (Tools/ui-brush.mjs: brush_frame·brush_fill·brush_head). 색은 Image.color가 칠한다</summary>
+        public static Image Brush(Image img, string sprite)
+        {
+            img.sprite = AssetDatabase.LoadAssetAtPath<Sprite>($"Assets/Resources/Art/ui/{sprite}.png");
+            img.type = Image.Type.Sliced;
+            return img;
+        }
+
+        /// <summary>패널: 붓 테두리(청동) 안에 붓결 바탕. 안쪽 Fill은 테두리 띠만큼 들여 놓는다</summary>
         public static Image Panel(string name, Transform parent, Color? fill = null)
         {
-            var frame = Box(name, parent, Theme.Line);
-            var inner = Box("Fill", frame.transform, fill ?? Theme.Panel);
-            ((RectTransform)inner.transform).Stretch(1, 1, 1, 1);
+            var frame = Brush(Box(name, parent, Theme.PanelFrame), "brush_frame");
+            var inner = Brush(Box("Fill", frame.transform, fill ?? Theme.Panel), "brush_fill");
+            ((RectTransform)inner.transform).Stretch(9, 9, 9, 9);
             inner.raycastTarget = false;
+            inner.transform.SetAsFirstSibling();
             return frame;
         }
 
@@ -80,9 +89,9 @@ namespace Colosseum.EditorTools
         /// <summary>웹판 .btn (primary면 횃불색 .continue)</summary>
         public static Button Button(string name, Transform parent, string label, bool primary = false, float size = 16)
         {
-            var frame = Box(name, parent, primary ? Theme.Torch : Theme.Line);
-            var fill = Box("Fill", frame.transform, primary ? Theme.ContinueBg : Theme.Panel2);
-            ((RectTransform)fill.transform).Stretch(1, 1, 1, 1);
+            var frame = Brush(Box(name, parent, primary ? Theme.Torch : Theme.Line), "brush_button");
+            var fill = Brush(Box("Fill", frame.transform, primary ? Theme.ContinueBg : Theme.Panel2), "brush_fill");
+            ((RectTransform)fill.transform).Stretch(6, 6, 6, 6);
             fill.raycastTarget = false;
             var b = frame.gameObject.AddComponent<Button>();
             b.targetGraphic = frame;
@@ -104,6 +113,23 @@ namespace Colosseum.EditorTools
             ((RectTransform)img.transform).sizeDelta = new Vector2(w, h);
             img.Layout(prefW: w, prefH: h, minW: w, minH: h);
             return img;
+        }
+
+        /// <summary>아이템 슬롯: 붓 테두리 틀 > 등급 테두리(Rim) > 아이콘(Icon). 채우기는 런타임 Widgets.SetSlot</summary>
+        public static RectTransform ItemSlot(string name, Transform parent, float size)
+        {
+            var frame = Sprite(name, parent, "ui/item_slot", size, size);
+            frame.preserveAspect = false;
+            var rim = Sprite("Rim", frame.transform, "ui/item_slot_rim", size, size);
+            rim.preserveAspect = false;
+            ((RectTransform)rim.transform).Stretch();
+            rim.enabled = false;
+            var icon = Box("Icon", frame.transform, Color.white);
+            ((RectTransform)icon.transform).Stretch(size * 0.14f, size * 0.14f, size * 0.14f, size * 0.14f);
+            icon.preserveAspect = true;
+            icon.raycastTarget = false;
+            icon.enabled = false;
+            return (RectTransform)frame.transform;
         }
 
         public static HorizontalLayoutGroup HRow(Transform t, float spacing, int l = 0, int r = 0, int top = 0, int bottom = 0, TextAnchor align = TextAnchor.MiddleLeft)
@@ -151,9 +177,9 @@ namespace Colosseum.EditorTools
         public static RectTransform TitledPanel(string name, Transform parent, string title, float spacing = 6)
         {
             var frame = Panel(name, parent);
-            VCol(frame.transform, 0, 1, 1, 1, 1);
+            VCol(frame.transform, 0, 9, 9, 9, 9);
             frame.transform.Find("Fill").gameObject.AddComponent<LayoutElement>().ignoreLayout = true;
-            var head = Box("Head", frame.transform, new Color(Theme.Bronze.r, Theme.Bronze.g, Theme.Bronze.b, 0.22f)).Layout(minH: 34, prefH: 34);
+            var head = Brush(Box("Head", frame.transform, new Color(Theme.Bronze.r, Theme.Bronze.g, Theme.Bronze.b, 0.3f)), "brush_head").Layout(minH: 34, prefH: 34);
             var ht = Text("Text", head.transform, "◆  " + title, 15, Theme.Parchment, true, FontStyles.Bold);
             ((RectTransform)ht.transform).Stretch(12, 0, 12, 0);
             Box("Line", frame.transform, Theme.Line).Layout(minH: 1, prefH: 1);

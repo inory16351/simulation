@@ -1,0 +1,169 @@
+enum,key,value,name
+string,string,int,string
+열거형 이름,키 (테이블에 쓰는 값),정수 값,한글 이름
+SkillType,Active,1,능동 (차례에 발동)
+SkillType,Reaction,2,반응 (사건에 발동)
+SkillType,Passive,3,상시
+SkillCategory,Attack,1,공격
+SkillCategory,Control,2,제압
+SkillCategory,Buff,3,강화
+SkillCategory,Move,4,이동
+SkillCategory,Show,5,쇼
+SkillCategory,Magic,6,주술
+SkillCategory,Race,7,종족
+SkillCategory,Team,8,단체
+WeaponClass,Any,0,무엇이든
+WeaponClass,Sword,1,한손검
+WeaponClass,Greatsword,2,대검
+WeaponClass,Axe,3,도끼
+WeaponClass,Mace,4,둔기
+WeaponClass,Spear,5,창
+WeaponClass,TridentNet,6,삼지창·그물
+WeaponClass,Dagger,7,단검
+WeaponClass,Throwing,8,투척
+WeaponClass,Shield,9,방패
+WeaponClass,Unarmed,10,맨손
+WeaponClass,Focus,11,주술 촉매
+Race,Any,0,무엇이든
+Race,Human,1,인간
+Race,Orc,2,오크
+Race,Minotaur,3,미노타우로스
+Race,Elf,4,엘프
+Race,Dwarf,5,드워프
+Race,Lizardfolk,6,리자드포크
+Race,Beastkin,7,수인
+Trigger,Always,0,상시 (상시 기술)
+Trigger,OnTurn,1,내 행동 차례
+Trigger,OnMatchStart,2,경기 시작
+Trigger,OnRoundAtLeast,3,N라운드 이후 (trigger_value = N)
+Trigger,OnHpBelow,4,내 HP 비율 이하 (trigger_value)
+Trigger,OnOppHpBelow,5,상대 HP 비율 이하 (trigger_value)
+Trigger,OnStaBelow,6,내 기력 비율 이하 (trigger_value)
+Trigger,OnOppDisabled,7,상대가 묶이거나 넘어짐
+Trigger,OnAttackHit,8,내 공격이 맞음
+Trigger,OnCrit,9,내 공격이 치명타
+Trigger,OnParry,10,내가 흘려냄 (수 싸움 parry)
+Trigger,OnBlock,11,내가 방패로 막음
+Trigger,OnDodge,12,내가 피함
+Trigger,OnDamaged,13,내가 맞음
+Trigger,OnAllyDown,14,우리 편이 쓰러짐 (단체전)
+Trigger,OnAllyHpBelow,15,우리 편 HP 비율 이하 (단체전 trigger_value)
+Require,None,0,없음
+Require,Shield,1,방패를 듦
+Require,Net,2,그물이 준비됨
+Require,Ammo,3,투척물이 남음
+Require,Close,4,맞붙은 거리
+Require,Far,5,떨어진 거리
+Require,TargetHpBelow,6,상대 HP 비율 이하 (require_value)
+Require,Mana,7,마나가 비용 이상
+Target,Self,1,자신
+Target,Enemy,2,맞상대
+Target,AllEnemies,3,적 전원
+Target,Ally,4,우리 편 하나 (가장 위급한)
+Target,AllAllies,5,우리 편 전원
+Effect,Damage,1,피해
+Effect,ExtraHit,2,추가 타격 횟수
+Effect,MagicDamage,3,주술 피해 (방어 무시)
+Effect,ApplyStatus,4,상태 걸기 (status·duration·chance)
+Effect,Heal,5,HP 회복
+Effect,RestoreSta,6,기력 회복
+Effect,RestoreMana,7,마나 회복
+Effect,Momentum,8,기세
+Effect,Crowd,9,관중 열기
+Effect,StatMod,10,능력치 증감 (stat·duration)
+Effect,HitMod,11,명중률
+Effect,CritMod,12,치명타율
+Effect,PierceMod,13,방어 관통
+Effect,BlockMod,14,막기 확률
+Effect,EvadeMod,15,회피 확률
+Effect,DamageMod,16,주는 피해
+Effect,DamageTakenMod,17,받는 피해
+Effect,ArmorMod,18,방어구 방어력
+Effect,CounterMod,19,되받아치기 확률
+Effect,MercyMod,20,미시오 생존 (관중 자비)
+Effect,CloseIn,21,거리 좁히기
+Effect,Disengage,22,거리 벌리기
+Effect,AutoHit,23,반드시 명중
+Effect,Ward,24,보호막
+Effect,Endure,25,치명상을 HP 1로 버팀 (경기당 value 회)
+Effect,SkipTurn,26,차례 거름
+Effect,StatusImmune,27,제압 상태 면역
+ValueType,Flat,1,고정값 (그대로 더함)
+ValueType,Multiplier,2,배율 (기준값 × value. Damage는 무기 피해 기준)
+ValueType,Additive,3,확률·비율 가산 (0.1 = +10%p)
+ValueType,PercentMax,4,최대치의 비율 (0.3 = 최대 HP·기력의 30%)
+ValueType,PercentCurrent,5,현재치의 비율
+ValueType,PerStat,6,능력치 1당 (stat 열의 능력치 × value)
+ValueType,Range,7,범위 (value~value_max 사이 무작위)
+Stat,None,0,없음
+Stat,Str,1,근력
+Stat,Agi,2,민첩
+Stat,End,3,지구력
+Stat,Tou,4,강인함
+Stat,Rea,5,반응
+Stat,Rec,6,회복력
+Stat,Acc,7,정확도
+Stat,Eva,8,회피
+Stat,Blk,9,막기
+Stat,Grp,10,제압
+Stat,Mag,11,마력
+Stat,Grit,12,투지
+Stat,Comp,13,침착
+Stat,Dec,14,판단력
+Stat,Show,15,쇼맨십
+Stat,Agg,16,공격성
+Stat,Disc,17,규율
+Stat,Lead,18,리더십
+Stat,Read,19,예측력
+Stat,Feint,20,기만
+Stat,Genius,21,천재성
+Stat,Adapt,22,적응력
+Stat,Team,23,팀워크
+Stat,Timing,24,타이밍
+Stat,Kill,25,마무리 본능
+Stat,Aura,26,위압감
+Stat,Hp,40,HP
+Stat,Sta,41,기력
+Stat,Mana,42,마나
+Status,None,0,없음
+Status,Stun,1,기절
+Status,Prone,2,넘어짐
+Status,Bound,3,속박
+Status,Grappled,4,붙잡힘
+Status,Blinded,5,실명
+Status,Poison,6,중독
+Status,Bleed,7,출혈
+Status,Weakened,8,쇠약
+Status,ArmorBreak,9,갑옷 깨짐
+Status,Exposed,10,빈틈
+Status,Hobbled,11,다리 부상
+Status,ArmWound,12,팔 부상
+Status,Guard,13,방어 태세
+Status,Riposte,14,받아치기 태세
+Status,EvadeUp,15,회피 태세
+Status,Flame,16,화염 무기
+Status,Ward,17,수호막
+Status,Adapt,18,임기응변
+Status,WindStep,19,바람 걸음
+Status,EarthStance,20,대지 버팀
+Status,Enraged,21,격노
+StatusKind,Buff,1,강화
+StatusKind,Debuff,2,약화
+StatusKind,Control,3,제압
+Stack,Refresh,1,다시 걸면 지속 시간만 갱신
+Stack,Add,2,겹쳐 쌓임 (max_stack까지)
+Stack,Ignore,3,걸려 있으면 무시
+LearnCond,WeaponProf,1,무기 숙련 (key = WeaponClass. Any면 가장 높은 숙련)
+LearnCond,Attr,2,능력치 (key = Stat)
+LearnCond,Matches,3,출전 경기 수
+LearnCond,Wins,4,승리 수
+LearnCond,Kills,5,살해 수
+LearnCond,Popularity,6,인기
+LearnCond,Age,7,나이
+LearnCond,Race,8,종족 (key = Race)
+LearnCond,Style,9,스타일 (key = 스타일 id)
+LearnCond,Trait,10,특성 보유 (key = 특성 id)
+LearnCond,HasSkill,11,먼저 익힌 기술 (key = 기술 key)
+CompareOp,GE,1,이상
+CompareOp,LE,2,이하
+CompareOp,EQ,3,같음

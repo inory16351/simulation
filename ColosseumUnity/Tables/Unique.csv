@@ -1,0 +1,61 @@
+id,key,base,grade,name,lore
+int,string,string,int,string,string
+고유 번호,코드 키,바탕 장비 key (Weapon·Armor),등급 2 명품 3 전설,이름,사연 (전설)
+1001,red_tooth,gladius,2,붉은 이빨,
+1002,senate_edict,gladius,3,원로원의 칙령,황제가 처음으로 자유를 내린 검투사의 칼. 칼날에 아직 그날의 함성이 배어 있다.
+1003,moon_hook,sica,2,그믐달 갈고리,
+1004,thracian_vow,sica,3,트라키아의 맹세,고향을 잃은 자들이 한 사람에게 모아 준 은으로 벼렸다.
+1005,grey_warden,longsword,2,잿빛 파수꾼,
+1006,oathbreaker,longsword,3,맹세 파괴자,주인을 세 번 배신한 칼. 그래도 칼날만은 한 번도 주인을 배신하지 않았다.
+1007,widowmaker,greatsword,2,과부 제조기,
+1008,giant_spine,greatsword,3,거인의 등뼈,북쪽 산맥에서 쓰러진 거인의 등뼈를 녹여 부었다는 대검.
+1009,woodsman_grief,greataxe,2,나무꾼의 슬픔,
+1010,red_harvest,greataxe,3,붉은 수확,이 도끼가 지나간 모래는 사흘 동안 마르지 않았다.
+1011,raven_beak,battleaxe,2,까마귀 부리,
+1012,skull_bell,mace,2,해골 종,
+1013,quiet_mountain,warhammer,2,고요한 산,
+1014,anvil_of_kemer,warhammer,3,케메르의 모루,신전 대장장이가 신상을 두드리던 망치. 맞은 자는 신의 무게를 느낀다.
+1015,first_light,hasta,2,새벽빛,
+1016,legion_standard,hasta,3,군단의 깃대,잃어버린 군단의 깃발이 매달려 있던 창. 그 아래서 물러선 자는 없었다.
+1017,boar_bane,hunting_spear,2,멧돼지 사냥꾼,
+1018,sea_kings_fork,trident,2,바다왕의 쇠스랑,
+1019,drowned_crown,trident,3,익사한 왕관,카르세아 앞바다에서 건져 올린 삼지창. 쥔 손은 늘 젖어 있다.
+1020,spider_silk,net,2,거미 실 그물,
+1021,last_word,pugio,2,마지막 말,
+1022,brutus_kiss,pugio,3,배신자의 입맞춤,친구의 등에 꽂혔던 단검. 정면으로 쓰는 법을 모른다.
+1023,hawk_feather,javelin,2,매 깃털,
+1024,pit_wraps,cestus,2,구덩이 붕대,
+1025,iron_kiss,knuckles,2,무쇠 입맞춤,
+1026,fists_of_grommar,knuckles,3,그롬마르의 주먹,오크 족장 셋의 이빨을 박아 넣은 너클.
+1027,whispering_stone,rune_charm,2,속삭이는 돌,
+1028,ash_staff,staff,2,잿나무 지팡이,
+1029,sylvaren_root,staff,3,실바렌의 뿌리,첫 숲의 가장 늙은 나무에서 스스로 떨어진 가지.
+1030,beggars_silk,loincloth,2,거지 왕의 비단,
+1031,bull_hide,leather,2,황소 가죽,
+1032,scar_sleeve,manica,2,흉터 소매,
+1033,thousand_rings,chainmail,2,천 개의 고리,
+1034,dragon_shed,scale,2,용의 허물,
+1035,wyrm_hide,scale,3,고룡의 비늘,비늘 하나하나가 손바닥만 하다. 불에 그을린 자국이 지워지지 않는다.
+1036,heros_chest,muscle_cuirass,2,영웅의 가슴,
+1037,emperors_torso,muscle_cuirass,3,황제의 몸통,황제를 본떠 두드린 갑옷. 관중은 이것을 입은 자에게서 황제를 본다.
+1038,iron_tomb,plate,2,무쇠 무덤,
+1039,unbroken_wall,plate,3,무너지지 않는 벽,돌로르 요새의 성문을 녹여 만들었다. 성문은 끝내 열리지 않았다.
+1040,sun_crown,open_helm,2,해 그늘,
+1041,wide_brim,brimmed_helm,2,넓은 챙,
+1042,faceless,sealed_helm,2,얼굴 없는 자,
+1043,mask_of_the_dead,sealed_helm,3,망자의 가면,가면 뒤의 얼굴을 본 자는 모두 모래 위에 누워 있다.
+1044,red_plume,crested_helm,2,붉은 깃털,
+1045,phoenix_crest,crested_helm,3,불사조의 볏,이 투구를 쓴 자는 두 번 쓰러지고 세 번 일어났다고 한다.
+1046,lucky_buckler,parmula,2,행운의 손방패,
+1047,eye_of_gorgon,aspis,2,고르곤의 눈,
+1048,tower_of_tears,scutum,2,눈물의 탑,
+1049,last_legion,scutum,3,마지막 군단,군단이 모두 쓰러진 뒤에도 이 방패만은 서 있었다.
+1050,hunters_cuff,leather_bracer,2,사냥꾼의 손목,
+1051,sun_bracer,bronze_vambrace,2,태양 팔갑,
+1052,snake_coil,chain_sleeve,2,뱀 똬리,
+1053,iron_arm,plate_vambrace,2,무쇠 팔,
+1054,arm_of_dolgar,plate_vambrace,3,돌가르의 팔,드워프 왕이 잃은 팔 대신 달았던 쇠팔을 본떴다.
+1055,runners_wraps,leather_greaves,2,달리는 자의 각반,
+1056,bronze_stride,ocrea,2,청동 걸음,
+1057,rooted_oak,ocrea,3,뿌리 내린 참나무,이 정강이받이를 찬 자를 모래에서 밀어낸 자는 없다.
+1058,iron_pillars,plate_greaves,2,무쇠 기둥,

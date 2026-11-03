@@ -260,13 +260,13 @@ namespace Colosseum.Core
                 if (c == null) continue;
                 string fmt = HasFormat(c) ? $"{SeriesLogic.FormatNames[c.format.Value]} " : "";
                 string intro = HasFormat(c)
-                    ? $"{Josa.J(ai.name, "이/가")} {Josa.J(SeriesLogic.FormatNames[c.format.Value], "을/를")} 걸어왔습니다. 선봉은 {g.name}."
+                    ? $"{Josa.J(ai.name, "이/가")} {Josa.J(SeriesLogic.FormatNames[c.format.Value], "을/를")} 걸어왔습니다. 앞장서는 검투사는 {g.name}입니다."
                     : $"{ai.name}의 {Josa.J(g.name, "이/가")} {Josa.J(RuleName(rule), "을/를")} 걸어왔습니다.";
                 StateUtil.PushMessage(state, new InboxMessage
                 {
                     kind = "match",
                     title = $"{ai.name}의 도전장 ({fmt}{RuleName(rule)})",
-                    body = $"{intro}\n{DateOf(c.respondBy)}까지 답하지 않으면 거절한 것으로 칩니다.\n\n도전장 화면에서 받을지 정하십시오.",
+                    body = $"{intro}\n{DateOf(c.respondBy)}까지 답하지 않으면 거절한 것으로 칩니다.\n\n받을지는 도전장 화면에서 정할 수 있습니다.",
                 });
                 break;
             }
@@ -329,12 +329,19 @@ namespace Colosseum.Core
         {
             var summary = new MatchSummary();
             var (wl, ll) = s.winner == 0 ? (a, b) : (b, a);
-            double crowdSum = 0;
-            foreach (var bt in s.bouts) crowdSum = crowdSum + bt.result.crowd;
-            double crowd = crowdSum / Math.Max(1, s.bouts.Count);
-            double popSum = 0;
-            foreach (var bt in s.bouts) popSum = popSum + bt.a.popularity + bt.b.popularity;
-            double pop = popSum / Math.Max(1, s.bouts.Count);
+            double crowd = s.Crowd();
+            double pop;
+            if (s.melee != null)
+            {
+                // 난전: 전원 평균 인기를 1:1 두 사람 몫으로
+                pop = s.meleeSides[0].Concat(s.meleeSides[1]).Average(g => g.popularity) * 2;
+            }
+            else
+            {
+                double popSum = 0;
+                foreach (var bt in s.bouts) popSum = popSum + bt.a.popularity + bt.b.popularity;
+                pop = popSum / Math.Max(1, s.bouts.Count);
+            }
             wl.record.wins++;
             ll.record.losses++;
             var fm = SeriesLogic.FormatMultTable[format];
@@ -376,7 +383,7 @@ namespace Colosseum.Core
                 var teamSummary = TeamSettle(state, from, to, series, c.rule, c.format.Value, to.id);
                 return new PlayedMatch
                 {
-                    challenge = c, result = series.bouts.Count > 0 ? series.bouts[series.bouts.Count - 1].result : null,
+                    challenge = c, result = series.melee ?? (series.bouts.Count > 0 ? series.bouts[series.bouts.Count - 1].result : null),
                     a = snaps[0], b = snaps[1], summary = teamSummary, series = series,
                 };
             }

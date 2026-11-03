@@ -146,7 +146,7 @@ namespace Colosseum.Core
             {
                 kind = "info",
                 title = $"졸업할 나이가 된 아이 {ready.Count}명",
-                body = $"{string.Join("\n", ready.Select(g => $"{Josa.J(g.name, "이/가")} 데뷔할 나이가 됐습니다"))}\n\n유소년 학당 화면에서 1군으로 올리거나 내보내십시오.",
+                body = $"{string.Join("\n", ready.Select(g => $"{Josa.J(g.name, "이/가")} 데뷔할 나이가 됐습니다"))}\n\n유소년 학당 화면에서 1군으로 올리거나 내보낼 수 있습니다.",
             });
         }
 

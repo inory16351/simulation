@@ -1,0 +1,63 @@
+id,key,name,desc,type,category,weapon,race,tier,trigger,trigger_value,require,require_value,proc_rate,proc_stat,proc_per_stat,cooldown,sta_cost,mana_cost,priority,effect_group,learn_group,learn_rate,icon
+int,string,string,string,enum:SkillType,enum:SkillCategory,enum:WeaponClass,enum:Race,int,enum:Trigger,float,enum:Require,float,float,enum:Stat,float,int,int,int,int,int,int,float,string
+고유 번호,코드 키,이름,설명,종류,분류,필요 무기,필요 종족,등급 1~3,발동 시점,발동 기준값,추가 조건,조건 기준값,기본 발동 확률,확률 보정 능력치,능력치 1당 확률,쿨타임 (라운드),기력 비용,마나 비용,우선순위 (높을수록 먼저),효과 묶음 (Effect.group),습득 묶음 (SkillLearn.group),조건 충족 시 주당 습득 확률,아이콘 (Resources/Art/icon/)
+1001,power_strike,강타,온 힘을 실어 내려칩니다,Active,Attack,Any,Any,1,OnTurn,0,None,0,0.2,Str,0.01,2,15,0,30,1001,1001,0.12,skills/power_strike
+1002,flurry,연속 베기,빠르게 두 번 벱니다,Active,Attack,Sword,Any,1,OnTurn,0,Close,0,0.2,Agi,0.01,3,18,0,30,1002,1002,0.12,skills/flurry
+1003,armor_break,갑옷 쪼개기,갑옷 이음매를 찍어 벌립니다,Active,Attack,Axe,Any,2,OnTurn,0,None,0,0.18,Str,0.01,4,20,0,40,1003,1003,0.1,skills/armor_break
+1004,pierce,관통 찌르기,방어구 틈을 꿰뚫습니다,Active,Attack,Spear,Any,1,OnTurn,0,None,0,0.2,Acc,0.01,3,15,0,30,1004,1004,0.12,skills/pierce
+1005,execute,처형 일격,쓰러져 가는 상대를 끝냅니다,Active,Attack,Any,Any,3,OnOppHpBelow,0.25,None,0,0.45,Kill,0.02,5,25,0,90,1005,1005,0.06,skills/execute
+1006,shield_bash,방패 강타,방패로 들이받아 정신을 빼놓습니다,Active,Attack,Shield,Any,1,OnTurn,0,Close,0,0.18,Str,0.01,3,12,0,35,1006,1006,0.12,skills/shield_bash
+1007,javelin,투창,거리를 두고 창을 던집니다,Active,Attack,Throwing,Any,1,OnTurn,0,Far,0,0.4,Acc,0.01,1,10,0,50,1007,1007,0.15,skills/javelin
+1008,charge,돌진,떨어진 거리를 단숨에 좁히며 부딪칩니다,Active,Attack,Any,Any,1,OnTurn,0,Far,0,0.3,Agg,0.01,3,15,0,45,1008,1008,0.12,skills/charge
+1009,flourish,화려한 마무리,관중 앞에서 멋지게 끝을 냅니다,Active,Show,Any,Any,3,OnOppHpBelow,0.1,None,0,0.5,Show,0.02,9,15,0,95,1009,1009,0.05,skills/flourish
+1010,cleave,쪼개 내리기,대검을 머리 위에서 통째로 내리찍습니다,Active,Attack,Greatsword,Any,2,OnTurn,0,None,0,0.18,Str,0.01,3,22,0,40,1010,1010,0.1,skills/cleave
+1011,crushing_blow,뼈 부수기,둔기로 뼈를 울려 비틀거리게 합니다,Active,Attack,Mace,Any,2,OnTurn,0,Close,0,0.18,Str,0.01,3,18,0,40,1011,1011,0.1,skills/crushing_blow
+1012,hamstring,오금 베기,다리 힘줄을 그어 발을 묶습니다,Active,Attack,Dagger,Any,2,OnTurn,0,Close,0,0.2,Agi,0.01,3,14,0,40,1012,1012,0.1,skills/hamstring
+1013,bleeding_cut,출혈 베기,얕지만 깊게 남는 상처를 냅니다,Active,Attack,Sword,Any,2,OnTurn,0,Close,0,0.2,Acc,0.01,3,14,0,35,1013,1013,0.1,skills/bleeding_cut
+1014,low_sweep,하단 쓸기,삼지창 자루로 발목을 쓸어 넘깁니다,Active,Attack,TridentNet,Any,2,OnTurn,0,None,0,0.2,Agi,0.01,3,14,0,40,1014,1014,0.1,skills/low_sweep
+1015,double_thrust,이단 찌르기,창을 두 번 연달아 내지릅니다,Active,Attack,Spear,Any,2,OnTurn,0,None,0,0.18,Agi,0.01,3,18,0,35,1015,1015,0.1,skills/double_thrust
+1016,haymaker,큰 주먹,온몸을 실은 주먹을 꽂습니다,Active,Attack,Unarmed,Any,1,OnTurn,0,Close,0,0.22,Str,0.01,3,14,0,35,1016,1016,0.12,skills/haymaker
+2001,net_throw,그물 투척,그물을 던져 몸을 묶습니다,Active,Control,TridentNet,Any,1,OnTurn,0,Net,0,0.35,Acc,0.01,3,15,0,60,2001,2001,0.15,skills/net_throw
+2002,trip,걸어 넘어뜨리기,발을 걸어 모래에 눕힙니다,Active,Control,Any,Any,1,OnTurn,0,Close,0,0.18,Grp,0.01,3,12,0,45,2002,2002,0.12,skills/trip
+2003,grapple,붙잡기,허리를 감아 움직임을 막습니다,Active,Control,Any,Any,2,OnTurn,0,Close,0,0.15,Grp,0.012,3,15,0,45,2003,2003,0.1,skills/grapple
+2004,sand_throw,모래 뿌리기,눈에 모래를 뿌립니다. 관중은 싫어합니다,Active,Control,Any,Any,1,OnHpBelow,0.5,Close,0,0.3,Feint,0.015,4,5,0,55,2004,2004,0.12,skills/sand_throw
+2005,disarm,무기 쳐내기,칼끝으로 손목을 쳐 힘을 빼놓습니다,Active,Control,Sword,Any,3,OnTurn,0,Close,0,0.12,Timing,0.012,4,16,0,45,2005,2005,0.06,skills/disarm
+3001,iron_wall,철벽,방패 뒤로 몸을 숨기고 버팁니다,Active,Buff,Shield,Any,1,OnHpBelow,0.6,Shield,0,0.35,Blk,0.01,4,15,0,60,3001,3001,0.12,skills/iron_wall
+3002,catch_breath,숨 고르기,물러서서 호흡을 가다듬습니다,Active,Buff,Any,Any,1,OnStaBelow,0.3,None,0,0.5,Rec,0.01,4,0,0,70,3002,3002,0.15,skills/catch_breath
+3003,war_roar,위협의 포효,짐승처럼 울부짖어 기를 꺾습니다,Active,Buff,Any,Any,1,OnMatchStart,0,None,0,0.5,Aura,0.02,5,10,0,80,3003,3003,0.12,skills/war_roar
+3004,second_wind,재기,무너지기 직전 다시 일어섭니다. 경기에 한 번,Active,Buff,Any,Any,3,OnHpBelow,0.3,None,0,0.5,Grit,0.02,99,0,0,85,3004,3004,0.05,skills/second_wind
+3005,focus_stance,집중 자세,상대의 버릇이 보이기 시작합니다,Active,Buff,Any,Any,2,OnRoundAtLeast,3,None,0,0.3,Comp,0.015,6,8,0,50,3005,3005,0.1,skills/focus_stance
+3006,bloodlust,피의 갈증,피 냄새에 눈이 뒤집힙니다,Active,Buff,Any,Any,2,OnOppHpBelow,0.5,None,0,0.3,Agg,0.015,6,10,0,50,3006,3006,0.08,skills/bloodlust
+3007,parry,흘려내기,다음 공격을 흘려낼 자세를 잡습니다,Active,Buff,Any,Any,1,OnTurn,0,Close,0,0.15,Rea,0.01,3,10,0,25,3007,3007,0.12,skills/parry
+4001,disengage,거리 벌리기,뒤로 물러나 거리를 되찾습니다,Active,Move,Any,Any,1,OnHpBelow,0.5,Close,0,0.3,Agi,0.01,2,10,0,40,4001,4001,0.12,skills/disengage
+5001,taunt,관중 도발,관중을 부추겨 함성을 끌어냅니다. 빈틈이 생깁니다,Active,Show,Any,Any,1,OnTurn,0,Far,0,0.15,Show,0.015,3,5,0,20,5001,5001,0.12,skills/taunt
+5002,salute,관중에게 경례,입장하며 관중의 마음을 삽니다,Active,Show,Any,Any,1,OnMatchStart,0,None,0,0.6,Show,0.02,99,0,0,90,5002,5002,0.12,skills/salute
+5003,rally,결속의 외침,쓰러진 동료를 부르며 편을 다시 세웁니다,Reaction,Team,Any,Any,2,OnAllyDown,0,None,0,0.5,Lead,0.02,99,5,0,90,5003,5003,0.08,skills/rally
+6001,flame_weapon,화염 부여,무기에 불을 붙입니다,Active,Magic,Focus,Any,1,OnMatchStart,0,Mana,0,0.6,Mag,0.02,5,0,15,80,6001,6001,0.12,skills/flame_weapon
+6002,ward_rune,수호 룬,몸에 보호의 룬을 새깁니다,Active,Magic,Focus,Any,1,OnHpBelow,0.7,Mana,0,0.4,Mag,0.02,5,0,20,70,6002,6002,0.12,skills/ward_rune
+6003,curse_weak,쇠약의 저주,상대의 팔다리에 힘을 뺍니다,Active,Magic,Focus,Any,2,OnTurn,0,Mana,0,0.25,Mag,0.015,5,0,20,55,6003,6003,0.1,skills/curse_weak
+6004,lightning,번개 일격,번개를 떨어뜨립니다,Active,Magic,Focus,Any,3,OnTurn,0,Mana,0,0.25,Mag,0.015,4,0,25,60,6004,6004,0.06,skills/lightning
+7001,adapt,임기응변,싸움 흐름에 맞춰 몸을 바꿉니다,Active,Race,Any,Human,1,OnRoundAtLeast,2,None,0,0.3,Adapt,0.015,5,10,0,50,7001,7001,1,skills/adapt
+7002,war_cry,전투 함성,오크의 함성으로 기세를 끌어올립니다,Active,Race,Any,Orc,1,OnTurn,0,None,0,0.2,Aura,0.01,5,10,0,45,7002,7002,1,skills/war_cry
+7003,horn_charge,뿔 돌진,뿔을 앞세워 어디서든 들이받습니다,Active,Race,Any,Minotaur,1,OnTurn,0,None,0,0.2,Str,0.01,5,25,0,60,7003,7003,1,skills/horn_charge
+7004,wind_step,바람 걸음,바람처럼 공격 사이를 빠져나갑니다,Active,Race,Any,Elf,1,OnDamaged,0,None,0,0.3,Agi,0.01,5,15,0,60,7004,7004,1,skills/wind_step
+7005,earth_stance,대지 버팀,땅에 뿌리박아 넘어지지 않습니다,Active,Race,Any,Dwarf,1,OnOppDisabled,0,None,0,0.3,Tou,0.01,5,15,0,50,7005,7005,1,skills/earth_stance
+7006,venom_bite,독니 물기,독니로 물어 독을 퍼뜨립니다,Active,Race,Any,Lizardfolk,1,OnTurn,0,Close,0,0.2,Agg,0.01,4,15,0,45,7006,7006,1,skills/venom_bite
+7007,pounce,사냥 도약,먹잇감에게 뛰어들어 급소를 노립니다,Active,Race,Any,Beastkin,1,OnTurn,0,Far,0,0.3,Agi,0.01,4,20,0,55,7007,7007,1,skills/pounce
+8001,unbreakable,불굴,죽을 상처에도 한 번은 버팁니다,Passive,Buff,Any,Any,3,Always,0,None,0,1,None,0,0,0,0,0,8001,8001,0.04,skills/unbreakable
+8002,crowd_hand,관중의 손,관중이 이 검투사를 살려 달라고 외칩니다,Passive,Show,Any,Any,2,Always,0,None,0,1,None,0,0,0,0,0,8002,8002,0.06,skills/crowd_hand
+8003,sword_way,검의 길,한손검이 손의 일부가 되었습니다,Passive,Attack,Sword,Any,3,Always,0,None,0,1,None,0,0,0,0,0,8003,8003,0.05,skills/sword_way
+8004,heavy_hands,무거운 손,둔기에 실린 무게가 남다릅니다,Passive,Attack,Mace,Any,3,Always,0,None,0,1,None,0,0,0,0,0,8004,8004,0.05,skills/heavy_hands
+8005,axe_master,도끼 장인,도끼날이 갑옷을 가리지 않습니다,Passive,Attack,Axe,Any,3,Always,0,None,0,1,None,0,0,0,0,0,8005,8005,0.05,skills/axe_master
+8006,spear_wall,창의 벽,창끝이 늘 상대를 겨눕니다,Passive,Buff,Spear,Any,3,Always,0,None,0,1,None,0,0,0,0,0,8006,8006,0.05,skills/spear_wall
+8007,shield_master,방패 장인,방패가 벽처럼 움직입니다,Passive,Buff,Shield,Any,3,Always,0,None,0,1,None,0,0,0,0,0,8007,8007,0.05,skills/shield_master
+8008,iron_skin,쇠가죽,수없이 맞아 굳은 몸입니다,Passive,Buff,Any,Any,2,Always,0,None,0,1,None,0,0,0,0,0,8008,8008,0.06,skills/iron_skin
+8009,veteran,백전노장,모래 위에서 늙은 자의 감각입니다,Passive,Buff,Any,Any,3,Always,0,None,0,1,None,0,0,0,0,0,8009,8009,0.05,skills/veteran
+8010,killer_instinct,살육 본능,약해진 상대를 보면 손이 더 무거워집니다,Passive,Attack,Any,Any,2,OnOppHpBelow,0.3,None,0,1,None,0,0,0,0,0,8010,8010,0.06,skills/killer_instinct
+8011,iron_lungs,강철 폐,지치지 않고 숨이 돌아옵니다,Passive,Buff,Any,Any,2,OnTurn,0,None,0,1,None,0,0,0,0,0,8011,8011,0.06,skills/iron_lungs
+8012,crowd_darling,관중의 연인,칼이 닿을 때마다 관중이 들끓습니다,Passive,Show,Any,Any,2,OnAttackHit,0,None,0,1,None,0,0,0,0,0,8012,8012,0.06,skills/crowd_darling
+9001,riposte,받아치기,흘려낸 칼끝을 그대로 되돌려 줍니다,Reaction,Attack,Sword,Any,2,OnParry,0,None,0,0.35,Timing,0.02,2,8,0,0,9001,9001,0.1,skills/riposte
+9002,counter_bash,맞받아 밀치기,막아 낸 방패로 그대로 밀어붙입니다,Reaction,Control,Shield,Any,2,OnBlock,0,Shield,0,0.3,Str,0.01,3,8,0,0,9002,9002,0.1,skills/counter_bash
+9003,sidestep,비켜서기,피하며 한 발 물러나 숨을 고릅니다,Reaction,Move,Any,Any,2,OnDodge,0,None,0,0.35,Agi,0.01,3,5,0,0,9003,9003,0.1,skills/sidestep
+9004,spite,앙갚음,맞은 만큼 바로 되갚습니다,Reaction,Attack,Any,Any,2,OnDamaged,0,Close,0,0.2,Grit,0.01,3,8,0,0,9004,9004,0.08,skills/spite
+9005,cover_ally,엄호,위험한 동료 앞을 막아섭니다,Reaction,Team,Any,Any,2,OnAllyHpBelow,0.3,None,0,0.4,Team,0.02,4,10,0,0,9005,9005,0.08,skills/cover_ally

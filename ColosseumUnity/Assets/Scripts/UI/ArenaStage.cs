@@ -3,6 +3,7 @@
 // 말의 자리는 전투 시뮬레이션이 낸 실제 좌표(CombatEvent.pos)다. 말은 경기장 폭의 약 8% (TokenScale).
 // 말 둘과 핏자국·이펙트 원본은 하이어라키에 있고, 핏자국·이펙트는 원본을 복제한다.
 using System.Collections.Generic;
+using System.Linq;
 using Colosseum.Core;
 using Colosseum.Core.Combat;
 using TMPro;
@@ -40,7 +41,7 @@ namespace Colosseum.UI
             public float hp = 1;
         }
 
-        class Hit { public int side, key; public bool big, heavy, blunt; }
+        class Hit { public int side, from, key; public bool big, heavy, blunt; }
 
         /// <summary>말 하나의 화면 상태 (보간용)</summary>
         class TokenState
@@ -56,10 +57,17 @@ namespace Colosseum.UI
             public string drawnFor;
         }
 
-        readonly TokenState[] tokens = new TokenState[2];
+        /// <summary>말들. 0·1은 하이어라키의 tokenA·tokenB, 난전에서 더 필요하면 tokenB를 복제해 붙인다</summary>
+        readonly List<TokenState> tokens = new();
         readonly List<Image> bloods = new();
         readonly List<(Image img, string anim, float t, float dur, float delay, Vector3 baseScale, float rot)> fx = new();
-        Gladiator a, b;
+        /// <summary>경기에 나온 사람들 (이벤트 pos 순서: 0쪽 다음 1쪽)과 그 편</summary>
+        readonly List<Gladiator> people = new();
+        readonly List<int> sideOf = new();
+        readonly Dictionary<string, int> slotOf = new();
+        bool team;
+        Gladiator a => people.Count > 0 ? people[0] : null;
+        static readonly Color[] TeamColors = { new Color32(0xd9, 0xb0, 0x4c, 0xff), new Color32(0xb8, 0x3a, 0x2e, 0xff) };
         int lastBurstKey = -1, lastDodgeKey = -1, lastShakeKey = -1, lastSwingKey = -1;
         float shakeT = 99, impactT = 99;
 
@@ -67,8 +75,9 @@ namespace Colosseum.UI
         {
             bloodTemplate.gameObject.SetActive(false);
             fxTemplate.gameObject.SetActive(false);
-            tokens[0] = Bind(tokenA);
-            tokens[1] = Bind(tokenB);
+            tokens.Clear();
+            tokens.Add(Bind(tokenA));
+            tokens.Add(Bind(tokenB));
         }
 
         static TokenState Bind(RectTransform t)
@@ -91,11 +100,26 @@ namespace Colosseum.UI
         }
 
         /// <summary>새 경기: 말에 선수를 앉히고 장면을 비운다</summary>
-        public void Begin(Gladiator ga, Gladiator gb, bool crowd)
+        public void Begin(Gladiator ga, Gladiator gb, bool crowd) => Begin(new List<Gladiator> { ga }, new List<Gladiator> { gb }, crowd, false);
+
+        /// <summary>난전: 양쪽 전원을 말로 세운다 (우리 편 금색, 상대 편 붉은색)</summary>
+        public void Begin(List<Gladiator> side0, List<Gladiator> side1, bool crowd, bool isTeam = true, int mySide = 0)
         {
-            if (tokens[0] == null) Awake();
-            a = ga; b = gb;
-            floor.sprite = crowd ? floorCrowd : floorEmpty;
+            if (tokens.Count == 0) Awake();
+            team = isTeam;
+            people.Clear(); sideOf.Clear(); slotOf.Clear();
+            foreach (var g in side0) { slotOf[g.id] = people.Count; people.Add(g); sideOf.Add(0); }
+            foreach (var g in side1) { slotOf[g.id] = people.Count; people.Add(g); sideOf.Add(1); }
+            while (tokens.Count < people.Count)
+            {
+                var clone = Instantiate(tokenB, tokenB.parent);
+                clone.name = "Token" + tokens.Count;
+                tokens.Add(Bind(clone));
+            }
+            for (int i = 0; i < tokens.Count; i++) tokens[i].root.gameObject.SetActive(i < people.Count);
+            // 탑뷰 경기장 그림이 있으면 그것을 쓴다 (씬을 다시 빌드하지 않아도 바뀌게 실행 중에 불러온다)
+            var art = Resources.Load<Sprite>(crowd ? "Art/ui/arena_crowd" : "Art/ui/arena_empty");
+            floor.sprite = art != null ? art : crowd ? floorCrowd : floorEmpty;
             foreach (var x in bloods) Destroy(x.gameObject);
             bloods.Clear();
             foreach (var f in fx) Destroy(f.img.gameObject);
@@ -103,11 +127,11 @@ namespace Colosseum.UI
             lastBurstKey = lastDodgeKey = lastShakeKey = lastSwingKey = -1;
             shakeT = impactT = 99;
             impactFrame.gameObject.SetActive(false);
-            var p = new[] { new Vector2((float)Arena.Start[0], (float)Arena.Start[1]), new Vector2((float)Arena.Start[2], (float)Arena.Start[3]) };
-            for (int s = 0; s < 2; s++)
+            var p = StartPositions();
+            for (int s = 0; s < people.Count; s++)
             {
                 var tk = tokens[s];
-                var g = s == 0 ? a : b;
+                var g = people[s];
                 tk.pos = tk.from = tk.to = p[s];
                 tk.root.localScale = new Vector3(TokenScale, TokenScale, 1);
                 tk.moveT = 1;
@@ -115,8 +139,11 @@ namespace Colosseum.UI
                 tk.pose = Pose.Idle;
                 tk.key = -1;
                 tk.poseT = 99;
-                tk.body.Find("Color").GetComponent<Image>().color = NationColor(g);
-                tk.facing.Find("Arrow").GetComponent<Image>().color = NationColor(g);
+                tk.dir = sideOf[s] == 0 ? Vector2.right : Vector2.left;
+                // 난전은 같은 나라끼리 붙기도 하니 편 색으로 가른다
+                var col = team ? TeamColors[sideOf[s] == mySide ? 0 : 1] : NationColor(g);
+                tk.body.Find("Color").GetComponent<Image>().color = col;
+                tk.facing.Find("Arrow").GetComponent<Image>().color = col;
                 tk.body.Find("Badge/Glyph").GetComponent<TMP_Text>().text = WeaponGlyph(g);
                 if (tk.drawnFor != g.id) { tk.drawnFor = g.id; tk.body.GetComponentInChildren<PortraitView>(true).Show(g); }
             }
@@ -129,20 +156,34 @@ namespace Colosseum.UI
             if (a == null) return;
             var d = Derive(events, count);
             var pos = d.pos;
-            var u = (pos[1] - pos[0]).normalized;
-            for (int s = 0; s < 2; s++)
+            int n = people.Count;
+            bool Down(int s) => d.views[s].pose is Pose.Down or Pose.Dead or Pose.Kneel;
+            // 각자 마지막으로 맞붙은 적(없으면 가장 가까운 선 적)을 바라본다
+            Vector2 Facing(int s)
+            {
+                int t = d.foe[s];
+                if (t < 0 || Down(t))
+                {
+                    float best = float.MaxValue;
+                    for (int o = 0; o < n; o++)
+                        if (sideOf[o] != sideOf[s] && !Down(o) && (pos[o] - pos[s]).sqrMagnitude < best) { best = (pos[o] - pos[s]).sqrMagnitude; t = o; }
+                }
+                var v = t >= 0 ? pos[t] - pos[s] : Vector2.zero;
+                return v.sqrMagnitude > 0.01f ? v.normalized : tokens[s].dir;
+            }
+            for (int s = 0; s < n; s++)
             {
                 var tk = tokens[s];
                 var v = d.views[s];
                 if (tk.to != pos[s]) { tk.from = tk.pos; tk.to = pos[s]; tk.moveT = 0; }
-                tk.dir = s == 0 ? u : -u;
+                tk.dir = Facing(s);
                 tk.hpTarget = Mathf.Clamp01(v.hp);
                 if (v.pose != tk.pose || v.key != tk.key) { tk.pose = v.pose; tk.key = v.key; tk.poseT = 0; }
             }
             // 쓰러진 쪽을 먼저 그려 선 쪽이 위에 오게
-            bool bDown = d.views[1].pose is Pose.Down or Pose.Dead;
-            (bDown ? tokenB : tokenA).SetSiblingIndex(fxLayer.GetSiblingIndex() - 2);
-            (bDown ? tokenA : tokenB).SetSiblingIndex(fxLayer.GetSiblingIndex() - 1);
+            int at = fxLayer.GetSiblingIndex() - n;
+            for (int s = 0; s < n; s++) if (Down(s)) tokens[s].root.SetSiblingIndex(at);
+            for (int s = 0; s < n; s++) if (!Down(s)) tokens[s].root.SetSiblingIndex(fxLayer.GetSiblingIndex() - 1);
 
             while (bloods.Count < d.blood.Count)
             {
@@ -164,24 +205,48 @@ namespace Colosseum.UI
             {
                 lastSwingKey = d.swing.Value.key;
                 int sw = d.swing.Value.side;
-                var dirv = sw == 0 ? u : -u;
+                var dirv = Toward(pos, sw, d.swing.Value.target);
                 float ang = Mathf.Atan2(dirv.y, dirv.x) * Mathf.Rad2Deg;
                 Spawn("slash_gold", pos[sw] + dirv * R * TokenScale * 1.25f, 44, ang + 90, "swing", 0.3f, 0);
             }
             if (d.burst != null && d.burst.key != lastBurstKey)
             {
                 lastBurstKey = d.burst.key;
-                HitFx(pos[d.burst.side], d.burst, d.burst.side == 0 ? u : -u);
+                HitFx(pos[d.burst.side], d.burst, Toward(pos, d.burst.side, d.burst.from));
                 if (d.burst.big) impactT = 0;
             }
             if (d.shake && d.burst != null && d.burst.key != lastShakeKey) { lastShakeKey = d.burst.key; shakeT = 0; }
         }
 
+        /// <summary>s에서 o 쪽 단위 벡터 (겹쳐 있으면 편 방향)</summary>
+        Vector2 Toward(Vector2[] pos, int s, int o)
+        {
+            var v = o >= 0 ? pos[o] - pos[s] : Vector2.zero;
+            return v.sqrMagnitude > 0.01f ? v.normalized : sideOf[s] == 0 ? Vector2.right : Vector2.left;
+        }
+
+        /// <summary>시작 자리 (시작 이벤트가 오기 전): 양쪽이 왼쪽·오른쪽에 줄지어 선다</summary>
+        Vector2[] StartPositions()
+        {
+            var p = new Vector2[people.Count];
+            for (int side = 0; side < 2; side++)
+            {
+                var mine = Enumerable.Range(0, people.Count).Where(i => sideOf[i] == side).ToList();
+                for (int k = 0; k < mine.Count; k++)
+                {
+                    float x = mine.Count == 1 ? (float)Arena.Start[side * 2] : (float)Arena.CX + (side == 0 ? -75 : 75);
+                    float y = (float)Arena.CY + (k - (mine.Count - 1) / 2f) * Mathf.Min(30, 80f / Mathf.Max(1, mine.Count - 1));
+                    p[mine[k]] = new Vector2(x, y);
+                }
+            }
+            return p;
+        }
+
         void Update()
         {
-            if (tokens[0] == null || a == null) return;
+            if (tokens.Count == 0 || a == null) return;
             float dt = Time.deltaTime;
-            for (int s = 0; s < 2; s++) Animate(tokens[s], dt);
+            for (int s = 0; s < people.Count; s++) Animate(tokens[s], dt);
 
             // 흔들림 (웹판 shake 0.35s)
             shakeT += dt;
@@ -391,11 +456,13 @@ namespace Colosseum.UI
 
         class Derived
         {
-            /// <summary>지금 두 사람의 경기장 좌표 (시뮬레이션이 낸 값)</summary>
-            public Vector2[] pos = { new((float)Arena.Start[0], (float)Arena.Start[1]), new((float)Arena.Start[2], (float)Arena.Start[3]) };
+            /// <summary>지금 모두의 경기장 좌표 (시뮬레이션이 낸 값)</summary>
+            public Vector2[] pos;
             public View[] views;
-            /// <summary>마지막 사건이 공격이면 휘두른 쪽</summary>
-            public (int side, int key)? swing;
+            /// <summary>각자 마지막으로 맞붙은 상대 (-1이면 아직 없음)</summary>
+            public int[] foe;
+            /// <summary>마지막 사건이 공격이면 휘두른 쪽과 그 상대</summary>
+            public (int side, int key, int target)? swing;
             public List<Vector3> blood = new();
             public Hit burst;
             public (int side, int key)? dodge;
@@ -404,18 +471,22 @@ namespace Colosseum.UI
 
         Derived Derive(List<CombatEvent> events, int count)
         {
-            int Side(string id) => id == a.id ? 0 : 1;
-            var d = new Derived { views = new[] { new View { g = a }, new View { g = b } } };
-            var persistent = new Pose?[2];
+            int n = people.Count;
+            int Side(string id) => id != null && slotOf.TryGetValue(id, out var s) ? s : 0;
+            var d = new Derived
+            {
+                pos = StartPositions(),
+                views = people.Select(g => new View { g = g }).ToArray(),
+                foe = Enumerable.Repeat(-1, n).ToArray(),
+            };
+            var persistent = new Pose?[n];
             for (int idx = 0; idx < count; idx++)
             {
                 var e = events[idx];
                 bool last = idx == count - 1;
                 if (e.pos != null)
-                {
-                    d.pos[0] = new Vector2((float)e.pos[0], (float)e.pos[1]);
-                    d.pos[1] = new Vector2((float)e.pos[2], (float)e.pos[3]);
-                }
+                    for (int i = 0; i < n && i * 2 + 1 < e.pos.Length; i++) d.pos[i] = new Vector2((float)e.pos[i * 2], (float)e.pos[i * 2 + 1]);
+                if (e.t == "attack" && e.actor != null && e.target != null) { d.foe[Side(e.actor)] = Side(e.target); d.foe[Side(e.target)] = Side(e.actor); }
                 void Set(int s, Pose p)
                 {
                     if (persistent[s] != null) return;
@@ -433,7 +504,7 @@ namespace Colosseum.UI
                         int t = Side(e.target);
                         Set(Side(e.actor), e.magic ? Pose.Cast : Pose.Attack);
                         Set(t, !e.hit ? Pose.Dodge : e.blocked ? Pose.Block : Pose.Hurt);
-                        if (last && !e.magic) d.swing = (Side(e.actor), idx);
+                        if (last && !e.magic) d.swing = (Side(e.actor), idx, t);
                         if (e.hit) d.views[t].hp = (float)(e.hpAfter / e.maxHp);
                         if (e.hit && !e.blocked && e.damage > 0)
                         {
@@ -445,7 +516,7 @@ namespace Colosseum.UI
                             }
                             if (last)
                             {
-                                d.burst = new Hit { side = t, big = e.crit, heavy = e.damage / e.maxHp > 0.12, blunt = Blunt(d.views[Side(e.actor)].g), key = idx };
+                                d.burst = new Hit { side = t, from = Side(e.actor), big = e.crit, heavy = e.damage / e.maxHp > 0.12, blunt = Blunt(d.views[Side(e.actor)].g), key = idx };
                                 d.shake = e.crit;
                             }
                         }
@@ -458,8 +529,13 @@ namespace Colosseum.UI
                     case "status":
                         if (e.status == "stun" || e.status == "prone") Set(Side(e.target), Pose.Stagger);
                         break;
+                    case "thorns":
+                        d.views[Side(e.target)].hp = (float)(e.hpAfter / System.Math.Max(1, e.maxHp));
+                        break;
                     case "poison":
-                        d.views[Side(e.target)].hp = (float)(System.Math.Max(0, e.hpAfter) / System.Math.Max(1, e.hpAfter + e.damage));
+                    case "regen":
+                        // 최대 HP 기준 (예전엔 독 피해 직전 HP로 나눠 막대가 차오르는 버그가 있었다)
+                        d.views[Side(e.target)].hp = (float)(System.Math.Max(0, e.hpAfter) / System.Math.Max(1, e.maxHp));
                         break;
                     case "surrender":
                         persistent[Side(e.actor)] = Pose.Kneel;
@@ -477,11 +553,14 @@ namespace Colosseum.UI
                         }
                         break;
                     case "end":
-                        if (persistent[Side(e.winner)] == null) persistent[Side(e.winner)] = Pose.Cheer;
+                        // 난전은 이긴 편에서 서 있는 사람 모두 환호한다
+                        int ws = sideOf[Side(e.winner)];
+                        for (int i = 0; i < n; i++)
+                            if ((team ? sideOf[i] == ws : i == Side(e.winner)) && persistent[i] == null) persistent[i] = Pose.Cheer;
                         break;
                 }
             }
-            for (int i = 0; i < 2; i++) if (persistent[i] is Pose p) d.views[i].pose = p;
+            for (int i = 0; i < n; i++) if (persistent[i] is Pose p) d.views[i].pose = p;
             return d;
         }
 

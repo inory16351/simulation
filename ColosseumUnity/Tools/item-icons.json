@@ -1,0 +1,442 @@
+{
+  "presets": {
+    "items": "ONE square image, a 3x3 grid of equal square cells, flat solid MAGENTA background (#FF00FF) in every cell (must stay magenta, no gradient, no frames, no grid lines, no shadows on the background). No text, no labels. Each cell: one game inventory ICON of a single item, centered, filling about 75% of the cell, slight 3/4 view, no hands, no person, no ground. Keep every item fully inside its own cell.",
+    "menu": "ONE square image, a 3x3 grid of equal square cells, flat solid MAGENTA background (#FF00FF) in every cell (must stay magenta, no gradient, no frames, no grid lines, no shadows on the background). No text, no labels. Each cell: one game inventory ICON of a single item, centered, filling about 75% of the cell, slight 3/4 view, no hands, no person, no ground. Keep every item fully inside its own cell. Very simple bold shape, readable as a tiny 26px menu icon.",
+    "crest": "ONE square image, a 3x3 grid of equal square cells, flat solid MAGENTA background (#FF00FF) in every cell (must stay magenta, no gradient, no frames, no grid lines, no shadows on the background). No text, no labels. Each cell: one heraldic shield crest, upright, front view, centered, filling about 80% of the cell, dull bronze rim, flat painted field. Keep every crest fully inside its own cell.",
+    "skills": "ONE square image, a 3x3 grid of equal square cells, flat solid MAGENTA background (#FF00FF) in every cell (must stay magenta, no gradient, no frames, no grid lines, no shadows on the background). No text, no labels. Each cell: one square SKILL ICON that shows the action as a simple bold emblem (weapon or body part plus a motion arc or symbol), centered, filling about 75% of the cell, no frame, no circle background, no text. Keep every icon fully inside its own cell.",
+    "status": "ONE square image, a 3x3 grid of equal square cells, flat solid MAGENTA background (#FF00FF) in every cell (must stay magenta, no gradient, no frames, no grid lines, no shadows on the background). No text, no labels. Each cell: one tiny STATUS EFFECT ICON as a very simple bold symbol, centered, filling about 70% of the cell, no frame, no background, no text. Must read at 20px. Keep every icon fully inside its own cell.",
+    "menux": "ONE square image, a 3x3 grid of equal square cells, flat solid MAGENTA background (#FF00FF) in every cell (must stay magenta, no gradient, no frames, no grid lines, no shadows on the background). No text, no labels. Each cell: one game inventory ICON of a single item, centered, filling about 75% of the cell, slight 3/4 view, no hands, no person, no ground. Keep every item fully inside its own cell. Very simple bold shape, readable as a tiny 26px menu icon.",
+    "fx": "ONE square image, a 3x3 grid of equal square cells, flat solid MAGENTA background (#FF00FF) in every cell (must stay magenta, no gradient, no frames, no grid lines, no shadows on the background). No text, no labels. Each cell: one 2D combat effect sprite, centered, filling about 75% of the cell, no ground, no characters, edges made of loose gouache brush strokes. Keep every effect fully inside its own cell."
+  },
+  "style": "Art style: FLAT simplified dark-fantasy graphic novel painted with gouache, matching the attached reference (the portrait panels and the cut-out helmet/armor parts on the right are the exact target look): bold uniform black ink outline around every shape, a FEW LARGE flat color shapes, at most 3 flat tones per material (base, one blocky shadow, one small warm highlight) laid with loose visible brush strokes, desaturated muted palette (bone, rust, dull bronze, iron grey, dark leather, muted red), warm torchlight from the left. Keep detail LOW: no rust speckles or grime texture, no fine engraving, no glossy metal specular shine, no smooth gradients, no photo-real rendering, no bright saturated cartoon colors, NOT chibi, NOT cute storybook. VALUES ARE DARK like the reference: mostly mid-to-dark tones, big blocky near-black shadow shapes covering about 40% of each object on the side away from the light, only thin warm highlights on the lit edge, colors greyed and dirty (old bronze, dull ochre, brick red, ash grey), rough dry-brush gouache texture visible inside the flat shapes. Grim mature illustration, NOT a clean bright mobile-game icon, NOT vector art. The silhouette must read clearly at 48px.",
+  "styleRef": "art/source/style/flat_ref.png",
+  "styleRefPresets": [
+    "items",
+    "menu",
+    "crest",
+    "skills",
+    "status",
+    "menux",
+    "fx"
+  ],
+  "items": [
+    {
+      "id": "items_01",
+      "preset": "items",
+      "out": "art/source/icon_sheets/items_01.png",
+      "prompt": "Cells left-to-right, top-to-bottom:\n1. a short Roman gladius sword with a ribbed bone grip and round pommel\n2. a curved Thracian sica blade, inward-curving sword\n3. a straight double-edged longsword with a simple cross guard\n4. a huge two-handed greatsword with a long leather grip\n5. a massive two-handed bearded greataxe on a long haft\n6. a one-handed bronze battle axe\n7. a flanged iron mace\n8. a heavy two-handed war hammer with a square iron head\n9. a Roman hasta spear with a leaf-shaped iron head",
+      "cells": [
+        "gladius",
+        "sica",
+        "longsword",
+        "greatsword",
+        "greataxe",
+        "battleaxe",
+        "mace",
+        "warhammer",
+        "hasta"
+      ]
+    },
+    {
+      "id": "items_02",
+      "preset": "items",
+      "out": "art/source/icon_sheets/items_02.png",
+      "prompt": "Cells left-to-right, top-to-bottom:\n1. a boar hunting spear with crossbar lugs below the blade\n2. a three-pronged fishing trident\n3. a rolled gladiator's fishing net with lead weights\n4. a short Roman pugio dagger with a waisted blade\n5. two light throwing javelins crossed\n6. leather boxing hand-wraps (cestus)\n7. spiked steel knuckle dusters\n8. a carved runestone charm on a leather cord\n9. a gnarled sorcerer's staff with a glowing stone",
+      "cells": [
+        "hunting_spear",
+        "trident",
+        "net",
+        "pugio",
+        "javelin",
+        "cestus",
+        "knuckles",
+        "rune_charm",
+        "staff"
+      ]
+    },
+    {
+      "id": "items_03",
+      "preset": "items",
+      "out": "art/source/icon_sheets/items_03.png",
+      "prompt": "Cells left-to-right, top-to-bottom:\n1. a simple cloth loincloth with a wide belt\n2. a hardened leather cuirass\n3. a padded linen torso wrap with a single segmented arm guard\n4. a chainmail shirt (lorica hamata)\n5. a bronze scale armor shirt (lorica squamata)\n6. a bronze muscle cuirass sculpted like a torso\n7. heavy steel plate armor breastplate with pauldrons\n8. an open-faced iron helmet\n9. a broad-brimmed gladiator helmet",
+      "cells": [
+        "loincloth",
+        "leather",
+        "manica",
+        "chainmail",
+        "scale",
+        "muscle_cuirass",
+        "plate",
+        "open_helm",
+        "brimmed_helm"
+      ]
+    },
+    {
+      "id": "items_04",
+      "preset": "items",
+      "out": "art/source/icon_sheets/items_04.png",
+      "prompt": "Cells left-to-right, top-to-bottom:\n1. a fully enclosed gladiator helmet with a grilled face visor\n2. a crested gladiator helmet with a tall plume\n3. a small square buckler shield\n4. a round bronze hoplite shield\n5. a large curved rectangular Roman scutum shield\n6. a pair of laced leather forearm bracers\n7. a pair of bronze forearm vambraces\n8. a chainmail arm sleeve\n9. a segmented steel arm guard (manica) from shoulder to wrist",
+      "cells": [
+        "sealed_helm",
+        "crested_helm",
+        "parmula",
+        "aspis",
+        "scutum",
+        "leather_bracer",
+        "bronze_vambrace",
+        "chain_sleeve",
+        "plate_vambrace"
+      ]
+    },
+    {
+      "id": "items_05",
+      "preset": "items",
+      "out": "art/source/icon_sheets/items_05.png",
+      "prompt": "Cells left-to-right, top-to-bottom:\n1. a pair of wrapped leather leg greaves\n2. a pair of bronze shin greaves (ocrea)\n3. a pair of heavy steel leg plates with knee cops\n4. a short Roman gladius sword with a ribbed bone grip and round pommel, with a blood-red serrated edge like a fang, masterwork, one clear decorative feature\n5. a short Roman gladius sword with a ribbed bone grip and round pommel, gilded, with a laurel wreath engraved on the blade and a purple tassel, legendary, one bold distinctive feature, faint eerie glow\n6. a curved Thracian sica blade, inward-curving sword, pale silver crescent blade like a waning moon, masterwork, one clear decorative feature\n7. a curved Thracian sica blade, inward-curving sword, blackened blade inlaid with silver coins on the hilt, legendary, one bold distinctive feature, faint eerie glow\n8. a straight double-edged longsword with a simple cross guard, ash-grey steel with a worn tower emblem on the guard, masterwork, one clear decorative feature\n9. a straight double-edged longsword with a simple cross guard, a cracked blade bound with a broken chain around the hilt, legendary, one bold distinctive feature, faint eerie glow",
+      "cells": [
+        "leather_greaves",
+        "ocrea",
+        "plate_greaves",
+        "red_tooth",
+        "senate_edict",
+        "moon_hook",
+        "thracian_vow",
+        "grey_warden",
+        "oathbreaker"
+      ]
+    },
+    {
+      "id": "items_06",
+      "preset": "items",
+      "out": "art/source/icon_sheets/items_06.png",
+      "prompt": "Cells left-to-right, top-to-bottom:\n1. a huge two-handed greatsword with a long leather grip, dark blade with black ribbons tied to the hilt, masterwork, one clear decorative feature\n2. a huge two-handed greatsword with a long leather grip, a blade made of fused bone vertebrae, legendary, one bold distinctive feature, faint eerie glow\n3. a massive two-handed bearded greataxe on a long haft, a weathered axe with a carved weeping face on the haft, masterwork, one clear decorative feature\n4. a massive two-handed bearded greataxe on a long haft, crimson-stained blade, dripping, with a sickle-shaped beard, legendary, one bold distinctive feature, faint eerie glow\n5. a one-handed bronze battle axe, a hooked black axe shaped like a raven's beak with feathers, masterwork, one clear decorative feature\n6. a flanged iron mace, the mace head shaped like a skull with a small bell, masterwork, one clear decorative feature\n7. a heavy two-handed war hammer with a square iron head, a grey stone hammer head like a mountain peak, masterwork, one clear decorative feature\n8. a heavy two-handed war hammer with a square iron head, a temple anvil-shaped hammer head with gold hieroglyph bands, legendary, one bold distinctive feature, faint eerie glow\n9. a Roman hasta spear with a leaf-shaped iron head, a spear head polished bright like dawn, gold-tinted, masterwork, one clear decorative feature",
+      "cells": [
+        "widowmaker",
+        "giant_spine",
+        "woodsman_grief",
+        "red_harvest",
+        "raven_beak",
+        "skull_bell",
+        "quiet_mountain",
+        "anvil_of_kemer",
+        "first_light"
+      ]
+    },
+    {
+      "id": "items_07",
+      "preset": "items",
+      "out": "art/source/icon_sheets/items_07.png",
+      "prompt": "Cells left-to-right, top-to-bottom:\n1. a Roman hasta spear with a leaf-shaped iron head, a spear with a tattered red legion banner and eagle finial, legendary, one bold distinctive feature, faint eerie glow\n2. a boar hunting spear with crossbar lugs below the blade, boar tusks lashed below the blade, masterwork, one clear decorative feature\n3. a three-pronged fishing trident, a sea-green bronze trident with coral growths, masterwork, one clear decorative feature\n4. a three-pronged fishing trident, a barnacled trident with a sunken crown fused to the shaft, dripping water, legendary, one bold distinctive feature, faint eerie glow\n5. a rolled gladiator's fishing net with lead weights, a pale silvery net like a spider web, masterwork, one clear decorative feature\n6. a short Roman pugio dagger with a waisted blade, a slim black dagger with a whispering mouth carved on the pommel, masterwork, one clear decorative feature\n7. a short Roman pugio dagger with a waisted blade, a senatorial dagger with a red-lipped gem pommel, blood on the tip, legendary, one bold distinctive feature, faint eerie glow\n8. two light throwing javelins crossed, javelins fletched with hawk feathers, masterwork, one clear decorative feature\n9. leather boxing hand-wraps (cestus), blood-stained grimy hand wraps, masterwork, one clear decorative feature",
+      "cells": [
+        "legion_standard",
+        "boar_bane",
+        "sea_kings_fork",
+        "drowned_crown",
+        "spider_silk",
+        "last_word",
+        "brutus_kiss",
+        "hawk_feather",
+        "pit_wraps"
+      ]
+    },
+    {
+      "id": "items_08",
+      "preset": "items",
+      "out": "art/source/icon_sheets/items_08.png",
+      "prompt": "Cells left-to-right, top-to-bottom:\n1. spiked steel knuckle dusters, heavy iron knuckles shaped like lips, masterwork, one clear decorative feature\n2. spiked steel knuckle dusters, huge orcish knuckles studded with orc tusks, legendary, one bold distinctive feature, faint eerie glow\n3. a carved runestone charm on a leather cord, a smooth blue-grey runestone with faint glowing spiral, masterwork, one clear decorative feature\n4. a gnarled sorcerer's staff with a glowing stone, a pale ash-wood staff with green leaves sprouting, masterwork, one clear decorative feature\n5. a gnarled sorcerer's staff with a glowing stone, a living root staff twisting into a crown of glowing leaves, legendary, one bold distinctive feature, faint eerie glow\n6. a simple cloth loincloth with a wide belt, a ragged but rich purple silk loincloth with gold trim, masterwork, one clear decorative feature\n7. a hardened leather cuirass, a black bull-hide cuirass with horn ornaments, masterwork, one clear decorative feature\n8. a padded linen torso wrap with a single segmented arm guard, a torso wrap whose arm guard is studded with sharp barbs, masterwork, one clear decorative feature\n9. a chainmail shirt (lorica hamata), fine dense chainmail with bronze rings worked in patterns, masterwork, one clear decorative feature",
+      "cells": [
+        "iron_kiss",
+        "fists_of_grommar",
+        "whispering_stone",
+        "ash_staff",
+        "sylvaren_root",
+        "beggars_silk",
+        "bull_hide",
+        "scar_sleeve",
+        "thousand_rings"
+      ]
+    },
+    {
+      "id": "items_09",
+      "preset": "items",
+      "out": "art/source/icon_sheets/items_09.png",
+      "prompt": "Cells left-to-right, top-to-bottom:\n1. a bronze scale armor shirt (lorica squamata), translucent green scale armor like shed snakeskin, masterwork, one clear decorative feature\n2. a bronze scale armor shirt (lorica squamata), huge dark red dragon scales, scorched at the edges, legendary, one bold distinctive feature, faint eerie glow\n3. a bronze muscle cuirass sculpted like a torso, a gleaming muscle cuirass with a lion head on the chest, masterwork, one clear decorative feature\n4. a bronze muscle cuirass sculpted like a torso, a golden imperial muscle cuirass with an eagle and purple sash, legendary, one bold distinctive feature, faint eerie glow\n5. heavy steel plate armor breastplate with pauldrons, a black iron breastplate with coffin-lid rivets, masterwork, one clear decorative feature\n6. heavy steel plate armor breastplate with pauldrons, massive fortress-gate plate armor with portcullis bars motif, legendary, one bold distinctive feature, faint eerie glow\n7. an open-faced iron helmet, an open helm with a sun-ray crown rim, masterwork, one clear decorative feature\n8. a broad-brimmed gladiator helmet, a wide-brimmed helm with shadowed grille, masterwork, one clear decorative feature\n9. a fully enclosed gladiator helmet with a grilled face visor, a smooth faceless steel visor with no features, masterwork, one clear decorative feature",
+      "cells": [
+        "dragon_shed",
+        "wyrm_hide",
+        "heros_chest",
+        "emperors_torso",
+        "iron_tomb",
+        "unbroken_wall",
+        "sun_crown",
+        "wide_brim",
+        "faceless"
+      ]
+    },
+    {
+      "id": "items_10",
+      "preset": "items",
+      "out": "art/source/icon_sheets/items_10.png",
+      "prompt": "Cells left-to-right, top-to-bottom:\n1. a fully enclosed gladiator helmet with a grilled face visor, a death-mask helm with a skull face visor, legendary, one bold distinctive feature, faint eerie glow\n2. a crested gladiator helmet with a tall plume, a crested helm with a blazing red plume, masterwork, one clear decorative feature\n3. a crested gladiator helmet with a tall plume, a crest shaped like phoenix wings in orange-gold flame, legendary, one bold distinctive feature, faint eerie glow\n4. a small square buckler shield, a buckler painted with a four-leaf horseshoe charm, masterwork, one clear decorative feature\n5. a round bronze hoplite shield, a round shield with a snake-haired gorgon face, masterwork, one clear decorative feature\n6. a large curved rectangular Roman scutum shield, a tall scutum with weeping-eye paintings and tear streaks, masterwork, one clear decorative feature\n7. a large curved rectangular Roman scutum shield, a battered scutum with an eagle and many arrow scars, legendary, one bold distinctive feature, faint eerie glow\n8. a pair of laced leather forearm bracers, a leather bracer with an arrow and wolf-fang charm, masterwork, one clear decorative feature\n9. a pair of bronze forearm vambraces, a polished bronze bracer embossed with a sun, masterwork, one clear decorative feature",
+      "cells": [
+        "mask_of_the_dead",
+        "red_plume",
+        "phoenix_crest",
+        "lucky_buckler",
+        "eye_of_gorgon",
+        "tower_of_tears",
+        "last_legion",
+        "hunters_cuff",
+        "sun_bracer"
+      ]
+    },
+    {
+      "id": "items_11",
+      "preset": "items",
+      "out": "art/source/icon_sheets/items_11.png",
+      "prompt": "Cells left-to-right, top-to-bottom:\n1. a chainmail arm sleeve, a chain sleeve coiled like a serpent with a snake head at the wrist, masterwork, one clear decorative feature\n2. a segmented steel arm guard (manica) from shoulder to wrist, a black iron segmented arm guard, masterwork, one clear decorative feature\n3. a segmented steel arm guard (manica) from shoulder to wrist, a dwarven gold-trimmed iron arm with rune knuckles, legendary, one bold distinctive feature, faint eerie glow\n4. a pair of wrapped leather leg greaves, light leg wraps with small bronze wings, masterwork, one clear decorative feature\n5. a pair of bronze shin greaves (ocrea), bronze greaves with a striding horse emblem, masterwork, one clear decorative feature\n6. a pair of bronze shin greaves (ocrea), greaves carved like oak bark with roots at the feet, legendary, one bold distinctive feature, faint eerie glow\n7. a pair of heavy steel leg plates with knee cops, column-like iron leg plates, masterwork, one clear decorative feature\n8-9. leave empty (flat magenta)",
+      "cells": [
+        "snake_coil",
+        "iron_arm",
+        "arm_of_dolgar",
+        "runners_wraps",
+        "bronze_stride",
+        "rooted_oak",
+        "iron_pillars"
+      ]
+    },
+    {
+      "id": "menu_01",
+      "preset": "menu",
+      "out": "art/source/icon_sheets/menu_01.png",
+      "prompt": "Cells left-to-right, top-to-bottom:\n1. a closed wax writing tablet (codex) with a stylus\n2. a stone courtyard archway gate between two columns\n3. a crested gladiator helmet with a red plume\n4. a wooden training dummy post with a wooden sword\n5. a rolled challenge scroll pierced by a dagger\n6. two crossed swords over a round shield\n7. a stepped victory podium with a laurel wreath on top\n8. a two-handled bronze trophy cup\n9. a coin purse beside iron shackles",
+      "cells": [
+        "inbox",
+        "overview",
+        "roster",
+        "training",
+        "challenge",
+        "match",
+        "league",
+        "cup",
+        "market"
+      ]
+    },
+    {
+      "id": "menu_02",
+      "preset": "menu",
+      "out": "art/source/icon_sheets/menu_02.png",
+      "prompt": "Cells left-to-right, top-to-bottom:\n1. a dark stone cave doorway with a heavy wooden door\n2. a small wooden practice sword and a small round wooden shield\n3. a ring with two big iron keys\n4. a builder hammer resting on a broken marble column capital\n5. an open strongbox full of gold coins\n6. an unrolled parchment map with a pin\n7. a stone grave stele with a laurel wreath\n8-9. leave empty (flat magenta)",
+      "cells": [
+        "dungeon",
+        "youth",
+        "staff",
+        "facilities",
+        "finance",
+        "world",
+        "hall"
+      ]
+    },
+    {
+      "id": "crest_01",
+      "preset": "crest",
+      "out": "art/source/icon_sheets/crest_01.png",
+      "prompt": "Cells left-to-right, top-to-bottom:\n1. a heraldic shield: golden eagle with spread wings and a laurel wreath on a deep purple field\n2. a heraldic shield: horned bull skull over two crossed axes on a frost blue-grey field, blood red streaks\n3. a heraldic shield: pale silver ancient tree with sprawling roots on a moss green field\n4. a heraldic shield: anvil and hammer before a mountain on a furnace orange-brown field\n5. a heraldic shield: sea serpent coiled around an anchor on a sea teal field with waves\n6. a heraldic shield: radiant sun disk over a stepped pyramid on a desert gold field with lapis blue accents\n7-9. leave empty (flat magenta)",
+      "cells": [
+        "aurelia",
+        "grommar",
+        "sylvaren",
+        "dolgar",
+        "karsea",
+        "kemer"
+      ]
+    },
+    {
+      "id": "skills_01",
+      "preset": "skills",
+      "out": "art/source/icon_sheets/skills_01.png",
+      "prompt": "Cells left-to-right, top-to-bottom:\n1. a heavy sword coming down with a thick impact arc\n2. two crossing quick slash arcs from one short sword\n3. an axe splitting a cracked breastplate\n4. a spear tip punching through a plate with sparks\n5. a raised sword over a kneeling silhouette, grim\n6. a round shield smashing forward with impact lines\n7. a javelin flying with motion streaks\n8. a charging warrior silhouette with dust trail\n9. a sword raised high with a laurel and cheering hands",
+      "cells": [
+        "power_strike",
+        "flurry",
+        "armor_break",
+        "pierce",
+        "execute",
+        "shield_bash",
+        "javelin",
+        "charge",
+        "flourish"
+      ]
+    },
+    {
+      "id": "skills_02",
+      "preset": "skills",
+      "out": "art/source/icon_sheets/skills_02.png",
+      "prompt": "Cells left-to-right, top-to-bottom:\n1. a greatsword chopping straight down splitting the ground\n2. a flanged mace hitting with a bone crack starburst\n3. a dagger slicing behind a knee\n4. a sword edge with dripping red drops\n5. a trident shaft sweeping at ankles\n6. a spear with two thrust arrows\n7. a clenched wrapped fist with impact burst\n8. a thrown fishing net spreading open\n9. a foot hooking another foot",
+      "cells": [
+        "cleave",
+        "crushing_blow",
+        "hamstring",
+        "bleeding_cut",
+        "low_sweep",
+        "double_thrust",
+        "haymaker",
+        "net_throw",
+        "trip"
+      ]
+    },
+    {
+      "id": "skills_03",
+      "preset": "skills",
+      "out": "art/source/icon_sheets/skills_03.png",
+      "prompt": "Cells left-to-right, top-to-bottom:\n1. two arms locked around a torso\n2. a hand flinging sand into the air\n3. a sword flicking another sword out of a hand\n4. a tall shield planted like a wall\n5. a breath cloud with a calm bowed head silhouette\n6. a roaring open mouth with sound waves\n7. a fallen gladiator rising with a warm glow\n8. a narrowed eye over a sword guard\n9. a red eye with blood drops",
+      "cells": [
+        "grapple",
+        "sand_throw",
+        "disarm",
+        "iron_wall",
+        "catch_breath",
+        "war_roar",
+        "second_wind",
+        "focus_stance",
+        "bloodlust"
+      ]
+    },
+    {
+      "id": "skills_04",
+      "preset": "skills",
+      "out": "art/source/icon_sheets/skills_04.png",
+      "prompt": "Cells left-to-right, top-to-bottom:\n1. a sword deflecting another blade with a curved arc\n2. footprints stepping backward with an arrow\n3. a beckoning hand with crowd lines\n4. a raised arm salute toward arena stands\n5. a raised banner with a horn\n6. a sword wreathed in flame\n7. a glowing rune circle shield\n8. a withered hand with purple wisps\n9. a lightning bolt striking down",
+      "cells": [
+        "parry",
+        "disengage",
+        "taunt",
+        "salute",
+        "rally",
+        "flame_weapon",
+        "ward_rune",
+        "curse_weak",
+        "lightning"
+      ]
+    },
+    {
+      "id": "skills_05",
+      "preset": "skills",
+      "out": "art/source/icon_sheets/skills_05.png",
+      "prompt": "Cells left-to-right, top-to-bottom:\n1. a chameleon-like swirl around a human mask\n2. an orc tusked mouth shouting\n3. bull horns lowered charging\n4. a light elven boot with wind swirls\n5. a dwarf boot rooted into stone\n6. a reptile fang dripping green venom\n7. a clawed beast leaping\n8. a cracked but standing iron helmet\n9. a crowd thumbs-up gesture hand",
+      "cells": [
+        "adapt",
+        "war_cry",
+        "horn_charge",
+        "wind_step",
+        "earth_stance",
+        "venom_bite",
+        "pounce",
+        "unbreakable",
+        "crowd_hand"
+      ]
+    },
+    {
+      "id": "skills_06",
+      "preset": "skills",
+      "out": "art/source/icon_sheets/skills_06.png",
+      "prompt": "Cells left-to-right, top-to-bottom:\n1. a single upright gladius with a halo of steel\n2. a mace head with heavy weight lines\n3. two crossed axes over an anvil\n4. three spear tips in a row\n5. a shield with a laurel wreath rim\n6. an armored forearm with dents\n7. a scarred old helmet with many notches\n8. a skull with a predator eye\n9. a chest with lungs and steady breath",
+      "cells": [
+        "sword_way",
+        "heavy_hands",
+        "axe_master",
+        "spear_wall",
+        "shield_master",
+        "iron_skin",
+        "veteran",
+        "killer_instinct",
+        "iron_lungs"
+      ]
+    },
+    {
+      "id": "skills_07",
+      "preset": "skills",
+      "out": "art/source/icon_sheets/skills_07.png",
+      "prompt": "Cells left-to-right, top-to-bottom:\n1. a rose thrown onto the sand\n2. a sword returning along a curved counter arrow\n3. a shield pushing back with a rebound arrow\n4. a dodging figure leaving an afterimage\n5. a bleeding fist striking back\n6. a shield held over a fallen ally\n7-9. leave empty (flat magenta)",
+      "cells": [
+        "crowd_darling",
+        "riposte",
+        "counter_bash",
+        "sidestep",
+        "spite",
+        "cover_ally"
+      ]
+    },
+    {
+      "id": "status_01",
+      "preset": "status",
+      "out": "art/source/icon_sheets/status_01.png",
+      "prompt": "Cells left-to-right, top-to-bottom:\n1. stars circling a dazed head\n2. a body lying flat on sand\n3. a figure wrapped in a net\n4. a grabbing hand clamp\n5. an eye covered with sand\n6. a green drop with a skull\n7. three red blood drops\n8. a drooping broken arm\n9. a cracked breastplate",
+      "cells": [
+        "stun",
+        "prone",
+        "bound",
+        "grappled",
+        "blinded",
+        "poison",
+        "bleed",
+        "weakened",
+        "armor_break"
+      ]
+    },
+    {
+      "id": "status_02",
+      "preset": "status",
+      "out": "art/source/icon_sheets/status_02.png",
+      "prompt": "Cells left-to-right, top-to-bottom:\n1. an open gap in a guard with a target mark\n2. a bandaged leg\n3. a bandaged arm\n4. a raised shield\n5. a curved counter arrow on a blade\n6. a ducking silhouette with motion lines\n7. a flame tongue\n8. a glowing rune ring\n9. a swirl of changing arrows",
+      "cells": [
+        "exposed",
+        "hobbled",
+        "arm_wound",
+        "guard",
+        "riposte",
+        "evade_up",
+        "flame",
+        "ward",
+        "adapt"
+      ]
+    },
+    {
+      "id": "status_03",
+      "preset": "status",
+      "out": "art/source/icon_sheets/status_03.png",
+      "prompt": "Cells left-to-right, top-to-bottom:\n1. wind swirls\n2. a rooted stone foot\n3. a red angry face with steam\n4-9. leave empty (flat magenta)",
+      "cells": [
+        "wind_step",
+        "earth_stance",
+        "enraged"
+      ]
+    },
+    {
+      "id": "menux_01",
+      "preset": "menux",
+      "out": "art/source/icon_sheets/menux_01.png",
+      "prompt": "Cells left-to-right, top-to-bottom:\n1. a sand-table tactics board with three tokens and arrows\n2-9. leave empty (flat magenta)",
+      "cells": [
+        "strategy"
+      ]
+    },
+    {
+      "id": "fx_01",
+      "preset": "fx",
+      "out": "art/source/icon_sheets/fx_01.png",
+      "prompt": "Cells left-to-right, top-to-bottom:\n1. a short diagonal trail of dark red blood drops\n2. a gush of dark red blood spraying diagonally upward\n3. a flat dark red blood pool splat seen from above\n4. a large dark red blood splash burst\n5. a sharp red and bone-white impact star burst, critical hit\n6. a cloud of tan arena dust puffing outward\n7. a blunt impact burst with orange sparks and dust\n8. a curved sword slash arc trailing dark red blood\n9. a curved bone-white sword slash arc with a warm gold edge",
+      "cells": [
+        "blood_drops",
+        "blood_gush",
+        "blood_pool",
+        "blood_splash",
+        "crit_star",
+        "dust",
+        "impact_blunt",
+        "slash_blood",
+        "slash_gold"
+      ]
+    }
+  ]
+}

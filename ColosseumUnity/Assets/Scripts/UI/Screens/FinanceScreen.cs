@@ -53,7 +53,7 @@ namespace Colosseum.UI
             var unpaid = me.gladiators.Select(id => S.gladiators[id]).Where(g => g.unpaidWeeks > 0).ToList();
             unpaidRoot.SetActive(unpaid.Count > 0);
             unpaidTags.text = string.Join("   ", unpaid.Select(g =>
-                $"<color={TagNeg}>{g.name} {StateUtil.Num(g.unpaidWeeks)}회 · {StateUtil.Num(g.wage * g.unpaidWeeks)} D</color>"));
+                $"<color={TagNeg}>{Tips.Name(g)} {StateUtil.Num(g.unpaidWeeks)}회 · {StateUtil.Num(g.wage * g.unpaidWeeks)} D</color>"));
 
             var list = S.ledger.Take(80).ToList();
             empty.SetActive(list.Count == 0);

@@ -94,6 +94,8 @@ namespace Colosseum.Core
             };
             g.traits = traits;
             g.skills = new Skills { active = PickSkills(rng, style.skills, raceId, opt.target), passive = new List<string>() };
+            // 종족 기술은 태어날 때부터 가진다 (기술 테이블의 종족 조건 기술)
+            SkillBook.GiveRaceSkills(g);
             g.equipment = FixLoadout(raceId, new Equipment { main = style.loadout.main, off = style.loadout.off, armor = style.loadout.armor, helmet = style.loadout.helmet });
             g.morale = rng.Int(50, 75);
             g.popularity = Clamp(JsMath.Round(rng.Normal(opt.target * 2, 8)), 0, 60);
@@ -170,6 +172,14 @@ namespace Colosseum.Core
         {
             // 미노타우로스는 경량 방어구 착용 불가 (거구)
             if (raceId == "minotaur" && Data.Armor(l.armor)?.weight == "light") l.armor = "chainmail";
+            // Unity판: 갑옷 무게에 맞춰 팔·다리 보호구를 기본으로 갖춘다 (난수를 쓰지 않는다)
+            if (Uniques.Enabled)
+            {
+                string wt = Data.Armor(l.armor)?.weight;
+                if (wt == "heavy") { l.arms = "plate_vambrace"; l.legs = "ocrea"; }
+                else if (wt == "medium") { l.arms = "bronze_vambrace"; l.legs = "leather_greaves"; }
+                else l.arms = "leather_bracer";
+            }
             return l;
         }
 

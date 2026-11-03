@@ -1,0 +1,7 @@
+role,name,desc
+enum:TeamRole,string,string
+역할,이름,설명
+Front,전열,가장 가까운 적을 막아서며 버팁니다
+Hunter,사냥꾼,빈사·약한 적을 끝내러 갑니다
+Guard,호위,지정한 우리 편을 노리는 적을 칩니다
+Harass,견제,거리를 두고 적 하나를 묶어 둡니다

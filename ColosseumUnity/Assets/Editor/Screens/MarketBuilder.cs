@@ -15,7 +15,7 @@ namespace Colosseum.EditorTools
         static readonly (string id, string label, float w)[] ResultCols =
         {
             ("Name", "이름", 180), ("Race", "종족", 64), ("Age", "나이", 46), ("Style", "스타일", 86), ("Owner", "소속", 0),
-            ("Ca", "추정 능력", 140), ("Pa", "추정 잠재", 140), ("Info", "정보", 72), ("Wage", "주급", 70), ("Value", "추정 가치", 92), ("Act", "", 132),
+            ("Ca", "추정 능력", 140), ("Pa", "추정 잠재", 146), ("Interest", "관심도", 76), ("Info", "정보", 72), ("Wage", "주급", 70), ("Value", "추정 가치", 92), ("Act", "", 132),
         };
 
         public static ScreenBase Build(Transform main)
@@ -52,6 +52,8 @@ namespace Colosseum.EditorTools
             Set(s, "minCa", Filter(f2, "추정 능력 ≥", 110));
             Set(s, "minPa", Filter(f2, "추정 잠재 ≥", 110));
             Set(s, "maxWage", Input(Field(f2, "주급 ≤"), 80, true));
+            Set(s, "minInterest", Filter(f2, "이적 관심도 ≥", 120));
+            Set(s, "sortBy", Filter(f2, "정렬", 130));
             ResultTable(search, s, "search");
 
             // ── 관심 명단 ──
@@ -198,7 +200,7 @@ namespace Colosseum.EditorTools
             // 내놓은 장비 표는 몇 줄 안 되니 스크롤 없이 패널 높이만큼만
             bool consigned = key == "consigned";
             var pad = TitledPanel(consigned ? "Consigned" : "Items", parent, title, 0);
-            var cols = new List<(string, string, float)> { ("Item", "장비", 220), ("Grade", "등급", 70), ("Kind", "종류", 70), ("Stats", "성능", 0) };
+            var cols = new List<(string, string, float)> { ("Slot", "", 40), ("Item", "장비", 220), ("Grade", "등급", 70), ("Kind", "종류", 70), ("Stats", "성능", 0) };
             cols.AddRange(extra);
             cols.Add(("Btn", "", btnW));
             RectTransform content;
@@ -219,7 +221,8 @@ namespace Colosseum.EditorTools
                 var empty = key == "gear" ? "조건에 맞는 매물이 없습니다." : "창고가 비었습니다. 장비는 장비 시장에서 사거나 던전 원정과 사투에서 얻습니다.";
                 Set(s, key + "Empty", Text("Empty", content, empty, 14, Theme.TextDim).Layout(prefH: 36).gameObject);
             }
-            var row = Row(key + "Template", content, 38);
+            var row = Row(key + "Template", content, 48);
+            ItemSlot("Slot", row, 40).Layout(minW: 40, prefW: 40, minH: 40, prefH: 40, flexW: 0);
             Cell(Text("Item", row, "", 14).rectTransform, 220);
             Cell(Text("Grade", row, "", 13).rectTransform, 70);
             Cell(Text("Kind", row, "", 14).rectTransform, 70);

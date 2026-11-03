@@ -2,6 +2,7 @@
 // 필드 이름은 JSON 키와 같게 소문자로 둔다 (Newtonsoft가 그대로 읽는다).
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using UnityEngine;
@@ -132,6 +133,8 @@ namespace Colosseum.Core
         {
             if (loaded) return;
             LoadFrom(name => Resources.Load<TextAsset>("Data/" + name).text);
+            // 기술 테이블 (Tables/*.csv의 사본, Tools/check-tables.mjs가 Resources/Tables로 복사)
+            if (Resources.Load<TextAsset>("Tables/Skill") != null) SkillBook.LoadFrom(name => Resources.Load<TextAsset>("Tables/" + name).text);
         }
 
         public static void LoadFrom(Func<string, string> read)
@@ -149,12 +152,14 @@ namespace Colosseum.Core
             Names = Read<NamesDef>("names");
             Events = Read<List<EventDef>>("events");
             Balance = JObject.Parse(read("balance"));
+            Uniques.Load(Read<UniquesFile>("uniques").uniques);
             raceIdx = Index(Races, x => x.id);
             nationIdx = Index(Nations, x => x.id);
             styleIdx = Index(Styles, x => x.id);
             weaponIdx = Index(Weapons, x => x.id);
             armorIdx = Index(Armors, x => x.id);
             skillIdx = Index(Skills, x => x.id);
+            jsonSkills = new HashSet<string>(Skills.Select(x => x.id));
             traitIdx = Index(Traits, x => x.id);
             injuryIdx = Index(Injuries, x => x.id);
             qualityCache.Clear();
@@ -173,6 +178,17 @@ namespace Colosseum.Core
         public static NationDef Nation(string id) => nationIdx[id];
         public static StyleDef Style(string id) => styleIdx.TryGetValue(id, out var s) ? s : null;
         public static SkillDef Skill(string id) => id != null && skillIdx.TryGetValue(id, out var s) ? s : null;
+
+        static HashSet<string> jsonSkills = new();
+        /// <summary>skills.json에 원래 있던 기술인가 (테이블 발동 확률을 굴리지 않는다)</summary>
+        public static bool SkillFromJson(string id) => jsonSkills.Contains(id);
+
+        /// <summary>기술 테이블(SkillBook)이 만든 능동 기술을 더한다</summary>
+        public static void AddSkill(SkillDef s)
+        {
+            Skills.Add(s);
+            skillIdx[s.id] = s;
+        }
         public static TraitDef Trait(string id) => traitIdx.TryGetValue(id, out var s) ? s : null;
         public static InjuryDef Injury(string id) => id != null && injuryIdx.TryGetValue(id, out var s) ? s : null;
 
@@ -183,8 +199,17 @@ namespace Colosseum.Core
         {
             int i = id.IndexOf('+');
             if (i < 0) return (id, 0);
-            int.TryParse(id.Substring(i + 1), out int q);
+            // Unity판 고유 장비: 'gladius+3~senate_edict'
+            int u = id.IndexOf('~', i);
+            int.TryParse(u < 0 ? id.Substring(i + 1) : id.Substring(i + 1, u - i - 1), out int q);
             return (id.Substring(0, i), Math.Max(0, Math.Min(3, q)));
+        }
+
+        /// <summary>고유 장비 id ('~' 뒤). 없으면 null</summary>
+        public static string UniqueOf(string id)
+        {
+            int u = id?.IndexOf('~') ?? -1;
+            return u < 0 ? null : id.Substring(u + 1);
         }
 
         public static WeaponDef Weapon(string id)
@@ -199,7 +224,7 @@ namespace Colosseum.Core
             d.crit = w.crit + 0.03 * q;
             if (w.magicBonus.HasValue && w.magicBonus.Value != 0) d.magicBonus = w.magicBonus + 0.05 * q;
             d.id = id;
-            d.name = $"{QualityNames[q]} {w.name}";
+            d.name = Uniques.Get(UniqueOf(id))?.name ?? $"{QualityNames[q]} {w.name}";
             qualityCache[id] = d;
             return d;
         }
@@ -217,7 +242,7 @@ namespace Colosseum.Core
             // 좋은 갑옷일수록 몸에 잘 맞아 덜 무겁다
             if (a.staCost.HasValue) d.staCost = Math.Max(0, a.staCost.Value - 0.03 * q);
             d.id = id;
-            d.name = $"{QualityNames[q]} {a.name}";
+            d.name = Uniques.Get(UniqueOf(id))?.name ?? $"{QualityNames[q]} {a.name}";
             qualityCache[id] = d;
             return d;
         }

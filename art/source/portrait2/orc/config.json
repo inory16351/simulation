@@ -1,5 +1,6 @@
 {
  "heads": [
+  "f",
   "m",
   "m",
   "m",
@@ -7,14 +8,13 @@
   "m",
   "m",
   "f",
-  "m",
-  "f"
+  "m"
  ],
  "front": [
   "hair_short",
   "hair_long",
   "hair_braids",
-  null,
+  "beard_full",
   "beard_short",
   "helmet_crest",
   "helmet_visor",
@@ -34,27 +34,21 @@
  ],
  "extra": [
   {
-   "heads": [
-    "f",
-    "m",
-    "m",
-    "m",
-    "f",
-    "m",
-    "m",
-    "f",
-    "m"
-   ],
+   "heads": [],
+   "front": []
+  },
+  {
+   "heads": [],
    "front": [
-    "hair_short_2",
-    "hair_long_2",
-    "hair_braids_2",
-    "beard_full_2",
-    "beard_short_2",
-    "helmet_crest_2",
-    "helmet_visor_2",
-    "armor_harness_2",
-    "armor_plate_2"
+    "mark_scar_brow",
+    "mark_scar_nose",
+    "mark_scar_lip",
+    "mark_scar_forehead",
+    "mark_scar_claw",
+    "mark_tattoo_forehead",
+    "mark_tattoo_cheeks",
+    "mark_tattoo_chin",
+    "mark_paint_eyes"
    ]
   }
  ]

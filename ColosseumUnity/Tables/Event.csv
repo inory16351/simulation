@@ -1,0 +1,24 @@
+id,key,scope,grade,weight,condition,title,text
+int,string,enum:EventScope,enum:EventGrade,float,enum:EventCondition,string,string
+고유 번호,코드 키,범위,성격,가중치,추가 조건,제목,본문
+1,anonymous_patron,Ludus,Luck,3,None,이름 모를 후원자,아침에 나가 보니 문 앞에 묵직한 돈주머니가 놓여 있었습니다. 쪽지 한 장도 없습니다.
+2,arms_dealer,Ludus,Opportunity,3,None,떠돌이 무기상,무기상이 남은 물건을 헐값에 넘기겠다고 합니다. 칼날은 무뎌도 쓸 만합니다.
+3,wandering_master,Ludus,Opportunity,2,None,떠돌이 고수,낡은 망토를 두른 노인이 문 앞에 섰습니다. 손바닥 굳은살이 예사롭지 않습니다. 하루만 가르쳐 줄 수 있다고 합니다.
+4,troupe,Ludus,Opportunity,3,None,유랑 극단의 제안,광장 공연에 검투사 하나를 빌려 달라고 합니다. 칼 쓰는 시늉만 하면 된다고 합니다.
+5,gambler_tip,Ludus,Opportunity,2,None,도박꾼의 귀띔,투기장 뒷골목 도박꾼이 돈을 걸 만한 정보를 팝니다. 믿을 만한지는 모릅니다.
+6,fever,Ludus,Trial,2,None,막사에 열병이 돕니다,밤새 기침 소리가 끊이지 않았습니다. 몇 놈은 이미 이마가 불덩이입니다.
+7,thief,Ludus,Trial,2,None,도둑이 들었습니다,밤사이 금고 자물쇠가 뜯겨 있었습니다.
+8,tax_audit,Ludus,Trial,2,None,세무관이 찾아왔습니다,장부를 보자고 합니다. 눈빛이 돈 냄새를 맡은 사냥개 같습니다.
+9,bad_well,Ludus,Trial,2,None,우물이 썩었습니다,물에서 비린내가 납니다. 이대로면 다들 배탈이 납니다.
+10,secret_meeting,Ludus,Disaster,3,LowMorale,한밤중 비밀 모임,막사 뒤에서 수군거리는 소리가 들립니다. 선동하는 놈이 있습니다.
+11,epiphany,Gladiator,Luck,4,None,깨달음,{name}이(가) 새벽 수련 중에 무언가 깨달은 얼굴로 서 있습니다.
+12,awakening,Gladiator,Luck,1,GrowthStage,잠재력이 터졌습니다,{name}의 움직임이 하루아침에 달라졌습니다. 교관들이 서로 눈을 마주칩니다.
+13,admirer,Gladiator,Luck,2,Popular,귀부인의 선물,귀족 부인이 {name}에게 비단 주머니를 보냈습니다. 안에는 금화가 들어 있습니다.
+14,letter_home,Gladiator,Opportunity,3,None,고향에서 온 편지,{name}의 가족이 굶고 있다는 소식이 왔습니다.
+15,tavern_brawl,Gladiator,Trial,3,LowDiscipline,술집 난투,{name}이(가) 밤에 몰래 나가 술집에서 주먹을 휘둘렀습니다. 경비대가 끌고 왔습니다.
+16,poison,Gladiator,Disaster,1,Popular,독이 든 음식,{name}이(가) 저녁을 먹고 피를 토하며 쓰러졌습니다. 누군가 음식에 손을 댔습니다.
+17,emperor_festival,World,Luck,2,None,황제의 축제,황제가 제국 곳곳에 축제를 열었습니다. 앞으로 28일간 투기장마다 사람이 넘칩니다.
+18,good_harvest,World,Luck,2,None,풍년,곡물 값이 떨어졌습니다. 한동안 식비 걱정은 덜었습니다.
+19,famine,World,Trial,2,None,흉년,가뭄이 들어 곡물 값이 치솟습니다.
+20,shipwreck,World,Opportunity,2,None,노예선 난파,카르세아 노예선이 해안에 좌초했습니다. 살아남은 자들이 헐값에 팔려 나옵니다.
+21,plague,World,Disaster,1,None,역병,대륙에 역병이 돕니다. 다들 사람 모이는 곳을 피합니다.

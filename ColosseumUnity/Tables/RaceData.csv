@@ -1,0 +1,10 @@
+race,name,color,age_debut,age_growth_end,age_prime_end,age_retire,growth_mult,wage_mult,upkeep_mult,trait_name,trait_desc,race_skill
+enum:Race,string,string,int,int,int,int,float,float,float,string,string,string
+종족,이름,색,데뷔 나이,성장기 끝,전성기 끝,은퇴 나이,성장 배율,급료 배율,유지비 배율,종족 특성 이름,종족 특성 설명,종족 기술 (Skill.key)
+Human,인간,#9c7a5b,16,23,30,36,1.1,1,1,적응력,훈련 효율 +10%. 어떤 무기를 써도 숙련이 고르게 오릅니다,adapt
+Orc,오크,#5f7344,14,19,26,32,1,0.9,1,피의 격노,"HP 30% 이하일 때 피해 +25%, 받는 피해 +10%",war_cry
+Minotaur,미노타우로스,#6e4632,16,22,31,38,1,2,2,거구,"그물·속박에 묶이는 시간 절반. 경량 방어구는 못 입고, 주급과 유지비가 2배로 듭니다",horn_charge
+Elf,엘프,#6f8a78,40,79,180,230,0.7,1.3,1,천년의 눈,"회피 +10%, 주술 기술을 배우는 속도 +50%",wind_step
+Dwarf,드워프,#8a5a3c,30,49,90,120,1,1,1,강철 뼈,중상·영구 손상 확률 -40%. 중장갑을 입어도 민첩이 떨어지지 않습니다,earth_stance
+Lizardfolk,리자드폴크,#4d6b5e,12,17,28,34,1,0.9,1,냉혈,"사기가 오르내리는 폭 절반, 부상이 2배 빨리 낫습니다",venom_bite
+Beastkin,수인,#a07a3a,15,21,28,33,1,1,1,야성의 감각,"야수전 피해 +30%, 첫 턴 선공 확률 +30%",pounce

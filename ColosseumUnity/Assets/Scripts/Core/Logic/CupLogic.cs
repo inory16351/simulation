@@ -236,9 +236,7 @@ namespace Colosseum.Core
             var (w, l) = series.winner == 0 ? (home, away) : (away, home);
             tie.winner = w.id;
             var summary = new MatchSummary();
-            double crowdSum = 0;
-            foreach (var b in series.bouts) crowdSum = crowdSum + b.result.crowd;
-            double crowd = crowdSum / Math.Max(1, series.bouts.Count);
+            double crowd = series.Crowd();
             MatchLogic.Settle(state, w, l, "missio", new SettleOptions { homeLudusId = home.id, crowd = crowd + 20, popularity = 120, moneyMult = 2, noLeague = true }, summary);
             cup.points[w.id] = (cup.points.TryGetValue(w.id, out var wp) ? wp : 0) + CupConst.Coef.Win;
             if (tie.stage == "group") Economy.AddMoney(state, w, CupConst.Prize.GroupWin, "판테온 컵 조별 리그 승리 수당");
@@ -249,6 +247,7 @@ namespace Colosseum.Core
                 Economy.AddMoney(state, w, CupConst.Prize.Winner, "판테온 컵 우승 상금");
                 Economy.AddMoney(state, l, CupConst.Prize.RunnerUp, "판테온 컵 준우승 상금");
                 w.titles = (w.titles ?? 0) + 1;
+                Honours.RecordCup(state, w, l);
                 StateUtil.PushMessage(state, new InboxMessage
                 {
                     kind = "info",
@@ -294,7 +293,7 @@ namespace Colosseum.Core
                     title = mine ? "판테온 컵에 나갑니다!" : "판테온 컵 조 추첨",
                     body = (mine ? $"우리 루두스가 판테온 컵 출전권을 얻었습니다. 출전 수당 {N0(CupConst.Prize.Entry)} D가 들어왔습니다.\n" : "") +
                         $"여섯 나라 1부 상위 16곳이 네 조로 나뉘었습니다. 조별 리그는 {CupConst.GroupDays.Length}라운드, 상위 두 팀이 8강에 오릅니다." +
-                        "\n대결마다 세 명씩 나와 미시오로 한 판씩 붙고, 두 판을 먼저 따면 이깁니다.",
+                        "\n대결마다 세 명씩 나와 미시오 난전으로 한꺼번에 싸우고, 상대 편을 모두 쓰러뜨리면 이깁니다.",
                 });
             }
             var cup = state.cup;

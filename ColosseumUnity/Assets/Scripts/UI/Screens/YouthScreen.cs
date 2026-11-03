@@ -73,12 +73,12 @@ namespace Colosseum.UI
             row.GetComponentInChildren<PortraitView>(true).Show(g);
             var nameBtn = row.Find("Name").GetComponent<Button>();
             nameBtn.onClick.RemoveAllListeners();
-            nameBtn.onClick.AddListener(() => G.OpenGladiator(id));
+            nameBtn.onClick.AddListener(() => G.ShowGladiator(id));
             T(row, "Name/Text").text = g.name;
-            T(row, "Race").text = Data.Race(g.race).name;
+            T(row, "Race").text = Tips.Race(g.race);
             string when = ready ? "데뷔 가능" : $"데뷔까지 {Data.Race(g.race).age.debut - g.age}년";
             T(row, "Age").text = $"{g.age} <size=80%><color={Theme.Hex(ready ? Theme.Good : Theme.TextFaint)}>{when}</color></size>";
-            T(row, "Style").text = Data.Style(g.style)?.name ?? g.style;
+            T(row, "Style").text = Tips.Style(g.style);
             T(row, "Ca").text = Widgets.Stars(ca);
             T(row, "Pa").text = Widgets.RangeStars(Math.Max(ca, g.hidden.pa - spread), Math.Min(200, g.hidden.pa + spread));
 

@@ -73,7 +73,7 @@ namespace Colosseum.Core
             double asking = JsMath.Round(AskingPrice(s, g, owner) * StaffLogic.BuyMult(StaffLogic.RatingOf(s, s.ludi[s.playerLudusId], "agent")) / 50) * 50;
             if (fee >= asking) return new BidResult { status = "accepted", deal = MakeDeal(s, g, owner, fee) };
             if (fee >= asking * 0.7) return new BidResult { status = "countered", asking = asking };
-            return new BidResult { status = "rejected", reason = $"{Josa.J(owner.name, "이/가")} 코웃음을 쳤습니다. 이 정도로는 안 팝니다" };
+            return new BidResult { status = "rejected", reason = $"{Josa.J(owner.name, "이/가")} 코웃음을 칩니다. \"이 값에는 못 팝니다.\"" };
         }
 
         static Deal MakeDeal(GameState s, Gladiator g, Ludus owner, double fee)
@@ -81,7 +81,7 @@ namespace Colosseum.Core
             var deal = new Deal { id = $"T{s.nextId++}", gladiatorId = g.id, fromLudus = owner.id, fee = fee, expiresAt = Now(s) + 7 };
             TransferOf(s).deals.Add(deal);
             Msg(s, "info", $"이적료 합의: {g.name}",
-                $"{Josa.J(owner.name, "이/가")} 이적료 {Loc(fee)} D를 받아들였습니다.\n{Calendar.DateLabel((int)Calendar.FromAbs(deal.expiresAt).day)}까지 {Josa.J(g.name, "과/와")} 개인 계약을 맺으십시오.");
+                $"{Josa.J(owner.name, "이/가")} 이적료 {Loc(fee)} D를 받아들였습니다.\n{Calendar.DateLabel((int)Calendar.FromAbs(deal.expiresAt).day)}까지 {Josa.J(g.name, "과/와")} 개인 계약을 맺어야 합니다.");
             return deal;
         }
 
@@ -218,7 +218,7 @@ namespace Colosseum.Core
             double fee = JsMath.Round(value * rng.Range(0.8, 1.35) / 50) * 50;
             t.offers.Add(new Offer { id = $"O{s.nextId++}", fromLudus = buyer.id, gladiatorId = target.id, fee = fee, expiresAt = n + 5 });
             Msg(s, "info", $"이적 제안: {target.name}",
-                $"{Josa.J(buyer.name, "이/가")} {target.name} 이적료로 {Loc(fee)} D를 제시했습니다.\n이적 시장 화면에서 받을지 정하십시오. 5일 뒤에는 제안이 사라집니다.");
+                $"{Josa.J(buyer.name, "이/가")} {target.name} 이적료로 {Loc(fee)} D를 제시했습니다.\n받을지는 이적 시장 화면에서 정할 수 있습니다. 5일 뒤에는 제안이 사라집니다.");
         }
 
         /// <summary>받은 제안 수락: 검투사를 넘기고 이적료를 받는다 (중개인이 있으면 조금 더 받아 낸다)</summary>

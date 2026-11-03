@@ -1,0 +1,6 @@
+rule,name,purse_mult,ticket_mult,fame_mult,rp_mult,crowd,growth_days,fatigue_mult,injury_mult
+enum:MatchRule,string,float,float,float,float,int,int,float,float
+경기 규칙,이름,상금 배율,관중 수입 배율,명성 배율,RP 배율,관중 있음 (1),성장 일수,피로 배율,부상 배율
+Training,훈련전,0,0,0,0.5,0,6,0.6,0.5
+Missio,미시오,3,1,1,1.5,1,8,1,1
+Sudden,사투,6,2.2,2,2,1,12,1.3,1.2

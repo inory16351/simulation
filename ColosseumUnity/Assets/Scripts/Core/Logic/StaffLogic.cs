@@ -122,7 +122,7 @@ namespace Colosseum.Core
             var player = state.ludi[state.playerLudusId];
             state.staff.TryGetValue(id, out var s);
             if (!state.staffMarket.Contains(id)) return "이미 떠난 사람입니다";
-            if (StaffOf(state, player, s.role) != null) return $"{RoleNames[s.role]} 자리가 이미 차 있습니다. 먼저 내보내십시오";
+            if (StaffOf(state, player, s.role) != null) return $"{RoleNames[s.role]} 자리가 이미 차 있습니다. 지금 사람을 먼저 내보내야 합니다";
             var d = StaffDemand(state, s);
             if (d.refuse) return $"{s.name}: {d.reason}";
             if (!Reputation.AcceptsOffer(offer, d, roll))
@@ -141,7 +141,7 @@ namespace Colosseum.Core
             state.staff.TryGetValue(id, out var s);
             HaggleResult Err(string line) => new HaggleResult { status = "error", line = line };
             if (!state.staffMarket.Contains(id)) return Err("이미 떠난 사람입니다");
-            if (StaffOf(state, player, s.role) != null) return Err($"{RoleNames[s.role]} 자리가 이미 차 있습니다. 먼저 내보내십시오");
+            if (StaffOf(state, player, s.role) != null) return Err($"{RoleNames[s.role]} 자리가 이미 차 있습니다. 지금 사람을 먼저 내보내야 합니다");
             var d = StaffDemand(state, s);
             if (d.refuse) return Err($"{s.name}: {d.reason}");
             string key = "staff:" + id;

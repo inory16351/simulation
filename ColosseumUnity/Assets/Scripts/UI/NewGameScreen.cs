@@ -45,7 +45,12 @@ namespace Colosseum.UI
             nameInput.characterLimit = 16;
             nameInput.onValueChanged.AddListener(_ => Refresh());
             startButton.onClick.AddListener(() => GameController.I.NewGame(nation, nameInput.text.Trim()));
-            cancelButton.onClick.AddListener(() => GameController.I.Go(GameController.I.Screen));
+            // 로비에서 왔으면(진행 중인 게임이 없으면) 로비로
+            cancelButton.onClick.AddListener(() =>
+            {
+                if (GameController.I.State == null) GameController.I.ToLobby();
+                else GameController.I.Go(GameController.I.Screen);
+            });
         }
 
         void OnEnable()

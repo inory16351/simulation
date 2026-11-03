@@ -33,6 +33,13 @@
     { "id": "crested_helm", "name": "볏 투구", "slot": "helmet", "defense": 2, "showBonus": 2 },
     { "id": "parmula", "name": "소방패", "slot": "shield", "block": 0.10, "weight": "light" },
     { "id": "aspis", "name": "원형방패", "slot": "shield", "block": 0.20, "weight": "medium" },
-    { "id": "scutum", "name": "대방패", "slot": "shield", "block": 0.35, "weight": "heavy" }
+    { "id": "scutum", "name": "대방패", "slot": "shield", "block": 0.35, "weight": "heavy" },
+    { "id": "leather_bracer", "name": "가죽 팔보호대", "slot": "arms", "defense": 1, "weight": "light" },
+    { "id": "bronze_vambrace", "name": "청동 팔갑", "slot": "arms", "defense": 2, "weight": "medium" },
+    { "id": "chain_sleeve", "name": "사슬 소매", "slot": "arms", "defense": 2, "agiPenalty": 0.5, "weight": "medium" },
+    { "id": "plate_vambrace", "name": "판금 팔갑", "slot": "arms", "defense": 3, "agiPenalty": 1, "weight": "heavy" },
+    { "id": "leather_greaves", "name": "가죽 각반", "slot": "legs", "defense": 1, "weight": "light" },
+    { "id": "ocrea", "name": "청동 정강이받이", "slot": "legs", "defense": 2, "weight": "medium" },
+    { "id": "plate_greaves", "name": "판금 다리갑", "slot": "legs", "defense": 3, "agiPenalty": 1, "weight": "heavy" }
   ]
 }

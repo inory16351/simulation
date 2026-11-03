@@ -45,6 +45,34 @@ namespace Colosseum.Core
         public double? titles;
         public Dictionary<string, double> favor;
         public double? bankruptSince;
+        /// <summary>Unity판 전용: 시즌별 연혁 (리그·순위·전적·우승·승강)</summary>
+        public List<LudusSeason> seasons;
+        /// <summary>Unity판 전용: 단체 전술 기본값 ("3" = 3:3, "5" = 5:5). null이면 자동</summary>
+        public Dictionary<string, TeamTactic> teamTactics;
+    }
+
+    /// <summary>우승 한 건 (FM 대회 역사)</summary>
+    public class HonourEntry
+    {
+        public int season;
+        /// <summary>league | cup</summary>
+        public string kind;
+        /// <summary>리그 우승이면 나라와 부</summary>
+        public string nation;
+        public int tier;
+        public string winnerId, winnerName, runnerUpId, runnerUpName;
+    }
+
+    /// <summary>루두스의 한 시즌 (FM 클럽 연혁의 한 줄)</summary>
+    public class LudusSeason
+    {
+        public int season, tier, rank, teams;
+        public string nation;
+        public double wins, losses, rp;
+        /// <summary>champion | promoted | relegated | null</summary>
+        public string result;
+        /// <summary>그 시즌에 든 우승컵 이름들 (리그 우승, 판테온 컵)</summary>
+        public List<string> trophies;
     }
 
     public class Staff
@@ -182,6 +210,8 @@ namespace Colosseum.Core
         public Dictionary<string, Haggle> haggles;
         /// <summary>Unity판 전용: 시장에 내놓은 우리 장비</summary>
         public List<Consignment> consignments;
+        /// <summary>Unity판 전용: 역대 우승 기록 (리그 1·2부, 판테온 컵). Logic/Honours.cs</summary>
+        public List<HonourEntry> honours;
         public List<Expedition> expeditions;
         public List<DungeonQuest> dungeonQuests;
         public List<LedgerEntry> ledger = new();

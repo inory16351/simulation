@@ -1,0 +1,19 @@
+dungeon,seq,race,name,boss
+string,int,enum:Race,string,int
+Dungeon.key,순서,종족,이름,우두머리 (1)
+sewer,1,Beastkin,쥐인간,0
+sewer,2,Human,하수도 도적,0
+sewer,3,Beastkin,쥐왕,1
+mine,1,Orc,오크 약탈자,0
+mine,2,Dwarf,광부 망령,0
+mine,3,Orc,갱도 두목,1
+catacomb,1,Human,해골 검투사,0
+catacomb,2,Elf,묘지 사령술사,0
+catacomb,3,Human,무덤의 챔피언,1
+magma,1,Lizardfolk,화염 도마뱀 전사,0
+magma,2,Minotaur,용암 광전사,0
+magma,3,Minotaur,불의 미궁 주인,1
+abyss,1,Elf,심연의 사제,0
+abyss,2,Orc,타락한 전사,0
+abyss,3,Minotaur,심연의 수문장,0
+abyss,4,Elf,잊힌 신의 대리인,1

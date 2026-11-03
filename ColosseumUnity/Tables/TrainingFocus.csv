@@ -1,0 +1,13 @@
+focus,name,desc
+enum:TrainingFocus,string,string
+훈련 종류,이름,오르는 능력치
+Physical,체력 단련,근력·민첩·지구력·강인함·반응·회복력
+Weapon,무기술,주무기 숙련과 정확도
+Defense,방어,회피·막기·방패 숙련
+Grapple,격투,제압·맨손 숙련
+Mental,정신 수양,투지·침착·판단력·규율
+Sense,실전 감각,예측력·기만·천재성·적응력·팀워크·타이밍·마무리 본능·위압감 (대련)
+Magic,주술,마력·주술 촉매 숙련 (마력이 있어야 효과)
+Show,쇼맨십,쇼맨십
+Doctrine,교범 수련,전투 교범 숙련도
+Rest,휴식,성장 없음. 피로·혹사 회복이 빠릅니다

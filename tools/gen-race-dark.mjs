@@ -50,7 +50,7 @@ const RACES = {
     heads: ["blue male with a white throat", "golden female with dark stripes", "black-green male with a big frill", "pale green female", "orange male with spots", "deep teal female", "grey male with scars", "yellow-green young male", "purple-scaled female"],
     genders: ["m", "f", "m", "f", "m", "f", "m", "m", "f"],
     bald: "No hair, no clothing",
-    parts: [null, null, null, null, null, ["helmet_crest", "an open bronze crested helm shaped for a snout (face open)"], null, ["armor_harness", "a woven reed harness with shell beads"], ["armor_plate", "a bronze scale cuirass with a teal sash"]],
+    parts: [["helmet_crest", "a bronze crested open helm shaped for a snout (face and snout open)"], ["helmet_crest_2", "a leather war cap with bone spikes (face open)"], ["helmet_visor", "a tarnished iron half-helm covering the brow ridge with eye holes"], ["armor_harness", "a woven reed harness with shell beads"], ["armor_plate", "a bronze scale cuirass with a teal sash"], ["armor_harness_2", "a leather shoulder guard and chest straps with teeth trophies"], ["armor_harness_3", "a beaded bone necklace with a feather collar"], null, null],
     noMarks: ["mark_scar_lip", "mark_tattoo_cheeks", "mark_tattoo_chin"],
   },
   beastkin: {
@@ -58,7 +58,7 @@ const RACES = {
     heads: ["brown bear man", "grey rabbit woman", "black wolf man", "orange tabby cat woman", "spotted leopard man", "red panda woman", "white tiger man", "brown deer woman with small antlers", "grey raccoon man"],
     genders: ["m", "f", "m", "f", "m", "f", "m", "f", "m"],
     bald: "No clothing",
-    parts: [null, null, null, null, null, ["helmet_crest", "an open leather-and-bronze cap with ear holes (face open)"], null, ["armor_harness", "a patched leather vest with a scarf"], ["armor_plate", "a chainmail shirt with a fur collar"]],
+    parts: [["helmet_crest", "an open leather-and-bronze cap with ear holes (face open)"], ["helmet_crest_2", "a dented iron skullcap with ear slots and a nose bar (face open)"], ["helmet_crest_3", "a cloth head wrap tied at the back with the ears free (face open)"], ["armor_harness", "a patched leather vest with a scarf"], ["armor_plate", "a chainmail shirt with a fur collar"], ["armor_plate_2", "a bronze breastplate with leather pauldrons"], ["armor_harness_2", "a rope-and-bone harness across the chest"], null, null],
     noMarks: ["mark_scar_lip", "mark_tattoo_cheeks", "mark_tattoo_chin"],
   },
 };

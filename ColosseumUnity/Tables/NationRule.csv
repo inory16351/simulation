@@ -1,0 +1,20 @@
+nation,rule,value
+string,enum:NationRule,float
+Nation.key,규칙,"값 (배율·비율·금액, 참이면 1)"
+aurelia,TicketMult,1.25
+aurelia,FameMult,1.2
+aurelia,TaxRate,0.2
+dolgar,GrowthMult,1.15
+dolgar,TicketMult,0.85
+dolgar,SurrenderShame,1
+karsea,MarketMult,0.8
+karsea,PurseMult,1.15
+karsea,TaxRate,0.05
+kemer,TempleSubsidy,3000
+kemer,FameMult,1.1
+grommar,SuddenPurseMult,1.3
+grommar,AiSuddenMult,2.5
+grommar,TicketMult,0.9
+sylvaren,SuddenBanned,1
+sylvaren,MissioDeathMult,0.6
+sylvaren,MagicFameMult,1.5

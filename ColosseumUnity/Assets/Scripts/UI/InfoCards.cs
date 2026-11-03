@@ -1,0 +1,291 @@
+// 하이퍼링크 카드 내용 (FM처럼 이름을 누르면 그 대상의 정보): 나라·루두스·대회·장비·종족·스타일.
+// 카드 안의 이름도 링크라 계속 따라 들어갈 수 있다 (InfoPopup이 뒤로 가기를 기억한다).
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using Colosseum.Core;
+
+namespace Colosseum.UI
+{
+    public class InfoCard
+    {
+        public string title, sub, body;
+        /// <summary>장비 카드면 그 장비 id (큰 아이콘)</summary>
+        public string iconItem;
+        /// <summary>기술 카드처럼 장비가 아닌 그림 (있으면 iconItem 대신)</summary>
+        public UnityEngine.Sprite iconSprite;
+        /// <summary>아래 이동 버튼 (없으면 숨김)</summary>
+        public string actionLabel;
+        public Action action;
+    }
+
+    public static class InfoCards
+    {
+        static readonly Dictionary<string, string> PersonalityNames = new()
+        {
+            ["aggressive"] = "공격형", ["stable"] = "안정형", ["grudge"] = "원한형", ["merchant"] = "상인형", ["developer"] = "육성형",
+        };
+
+        static string Dim => Theme.Hex(Theme.TextDim);
+        static string Faint => Theme.Hex(Theme.TextFaint);
+        static string Torch => Theme.Hex(Theme.Torch);
+        static string Head(string t) => $"\n<color={Theme.Hex(Theme.BronzeHi)}><b>◆ {t}</b></color>\n";
+
+        /// <summary>링크 id로 카드를 만든다. 모르는 링크면 null</summary>
+        public static InfoCard For(GameState s, string link)
+        {
+            int i = link.IndexOf(':');
+            if (i < 0) return null;
+            string kind = link.Substring(0, i), id = link.Substring(i + 1);
+            return kind switch
+            {
+                "nation" => Nation(s, id),
+                "ludus" => s.ludi.TryGetValue(id, out var l) ? Ludus(s, l) : null,
+                "comp" => Comp(s, id),
+                "item" => Item(id),
+                "race" => Data.Race(id) == null ? null : new InfoCard { title = Data.Race(id).name, sub = "종족", body = Tips.RaceText(id) },
+                "style" => Data.Style(id) == null ? null : new InfoCard { title = Data.Style(id).name, sub = "전투 스타일", body = Tips.StyleText(id) + StyleGear(id) },
+                "skill" => Skill(s, id),
+                "trait" => Data.Trait(id) == null ? null : new InfoCard { title = Data.Trait(id).name, sub = "특성", body = Tips.TraitTip(id).Substring(Tips.TraitTip(id).IndexOf('\n') + 1) },
+                "status" => SkillBook.Statuses.TryGetValue(id, out var st) ? new InfoCard { title = st.name, sub = "상태 이상", body = Tips.StatusTip(id).Substring(Tips.StatusTip(id).IndexOf('\n') + 1), iconSprite = UnityEngine.Resources.Load<UnityEngine.Sprite>("Art/icon/" + st.icon) } : null,
+                "dungeon" => Dungeon(s, id),
+                _ => null,
+            };
+        }
+
+        // ── 던전 ──
+
+        static InfoCard Dungeon(GameState s, string id)
+        {
+            var d = DungeonLogic.Dungeons.FirstOrDefault(x => x.id == id);
+            if (d == null) return null;
+            string dim = Theme.Hex(Theme.TextDim);
+            var foes = string.Join(", ", d.foes.Select(f => $"{f.name} ({Tips.Race(f.race)})"));
+            string body = $"{d.desc}\n\n<color={dim}>층</color> {d.floors}층 · <color={dim}>원정</color> {d.days}일 · <color={dim}>적 수준</color> {d.level} · <color={dim}>층당 사망 위험</color> {d.death:0%}" +
+                          $"\n<color={dim}>적</color> {foes}\n<color={dim}>우두머리</color> {d.boss.name} ({Tips.Race(d.boss.race)})" +
+                          $"\n<color={dim}>전리품</color> 보통 {d.loot[0]}% · 정교 {d.loot[1]}% · 명품 {d.loot[2]}% · 전설 {d.loot[3]}%";
+            return new InfoCard { title = d.name, sub = $"던전 · {d.tier}등급", body = body, actionLabel = "던전으로", action = () => GameController.I.Go("dungeon") };
+        }
+
+        // ── 기술 (기술 테이블) ──
+
+        static readonly Dictionary<string, string> LearnNames = new()
+        {
+            ["WeaponProf"] = "숙련", ["Matches"] = "출전", ["Wins"] = "승리", ["Kills"] = "살해", ["Popularity"] = "인기", ["Age"] = "나이",
+        };
+
+        /// <summary>표의 무기 계열 키(TridentNet) → 이름(삼지창·그물)</summary>
+        static string ClassName(string key)
+        {
+            string snake = string.Concat(key.Select((ch, i) => i > 0 && char.IsUpper(ch) ? "_" + char.ToLower(ch) : char.ToLower(ch).ToString()));
+            return Attrs.WeaponClassNames.TryGetValue(snake, out var n) ? n : key;
+        }
+
+        static string LearnLine(SkillBook.LearnRow c)
+        {
+            string op = c.op == "GE" ? "이상" : c.op == "LE" ? "이하" : "";
+            switch (c.cond)
+            {
+                case "WeaponProf":
+                    return $"{(c.key == "Any" ? "주무기" : ClassName(c.key))} 숙련 {c.value} {op}";
+                case "Attr": return $"{(Attrs.Names.TryGetValue(c.key.ToLowerInvariant(), out var an) ? an : c.key)} {c.value} {op}";
+                case "Race": return $"{Tips.Race(c.key.ToLowerInvariant())} 종족";
+                case "Style": return $"{Tips.Style(c.key)} 스타일";
+                case "Trait": return $"특성 {Tips.Trait(c.key)}";
+                case "HasSkill": return $"{Tips.Skill("skill." + c.key)}을(를) 먼저 익힘";
+                default: return $"{(LearnNames.TryGetValue(c.cond, out var ln) ? ln : c.cond)} {c.value} {op}";
+            }
+        }
+
+        static InfoCard Skill(GameState s, string id)
+        {
+            var r = SkillBook.Row(id);
+            if (r == null) return Data.Skill(id) == null ? null : new InfoCard { title = Data.Skill(id).name, sub = "기술" };
+            string faint = Theme.Hex(Theme.TextFaint), dim = Theme.Hex(Theme.TextDim);
+            var lines = new List<string>();
+            // 툴팁과 같은 설명 (첫 줄 제목은 카드 제목으로)
+            var tip = Tips.SkillTip(id);
+            lines.Add(tip.Substring(tip.IndexOf('\n') + 1));
+            if (r.weapon != "Any" || r.race != "Any") lines.Add($"\n<color={dim}>필요</color> {(r.weapon != "Any" ? ClassName(r.weapon) + " 무기 " : "")}{(r.race != "Any" ? Tips.Race(r.race.ToLowerInvariant()) + " 전용" : "")}");
+            if (SkillBook.Learns.TryGetValue(r.learnGroup, out var conds))
+                lines.Add($"\n<color={dim}>습득 조건</color> (모두 채우면 달마다 {(r.learnRate >= 1 ? "바로" : $"{r.learnRate * Math.Pow(SkillBook.C("LearnTierPenalty", 0.5), r.tier - 1):0%} 확률")})\n" + string.Join("\n", conds.Select(c => "· " + LearnLine(c))));
+            if (s != null && s.ludi.TryGetValue(s.playerLudusId, out var me))
+            {
+                var mine = me.gladiators.Select(g => s.gladiators[g]).Where(g => g.alive).ToList();
+                var has = mine.Where(g => g.skills.active.Contains(id) || g.skills.passive.Contains(id)).ToList();
+                var ready = mine.Where(g => !has.Contains(g) && SkillBook.Meets(g, r)).ToList();
+                lines.Add($"\n<color={dim}>우리 검투사</color> 익힘: {(has.Count > 0 ? string.Join(", ", has.Select(Tips.Name)) : $"<color={faint}>없음</color>")}" +
+                          $"\n조건 충족: {(ready.Count > 0 ? string.Join(", ", ready.Select(Tips.Name)) : $"<color={faint}>없음</color>")}");
+            }
+            return new InfoCard { title = r.name, sub = $"기술 · {(r.type == "Active" ? "능동" : r.type == "Reaction" ? "반응" : "상시")} · {new string('★', r.tier)}", body = string.Join("\n", lines), iconSprite = Tips.SkillIcon(id) };
+        }
+
+        // ── 나라 ──
+
+        static InfoCard Nation(GameState s, string id)
+        {
+            var n = Data.Nation(id);
+            var t1 = Economy.TierRanking(s, 1, id);
+            var body = $"<color={Dim}>{n.lore}</color>\n";
+            if (n.ruleText.Count > 0) body += Head("리그 특징") + string.Join("\n", n.ruleText.Select(r => "· " + r)) + "\n";
+            body += Head($"{Tips.League(id, 1)} 순위") + string.Join("\n", t1.Select((l, k) => $"{k + 1}. {Tips.Ludus(l)}  <color={Faint}>RP {l.rp}</color>"));
+            if (id == s.nation) body += $"\n{Tips.League(id, 2)}";
+            var champs = (s.honours ?? new List<HonourEntry>()).Where(h => h.kind == "league" && h.nation == id && h.tier == 1).OrderByDescending(h => h.season).Take(5).ToList();
+            if (champs.Count > 0) body += "\n" + Head("최근 1부 우승") + string.Join("\n", champs.Select(h => $"시즌 {h.season}  <color={Torch}>★</color> {Tips.Ludus(h.winnerId, h.winnerName)}"));
+            if (s.coefficients.TryGetValue(id, out var co) && co.Count > 0) body += $"\n\n<color={Dim}>판테온 컵 나라 계수</color> {co[co.Count - 1]}";
+            return new InfoCard
+            {
+                title = n.name + (id == s.nation ? $" <size=60%><color={Dim}>(우리 나라)</color></size>" : ""),
+                sub = $"{n.motif} · 수도 {n.capital} · 경기장 {n.arena}",
+                body = body,
+                actionLabel = "대륙 정세로", action = () => GameController.I.Go("world"),
+            };
+        }
+
+        // ── 루두스 ──
+
+        static InfoCard Ludus(GameState s, Ludus l)
+        {
+            var table = Economy.TierRanking(s, l.tier, l.nation);
+            int rank = table.FindIndex(x => x.id == l.id) + 1;
+            double rep = Reputation.LudusReputation(s, l);
+            var body = $"<color={Dim}>전적</color> {l.record.wins}승 {l.record.losses}패" +
+                (l.isPlayer ? "" : $"    <color={Dim}>성향</color> {PersonalityNames.GetValueOrDefault(l.aiPersonality ?? "", "—")}") +
+                $"    <color={Dim}>시설</color> 경기장 {l.facilities.arena}단계 · 훈련장 {l.facilities.training}단계\n";
+            var trophies = Honours.TrophiesOf(s, l.id);
+            body += Head("우승컵") + (trophies.Count == 0 ? $"<color={Faint}>없습니다</color>"
+                : string.Join("\n", trophies.Select(t => $"<color={Torch}>★</color> {CompLink(t.name)} ×{t.seasons.Count} <color={Faint}>(시즌 {string.Join(", ", t.seasons)})</color>")));
+            var people = l.gladiators.Select(id => s.gladiators.TryGetValue(id, out var g) ? g : null).Where(g => g != null && g.alive)
+                .OrderByDescending(g => Scouting.CaRange(s, g).mid).ToList();
+            body += "\n" + Head($"검투사 {people.Count}명") + string.Join("\n", people.Select(g =>
+            {
+                var ca = l.isPlayer ? (lo: (double)GladiatorRules.ComputeCA(g), hi: (double)GladiatorRules.ComputeCA(g)) : (lo: Scouting.CaRange(s, g).lo, hi: Scouting.CaRange(s, g).hi);
+                return $"{Tips.Name(g)} <color={Faint}>{Tips.Race(g.race)} · {Tips.Style(g.style)} · {g.age}세</color>  {Widgets.RangeStars(ca.lo, ca.hi)}";
+            }));
+            var seasons = (l.seasons ?? new List<LudusSeason>()).OrderByDescending(x => x.season).Take(4).ToList();
+            if (seasons.Count > 0)
+                body += "\n" + Head("최근 시즌") + string.Join("\n", seasons.Select(x =>
+                    $"시즌 {x.season}  {Tips.League(x.nation ?? l.nation, x.tier)} {x.rank}위 · {x.wins}-{x.losses}" +
+                    (x.result == "promoted" ? $" <color={Theme.Hex(Theme.Good)}>승격</color>" : x.result == "relegated" ? " <color=#d9a29b>강등</color>" : x.rank == 1 ? $" <color={Torch}>우승</color>" : "")));
+            string id = l.id;
+            return new InfoCard
+            {
+                title = l.name + (l.isPlayer ? $" <size=60%><color={Dim}>(우리)</color></size>" : ""),
+                sub = $"{Tips.Nation(l.nation)} · {Tips.League(l.nation, l.tier)} {rank}위 · RP {l.rp} · 명성 {rep} ({Reputation.ReputationNames(rep)})",
+                body = body,
+                actionLabel = "연혁 보기", action = () => GameController.I.OpenHall(id),
+            };
+        }
+
+        /// <summary>우승컵 이름을 대회 링크로</summary>
+        public static string CompLink(string trophyName)
+        {
+            if (trophyName == Honours.CupName) return Tips.Cup();
+            foreach (var n in Data.Nations)
+                for (int t = 1; t <= 2; t++)
+                    if (Honours.LeagueName(n.id, t) == trophyName) return Tips.League(n.id, t);
+            return trophyName;
+        }
+
+        // ── 대회 ──
+
+        static InfoCard Comp(GameState s, string id)
+        {
+            var hist = s.honours ?? new List<HonourEntry>();
+            string Past(IEnumerable<HonourEntry> list)
+            {
+                var l = list.OrderByDescending(h => h.season).Take(10).ToList();
+                return Head("역대 우승") + (l.Count == 0 ? $"<color={Faint}>아직 기록이 없습니다</color>"
+                    : string.Join("\n", l.Select(h => $"시즌 {h.season}  <color={Torch}>★</color> {Tips.Ludus(h.winnerId, h.winnerName)}" +
+                        (h.runnerUpName != null ? $"  <color={Faint}>준우승</color> {Tips.Ludus(h.runnerUpId, h.runnerUpName)}" : ""))));
+            }
+            if (id == "cup")
+            {
+                var cup = s.cup;
+                string now = cup == null ? $"<color={Faint}>이번 시즌 컵은 아직 열리지 않았습니다</color>"
+                    : !string.IsNullOrEmpty(cup.champion) && s.ludi.TryGetValue(cup.champion, out var ch) ? $"시즌 {cup.season} 우승: <color={Torch}>★</color> {Tips.Ludus(ch)}"
+                    : $"시즌 {cup.season} 진행 중 · 출전 {cup.teams.Count}곳: " + string.Join(", ", cup.teams.Where(t => s.ludi.ContainsKey(t)).Select(t => Tips.Ludus(s.ludi[t])));
+                return new InfoCard
+                {
+                    title = Honours.CupName, sub = "여섯 나라 1부 상위 루두스 16곳이 겨루는 대륙 대회",
+                    body = now + "\n" + Past(hist.Where(h => h.kind == "cup")),
+                    actionLabel = "판테온 컵으로", action = () => GameController.I.Go("cup"),
+                };
+            }
+            var parts = id.Split(':');
+            if (parts.Length != 3 || parts[0] != "league") return null;
+            string nation = parts[1];
+            int tier = int.TryParse(parts[2], out var tt) ? tt : 1;
+            var table = Economy.TierRanking(s, tier, nation);
+            var body = Head("지금 순위") + string.Join("\n", table.Select((l, k) => $"{k + 1}. {Tips.Ludus(l)}  <color={Faint}>{l.record.wins}-{l.record.losses} · RP {l.rp}</color>"));
+            body += "\n" + Past(hist.Where(h => h.kind == "league" && h.nation == nation && h.tier == tier));
+            return new InfoCard
+            {
+                title = Honours.LeagueName(nation, tier), sub = $"{Tips.Nation(nation)}의 {tier}부 리그 · {table.Count}곳",
+                body = body,
+                actionLabel = "서열표로", action = () => GameController.I.Go("league"),
+            };
+        }
+
+        // ── 장비 ──
+
+        static InfoCard Item(string id)
+        {
+            var (bid, q) = Data.SplitItemId(id);
+            var w = Data.Weapon(id);
+            var a = Data.Armor(id);
+            if (w == null && a == null) return null;
+            string N(double x) => StateUtil.Num(x);
+            var lines = new List<string>();
+            if (w != null)
+            {
+                lines.Add($"<color={Dim}>피해</color> {N(w.damage)}    <color={Dim}>속도</color> {N(w.speed)}    <color={Dim}>사거리</color> {N(w.range)}    <color={Dim}>필요 근력</color> {N(w.reqStr)}");
+                lines.Add($"<color={Dim}>관통</color> {N(JsMath.Round(w.pierce * 100))}%    <color={Dim}>치명</color> {N(JsMath.Round(w.crit * 100))}%" + (w.twoHanded ? "    양손" : "") + (w.offhandOnly ? "    보조 손 전용" : ""));
+                var extra = new List<string>();
+                if ((w.stun ?? 0) != 0) extra.Add($"기절 {N(JsMath.Round(w.stun.Value * 100))}%");
+                if ((w.blockBypass ?? 0) != 0) extra.Add($"막기 우회 {N(JsMath.Round(w.blockBypass.Value * 100))}%");
+                if ((w.boundBonus ?? 0) != 0) extra.Add($"묶인 상대에게 피해 +{N(JsMath.Round(w.boundBonus.Value * 100))}%");
+                if ((w.ammo ?? 0) != 0) extra.Add($"탄 {N(w.ammo.Value)}발");
+                if ((w.magicBonus ?? 0) != 0) extra.Add($"주술 +{N(JsMath.Round(w.magicBonus.Value * 100))}%");
+                if (extra.Count > 0) lines.Add(string.Join(" · ", extra));
+            }
+            else
+            {
+                lines.Add(GearLogic.ItemStats(id));
+                var extra = new List<string>();
+                if ((a.staCost ?? 0) != 0) extra.Add($"공격할 때 기력 +{N(JsMath.Round(a.staCost.Value * 100))}%");
+                if ((a.accPenalty ?? 0) != 0) extra.Add($"명중 -{N(a.accPenalty.Value)}");
+                if ((a.netResist ?? 0) != 0) extra.Add($"그물 버티기 {N(JsMath.Round(a.netResist.Value * 100))}%");
+                if ((a.crowd ?? 0) != 0) extra.Add($"관중 열기 +{N(JsMath.Round(a.crowd.Value * 100))}%");
+                if (extra.Count > 0) lines.Add(string.Join(" · ", extra));
+            }
+            lines.Add($"<color={Dim}>기준가</color> {N(GearLogic.ItemPrice(id))} D");
+            var uq = Uniques.Of(id);
+            if (uq != null)
+            {
+                lines.Add(Head(uq.grade >= 3 ? "전설의 힘" : "고유 효과") + string.Join("\n", uq.effects.Select(e => $"<color={Torch}>◆</color> {Uniques.Describe(e)}")));
+                if (!string.IsNullOrEmpty(uq.lore)) lines.Add($"\n<i><color={Dim}>“{uq.lore}”</color></i>");
+                lines.Add($"\n<color={Faint}>바탕 장비</color> {Tips.Item(bid)}");
+            }
+            var users = Data.Styles.Where(st => st.loadout != null && new[] { st.loadout.main, st.loadout.off, st.loadout.armor, st.loadout.helmet }.Contains(bid)).ToList();
+            string body = string.Join("\n", lines) + (users.Count > 0 ? "\n" + Head("기본 장비로 쓰는 스타일") + string.Join(", ", users.Select(st => Tips.Style(st.id))) : "");
+            string kind = GearLogic.ItemKindNames.GetValueOrDefault(GearLogic.ItemKind(id) ?? "", "장비");
+            return new InfoCard
+            {
+                title = Widgets.ItemLabel(id), iconItem = id,
+                sub = $"{kind}" + (q > 0 ? $" · {Widgets.GradeTag(id)}" : " · 보통 품질") + (uq != null ? " · 고유 장비" : ""),
+                body = body,
+                actionLabel = "장비 시장으로", action = () => GameController.I.Go("market"),
+            };
+        }
+
+        /// <summary>스타일 카드 아래: 기본 장비 링크</summary>
+        static string StyleGear(string id)
+        {
+            var lo = Data.Style(id)?.loadout;
+            if (lo == null) return "";
+            var items = new[] { lo.main, lo.off, lo.armor, lo.helmet }.Where(x => !string.IsNullOrEmpty(x)).Select(Tips.Item).ToList();
+            return items.Count == 0 ? "" : "\n" + Head("기본 장비") + string.Join(", ", items);
+        }
+    }
+}

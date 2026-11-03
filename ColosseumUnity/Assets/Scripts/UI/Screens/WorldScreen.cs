@@ -106,11 +106,11 @@ namespace Colosseum.UI
             });
 
             var n = Data.Nation(sel);
-            nationTitle.text = "◆  " + n.name;
+            nationTitle.text = "◆  " + Tips.Nation(n.id);
             nationMeta.text = $"수도 {n.capital} · 대표 투기장 {n.arena} · 리그 「{n.league}」";
             nationLore.text = n.lore;
             rulesText.text = string.Join("\n", n.ruleText.Select(t => "· " + t));
-            stylesText.text = string.Join("   ", n.styles.Select(st => Data.Style(st)?.name ?? st));
+            stylesText.text = string.Join("   ", n.styles.Select(Tips.Style));
 
             var others = list.Where(x => x.id != sel).ToList();
             relRows.Sync(others.Count, (row, i) =>
@@ -168,7 +168,7 @@ namespace Colosseum.UI
                     T(b.transform, "Name").text = g.name;
                     string id = g.id;
                     b.onClick.RemoveAllListeners();
-                    b.onClick.AddListener(() => G.OpenGladiator(id));
+                    b.onClick.AddListener(() => G.ShowGladiator(id));
                 });
                 T(row, "Hint").text = $"전공 {N(c.merit)} · {Calendar.DateLabel(Calendar.FromAbs(c.endsAt ?? 0).day)} 귀환";
             });
@@ -200,7 +200,7 @@ namespace Colosseum.UI
             bool levy = c.type == "levy";
             card.GetComponent<Image>().color = levy ? Theme.Blood : Theme.Line;
             card.Find("Head/Crest").GetComponent<Image>().sprite = Crest(c.employer);
-            T(card, "Head/Info/Name").text = $"{Data.Nation(c.employer).@short} · {spec?.name ?? c.type}" +
+            T(card, "Head/Info/Name").text = $"{Tips.Nation(c.employer, true)} · {spec?.name ?? c.type}" +
                 (levy ? $"  <size=75%><color={Theme.Hex(Neg)}>[징발령]</color></size>" : "");
             T(card, "Head/Info/Desc").text = $"{spec?.desc} · 적: {Data.Nation(c.enemy).@short}";
             T(card, "Head/Terms/Pay").text = $"1인당 <b>{c.pay:N0} D</b> (선금 30%)";

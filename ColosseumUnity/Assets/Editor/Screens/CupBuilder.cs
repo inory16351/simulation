@@ -17,7 +17,7 @@ namespace Colosseum.EditorTools
             var rt = Rect("Screen_cup", main).Stretch(26, 20, 26, 20);
             var content = ScrollView("Scroll", rt, out var scroll, 14);
             scroll.Stretch();
-            ScreenHeader(content, "판테온 컵", "여섯 나라의 1부 상위 루두스 16곳이 겨루는 대륙 대회입니다. 나라 계수가 높을수록 출전권을 많이 받습니다. 대결마다 세 명이 미시오로 한 판씩 싸워 두 판을 먼저 따면 이깁니다. 리그 RP는 오가지 않지만 큰 상금과 명성을 얻습니다.");
+            ScreenHeader(content, "판테온 컵", "여섯 나라의 1부 상위 루두스 16곳이 겨루는 대륙 대회입니다. 나라 계수가 높을수록 출전권을 많이 받습니다. 대결마다 세 명씩 나와 미시오 난전으로 한꺼번에 싸우고, 상대 편을 모두 쓰러뜨리면 이깁니다. 리그 RP는 오가지 않지만 큰 상금과 명성을 얻습니다.");
             content.Find("Sub").GetComponent<TMP_Text>().Layout(prefH: 44);
 
             // 오늘의 컵 경기
@@ -31,7 +31,7 @@ namespace Colosseum.EditorTools
             var lineup = Rect("Lineup", todayPad);
             HRow(lineup, 8);
             var slots = new List<TMP_Dropdown>();
-            foreach (var p in new[] { "선봉", "중견", "대장" })
+            foreach (var p in new[] { "출전 1", "출전 2", "출전 3" })
             {
                 var slot = Rect("Slot", lineup);
                 VCol(slot, 2);

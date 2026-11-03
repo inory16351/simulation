@@ -113,7 +113,7 @@ namespace Colosseum.Core
         /// <summary>되면 null</summary>
         public static string StartExpedition(GameState s, string dungeon, List<string> ids, string formation, string questId = null)
         {
-            if (ids.Count == 0 || ids.Count > MaxParty) return $"1~{MaxParty}명을 보내십시오";
+            if (ids.Count == 0 || ids.Count > MaxParty) return $"1~{MaxParty}명까지 보낼 수 있습니다";
             var me = s.ludi[s.playerLudusId];
             foreach (var id in ids)
             {
@@ -328,7 +328,7 @@ namespace Colosseum.Core
         }
 
         static List<string> LootPool() =>
-            Data.Weapons.Select(w => w.id).Concat(Data.Armors.Select(a => a.id)).Where(id => id != "loincloth" && id != "cestus").ToList();
+            Data.Weapons.Select(w => w.id).Concat(Data.Armors.Select(a => a.id)).Where(id => id != "loincloth" && id != "cestus" && Uniques.InPool(id)).ToList();
 
         /// <summary>층 전리품: 1~2개, 우두머리는 하나 더 (한 단계 위 품질). bonus는 토벌 의뢰의 품질 가산</summary>
         public static List<string> RollLoot(Rng rng, DungeonDef d, bool boss, int bonus = 0)
@@ -342,7 +342,7 @@ namespace Colosseum.Core
                     new("0", w[0]), new("1", w[1]), new("2", w[2]), new("3", w[3]),
                 }), CultureInfo.InvariantCulture) + extra + bonus);
                 string @base = rng.Pick(pool);
-                return q != 0 ? $"{@base}+{q}" : @base;
+                return q != 0 ? Uniques.Assign(rng, $"{@base}+{q}") : @base;
             }
             var o = new List<string> { Roll(0) };
             if (rng.Chance(0.45)) o.Add(Roll(0));

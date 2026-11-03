@@ -27,6 +27,15 @@ namespace Colosseum.Core
         public int winner;
         /// <summary>나오지 못해 진 판</summary>
         public double[] walkovers = { 0, 0 };
+
+        /// <summary>난전(Unity판 전용)이면 그 한 경기. 이때 bouts는 비고, score는 쓰러뜨린 적 수</summary>
+        public MatchResult melee;
+        /// <summary>난전 양쪽 명단 (경기 전 모습)</summary>
+        public List<Gladiator>[] meleeSides;
+        public MatchSummary meleeSummary;
+
+        /// <summary>경기의 관중 열기 (판들의 평균)</summary>
+        public double Crowd() => melee != null ? melee.crowd : bouts.Count == 0 ? 0 : bouts.Sum(b => b.result.crowd) / bouts.Count;
     }
 
     public class RunOptions
@@ -70,9 +79,38 @@ namespace Colosseum.Core
             return output.Concat(pool).Take(n).ToList();
         }
 
+        /// <summary>단체전·컵을 양쪽 전원이 동시에 싸우는 난전으로 치르는가 (Unity판). 웹판과 결과를 비교하는 골든 테스트만 끈다</summary>
+        public static bool Melee = true;
+
+        /// <summary>난전: 한 경기로 끝낸다. score는 각 편이 쓰러뜨린 적 수</summary>
+        static Series RunMelee(GameState state, Ludus[] sides, List<Gladiator>[] lineups, RunOptions o, Rng rng)
+        {
+            var snaps = lineups.Select(l => l.Select(MatchLogic.CloneGladiator).ToList()).ToArray();
+            var result = Sim.RunTeam(lineups[0], lineups[1], new MatchOptions
+            {
+                rule = o.rule,
+                seed = MatchLogic.Seed31(rng),
+                missioDeathMult = NationRules.RulesOfNation(sides[1].nation).missioDeathMult,
+                medicalLevel = new[] { ChallengeLogic.MedicalOf(state, sides[0]), ChallengeLogic.MedicalOf(state, sides[1]) },
+                // 우리 편은 전략 화면의 기본값, AI는 감독 성향대로
+                teamTactics = new[] { Tactics.TeamFor(sides[0], lineups[0]), Tactics.TeamFor(sides[1], lineups[1]) },
+            });
+            var summary = MatchLogic.ApplyTeamResult(state, result, o.rule, rng);
+            int n = Math.Max(lineups[0].Count, lineups[1].Count);
+            double Downed(int side) => result.downs.Count(d => result.sides[1 - side].Contains(d.Key));
+            return new Series
+            {
+                melee = result, meleeSides = snaps, meleeSummary = summary,
+                score = new[] { Downed(0), Downed(1) },
+                winner = result.winnerSide,
+                walkovers = new double[] { Math.Max(0, n - lineups[0].Count), Math.Max(0, n - lineups[1].Count) },
+            };
+        }
+
         /// <summary>두 루두스가 명단대로 여러 판을 치른다. 개인 성장·부상·죽음은 판마다, RP와 돈은 호출한 쪽에서 정산한다</summary>
         public static Series RunSeries(GameState state, Ludus[] sides, List<Gladiator>[] lineups, RunOptions o, Rng rng)
         {
+            if (Melee && lineups[0].Count > 0 && lineups[1].Count > 0) return RunMelee(state, sides, lineups, o, rng);
             var bouts = new List<Bout>();
             var score = new double[] { 0, 0 };
             var walkovers = new double[] { 0, 0 };

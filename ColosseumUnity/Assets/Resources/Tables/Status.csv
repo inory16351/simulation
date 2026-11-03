@@ -1,0 +1,24 @@
+id,key,name,desc,kind,max_duration,stack,max_stack,effect_group,icon
+int,enum:Status,string,string,enum:StatusKind,int,enum:Stack,int,int,string
+고유 번호,상태 키,이름,설명,종류,최대 지속 (라운드),겹침 규칙,최대 겹침,효과 묶음 (걸려 있는 동안·매 라운드),아이콘
+1,Stun,기절,한 차례를 거릅니다,Control,2,Ignore,1,90001,status/stun
+2,Prone,넘어짐,일어서느라 피하기 어렵습니다,Control,2,Ignore,1,90002,status/prone
+3,Bound,속박,그물에 묶여 제대로 움직이지 못합니다,Control,3,Refresh,1,90003,status/bound
+4,Grappled,붙잡힘,붙잡혀 팔을 제대로 쓰지 못합니다,Control,3,Refresh,1,90004,status/grappled
+5,Blinded,실명,앞이 보이지 않아 헛손질합니다,Debuff,3,Refresh,1,90005,status/blinded
+6,Poison,중독,독이 돌아 매 라운드 HP가 줄어듭니다,Debuff,6,Refresh,1,90006,status/poison
+7,Bleed,출혈,상처에서 피가 흘러 매 라운드 HP가 줄어듭니다,Debuff,4,Add,3,90007,status/bleed
+8,Weakened,쇠약,힘이 빠져 피해가 줄어듭니다,Debuff,4,Refresh,1,90008,status/weakened
+9,ArmorBreak,갑옷 깨짐,갑옷이 벌어져 방어력이 절반이 됩니다,Debuff,4,Refresh,1,90009,status/armor_break
+10,Exposed,빈틈,자세가 무너져 공격이 잘 들어갑니다,Debuff,2,Refresh,1,90010,status/exposed
+11,Hobbled,다리 부상,발이 느려집니다,Debuff,3,Refresh,1,90011,status/hobbled
+12,ArmWound,팔 부상,무기를 쥔 팔에 힘이 빠집니다,Debuff,3,Refresh,1,90012,status/arm_wound
+13,Guard,방어 태세,방패 뒤에서 버팁니다,Buff,3,Refresh,1,90013,status/guard
+14,Riposte,받아치기 태세,다음 공격을 되받아칠 준비를 합니다,Buff,1,Refresh,1,90014,status/riposte
+15,EvadeUp,회피 태세,몸을 낮추고 공격을 흘려 보냅니다,Buff,2,Refresh,1,90015,status/evade_up
+16,Flame,화염 무기,무기가 불타 맞힐 때마다 불로 지집니다,Buff,4,Refresh,1,90016,status/flame
+17,Ward,수호막,룬의 막이 피해를 먼저 받아 냅니다,Buff,5,Refresh,1,90017,status/ward
+18,Adapt,임기응변,흐름에 맞춰 공수가 모두 나아집니다,Buff,3,Refresh,1,90018,status/adapt
+19,WindStep,바람 걸음,바람처럼 피합니다,Buff,2,Refresh,1,90019,status/wind_step
+20,EarthStance,대지 버팀,넘어지거나 묶이지 않습니다,Buff,4,Refresh,1,90020,status/earth_stance
+21,Enraged,격노,피해가 커지지만 방어가 허술해집니다,Buff,3,Refresh,1,90021,status/enraged

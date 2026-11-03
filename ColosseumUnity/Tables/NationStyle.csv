@@ -1,0 +1,21 @@
+nation,seq,style
+string,int,string
+Nation.key,순서,흔한 Style.key
+aurelia,1,murmillo
+aurelia,2,secutor
+aurelia,3,retiarius
+dolgar,1,hoplomachus
+dolgar,2,murmillo
+dolgar,3,crusher
+karsea,1,retiarius
+karsea,2,hoplomachus
+karsea,3,dimachaerus
+kemer,1,bestiarius
+kemer,2,dimachaerus
+kemer,3,thraex
+grommar,1,crusher
+grommar,2,pankratiast
+grommar,3,secutor
+sylvaren,1,runeblade
+sylvaren,2,sorcerer
+sylvaren,3,thraex

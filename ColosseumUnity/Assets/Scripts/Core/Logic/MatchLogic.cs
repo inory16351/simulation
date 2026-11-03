@@ -160,6 +160,85 @@ namespace Colosseum.Core
             return summary;
         }
 
+        /// <summary>난전 결과를 사람마다 반영한다 (Unity판 전용). 루두스끼리의 RP·돈은 호출한 쪽(TeamSettle, 컵)이 정산한다</summary>
+        public static MatchSummary ApplyTeamResult(GameState state, MatchResult r, string ruleId, Rng rng)
+        {
+            var rule = Bal.Rule(ruleId);
+            var winLudus = Career.LudusOf(state, r.sides[r.winnerSide][0]);
+            var nr = NationRules.RulesOfNation(winLudus?.nation ?? state.nation);
+            int at = (int)Calendar.AbsDay(state.season, state.day);
+            var summary = new MatchSummary();
+            string ruleName = (string)rule["name"];
+            double fameMult = (double)rule["fameMult"];
+            double MagicMult(Gladiator g)
+            {
+                foreach (var id in g.skills.active)
+                    if (Data.Skill(id)?.magic == true) return nr.magicFameMult;
+                return 1;
+            }
+            var people = new List<(Gladiator g, bool won)>();
+            for (int s = 0; s < 2; s++)
+                foreach (var id in r.sides[s]) people.Add((state.gladiators[id], s == r.winnerSide));
+
+            foreach (var (g, won) in people)
+            {
+                if (won) g.record.wins++; else g.record.losses++;
+                g.morale = won ? Math.Min(100, g.morale + 5) : Math.Max(0, g.morale - 5);
+                double cc = r.crowdContribution[g.id];
+                double fame = JsMath.Round((won ? 2 + Math.Max(0, cc) / 10 : cc / 15) * fameMult * nr.fameMult * MagicMult(g));
+                g.popularity = Math.Max(0, Math.Min(100, g.popularity + fame));
+                summary.fame[g.id] = fame;
+            }
+            foreach (var (g, won) in people)
+            {
+                Condition.AfterMatch(g, at, ruleId);
+                var home = Career.LudusOf(state, g.id);
+                Training.Grow(g, rng, "match",
+                    (double)rule["growthDays"] * (won ? 1 : 0.8) * nr.growthMult * StaffLogic.CoachMult(StaffLogic.RatingOf(state, home, "doctore")),
+                    1, home?.facilities.training ?? 1);
+                var rec = Career.SeasonRecord(state, g);
+                rec.apps++;
+                if (won) rec.wins++; else rec.losses++;
+                if (g.injury != null) Injuries.Aggravate(state, g, rng);
+                r.injuries.TryGetValue(g.id, out var inj);
+                if (inj != null && (g.injury == null || g.injury.daysLeft < inj.daysLeft))
+                {
+                    g.injury = inj;
+                    rec.injuries++;
+                    Career.LogCareer(state, g, $"{ruleName} 단체전 난전에서 {inj.desc} ({N(inj.daysLeft)}일)", "injury");
+                }
+                if (won) Milestones(state, g);
+            }
+
+            foreach (var d in r.downs)
+            {
+                if (!r.deaths.Contains(d.Key)) continue;
+                var dead = state.gladiators[d.Key];
+                var w = state.gladiators[d.Value];
+                var wl = Career.LudusOf(state, w.id);
+                var ll = Career.LudusOf(state, dead.id);
+                dead.alive = false;
+                dead.injury = null;
+                dead.diedAt = new DiedAt { season = state.season, day = state.day, cause = $"{w.name}에게 쓰러짐 (단체전)" };
+                w.record.kills++;
+                Career.SeasonRecord(state, w).kills++;
+                Career.LogCareer(state, w, $"{ruleName} 단체전에서 {dead.name}의 목숨을 거뒀습니다", "milestone");
+                Career.LogCareer(state, dead, $"{ruleName} 단체전에서 {w.name}에게 쓰러져 모래 위에서 죽었습니다", "death");
+                if (ruleId == "sudden" && wl?.isPlayer == true && !(ll?.isPlayer == true)) GearLogic.LootFallen(state, w, dead);
+                if (ll?.isPlayer == true) state.fallen.Add(dead.id);
+                if (ll != null)
+                {
+                    foreach (var gid in ll.gladiators)
+                    {
+                        var g = state.gladiators[gid];
+                        if (g.alive && g.id != dead.id) g.morale = Math.Max(0, g.morale - (double)Bal.Morale["teammateDeath"]);
+                    }
+                    ll.gladiators = ll.gladiators.FindAll(x => x != dead.id);
+                }
+            }
+            return summary;
+        }
+
         /// <summary>루두스끼리 RP·상금·관중 수입을 정산한다 (1:1, 단체전, 컵 모두)</summary>
         public static void Settle(GameState state, Ludus wl, Ludus ll, string ruleId, SettleOptions o, MatchSummary summary)
         {

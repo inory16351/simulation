@@ -22,6 +22,11 @@ namespace Colosseum.UI
         [SerializeField] RectTransform focusGrid;
         [SerializeField] TMP_Text stanceDesc;
         [SerializeField] TMP_Text focusDesc;
+        [Tooltip("노릴 높이·막을 높이 (Unity판, 버튼 이름 = auto/high/mid/low)")]
+        [SerializeField] RectTransform atkZoneGrid;
+        [SerializeField] RectTransform guardZoneGrid;
+        [Tooltip("주무기 계열의 지대 힌트 (Exchange.ZoneHint)")]
+        [SerializeField] TMP_Text zoneHint;
         [Header("기술 순서")]
         [Tooltip("줄 원본: N, Name, Up, Down")]
         [SerializeField] RectTransform orderTemplate;
@@ -57,6 +62,9 @@ namespace Colosseum.UI
             Wire(stanceGrid, d => d.stance, (d, k) => d.stance = k);
             Wire(rangeGrid, d => d.range, (d, k) => d.range = k);
             Wire(focusGrid, d => d.focus, (d, k) => d.focus = k);
+            // 높이 지시는 null이 자동이다
+            if (atkZoneGrid != null) Wire(atkZoneGrid, d => d.atkZone ?? "auto", (d, k) => d.atkZone = k == "auto" ? null : k);
+            if (guardZoneGrid != null) Wire(guardZoneGrid, d => d.guardZone ?? "auto", (d, k) => d.guardZone = k == "auto" ? null : k);
             addRule.onClick.AddListener(() => Change(d => d.rules.Add(new DoctrineRule
             {
                 cond = new RuleCond { type = "myHpBelow", value = 40 },
@@ -138,13 +146,25 @@ namespace Colosseum.UI
             Choice(focusGrid, d.focus);
             stanceDesc.text = Tactics.StanceDesc.TryGetValue(d.stance ?? "", out var sd) ? sd : "";
             focusDesc.text = Tactics.FocusDesc.TryGetValue(d.focus ?? "", out var fd) ? fd : "";
+            if (atkZoneGrid != null)
+            {
+                Choice(atkZoneGrid, d.atkZone ?? "auto");
+                Choice(guardZoneGrid, d.guardZone ?? "auto");
+                var g = S.gladiators[gid];
+                var w = Data.Weapon(g.equipment.main ?? Data.Style(g.style)?.loadout?.main);
+                var off = g.equipment.off ?? Data.Style(g.style)?.loadout?.off;
+                bool shield = off != null && Data.Armor(off)?.slot == "shield";
+                zoneHint.text = w == null ? "" :
+                    $"<color={Theme.Hex(Theme.BronzeHi)}>{Attrs.WeaponClassNames[w.@class]}{(shield ? " + 방패" : "")}</color>  {Colosseum.Core.Combat.Exchange.ZoneHint(w.@class, shield)}\n" +
+                    $"<color={faint}>자동: 공격은 상대의 약한 방어 지대를, 방어는 상대 무기가 강한 지대를 판단력만큼 노립니다.</color>";
+            }
 
             // 기술 순서
             orderEmpty.SetActive(d.order.Count == 0);
             orderRows.Sync(d.order.Count, (row, i) =>
             {
                 T(row, "N").text = (i + 1).ToString();
-                T(row, "Name").text = SkillName(d.order[i]);
+                T(row, "Name").text = Tips.Skill(d.order[i]);
                 var up = row.Find("Up").GetComponent<Button>();
                 var down = row.Find("Down").GetComponent<Button>();
                 up.gameObject.SetActive(editable);

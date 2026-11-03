@@ -1,0 +1,25 @@
+style,seq,weapon
+string,int,enum:WeaponClass
+Style.key,순서,주 숙련 계열
+murmillo,1,Sword
+murmillo,2,Shield
+secutor,1,Sword
+secutor,2,Shield
+retiarius,1,TridentNet
+retiarius,2,Dagger
+thraex,1,Sword
+thraex,2,Shield
+hoplomachus,1,Spear
+hoplomachus,2,Shield
+dimachaerus,1,Sword
+dimachaerus,2,Dagger
+pankratiast,1,Unarmed
+bestiarius,1,Spear
+bestiarius,2,Throwing
+crusher,1,Axe
+crusher,2,Greatsword
+crusher,3,Mace
+runeblade,1,Sword
+runeblade,2,Focus
+sorcerer,1,Focus
+sorcerer,2,Dagger

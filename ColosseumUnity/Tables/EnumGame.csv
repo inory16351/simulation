@@ -1,0 +1,161 @@
+enum,key,value,name
+string,string,int,string
+열거형 이름,키,정수 값,한글 이름
+ItemSlot,Armor,0,
+ItemSlot,Helmet,1,
+ItemSlot,Shield,2,
+ItemSlot,Arms,3,
+ItemSlot,Legs,4,
+ArmorWeight,Light,0,
+ArmorWeight,Medium,1,
+ArmorWeight,Heavy,2,
+ArmorWeight,None,3,
+UniqueEffect,Bleed,0,
+UniqueEffect,Crit,1,
+UniqueEffect,Crowd,2,
+UniqueEffect,Pierce,3,
+UniqueEffect,First,4,
+UniqueEffect,Block,5,
+UniqueEffect,Dmg,6,
+UniqueEffect,Fury,7,
+UniqueEffect,Stun,8,
+UniqueEffect,Aura,9,
+UniqueEffect,Def,10,
+UniqueEffect,Hit,11,
+UniqueEffect,Evade,12,
+UniqueEffect,Sta,13,
+UniqueEffect,Regen,14,
+UniqueEffect,Thorns,15,
+TraitCategory,Personality,0,
+TraitCategory,Combat,1,
+TraitCategory,Body,2,
+NationRule,TicketMult,0,
+NationRule,FameMult,1,
+NationRule,TaxRate,2,
+NationRule,GrowthMult,3,
+NationRule,SurrenderShame,4,
+NationRule,MarketMult,5,
+NationRule,PurseMult,6,
+NationRule,TempleSubsidy,7,
+NationRule,SuddenPurseMult,8,
+NationRule,AiSuddenMult,9,
+NationRule,SuddenBanned,10,
+NationRule,MissioDeathMult,11,
+NationRule,MagicFameMult,12,
+BodyPart,Torso,0,
+BodyPart,Arm,1,
+BodyPart,Leg,2,
+BodyPart,Head,3,
+BodyPart,Eye,4,
+InjuryTier,Minor,0,
+InjuryTier,Moderate,1,
+InjuryTier,Severe,2,
+PermanentKind,Trait,0,
+PermanentKind,Stat,1,
+EventScope,Ludus,0,
+EventScope,Gladiator,1,
+EventScope,World,2,
+EventGrade,Luck,0,
+EventGrade,Opportunity,1,
+EventGrade,Trial,2,
+EventGrade,Disaster,3,
+EventCondition,None,0,
+EventCondition,LowMorale,1,
+EventCondition,GrowthStage,2,
+EventCondition,Popular,3,
+EventCondition,LowDiscipline,4,
+EventEffect,Gold,0,
+EventEffect,MoraleAll,1,
+EventEffect,Attr,2,
+EventEffect,Growth,3,
+EventEffect,Popularity,4,
+EventEffect,Fatigue,5,
+EventEffect,Gamble,6,
+EventEffect,FatigueAll,7,
+EventEffect,Injury,8,
+EventEffect,DeathChance,9,
+EventEffect,GoldPercent,10,
+EventEffect,WageRaise,11,
+EventEffect,Pa,12,
+EventEffect,Morale,13,
+EventEffect,Loyalty,14,
+EventEffect,Modifier,15,
+EventEffect,RefreshMarket,16,
+EventTarget,Ludus,0,
+EventTarget,Random,1,
+EventTarget,Youngest,2,
+EventTarget,Same,3,
+EventTarget,LowestMorale,4,
+EventTarget,Self,5,
+MatchRule,Training,0,훈련전
+MatchRule,Missio,1,미시오
+MatchRule,Sudden,2,사투
+NameKind,Gladiator,0,
+NameKind,Female,1,
+NameKind,Surname,2,
+NameKind,Epithet,3,
+NameKind,LudusSuffix,4,
+NameKind,LudusNoun,5,
+NameKind,LudusAdj,6,
+NameKind,LudusSuffixAfterAdj,7,
+Stance,Assault,0,맹공
+Stance,Balanced,1,균형
+Stance,Bulwark,2,철벽
+Stance,Harass,3,견제
+Stance,Showman,4,쇼맨십
+Stance,Blitz,5,속전속결
+AimPart,Spread,0,고르게
+AimPart,Head,1,머리
+AimPart,Body,2,몸통
+AimPart,Legs,3,다리
+AimPart,Arm,4,무기 든 팔
+Zone,Auto,0,자동
+Zone,High,1,상단
+Zone,Mid,2,중단
+Zone,Low,3,하단
+Facility,Barracks,0,숙소
+Facility,Training,1,훈련 마당
+Facility,Medical,2,의무실
+Facility,Bath,3,목욕탕
+Facility,Arena,4,홈 경기장
+Facility,Academy,5,유소년 학당
+Facility,Guard,6,경비 초소
+StaffRole,Doctore,0,독토레
+StaffRole,Medicus,1,메디쿠스
+StaffRole,Scout,2,정찰꾼
+StaffRole,Agent,3,중개인
+TrainingFocus,Physical,0,체력 단련
+TrainingFocus,Weapon,1,무기술
+TrainingFocus,Defense,2,방어
+TrainingFocus,Grapple,3,격투
+TrainingFocus,Mental,4,정신 수양
+TrainingFocus,Sense,5,실전 감각
+TrainingFocus,Magic,6,주술
+TrainingFocus,Show,7,쇼맨십
+TrainingFocus,Doctrine,8,교범 수련
+TrainingFocus,Rest,9,휴식
+TrainingIntensity,Low,0,가볍게
+TrainingIntensity,Normal,1,보통
+TrainingIntensity,High,2,강하게
+TrainingIntensity,Extreme,3,극한
+Formation,Shieldwall,0,방패벽
+Formation,Wedge,1,쐐기
+Formation,Flank,2,포위
+Formation,Spread,3,산개
+FormationFocus,Front,0,
+FormationFocus,Weakest,1,
+FormationFocus,Strongest,2,
+WarContract,Escort,0,호위
+WarContract,Front,1,전선 파견
+WarContract,Siege,2,공성전
+WarContract,Raid,3,정찰·암습
+WarContract,Duel,4,대리 결투
+WarContract,Levy,5,징발령
+TeamRole,Front,0,전열
+TeamRole,Hunter,1,사냥꾼
+TeamRole,Guard,2,호위
+TeamRole,Harass,3,견제
+TeamPolicy,Focus,0,집중 공격
+TeamPolicy,Spread,1,분산
+TeamPolicy,Weak,2,약한 적 먼저
+TeamPolicy,Strong,3,강한 적 먼저

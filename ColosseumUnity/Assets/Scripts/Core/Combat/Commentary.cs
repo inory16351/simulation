@@ -1,4 +1,5 @@
 // 전투 이벤트 로그를 텍스트 중계로 바꾼다 (src/core/combat/commentary.ts). 같은 seed면 웹판과 같은 문장이 나온다.
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -79,6 +80,14 @@ namespace Colosseum.Core.Combat
             {
                 switch (e.t)
                 {
+                    case "start" when e.actors != null:
+                    {
+                        // 난전: turns가 0쪽 사람 수
+                        var left = e.actors.Take(e.turns).Select(Name);
+                        var right = e.actors.Skip(e.turns).Select(Name);
+                        Push($"{string.Join("·", left)} 대 {string.Join("·", right)}. 양쪽 {e.actors.Length}명이 한꺼번에 모래 위로 쏟아져 나옵니다. 난전입니다!", "system", e);
+                        break;
+                    }
                     case "start":
                     {
                         var a = fighters[e.a]; var b = fighters[e.b];
@@ -107,7 +116,7 @@ namespace Colosseum.Core.Combat
                         string lead = e.improv
                             ? (e.dir == 3 ? "사선으로 꺾여 드는 변칙 수! " : "본 적 없는 수입니다! ")
                             : e.feint == "ok" ? $"{J(a, "이/가")} 치는 척하다 방향을 꺾습니다! "
-                            : e.feint == "fail" ? $"{a}의 속임수가 읽혔습니다. "
+                            : e.feint == "fail" ? $"{a}의 속임수는 통하지 않습니다. "
                             : "";
                         if (e.outcome == "parry")
                         {
@@ -177,6 +186,13 @@ namespace Colosseum.Core.Combat
                         Push($"{J(Name(e.actor), "이/가")} {(SelfText.TryGetValue(e.skill, out var tx) ? tx : "자세를 가다듬습니다")}. ({s.name})", "normal", e);
                         break;
                     }
+                    case "react":
+                    {
+                        // 반응 기술 (기술 테이블): 이름만 짧게
+                        var r = SkillBook.Row(e.skill);
+                        Push($"{J(Name(e.actor), "이/가")} 곧바로 '{r?.name ?? e.skill}'!", "normal", e);
+                        break;
+                    }
                     case "crowd":
                         if (e.delta >= 8) Push(Pick("관중이 일어섭니다! 함성이 터집니다.", "환호성이 경기장을 뒤흔듭니다!"), "crowd", e);
                         else if (e.delta <= -8) Push(Pick("야유가 쏟아집니다.", "관중석에서 돌멩이가 날아듭니다."), "crowd", e);
@@ -213,8 +229,17 @@ namespace Colosseum.Core.Combat
                         Push($"▶ 교범 — {text}", "system", e);
                         break;
                     }
+                    case "thorns":
+                        Push($"{Name(e.actor)}의 장비가 {Name(e.target)}에게 상처를 되돌려 줍니다. ({Name(e.target)} {JsMath.Round(e.hpAfter)}/{JsMath.Round(e.maxHp)})", "hit", e);
+                        break;
                     case "surrender":
                         Push($"{J(Name(e.actor), "이/가")} 무릎을 꿇고 손가락을 들어 올립니다. 항복입니다.", "system", e);
+                        break;
+                    case "ko" when e.actor != null:
+                        // 난전: 누가 쓰러뜨렸는지 함께
+                        Push(e.crit
+                            ? $"{Name(e.actor)}의 일격! {J(Name(e.target), "이/가")} 피를 뿜으며 쓰러졌습니다!"
+                            : $"{J(Name(e.target), "이/가")} {Name(e.actor)}에게 쓰러졌습니다. 난전은 계속됩니다…", "death", e);
                         break;
                     case "ko":
                         Push(e.crit
@@ -247,7 +272,13 @@ namespace Colosseum.Core.Combat
                     case "end":
                     {
                         string reason = e.reason switch { "ko" => "KO", "surrender" => "항복", _ => "판정" };
-                        Push($"■ {Name(e.winner)} 승리 ({reason})", "system", e);
+                        if (start?.actors != null)
+                        {
+                            bool left = Array.IndexOf(start.actors, e.winner) < start.turns;
+                            var side = left ? start.actors.Take(start.turns) : start.actors.Skip(start.turns);
+                            Push($"■ {string.Join("·", side.Select(Name))} 편 승리 ({(reason == "KO" ? "전멸" : reason)}) · 가장 빛난 검투사 {Name(e.winner)}", "system", e);
+                        }
+                        else Push($"■ {Name(e.winner)} 승리 ({reason})", "system", e);
                         break;
                     }
                 }
@@ -265,6 +296,13 @@ namespace Colosseum.Core.Combat
         {
             var start = events.FirstOrDefault(e => e.t == "start");
             if (start == null) return "?";
+            // 난전: 그 사람을 쓰러뜨린 자 (항복이면 마지막으로 맞붙은 적)
+            if (start.actors != null)
+            {
+                string by = events.LastOrDefault(e => e.t == "ko" && e.target == id)?.actor
+                    ?? events.LastOrDefault(e => e.t == "attack" && e.target == id)?.actor;
+                return by != null && fighters.TryGetValue(by, out var g) ? g.name : "?";
+            }
             return fighters[start.a == id ? start.b : start.a].name;
         }
 

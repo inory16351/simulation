@@ -54,11 +54,24 @@ namespace Colosseum.Core
         public static Demand DemandFor(double standing, double baseWage, double reputation)
         {
             double gap = standing - reputation;
-            if (gap > 35) return new Demand { refuse = true, wage = 0, reason = "이런 무명 루두스에는 관심이 없다" };
+            if (gap > 35) return new Demand { refuse = true, wage = 0, reason = "\"이런 무명 루두스엔 안 가.\"" };
             double mult = gap > 0 ? 1 + gap / 30 : Math.Max(0.85, 1 + gap / 120);
             double wage = JsMath.Round(baseWage * mult);
-            string reason = gap > 20 ? "가긴 하겠지만 그만한 값을 달라" : gap > 0 ? "조금 더 쳐 달라" : "명문에 들어가는 거라면 기꺼이";
+            string reason = gap > 20 ? "\"가긴 하겠지만 그만한 값은 받아야겠어.\"" : gap > 0 ? "\"조금만 더 쳐 줘.\"" : "\"명문이라면 기꺼이 가지.\"";
             return new Demand { refuse = false, wage = wage, reason = reason };
+        }
+
+        public static readonly string[] InterestNames = { "관심 없음", "낮음", "보통", "높음", "매우 높음" };
+
+        /// <summary>우리 루두스로 옮길 마음 0~4 (Unity판 전용, FM 이적 관심도). 0은 DemandFor가 거절하는 경우와 같다.
+        /// 다른 루두스 소속이면 지금 루두스가 우리보다 이름날수록 떠나기 싫어한다</summary>
+        public static int InterestIn(GameState state, Gladiator g, double myRep)
+        {
+            double gap = GladiatorStanding(g) - myRep;
+            if (gap > 35) return 0;
+            var owner = state.ludi.Values.FirstOrDefault(l => l.gladiators.Contains(g.id));
+            if (owner != null && !owner.isPlayer) gap += Math.Max(0, LudusReputation(state, owner) - myRep) * 0.5;
+            return gap > 25 ? 1 : gap > 10 ? 2 : gap > -5 ? 3 : 4;
         }
 
         /// <summary>제안을 받아들이는가: 원하는 주급 이상이면 수락, 조금 모자라면 확률</summary>

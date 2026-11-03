@@ -1,0 +1,17 @@
+injury,kind,key,value
+string,enum:PermanentKind,string,int
+Injury.key,후유증 종류,Trait.key 또는 Stat,증감 (Stat)
+split_brow,Trait,scarred,0
+broken_ribs,Stat,End,-1
+deep_thigh,Stat,Agi,-1
+broken_arm,Stat,Str,-1
+concussion,Stat,Dec,-1
+dislocated,Stat,Blk,-1
+gashed_face,Trait,scarred,0
+skull,Stat,Rea,-2
+skull,Stat,Dec,-1
+torn_knee,Trait,lame,0
+eye,Trait,one_eyed,0
+severed_fingers,Stat,Acc,-2
+gut_wound,Stat,End,-1
+gut_wound,Stat,Tou,-1

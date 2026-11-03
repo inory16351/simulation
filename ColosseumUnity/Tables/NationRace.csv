@@ -1,0 +1,25 @@
+nation,race,weight
+string,enum:Race,float
+Nation.key,종족,출신 가중치
+aurelia,Human,6
+aurelia,Orc,1
+aurelia,Elf,1
+aurelia,Dwarf,1
+aurelia,Lizardfolk,1
+aurelia,Beastkin,1
+aurelia,Minotaur,0.5
+dolgar,Dwarf,6
+dolgar,Human,4
+karsea,Lizardfolk,5
+karsea,Human,4
+karsea,Orc,1
+karsea,Beastkin,1
+kemer,Beastkin,7
+kemer,Human,2
+kemer,Lizardfolk,1
+grommar,Orc,6
+grommar,Minotaur,3
+grommar,Human,1
+sylvaren,Elf,8
+sylvaren,Human,1
+sylvaren,Beastkin,1

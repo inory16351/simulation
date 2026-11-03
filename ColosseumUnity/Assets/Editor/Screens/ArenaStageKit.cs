@@ -18,8 +18,9 @@ namespace Colosseum.EditorTools
 
         public static ArenaStage Build(Transform parent, float height)
         {
-            var crowd = Floor(true);
-            var empty = Floor(false);
+            // 탑뷰 경기장 그림이 있으면 그것을 쓰고, 없으면 코드로 그린 바닥
+            var crowd = AssetDatabase.LoadAssetAtPath<Sprite>(Dir + "arena_crowd.png") ?? Floor(true);
+            var empty = AssetDatabase.LoadAssetAtPath<Sprite>(Dir + "arena_empty.png") ?? Floor(false);
             var circle = Disc();
             var ring = Ring();
             var tri = Triangle();

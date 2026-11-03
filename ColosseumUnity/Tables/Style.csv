@@ -1,0 +1,14 @@
+id,key,name,desc,main,off,armor,helmet,preferred_range,aggression
+int,string,string,string,string,string,string,string,int,float
+고유 번호,코드 키,이름,설명,기본 주무기 (Weapon.key),기본 보조 (Weapon·Armor key),기본 갑옷,기본 투구,선호 거리,공격성
+1,murmillo,무르밀로,중장 검사. 버티고 받아칩니다,gladius,scutum,muscle_cuirass,brimmed_helm,0,0.45
+2,secutor,세쿠토르,추격자. 쫓아가서 몰아붙입니다,gladius,scutum,chainmail,sealed_helm,0,0.6
+3,retiarius,레티아리우스,그물투사. 거리를 벌리고 묶습니다,trident,net,leather,,1,0.5
+4,thraex,트라키아,곡검사. 방패 너머를 찌릅니다,sica,parmula,leather,crested_helm,0,0.55
+5,hoplomachus,호플로마쿠스,창과 방패. 중거리에서 견제합니다,hasta,aspis,chainmail,brimmed_helm,1,0.45
+6,dimachaerus,디마카이루스,쌍검. 쉴 새 없이 몰아칩니다,gladius,gladius,leather,open_helm,0,0.75
+7,pankratiast,판크라티아스트,격투가. 붙잡고 넘어뜨립니다,cestus,,loincloth,,0,0.65
+8,bestiarius,베스티아리우스,야수 사냥꾼,hunting_spear,javelin,leather,open_helm,1,0.55
+9,crusher,파쇄자,양손 무기. 한 방에 끝냅니다,greataxe,,chainmail,brimmed_helm,0,0.7
+10,runeblade,룬블레이드,마검사. 무기에 주술을 싣습니다,longsword,rune_charm,scale,open_helm,0,0.55
+11,sorcerer,주술투사,저주를 걸고 멀리서 주술을 쏩니다,staff,,leather,,1,0.5

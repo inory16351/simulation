@@ -1,0 +1,28 @@
+{
+  "presets": {
+    "logo": "ONE wide image (16:9), flat solid MAGENTA background (#FF00FF) everywhere outside the artwork (no gradient, no frame, no shadow on the background). The artwork is centered, about 80% of the width, nothing touching the edges."
+  },
+  "style": "Art style: refined, solemn and restrained title logo for a serious dark historical-fantasy game. Muted aged bronze and old gold with subtle hand-painted gouache texture and soft worn edges, a thin dark rim instead of a heavy cartoon ink outline, low saturation, no bright red, no glossy shine, no comic or mobile-game look, no bevel-heavy 3D. Elegant and dignified like an engraved Roman inscription, matching the muted painterly palette of the attached reference.",
+  "styleRef": "art/source/style/flat_ref.png",
+  "styleRefPresets": ["logo"],
+  "items": [
+    {
+      "id": "logo_a",
+      "preset": "logo",
+      "out": "art/source/ui/logo_a.png",
+      "prompt": "Wordmark only: the words ARENA DOMINUS in classical Roman inscriptional capitals (Trajan column style, thin elegant serifs, generous letter spacing), engraved weathered bronze. A very thin laurel-branch line ornament curving under the text and a small dot separator. Perfectly spelled A-R-E-N-A D-O-M-I-N-U-S."
+    },
+    {
+      "id": "logo_b",
+      "preset": "logo",
+      "out": "art/source/ui/logo_b.png",
+      "prompt": "A small round medallion above the text: a plain gladiator helmet in profile inside a thin laurel wreath, aged bronze, no plume color. Below it the words ARENA DOMINUS in refined classical Roman capitals with thin serifs and wide spacing, muted bronze. Perfectly spelled A-R-E-N-A D-O-M-I-N-U-S. Calm, symmetrical, dignified."
+    },
+    {
+      "id": "logo_c",
+      "preset": "logo",
+      "out": "art/source/ui/logo_c.png",
+      "prompt": "The words ARENA DOMINUS in refined classical Roman capitals with thin serifs, muted old-gold, with two slim gladius swords crossed faintly behind the text like a quiet emblem, and two short horizontal rule lines with tiny laurel leaves at both sides of the word DOMINUS. Perfectly spelled A-R-E-N-A D-O-M-I-N-U-S. Restrained and serious."
+    }
+  ]
+}

@@ -197,7 +197,7 @@ namespace Colosseum.Core
             if (c == null) return "의뢰가 없습니다";
             var no = CanTake(s, c);
             if (no != null) return no;
-            if (ids.Count == 0 || ids.Count > c.slots) return $"1~{Num(c.slots)}명을 보내십시오";
+            if (ids.Count == 0 || ids.Count > c.slots) return $"1~{Num(c.slots)}명까지 보낼 수 있습니다";
             foreach (var id in ids)
             {
                 var why = Eligible(s, s.gladiators[id], c);

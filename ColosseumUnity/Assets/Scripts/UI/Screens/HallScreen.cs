@@ -1,0 +1,181 @@
+// 비석의 언덕 (Unity판 전용): FM 클럽 연혁·대회 역사처럼 지난 시즌들을 남긴다.
+// 탭 셋: 연혁(루두스 하나의 시즌별 성적과 우승컵 진열장), 역대 우승(대회별 우승·준우승), 비석(우리 루두스에서 죽은 검투사).
+using System.Collections.Generic;
+using System.Linq;
+using Colosseum.Core;
+using TMPro;
+using UnityEngine;
+using UnityEngine.UI;
+
+namespace Colosseum.UI
+{
+    public class HallScreen : ScreenBase
+    {
+        static readonly string[] Tabs = { "club", "honours", "graves" };
+
+        [SerializeField] List<Button> tabButtons = new();
+        [SerializeField] List<GameObject> tabRoots = new();
+
+        [Header("연혁")]
+        [SerializeField] TMP_Dropdown clubPick;
+        [SerializeField] TMP_Text cabinet;
+        [SerializeField] GameObject clubEmpty;
+        [SerializeField] RectTransform clubTemplate;
+
+        [Header("역대 우승")]
+        [SerializeField] TMP_Dropdown compPick;
+        [SerializeField] GameObject honourEmpty;
+        [SerializeField] RectTransform honourTemplate;
+
+        [Header("비석")]
+        [SerializeField] TMP_Text graveTitle;
+        [SerializeField] GameObject graveEmpty;
+        [SerializeField] RectTransform graveTemplate;
+
+        TemplateList<RectTransform> clubRows, honourRows, graveRows;
+        string tab = "club", clubId;
+        // 대회 고르기: (null, 0) = 판테온 컵, (나라, 부) = 리그
+        readonly List<(string nation, int tier)> comps = new();
+        int compIdx;
+        List<Ludus> clubList = new();
+
+        void Awake()
+        {
+            clubRows = new TemplateList<RectTransform>(clubTemplate);
+            honourRows = new TemplateList<RectTransform>(honourTemplate);
+            graveRows = new TemplateList<RectTransform>(graveTemplate);
+            for (int i = 0; i < tabButtons.Count; i++)
+            {
+                string t = Tabs[i];
+                tabButtons[i].onClick.AddListener(() => { tab = t; Refresh(); });
+            }
+            clubPick.onValueChanged.AddListener(i => { clubId = i < clubList.Count ? clubList[i].id : null; Refresh(); });
+            compPick.onValueChanged.AddListener(i => { compIdx = i; Refresh(); });
+        }
+
+        public override void Refresh()
+        {
+            if (G.HallFocus != null) { clubId = G.HallFocus; G.HallFocus = null; tab = "club"; }
+            for (int i = 0; i < tabButtons.Count; i++)
+            {
+                Seg(tabButtons[i], tab == Tabs[i]);
+                tabRoots[i].SetActive(tab == Tabs[i]);
+            }
+            switch (tab)
+            {
+                case "club": DrawClub(); break;
+                case "honours": DrawHonours(); break;
+                case "graves": DrawGraves(); break;
+            }
+        }
+
+        // ── 연혁 ──
+
+        void DrawClub()
+        {
+            clubId ??= S.playerLudusId;
+            // 우리 루두스 먼저, 그다음 우리 나라, 다른 나라 순
+            clubList = S.ludi.Values
+                .OrderByDescending(l => l.isPlayer).ThenByDescending(l => l.nation == S.nation).ThenBy(l => l.nation).ThenBy(l => l.tier).ThenByDescending(l => l.rp)
+                .ToList();
+            Fill(clubPick, clubList.Select(l => l.isPlayer ? $"{l.name} (우리)" : $"{l.name} · {Data.Nation(l.nation).@short} {l.tier}부"), clubList.FindIndex(l => l.id == clubId));
+            var club = S.ludi.TryGetValue(clubId, out var c) ? c : S.ludi[S.playerLudusId];
+
+            var trophies = Honours.TrophiesOf(S, club.id);
+            string torch = Theme.Hex(Theme.Torch), dim = Theme.Hex(Theme.TextDim);
+            cabinet.text = trophies.Count == 0
+                ? $"<color={dim}>아직 든 우승컵이 없습니다.</color>"
+                : string.Join("\n", trophies.Select(t => $"<color={torch}>★</color> <b>{InfoCards.CompLink(t.name)}</b> ×{t.seasons.Count}  <color={dim}>(시즌 {string.Join(", ", t.seasons)})</color>"));
+
+            var seasons = (club.seasons ?? new List<LudusSeason>()).OrderByDescending(x => x.season).ToList();
+            clubEmpty.SetActive(seasons.Count == 0);
+            clubRows.Sync(seasons.Count, (row, i) =>
+            {
+                var x = seasons[i];
+                bool champ = x.rank == 1;
+                row.GetComponent<Image>().color = champ ? new Color(0.89f, 0.6f, 0.23f, 0.10f) : Color.clear;
+                T(row, "Season").text = $"시즌 {x.season}";
+                T(row, "League").text = Tips.League(x.nation ?? club.nation, x.tier);
+                T(row, "Rank").text = $"{x.rank}위 <size=80%><color={dim}>/ {x.teams}</color></size>";
+                T(row, "Record").text = $"{x.wins}-{x.losses}";
+                T(row, "Rp").text = x.rp.ToString();
+                T(row, "Result").text = x.result switch
+                {
+                    "champion" => $"<color={torch}><b>우승</b></color>",
+                    "promoted" => $"<color={Theme.Hex(Theme.Good)}>승격</color>" + (champ ? $" · <color={torch}><b>우승</b></color>" : ""),
+                    "relegated" => "<color=#d9a29b>강등</color>",
+                    _ => "",
+                };
+                T(row, "Trophies").text = x.trophies == null ? "" : string.Join(", ", x.trophies.Select(t => $"<color={torch}>★</color> {InfoCards.CompLink(t)}"));
+            });
+        }
+
+        // ── 역대 우승 ──
+
+        void DrawHonours()
+        {
+            comps.Clear();
+            comps.Add((null, 0));
+            foreach (var n in Data.Nations.OrderByDescending(n => n.id == S.nation))
+            {
+                comps.Add((n.id, 1));
+                comps.Add((n.id, 2));
+            }
+            compIdx = Mathf.Clamp(compIdx, 0, comps.Count - 1);
+            Fill(compPick, comps.Select(x => x.nation == null ? Honours.CupName : Honours.LeagueName(x.nation, x.tier)), compIdx);
+            var (nation, tier) = comps[compIdx];
+            var list = (S.honours ?? new List<HonourEntry>())
+                .Where(h => nation == null ? h.kind == "cup" : h.kind == "league" && h.nation == nation && h.tier == tier)
+                .OrderByDescending(h => h.season)
+                .ToList();
+            honourEmpty.SetActive(list.Count == 0);
+            string me = S.playerLudusId;
+            honourRows.Sync(list.Count, (row, i) =>
+            {
+                var h = list[i];
+                row.GetComponent<Image>().color = h.winnerId == me ? new Color(0.89f, 0.6f, 0.23f, 0.10f) : Color.clear;
+                T(row, "Season").text = $"시즌 {h.season}";
+                T(row, "Winner").text = $"<color={Theme.Hex(Theme.Torch)}>★</color> " + (h.winnerId == me ? $"<b>{Tips.Ludus(h.winnerId, h.winnerName)}</b>" : Tips.Ludus(h.winnerId, h.winnerName)) + Nation(h.winnerId, nation == null);
+                T(row, "RunnerUp").text = h.runnerUpName == null ? "—" : (h.runnerUpId == me ? $"<b>{Tips.Ludus(h.runnerUpId, h.runnerUpName)}</b>" : Tips.Ludus(h.runnerUpId, h.runnerUpName)) + Nation(h.runnerUpId, nation == null);
+            });
+        }
+
+        string Nation(string ludusId, bool show) =>
+            show && ludusId != null && S.ludi.TryGetValue(ludusId, out var l) ? $" <size=80%><color={Theme.Hex(Theme.TextDim)}>({Data.Nation(l.nation).@short})</color></size>" : "";
+
+        // ── 비석 ──
+
+        void DrawGraves()
+        {
+            var dead = S.fallen.Select(id => S.gladiators.TryGetValue(id, out var g) ? g : null).Where(g => g != null)
+                .OrderByDescending(g => g.diedAt?.season ?? 0).ThenByDescending(g => g.diedAt?.day ?? 0).ToList();
+            graveTitle.text = $"◆  모래 위에 잠든 우리 검투사 {dead.Count}명";
+            graveEmpty.SetActive(dead.Count == 0);
+            graveRows.Sync(dead.Count, (row, i) =>
+            {
+                var g = dead[i];
+                T(row, "Name").text = Tips.Name(g) + (string.IsNullOrEmpty(g.nickname) ? "" : $" <size=80%><color={Theme.Hex(Theme.TextDim)}>\"{g.nickname}\"</color></size>");
+                T(row, "Race").text = Tips.Race(g.race);
+                T(row, "Age").text = $"{g.age}세";
+                T(row, "Record").text = $"{g.record.wins}승 {g.record.losses}패 · 살해 {g.record.kills}";
+                T(row, "When").text = g.diedAt != null ? $"시즌 {g.diedAt.season} · {g.diedAt.day}일" : "";
+                T(row, "Cause").text = g.diedAt?.cause ?? "";
+            });
+        }
+
+        static TMP_Text T(Transform row, string path) => row.Find(path).GetComponent<TMP_Text>();
+
+        static void Fill(TMP_Dropdown d, IEnumerable<string> labels, int value)
+        {
+            var list = labels.ToList();
+            if (!d.options.Select(o => o.text).SequenceEqual(list)) { d.ClearOptions(); d.AddOptions(list); }
+            d.SetValueWithoutNotify(Mathf.Max(0, value));
+        }
+
+        static void Seg(Button b, bool on)
+        {
+            b.transform.Find("Fill").GetComponent<Image>().color = on ? Theme.ContinueBg : Theme.Panel2;
+            b.GetComponent<Image>().color = on ? Theme.Torch : Theme.Line;
+        }
+    }
+}

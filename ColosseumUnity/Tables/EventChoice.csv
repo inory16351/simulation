@@ -1,0 +1,39 @@
+event,seq,label,cost,effect_group
+string,int,string,int,int
+Event.key,순서,선택지,비용 (D),EventEffect.group (0 = 효과 없음)
+anonymous_patron,1,받기,0,1
+anonymous_patron,2,신전에 바치기,0,2
+arms_dealer,1,사기 (400 D),400,3
+arms_dealer,2,돌려보내기,0,0
+wandering_master,1,가장 어린 검투사 맡기기 (300 D),300,4
+wandering_master,2,돌려보내기,0,0
+troupe,1,빌려주기,0,5
+troupe,2,거절하기,0,0
+gambler_tip,1,사기 (200 D),200,6
+gambler_tip,2,무시하기,0,0
+fever,1,의원 부르기 (350 D),350,7
+fever,2,격리하기,0,8
+fever,3,버티게 하기,0,9
+thief,1,받아들이기,0,10
+tax_audit,1,뇌물 쥐여 주기 (400 D),400,11
+tax_audit,2,있는 그대로 장부 보여 주기,0,12
+bad_well,1,고치기 (300 D),300,13
+bad_well,2,그냥 마시게 하기,0,14
+secret_meeting,1,주동자 매질하기,0,15
+secret_meeting,2,급료를 올려 주겠다고 약속하기,0,16
+secret_meeting,3,못 들은 척하기,0,17
+epiphany,1,확인,0,18
+awakening,1,확인,0,19
+admirer,1,루두스 금고에 넣기,0,20
+admirer,2,그냥 갖게 두기,0,21
+letter_home,1,돈 보내 주기 (200 D),200,22
+letter_home,2,모른 척하기,0,23
+tavern_brawl,1,벌금 내고 벌도 주기 (200 D),200,24
+tavern_brawl,2,벌금만 내기 (200 D),200,25
+tavern_brawl,3,벌금 대신 매질하기,0,26
+poison,1,의원 부르기,0,27
+emperor_festival,1,확인,0,28
+good_harvest,1,확인,0,29
+famine,1,버티기,0,30
+shipwreck,1,확인,0,31
+plague,1,버티기,0,32

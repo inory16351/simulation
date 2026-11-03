@@ -1,5 +1,6 @@
 // 검투사 상세 (웹판 GladiatorScreen.tsx): 신상·컨디션, 능력치 네 묶음, 무기 숙련, 기술.
 // 패널은 따로 둔다: 영입(AcquirePanel), 전투 교범(DoctrinePanel), 장비(EquipPanel), 경력(CareerPanel).
+// 신상 아래는 탭 셋(정보 / 장비 / 전술)으로 나눠 한 번에 하나만 보인다.
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -26,15 +27,47 @@ namespace Colosseum.UI
         [Tooltip("능력치 값 칸들의 부모들. 값 칸 이름 = 능력치 id")]
         [SerializeField] List<RectTransform> attrBlocks = new();
         [SerializeField] RectTransform profBlock;
+        [Tooltip("빈 칸 안내 한 줄")]
         [SerializeField] TMP_Text skills;
+        [Tooltip("기술 칸 원본: Icon(Image), Name(TMP, skill: 링크)")]
+        [SerializeField] RectTransform skillTemplate;
+        TemplateList<RectTransform> skillRows;
         [Tooltip("남의 검투사일 때만 보입니다")]
         [SerializeField] AcquirePanel acquire;
         [Tooltip("우리 검투사(살아 있을 때)만 고칠 수 있습니다")]
         [SerializeField] DoctrinePanel doctrine;
         [SerializeField] EquipPanel equip;
         [SerializeField] CareerPanel career;
+        [Header("탭 (정보 / 장비 / 전술)")]
+        [SerializeField] List<Button> tabButtons = new();
+        [SerializeField] List<GameObject> tabRoots = new();
 
-        void Awake() => backButton.onClick.AddListener(() => G.Go("roster"));
+        int tab;
+
+        void Awake()
+        {
+            backButton.onClick.AddListener(() => G.Back());
+            skillRows = new TemplateList<RectTransform>(skillTemplate);
+            for (int i = 0; i < tabButtons.Count; i++)
+            {
+                int k = i;
+                tabButtons[i].onClick.AddListener(() => { tab = k; ShowTab(); });
+            }
+        }
+
+        void ShowTab()
+        {
+            for (int i = 0; i < tabRoots.Count; i++)
+            {
+                tabRoots[i].SetActive(i == tab);
+                var b = tabButtons[i];
+                b.transform.Find("Fill").GetComponent<Image>().color = i == tab ? Theme.ContinueBg : Theme.Panel2;
+                b.GetComponent<Image>().color = i == tab ? Theme.Torch : Theme.Line;
+            }
+        }
+
+        /// <summary>다른 화면에서 특정 탭으로 열 때 (0 정보, 1 장비, 2 전술)</summary>
+        public void SetTab(int i) { tab = i; ShowTab(); }
 
         public override void Refresh()
         {
@@ -45,15 +78,17 @@ namespace Colosseum.UI
             var style = Data.Style(g.style);
             string dim = Theme.Hex(Theme.TextDim), faint = Theme.Hex(Theme.TextFaint);
 
+            ShowTab();
             portrait.Show(g);
             acquire.Show(g);
             doctrine.Show(g, isMine && g.alive);
             equip.Show(g, isMine && g.alive);
             career.Show(g);
             bigName.text = g.name + (string.IsNullOrEmpty(g.nickname) ? "" : $" <size=60%><color={dim}>\"{g.nickname}\"</color></size>");
-            subLine.text = $"{Data.Race(g.race).name} · {Data.Nation(g.nation).@short} 출신 · {g.age}세 ({GladiatorRules.AgeStageNames[GladiatorRules.AgeStage(g)]}) · {owner?.name ?? "무소속"}";
+            backButton.GetComponentInChildren<TMP_Text>().text = "← " + (Shell.Menu.FirstOrDefault(m => m.id == G.ReturnScreen).label ?? "막사");
+            subLine.text = $"{Tips.Race(g.race)} · {Tips.Nation(g.nation, true)} 출신 · {g.age}세 ({GladiatorRules.AgeStageNames[GladiatorRules.AgeStage(g)]}) · {Tips.Ludus(owner)}";
 
-            Kv("Style", $"{style?.name ?? g.style} — <color={dim}>{style?.desc}</color>");
+            Kv("Style", $"{Tips.Style(g.style)} — <color={dim}>{style?.desc}</color>");
             Kv("Status", StatusNames.TryGetValue(g.status, out var st) ? st : g.status);
             Kv("Wage", $"{g.wage} D" + (g.unpaidWeeks > 0 ? $"  <color={Theme.Hex(Neg)}>급료 {g.unpaidWeeks}회 밀림</color>" : ""));
             if (isMine) Kv("Ca", $"<color={Theme.Hex(Theme.Torch)}>{Widgets.Stars(ca)}</color> <color={faint}>(CA {ca})</color>");
@@ -82,7 +117,7 @@ namespace Colosseum.UI
                 var def = Data.Trait(t);
                 if (def == null) continue;
                 if (def.hidden && !isMine) tags.Add($"<color={faint}>?</color>");
-                else tags.Add($"<color={Theme.Hex(def.negative ? Neg : def.hidden ? Theme.TextFaint : Theme.Text)}>{def.name}</color>");
+                else tags.Add(Tips.Trait(def.id, Theme.Hex(def.negative ? Neg : def.hidden ? Theme.TextFaint : Theme.Text)));
             }
             traits.text = string.Join("   ", tags);
 
@@ -114,10 +149,20 @@ namespace Colosseum.UI
                 tx.color = AttrColor(p);
             }
 
-            string Slot(string label) => $"<color={faint}>{label}</color>";
-            var active = g.skills.active.Select(s => Data.Skill(s)?.name ?? s).Concat(Enumerable.Repeat(Slot("빈 칸"), Math.Max(0, 4 - g.skills.active.Count)));
-            var passive = g.skills.passive.Select(s => Data.Skill(s)?.name ?? s).Concat(Enumerable.Repeat(Slot("패시브 빈 칸"), Math.Max(0, 2 - g.skills.passive.Count)));
-            skills.text = string.Join("   ", active) + "\n" + string.Join("   ", passive);
+            // 기술 칸: 능동 먼저, 그다음 반응·상시. 아이콘은 기술 테이블의 icon
+            var all = g.skills.active.Concat(g.skills.passive).ToList();
+            skillRows.Sync(all.Count, (row, i) =>
+            {
+                string id = all[i];
+                var icon = row.Find("Icon").GetComponent<Image>();
+                icon.sprite = Tips.SkillIcon(id);
+                icon.enabled = icon.sprite != null;
+                var r = SkillBook.Row(id);
+                string kind = r == null ? "" : r.type == "Active" ? "능동" : r.type == "Reaction" ? "반응" : "상시";
+                row.Find("Name").GetComponent<TMP_Text>().text = $"{Tips.Skill(id)}\n<size=80%><color={faint}>{kind}{(r != null ? " · " + new string('★', r.tier) : "")}</color></size>";
+            });
+            int freeActive = Math.Max(0, (int)SkillBook.C("ActiveSlots", 4) - g.skills.active.Count);
+            skills.text = $"빈 칸: 능동 {freeActive}" + (isMine && SkillBook.Loaded ? $"   ·   습득 조건을 채운 기술 {SkillBook.Ready(g).Count}개 (달마다 습득 기회)" : "");
         }
 
         void Kv(string id, string value) => kv.Find(id + "/Value").GetComponent<TMP_Text>().text = value;

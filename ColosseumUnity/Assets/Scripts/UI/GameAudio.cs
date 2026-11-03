@@ -16,11 +16,18 @@ namespace Colosseum.UI
         const int Rate = 44100;
 
         static GameAudio inst;
+        /// <summary>게임을 끄는 중이면 true. 그때 OnDisable 등에서 불러도 새로 만들지 않는다 (장면 정리 경고 방지)</summary>
+        static bool quitting;
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        static void ResetStatics() { inst = null; quitting = false; }
+        void OnApplicationQuit() => quitting = true;
+        void OnDestroy() { if (inst == this) { inst = null; quitting = true; } }
+
         public static GameAudio I
         {
             get
             {
-                if (inst == null)
+                if (inst == null && !quitting)
                 {
                     var go = new GameObject("GameAudio");
                     DontDestroyOnLoad(go);
@@ -30,9 +37,9 @@ namespace Colosseum.UI
             }
         }
 
-        public static float SfxVolume { get => PlayerPrefs.GetFloat(Key + ".sfx", 0.7f); set { PlayerPrefs.SetFloat(Key + ".sfx", value); I.Apply(); } }
-        public static float MusicVolume { get => PlayerPrefs.GetFloat(Key + ".music", 0.35f); set { PlayerPrefs.SetFloat(Key + ".music", value); I.Apply(); } }
-        public static bool Muted { get => PlayerPrefs.GetInt(Key + ".muted", 0) == 1; set { PlayerPrefs.SetInt(Key + ".muted", value ? 1 : 0); I.Apply(); } }
+        public static float SfxVolume { get => PlayerPrefs.GetFloat(Key + ".sfx", 0.7f); set { PlayerPrefs.SetFloat(Key + ".sfx", value); I?.Apply(); } }
+        public static float MusicVolume { get => PlayerPrefs.GetFloat(Key + ".music", 0.35f); set { PlayerPrefs.SetFloat(Key + ".music", value); I?.Apply(); } }
+        public static bool Muted { get => PlayerPrefs.GetInt(Key + ".muted", 0) == 1; set { PlayerPrefs.SetInt(Key + ".muted", value ? 1 : 0); I?.Apply(); } }
         public static event Action Changed;
 
         readonly Dictionary<string, AudioClip> clips = new();
@@ -45,6 +52,8 @@ namespace Colosseum.UI
 
         void Awake()
         {
+            // 장면(UI만 있는 카메라)에 듣는 쪽이 없으면 소리가 안 나므로 여기 단다
+            if (FindAnyObjectByType<AudioListener>() == null) gameObject.AddComponent<AudioListener>();
             music = gameObject.AddComponent<AudioSource>();
             music.loop = true;
             music.playOnAwake = false;
@@ -68,7 +77,7 @@ namespace Colosseum.UI
         public static void Sfx(string name, float strength = 1)
         {
             var a = I;
-            if (Muted || !a.clips.TryGetValue(name, out var clip)) return;
+            if (a == null || Muted || !a.clips.TryGetValue(name, out var clip)) return;
             var v = a.voices[a.nextVoice++ % a.voices.Count];
             v.pitch = 1;
             v.PlayOneShot(clip, Mathf.Clamp01(SfxVolume * strength));
@@ -78,7 +87,7 @@ namespace Colosseum.UI
         public static void Music(bool on)
         {
             var a = I;
-            if (a.musicWanted == on || a.music.clip == null) return;
+            if (a == null || a.musicWanted == on || a.music.clip == null) return;
             a.musicWanted = on;
             if (a.fade != null) a.StopCoroutine(a.fade);
             a.fade = a.StartCoroutine(a.Fade(on));

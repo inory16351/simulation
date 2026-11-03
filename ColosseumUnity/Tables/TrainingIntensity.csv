@@ -1,0 +1,7 @@
+intensity,name
+enum:TrainingIntensity,string
+강도,이름
+Low,가볍게
+Normal,보통
+High,강하게
+Extreme,극한

@@ -1,0 +1,15 @@
+key,value,desc
+string,float,string
+상수 키,값,설명
+ActiveSlots,4,능동 기술 칸 수 (넘치면 등급·우선순위 높은 것부터 남김)
+ReactionSlots,2,반응 기술 칸 수
+PassiveSlots,3,상시 기술 칸 수
+LearnCheckDays,28,습득 판정 주기 (일. 급료일 중 이 날수마다 한 번)
+LearnMatchBonus,0.05,그 주에 출전했으면 습득 확률 가산
+LearnTrainerBonus,0.06,교관 평점 20(최고)일 때 습득 확률 가산 (평점에 비례)
+LearnTierPenalty,0.5,등급이 1 오를 때마다 습득 확률 배율
+ProcMax,0.85,발동 확률 상한
+ProcMin,0.02,발동 확률 하한
+FamiliarityProcBonus,0.001,교범 숙련도 1당 발동 확률 가산
+OneActivePerTurn,1,한 차례에 능동 기술은 하나만 (우선순위 순으로 굴림)
+ReactionPerEvent,1,한 사건에 반응 기술은 하나만

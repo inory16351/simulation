@@ -32,9 +32,13 @@ namespace Colosseum.UI
 
         Gladiator pending;
 
+        /// <summary>지금 그린 검투사 (누르면 팝업 카드를 띄울 때 TipLayer가 읽는다)</summary>
+        public string GladiatorId { get; private set; }
+
         public void Show(Gladiator g)
         {
             Clear();
+            GladiatorId = g.id;
             if (glow != null && ColorUtility.TryParseHtmlString(Data.Nation(g.nation).color, out var nc)) glow.color = new Color(nc.r, nc.g, nc.b, 0.9f);
             var rt = (RectTransform)transform;
             // 막 복제돼 레이아웃 전이면 크기가 잡힐 때 그린다
@@ -50,12 +54,15 @@ namespace Colosseum.UI
                 var sprite = Load(l.src);
                 if (sprite == null) continue;
                 Transform parent = transform;
-                if (l.clipBottom != null)
+                float clipY = 0;
+                if (l.clipBottom != null || l.clipTop != null)
                 {
-                    // 얼굴 다시 그리기: 턱 줄 위만 보이게 잘라 그린다
+                    // 얼굴 다시 그리기는 턱 줄 위만, 닫힌 투구 아래 머리는 투구 아래쪽 밑만 보이게 잘라 그린다
+                    clipY = l.clipTop ?? 0;
+                    float clipH = (l.clipBottom ?? Portrait2.Cell) - clipY;
                     var clip = new GameObject("Clip", typeof(RectTransform), typeof(RectMask2D)).GetComponent<RectTransform>();
                     clip.SetParent(transform, false);
-                    Place(clip, 0, 0, Portrait2.Cell, l.clipBottom.Value, scale);
+                    Place(clip, 0, clipY, Portrait2.Cell, clipH, scale);
                     spawned.Add(clip.gameObject);
                     parent = clip;
                 }
@@ -63,7 +70,7 @@ namespace Colosseum.UI
                 img.gameObject.SetActive(true);
                 img.sprite = sprite;
                 img.material = l.tint != null ? TintMaterial(l.tint) : null;
-                Place((RectTransform)img.transform, l.x, l.y, l.w, l.h, scale);
+                Place((RectTransform)img.transform, l.x, l.y - clipY, l.w, l.h, scale);
                 if (parent == transform) spawned.Add(img.gameObject);
             }
         }
