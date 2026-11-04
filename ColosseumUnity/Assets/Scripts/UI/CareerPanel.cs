@@ -62,9 +62,10 @@ namespace Colosseum.UI
             double blur = (now.hi - now.lo) / 2;
             seasonRows.Sync(history.Count, (row, i) =>
             {
-                var h = history[i];
-                // 지금 뛰는 줄(맨 끝)만 현재 능력으로, 이적 전 줄은 떠날 때 값으로
-                bool current = i == history.Count - 1 && g.alive;
+                // 최신 기록이 맨 위 (history는 오래된 순이라 거꾸로 읽는다)
+                var h = history[history.Count - 1 - i];
+                // 지금 뛰는 줄(맨 위)만 현재 능력으로, 이적 전 줄은 떠날 때 값으로
+                bool current = i == 0 && g.alive;
                 double caEnd = current ? GladiatorRules.ComputeCA(g) : h.caEnd;
                 double delta = caEnd - h.caStart;
                 var dc = delta > 0 ? Theme.Good : delta < 0 ? Warn : Theme.TextFaint;
