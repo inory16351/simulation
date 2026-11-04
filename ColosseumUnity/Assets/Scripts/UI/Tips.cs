@@ -156,7 +156,7 @@ namespace Colosseum.UI
                 "person" => PersonTip(id),
                 "sattr" => StaffLogic.AttrDesc.TryGetValue(id, out var ad) ? $"<b>{StaffLogic.AttrNames[id]}</b>\n{ad}" : null,
                 "awards" => AwardsTip(id),
-                "fight" => "<b>전투 보기</b>\n이 층에서 벌어진 대결을 모래 마당 중계로 봅니다",
+                "fight" => "<b>전투 보기</b>\n이 층에서 벌어진 난전을 모래 마당 중계로 봅니다",
                 _ => null,
             };
         }
@@ -370,7 +370,8 @@ namespace Colosseum.UI
             string weak = string.Join(", ", Data.Styles.Where(o => o.counters.Contains(id)).Select(o => o.name));
             return $"<b>{s.name}</b>\n{s.desc}" +
                 (strong.Length > 0 ? $"\n<color={Theme.Hex(Theme.Good)}>유리한 상대</color> {strong}" : "") +
-                (weak.Length > 0 ? $"\n<color=#d9a29b>불리한 상대</color> {weak}" : "");
+                (weak.Length > 0 ? $"\n<color=#d9a29b>불리한 상대</color> {weak}" : "") +
+                (strong.Length == 0 && weak.Length == 0 ? $"\n<color={Theme.Hex(Theme.TextDim)}>무상성: 유리한 상대도 불리한 상대도 없습니다</color>" : "");
         }
     }
 }

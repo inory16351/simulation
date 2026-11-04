@@ -368,6 +368,55 @@ namespace Colosseum.Tests
             Assert.AreEqual(1, Training.TrendOf(SaveSystem.FromJson(SaveSystem.ToJson(s)).gladiators[g.id], "str", 100), "저장해도 남는다");
         }
 
+        /// <summary>던전 수준에 target만큼 더한 원정대 다섯을 보내 (원정마다 죽은 비율, 완주 비율)</summary>
+        static (double death, double clear) RunParties(string did, double plus, int runs)
+        {
+            int died = 0, sent = 0, cleared = 0;
+            var d = DungeonLogic.GetDungeon(did);
+            for (int i = 0; i < runs; i++)
+            {
+                var s = World.NewGame(300 + i, "aurelia", "시험", 2);
+                var me = s.ludi[s.playerLudusId];
+                s.dungeonRotation = DungeonLogic.Dungeons.Select(x => x.id).ToList();
+                var rng = new Rng((uint)(11 + i));
+                var party = new System.Collections.Generic.List<string>();
+                for (int k = 0; k < 5; k++)
+                {
+                    var g = GladiatorGen.Generate(rng, new GenOptions { id = $"P{i}_{k}", nation = "aurelia", race = "human", status = "free", target = d.level * DungeonLogic.FoeLevelMult + plus, age = 25 });
+                    s.gladiators[g.id] = g;
+                    me.gladiators.Add(g.id);
+                    party.Add(g.id);
+                }
+                sent += party.Count;
+                Assert.IsNull(DungeonLogic.StartExpedition(s, did, party.ToList(), "focus"));
+                s.day += d.days;
+                DungeonLogic.DailyDungeons(s, rng);
+                if (DungeonLogic.ExpeditionsOf(s)[0].status == "done") cleared++;
+                died += party.Count(id => !s.gladiators[id].alive);
+            }
+            return ((double)died / sent, (double)cleared / runs);
+        }
+
+        [Test]
+        public void DungeonDeathFitsPartyStrength()
+        {
+            double fair = 0, weak = 0, strong = 0;
+            var ids = new[] { "sewer", "mine", "catacomb", "magma", "abyss" };
+            foreach (var did in ids)
+            {
+                double fairPlus = 2 + DungeonLogic.GetDungeon(did).tier * 0.6; var f = RunParties(did, fairPlus, 60);
+                var w = RunParties(did, fairPlus - 2.5, 60);
+                var o = RunParties(did, fairPlus + 3, 60);
+                System.Console.WriteLine($"MEASURE {did}: fair death {f.death:P1} clear {f.clear:P0} | weak death {w.death:P1} clear {w.clear:P0} | strong death {o.death:P1} clear {o.clear:P0}");
+                fair += f.death; weak += w.death; strong += o.death;
+            }
+            fair /= ids.Length; weak /= ids.Length; strong /= ids.Length;
+            System.Console.WriteLine($"MEASURE avg: fair {fair:P1} weak {weak:P1} strong {strong:P1}");
+            Assert.That(fair, Is.InRange(0.05, 0.10), "적정 능력이면 원정에서 5~10% 죽는다");
+            Assert.Greater(weak, fair, "약하면 더 잘 죽는다");
+            Assert.Less(strong, fair, "강하면 덜 죽는다");
+        }
+
         [Test]
         public void BenchGrievanceNeedsSteadyAppearances()
         {
@@ -440,14 +489,20 @@ namespace Colosseum.Tests
             s.day += DungeonLogic.GetDungeon(open).days;
             DungeonLogic.DailyDungeons(s, new Rng(9));
             Assert.Greater(ex.battles.Count, 0, "층마다 전투 기록이 남는다");
-            var bouts = DungeonLogic.Replay(ex.battles[0]);
-            Assert.Greater(bouts.Count, 0);
-            Assert.IsTrue(bouts.All(b => b.result.events.Count > 0));
-            Assert.IsTrue(bouts.All(b => party.Contains(b.a.id)), "우리 검투사가 왼쪽");
+            var fb = ex.battles[0];
+            Assert.AreEqual(5, fb.foes.Count, "적은 늘 다섯");
+            var res = DungeonLogic.Replay(fb);
+            Assert.IsTrue(res.IsTeam, "한 판짜리 난전이다");
+            Assert.AreEqual(party.Count, res.sides[0].Count);
+            Assert.AreEqual(5, res.sides[1].Count);
+            Assert.AreEqual(fb.won, res.winnerSide == 0, "다시 봐도 결과가 같다");
+            Assert.IsTrue(res.events.Any(e => e.t == "verdict" && e.rule == "missio"), "쓰러지면 미시오 판정");
+            Assert.IsFalse(res.events.Any(e => e.t == "crowd"), "던전에는 관중이 없다");
             // 저장했다 불러와도 같은 싸움이 나온다
             var loaded = SaveSystem.FromJson(SaveSystem.ToJson(s));
             var again = DungeonLogic.Replay(DungeonLogic.ExpeditionsOf(loaded)[0].battles[0]);
-            CollectionAssert.AreEqual(bouts.Select(b => b.result.winnerId).ToList(), again.Select(b => b.result.winnerId).ToList());
+            Assert.AreEqual(res.winnerSide, again.winnerSide);
+            CollectionAssert.AreEqual(res.deaths, again.deaths);
         }
 
         [Test]

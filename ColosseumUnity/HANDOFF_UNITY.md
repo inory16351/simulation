@@ -371,3 +371,12 @@
 - 확인: `sh Tools/TestRunner/run.sh` 통과(새 테스트 3개). 게임 화면은 안 봄.
 - 성장 화살표: `Training.Bump`가 `Gladiator.attrTrend`에 움직인 날을 남기고(`Training.Today`, 28일 표시) 검투사 화면 능력치·숙련 칸에 ▲▼(`Widgets.TrendArrow`). 경력 표 능력 화살표는 시즌 변화 1 이상이면 표시. 정찰 범위로 보이는 남의 검투사는 표시 안 함.
 - 미확인: AI 이적이 시즌 단위 밸런스(금고·전력 쏠림)에 주는 영향은 재지 않았다. `AiPicksPerDay`(2)로 조절.
+
+### 진행 (2026-11-04 저녁) 던전을 5:5 난전으로 (재빌드 불필요)
+- 옛 `Skirmish`(1:1 이어 붙이기)와 진형 배율 삭제. 층마다 `Sim.RunTeam`, 적은 늘 5명(같은 이름은 번호). 규칙은 미시오 + `MatchOptions.noCrowd`, 쓰러지면 `Verdict`가 판정. 전술은 단체전 방침 넷(`Formations`, 옛 저장은 `PolicyOf`로 변환). 시작 체력은 팀 난전에서도 `startHp` 적용.
+- 사망: `DungeonLogic.DeathChance`가 검투사별 확률(`FloorBattle.deathOf`, `MatchOptions.deathChanceOf`). 적정(적 평균 CA +30)에서 `DeathBase` 10%, CA 30 처질 때마다 기준만큼 오름, 범위 2~60%, 토벌 ×1.5. `DungeonDef.death`는 이제 안 쓴다(지워도 됨).
+- 적 수준: `FoeLevelMult` 0.6 (5명 고정이라 낮춤). 카드 난이도 별은 `FoeCa`.
+- 측정 `DungeonDeathFitsPartyStrength`(던전 5곳 60회씩, 적정 = 적 목표치 + 2 + 등급×0.6): 적정 사망 평균 6.7%(3.7~9%), 완주 20~78%. 약함(-2.5) 17.3%, 강함(+3) 0.4%. 적정 완주율은 던전마다 편차가 있다.
+- 전투 보기: 층마다 한 판 난전 중계(`DungeonLives`). 옛 원정 기록(시드 없음)은 링크가 안 나온다.
+- 베스티아리우스: 사용자 결정으로 무상성 유지. 스타일 툴팁에 '무상성' 표시.
+- 게임 화면은 안 봄.

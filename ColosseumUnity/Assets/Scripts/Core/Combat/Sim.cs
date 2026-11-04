@@ -55,6 +55,10 @@ namespace Colosseum.Core.Combat
         public double?[] startHp;
         /// <summary>난전 단체 전술 [편0, 편1]. null이면 예전처럼 가까운·약한 적</summary>
         public TeamTactic[] teamTactics;
+        /// <summary>관중이 없는 싸움 (던전). 규칙이 미시오여도 관중 사건이 나오지 않는다</summary>
+        public bool noCrowd;
+        /// <summary>검투사별로 정한 쓰러졌을 때 죽을 확률 (던전). 없는 사람은 규칙대로</summary>
+        public Dictionary<string, double> deathChanceOf;
     }
 
     public class MatchResult
@@ -380,6 +384,9 @@ namespace Colosseum.Core.Combat
                 {
                     var f = MakeFighter(x.g, i, x.g.doctrine ?? GladiatorRules.DefaultDoctrine(x.g));
                     f.side = x.side;
+                    // 앞선 싸움에서 깎인 체력을 이어 간다 (던전)
+                    var r = opt.startHp?.ElementAtOrDefault(i);
+                    if (r != null) f.hp = Math.Max(1, JsMath.Round(f.maxHp * r.Value));
                     return f;
                 }).ToArray();
                 px = new double[F.Length];
@@ -407,7 +414,7 @@ namespace Colosseum.Core.Combat
                 foreach (var f in F) f.target = PickTarget(f);
                 ctxA = F[0]; ctxB = F[0].target;
                 crowd = Bal.C("crowdStart");
-                hasCrowd = (bool)Bal.Rule(opt.rule)["crowd"];
+                hasCrowd = (bool)Bal.Rule(opt.rule)["crowd"] && !opt.noCrowd;
             }
 
             void Emit(CombatEvent e) => events.Add(e);
@@ -1302,6 +1309,7 @@ namespace Colosseum.Core.Combat
                     deathChance = Bal.D("missioBase") - loser.g.popularity * Bal.D("missioPerPopularity") - Math.Max(0, loser.crowdContribution) * Bal.D("missioPerCrowd");
                     if (loser.HasPassive("skill.crowd_hand")) deathChance -= Bal.D("missioCrowdHand");
                     deathChance = Math.Max(Bal.D("missioMin"), Math.Min(Bal.D("missioMax"), deathChance)) * (opt.missioDeathMult ?? 1);
+                    if (opt.deathChanceOf != null && opt.deathChanceOf.TryGetValue(loser.g.id, out var fixedChance)) deathChance = fixedChance;
                     Emit(new CombatEvent { t = "highlight", kind = "missio", actors = new[] { loser.g.id } });
                 }
                 else deathChance = Math.Max(Bal.D("suddenMin"), Bal.D("suddenBase") - medical * Bal.D("suddenPerMedical"));

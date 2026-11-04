@@ -12,7 +12,7 @@ namespace Colosseum.UI
 {
     public class DungeonScreen : ScreenBase
     {
-        static readonly string[] FormationIds = { "shieldwall", "wedge", "flank", "spread" };
+        static readonly string[] FormationIds = Tactics.Policies;
         static readonly Color Neg = new Color32(0xd9, 0xa2, 0x9b, 0xff);
         static readonly Color CardLine = new Color32(0x6b, 0x4a, 0x34, 0xff);
         static readonly Color FormLine = new Color32(0x5a, 0x3f, 0x32, 0xff);
@@ -44,7 +44,7 @@ namespace Colosseum.UI
         TemplateList<RectTransform> quests, actives, dones;
         TemplateList<Button> cards, partyRows, formations;
         // 화면 상태 (웹판 useState)
-        string dungeon = "sewer", questId, formation = "shieldwall", msgText;
+        string dungeon = "sewer", questId, formation = "focus", msgText;
         readonly List<string> party = new();
 
         void Awake()
@@ -98,7 +98,7 @@ namespace Colosseum.UI
             var done = all.Where(x => x.status != "active").Reverse().Take(4).ToList();
             var open = DungeonLogic.QuestsOf(S).Where(q => q.status == "open").ToList();
 
-            sub.text = $"검투사를 최대 {DungeonLogic.MaxParty}명까지 보내 장비를 얻어 옵니다. 돈이나 명성은 거의 못 얻고, 쓰러진 검투사는 목숨을 잃기도 합니다. 층마다 5:5로 진형을 짜서 싸웁니다.\n<color={Theme.Hex(Theme.Torch)}>열린 던전은 급료일마다 바뀝니다 · 다음 교체 {Calendar.NextPaydayLabel(S.day)}</color>";
+            sub.text = $"검투사를 최대 {DungeonLogic.MaxParty}명까지 보내 장비를 얻어 옵니다. 돈이나 명성은 거의 못 얻습니다. 층마다 적 다섯과 난전을 벌이고, 쓰러진 검투사는 그 자리에서 생사가 갈립니다. 적보다 약할수록 잘 죽습니다.\n<color={Theme.Hex(Theme.Torch)}>열린 던전은 급료일마다 바뀝니다 · 다음 교체 {Calendar.NextPaydayLabel(S.day)}</color>";
 
             // ── 토벌 의뢰 ──
             questPanel.SetActive(open.Count > 0);
@@ -130,7 +130,7 @@ namespace Colosseum.UI
                 b.GetComponent<CanvasGroup>().alpha = locked ? 0.35f : 1;
                 T(b.transform, "Name").text = x.name;
                 T(b.transform, "Desc").text = x.desc;
-                T(b.transform, "Meta").text = $"난이도 <color={Theme.Hex(Theme.Torch)}>{Widgets.Stars(x.level * 10)}</color>   {x.floors}층 · {x.days}일   사망률 {JsMath.Round(x.death * 100)}%";
+                T(b.transform, "Meta").text = $"난이도 <color={Theme.Hex(Theme.Torch)}>{Widgets.Stars(DungeonLogic.FoeCa(x))}</color>   {x.floors}층 · {x.days}일";
                 double total = x.loot.Sum();
                 var loot = new List<string>();
                 for (int k = 0; k < x.loot.Length; k++)
@@ -214,7 +214,7 @@ namespace Colosseum.UI
         void BindActive(RectTransform panel, Expedition ex, int t)
         {
             var dd = DungeonLogic.GetDungeon(ex.dungeon);
-            string form = DungeonLogic.Formations.TryGetValue(ex.formation, out var fd) ? fd.name : ex.formation;
+            string form = DungeonLogic.Formations[DungeonLogic.PolicyOf(ex.formation)].name;
             T(panel, "Head/Text").text = $"◆  진행 중: {dd.name} · {ex.floor}/{dd.floors}층 · {Math.Max(0, ex.endsAt - t)}일 뒤 귀환 · {form}";
             var members = ex.party.Select(id => S.gladiators.TryGetValue(id, out var g) ? g : null).Where(g => g != null).ToList();
             var slots = panel.Find("Pad/Party");
@@ -241,8 +241,10 @@ namespace Colosseum.UI
         {
             if (ex.battles == null || ex.battles.Count == 0) return "";
             string torch = Theme.Hex(Theme.Torch);
-            return "전투 보기:  " + string.Join("   ", ex.battles.Select((b, i) =>
-                $"<link=\"{DungeonLogic.FightLink(ex, i)}\"><color={torch}><u>{b.floor}층{(b.boss ? " 우두머리" : "")}</u></color></link>"));
+            // 옛 방식 기록(시드 없음)은 다시 볼 수 없다
+            var links = ex.battles.Select((b, i) => (b, i)).Where(x => x.b.seed != null).Select(x =>
+                $"<link=\"{DungeonLogic.FightLink(ex, x.i)}\"><color={torch}><u>{x.b.floor}층{(x.b.boss ? " 우두머리" : "")}</u></color></link>").ToList();
+            return links.Count == 0 ? "" : "전투 보기:  " + string.Join("   ", links);
         }
 
         /// <summary>전리품 이름을 등급 색으로 늘어놓는다 (웹판 .tag ItemName)</summary>

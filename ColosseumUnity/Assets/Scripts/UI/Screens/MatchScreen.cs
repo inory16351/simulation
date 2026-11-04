@@ -49,6 +49,8 @@ namespace Colosseum.UI
             public int mySimSide;
             /// <summary>던전 전투 다시 보기: 상태를 바꾸지 않고, 언제든 나갈 수 있다</summary>
             public bool replay;
+            /// <summary>관중 없는 싸움 (던전)</summary>
+            public bool noCrowd;
         }
 
         [Header("준비 화면")]
@@ -406,16 +408,30 @@ namespace Colosseum.UI
 
         static List<Live> DungeonLives(Expedition ex, FloorBattle fb)
         {
+            var r = DungeonLogic.Replay(fb);
+            if (r == null) return new List<Live>();
             var d = DungeonLogic.GetDungeon(ex.dungeon);
-            string form = DungeonLogic.Formations.TryGetValue(ex.formation, out var f) ? f.name : ex.formation;
-            string title = $"{d.name} {fb.floor}층{(fb.boss ? " · 우두머리" : "")}";
-            var bouts = DungeonLogic.Replay(fb);
-            return bouts.Select((x, i) => new Live
+            var sides = new[] { fb.party, fb.foes };
+            var all = fb.party.Concat(fb.foes).ToDictionary(g => g.id);
+            var lines = Commentary.Build(r.events, all, (uint)r.rounds);
+            var byEvent = lines.GroupBy(l => l.ev).ToDictionary(g => g.Key, g => g.ToList());
+            var items = new List<(CommentaryLine, string)>();
+            foreach (var e in r.events)
             {
-                result = x.result, a = x.a, b = x.b, rule = "training", startHp = x.startHp, replay = true, title = title,
-                items = BuildItems(x.result, x.a, x.b, (uint)(x.result.rounds + i)),
-                sub = $"{i + 1}/{bouts.Count}번째 대결 · 진형 {form} · {(fb.won ? "이 층을 이겼습니다" : "이 층에서 물러났습니다")}",
-            }).ToList();
+                if (e.t == "highlight") items.Add((null, e.kind));
+                else if (byEvent.TryGetValue(e, out var ls)) foreach (var l in ls) items.Add((l, null));
+            }
+            string tactic = DungeonLogic.Formations.TryGetValue(fb.policy ?? "", out var f) ? f.name : "";
+            return new List<Live>
+            {
+                new Live
+                {
+                    result = r, items = items, rule = "missio", replay = true, noCrowd = true,
+                    a = fb.party[0], b = fb.foes[0], teamA = fb.party, teamB = fb.foes, simSides = sides, mySimSide = 0,
+                    title = $"{d.name} {fb.floor}층{(fb.boss ? " · 우두머리" : "")}",
+                    sub = $"{fb.party.Count}:{fb.foes.Count} 난전 · 방침 {tactic} · {(fb.won ? "이 층을 이겼습니다" : "이 층에서 물러났습니다")}",
+                },
+            };
         }
 
         // ───────── 중계 ─────────
@@ -439,10 +455,11 @@ namespace Colosseum.UI
             Refresh();
             playTitle.text = l.title ?? RuleName(l.rule);
             playSub.text = l.sub ?? "모래 마당 연습 시합";
-            crowdValue.text = $"<size=160%><b>{Bal.C("crowdStart")}</b></size>\n관중 열광";
+            crowdValue.text = l.noCrowd ? "" : $"<size=160%><b>{Bal.C("crowdStart")}</b></size>\n관중 열광";
             stageCount = 0;
-            if (l.simSides != null) stage.Begin(l.simSides[0], l.simSides[1], (bool)Bal.Rule(l.rule)["crowd"], true, l.mySimSide);
-            else stage.Begin(l.a, l.b, (bool)Bal.Rule(l.rule)["crowd"]);
+            bool crowdOn = (bool)Bal.Rule(l.rule)["crowd"] && !l.noCrowd;
+            if (l.simSides != null) stage.Begin(l.simSides[0], l.simSides[1], crowdOn, true, l.mySimSide);
+            else stage.Begin(l.a, l.b, crowdOn);
             DrawFighters();
             UpdateButtons();
             if (playing != null) StopCoroutine(playing);

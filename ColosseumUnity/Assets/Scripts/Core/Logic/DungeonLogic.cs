@@ -1,7 +1,7 @@
-// 던전 원정 (src/core/dungeon.ts): 검투사 1~5명을 며칠 보내 장비를 캐 온다. 싸움은 층마다 5:5 진형 전투.
+// 던전 원정 (src/core/dungeon.ts): 검투사 1~5명을 며칠 보내 장비를 캐 온다. 싸움은 층마다 공식 단체전과 같은 난전(Sim.RunTeam), 적은 늘 5명.
+// 체력이 바닥나 쓰러지면 미시오처럼 그 자리에서 생사를 판정한다. 적보다 약할수록 잘 죽는다 (DeathChance): 적정 능력이면 원정에서 5~10%쯤 죽는다.
 // 돈은 거의 안 남고(급료를 생각하면 손해) 명성도 없다. 목적은 장비와 경험이다. 쓰러지면 죽을 수 있다.
 // 나라가 가끔 내거는 토벌 의뢰는 아주 어렵지만 명성(RP)과 현상금을 준다.
-// 전투 규칙은 바뀔 수 있게 Formations와 Skirmish() 한곳에 모아 둔다.
 // Expedition/DungeonQuest 타입은 StateTypes.cs에 있다.
 using Colosseum.Core.Combat;
 using System;
@@ -33,22 +33,10 @@ namespace Colosseum.Core
         public DungeonFoe boss;
     }
 
-    /// <summary>5:5 진형. 배율은 (주는 피해, 받는 피해)</summary>
+    /// <summary>원정대 전술 이름과 설명 (단체전 방침과 같다)</summary>
     public class FormationDef
     {
         public string name, desc;
-        public double dealt, taken, ranged;
-        /// <summary>front | weakest | strongest</summary>
-        public string focus;
-    }
-
-    /// <summary>dungeon.ts의 Skirmish (함수 이름과 겹쳐 Result를 붙였다)</summary>
-    public class SkirmishResult
-    {
-        public bool won;
-        public List<string> downed;
-        public Dictionary<string, double> hp;
-        public Dictionary<string, double> kills;
     }
 
     public static class DungeonLogic
@@ -119,14 +107,31 @@ namespace Colosseum.Core
         public static DungeonDef GetDungeon(string id) => Dungeons.First(d => d.id == id);
         public const int MaxParty = 5;
 
-        /// <summary>5:5 진형 (docs/13_tactics.md)</summary>
-        public static readonly Dictionary<string, FormationDef> Formations = new()
+        /// <summary>원정대 전술: 단체전 방침 넷 (전략 화면과 같다)</summary>
+        public static readonly Dictionary<string, FormationDef> Formations = Tactics.Policies.ToDictionary(p => p, p => new FormationDef { name = Tactics.PolicyNames[p], desc = Tactics.PolicyDesc[p] });
+
+        /// <summary>옛 저장의 진형 이름을 단체전 방침으로</summary>
+        public static string PolicyOf(string formation) => formation switch
         {
-            ["shieldwall"] = new FormationDef { name = "방패벽", desc = "전열 3·후열 2. 받는 피해가 줄지만 느리게 이깁니다", dealt = 0.9, taken = 0.8, ranged = 1, focus = "front" },
-            ["wedge"] = new FormationDef { name = "쐐기", desc = "중앙 돌파. 약한 적부터 몰아칩니다. 받는 피해도 늘어납니다", dealt = 1.2, taken = 1.1, ranged = 1, focus = "weakest" },
-            ["flank"] = new FormationDef { name = "포위", desc = "양 날개 전진. 수가 많을수록 강합니다", dealt = 1, taken = 1, ranged = 1, focus = "strongest" },
-            ["spread"] = new FormationDef { name = "산개", desc = "흩어져 싸웁니다. 투척·창·주술이 강해지고 근접은 약해집니다", dealt = 0.95, taken = 1, ranged = 1.3, focus = "front" },
+            "shieldwall" => "spread",
+            "wedge" => "weak",
+            "flank" => "focus",
+            _ => Formations.ContainsKey(formation ?? "") ? formation : "focus",
         };
+
+        /// <summary>적정 능력(적 평균보다 DeathFairGap만큼 강함)일 때 쓰러지면 죽을 확률. 원정에서 5~10%쯤 죽는 값 (측정: FmRulesTests)</summary>
+        public static double DeathBase = 0.1;
+        /// <summary>층을 이어 싸워야 하니 적보다 이만큼 강해야 적정이다 (CA, 능력치 평균 3쯤)</summary>
+        const double DeathFairGap = 30;
+        /// <summary>적정에서 능력(CA)이 이만큼 처지면 죽을 확률이 두 배, 이만큼 앞서면 바닥까지 내려간다</summary>
+        const double DeathGapPerBase = 30;
+
+        /// <summary>쓰러졌을 때 죽을 확률: 적 다섯의 평균 능력보다 약할수록 높다. 토벌 의뢰면 1.5배</summary>
+        public static double DeathChance(double ca, double foeCa, bool quest) =>
+            Math.Clamp(DeathBase * (1 + (foeCa + DeathFairGap - ca) / DeathGapPerBase), 0.02, 0.6) * (quest ? 1.5 : 1);
+
+        /// <summary>적 수준 배율: 적이 늘 다섯이라 표의 level을 그대로 쓰면 너무 강하다</summary>
+        public static double FoeLevelMult = 0.6;
 
         static double Now(GameState s) => Calendar.AbsDay(s.season, s.day);
         public static List<Expedition> ExpeditionsOf(GameState s) => s.expeditions ??= new List<Expedition>();
@@ -204,21 +209,26 @@ namespace Colosseum.Core
 
         static readonly string[] Areas = { "arm", "leg", "torso", "head" };
 
-        /// <summary>한 층: 몬스터 무리와 5:5 진형 전투. 이기면 전리품, 지면 쓰러진 자를 끌고 물러난다</summary>
+        /// <summary>한 층: 몬스터 다섯과 난전. 쓰러진 검투사는 미시오처럼 생사가 갈린다. 이기면 전리품, 지면 물러난다</summary>
         static void RunFloor(GameState s, Rng rng, Expedition ex, DungeonDef d)
         {
             var quest = !string.IsNullOrEmpty(ex.questId) ? QuestsOf(s).FirstOrDefault(q => q.id == ex.questId) : null;
             bool boss = ex.floor + 1 == d.floors;
             var party = Alive(s, ex).Select(id => s.gladiators[id]).ToList();
+            if (party.Count == 0) { ex.status = "failed"; return; }
             var foes = SpawnFoes(rng, d, boss, quest?.hard ?? 1, ex.floor);
-            // 전투 화면으로 다시 볼 수 있게 싸우기 전 모습과 대결 순서를 남긴다
-            var battle = FmRules.Enabled ? new FloorBattle { floor = (int)ex.floor + 1, boss = boss, party = party.Select(Snapshot).ToList(), foes = foes.Select(Snapshot).ToList() } : null;
-            var res = Skirmish(rng, party, foes, ex.formation, ex.hp, battle?.bouts);
-            if (battle != null)
+            // 전투 화면으로 다시 볼 수 있게 싸우기 전 모습과 시드를 남긴다
+            var battle = new FloorBattle
             {
-                battle.won = res.won;
-                (ex.battles ??= new List<FloorBattle>()).Add(battle);
-            }
+                floor = (int)ex.floor + 1, boss = boss, seed = Seed31(rng), policy = PolicyOf(ex.formation),
+                deathOf = party.ToDictionary(g => g.id, g => DeathChance(GladiatorRules.ComputeCA(g), foes.Average(f => GladiatorRules.ComputeCA(f)), quest != null)),
+                startHp = party.Select(g => ex.hp.TryGetValue(g.id, out var h) && h < 1 ? h : (double?)null).ToList(),
+                party = party.Select(Snapshot).ToList(), foes = foes.Select(Snapshot).ToList(),
+            };
+            var res = RunBattle(party, foes, battle);
+            bool won = res.winnerSide == 0;
+            battle.won = won;
+            (ex.battles ??= new List<FloorBattle>()).Add(battle);
             var lines = new List<string> { $"{Num(ex.floor + 1)}층{(boss ? " (우두머리)" : "")}: {string.Join(", ", foes.Select(f => f.name))}" };
 
             foreach (var g in party)
@@ -226,35 +236,33 @@ namespace Colosseum.Core
                 Training.Grow(g, rng, "match", 6 + d.tier * 2, 1, 1);
                 Career.SeasonRecord(s, g);
             }
-            // 쓰러진 검투사: 죽거나 다친다. 죽을 확률은 실력 차이와 의뢰 난이도에 따라
-            foreach (var id in res.downed)
+            var dead = new HashSet<string>(res.deaths ?? new List<string>());
+            foreach (var g in party)
             {
-                var g = s.gladiators[id];
-                double margin = (GladiatorRules.ComputeCA(g) - d.level * 10 * (quest?.hard ?? 1)) / 120;
-                double p = Math.Max(0.01, d.death * (quest != null ? 1.5 : 1) * (1 - margin) * (res.won ? 0.6 : 1.2));
-                if (rng.Chance(p))
+                if (dead.Contains(g.id))
                 {
                     KillInDungeon(s, g, d);
                     lines.Add($"{Josa.J(g.name, "이/가")} 쓰러져 다시 일어나지 못했습니다.");
+                    continue;
                 }
-                else
+                if (res.injuries != null && res.injuries.TryGetValue(g.id, out var inj) && inj != null && (g.injury == null || g.injury.daysLeft < inj.daysLeft))
                 {
-                    g.injury = GladiatorRules.MakeInjury(rng, rng.Chance(0.35) ? "moderate" : "minor", rng.Pick(Areas));
+                    g.injury = inj;
                     Career.SeasonRecord(s, g).injuries++;
                     lines.Add($"{g.name}: {g.injury.desc}");
                 }
             }
-            if (res.won)
+            if (won)
             {
                 ex.floor++;
-                foreach (var id in res.hp.Keys.ToList()) ex.hp[id] = Math.Min(1, res.hp[id] + 0.3);
+                foreach (var g in party) if (!dead.Contains(g.id)) ex.hp[g.id] = Math.Min(1, res.hpLeft[g.id] + 0.3);
                 var drops = RollLoot(rng, d, boss, quest != null ? 1 : 0);
                 ex.loot.AddRange(drops);
                 int coins = rng.Int(10, 30) * d.tier;
                 ex.coins += coins;
                 lines.Add($"승리. 전리품: {string.Join(", ", drops.Select(x => GearLogic.ItemName(x)))} · 동전 {coins} D");
-                foreach (var g in party)
-                    if (res.kills.TryGetValue(g.id, out var k) && k != 0) g.record.kills += (int)k;
+                foreach (var kv in res.downs)
+                    if (res.sides[1].Contains(kv.Key) && s.gladiators.TryGetValue(kv.Value, out var killer) && party.Contains(killer)) killer.record.kills++;
             }
             else
             {
@@ -263,9 +271,22 @@ namespace Colosseum.Core
             }
             ex.log.AddRange(lines);
             Msg(s, lines.Any(l => l.Contains("일어나지 못했습니다")) ? "death" : "info",
-                $"원정 소식: {d.name} {Num(ex.floor + (res.won ? 0 : 1))}층",
+                $"원정 소식: {d.name} {Num(ex.floor + (won ? 0 : 1))}층",
                 string.Join("\n", lines));
-            if (battle != null) s.inbox[0].replay = FightLink(ex, ex.battles.Count - 1);
+            s.inbox[0].replay = FightLink(ex, ex.battles.Count - 1);
+        }
+
+        /// <summary>층 전투 한 판. 실제 전투와 다시 보기가 같은 설정을 쓴다 (관중 없는 미시오 규칙)</summary>
+        static MatchResult RunBattle(List<Gladiator> party, List<Gladiator> foes, FloorBattle b)
+        {
+            var ours = Tactics.AutoTeam(null, party);
+            ours.policy = b.policy;
+            return Sim.RunTeam(party, foes, new MatchOptions
+            {
+                rule = "missio", seed = b.seed ?? 0, noCrowd = true, deathChanceOf = b.deathOf,
+                teamTactics = new[] { ours, Tactics.AutoTeam(null, foes) },
+                startHp = b.startHp?.ToArray(),
+            });
         }
 
         /// <summary>전투 다시 보기 링크 id (fight:원정:층 순서)</summary>
@@ -274,131 +295,34 @@ namespace Colosseum.Core
         /// <summary>전투 기록용 사본: 경력·일대기는 빼서 저장을 가볍게</summary>
         static Gladiator Snapshot(Gladiator g)
         {
-            var c = Newtonsoft.Json.JsonConvert.DeserializeObject<Gladiator>(Newtonsoft.Json.JsonConvert.SerializeObject(g, new Newtonsoft.Json.JsonSerializerSettings { NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore }));
+            var c = MatchLogic.CloneGladiator(g);
             c.history = new List<SeasonRecord>();
             c.career = new List<CareerEvent>();
             return c;
         }
 
-        /// <summary>층 전투를 시드 그대로 다시 돌린다. 우리 검투사가 언제나 a</summary>
-        public static List<(MatchResult result, Gladiator a, Gladiator b, double[] startHp)> Replay(FloorBattle fb)
-        {
-            var o = new List<(MatchResult, Gladiator, Gladiator, double[])>();
-            var all = new Dictionary<string, Gladiator>();
-            foreach (var g in fb.party.Concat(fb.foes)) all[g.id] = g;
-            var mine = new HashSet<string>(fb.party.Select(g => g.id));
-            foreach (var b in fb.bouts)
-            {
-                if (!all.TryGetValue(b.a, out var x) || !all.TryGetValue(b.b, out var y)) continue;
-                var r = Sim.Run(x, y, new MatchOptions { rule = "training", noDeath = true, seed = b.seed, startHp = b.startHp });
-                double hx = b.startHp[0] ?? 1, hy = b.startHp[1] ?? 1;
-                o.Add(mine.Contains(x.id) ? (r, x, y, new[] { hx, hy }) : (r, y, x, new[] { hy, hx }));
-            }
-            return o;
-        }
+        /// <summary>층 전투를 시드 그대로 다시 돌린다. 옛 방식 기록(시드 없음)이면 null</summary>
+        public static MatchResult Replay(FloorBattle fb) => fb.seed == null ? null : RunBattle(fb.party, fb.foes, fb);
+
+        /// <summary>첫 층 적의 대략의 능력 (화면 난이도 별). 목표 평균 능력치 → CA 환산은 GladiatorGen과 같다</summary>
+        public static double FoeCa(DungeonDef d) => (d.level * FoeLevelMult - 1) / 19 * 200;
 
         static List<Gladiator> SpawnFoes(Rng rng, DungeonDef d, bool boss, double hard, double floor)
         {
-            double n = Math.Min(5, 3 + Math.Floor(floor / 2) + (boss ? 1 : 0));
+            // 난전이니 적은 늘 다섯. 같은 이름은 번호로 구분한다
+            const int n = 5;
             var o = new List<Gladiator>();
+            var named = new Dictionary<string, int>();
             for (int i = 0; i < n; i++)
             {
                 var kind = boss && i == 0 ? d.boss : rng.Pick(d.foes);
-                double lvl = Math.Min(20, JsMath.Round((d.level + floor * 0.6 + (boss && i == 0 ? 2 : 0)) * hard));
+                double lvl = Math.Min(20, JsMath.Round((d.level + floor * 0.6 + (boss && i == 0 ? 2 : 0)) * hard * FoeLevelMult));
                 var g = GladiatorGen.Generate(rng, new GenOptions { id = $"M{i}_{rng.Int(0, 1000000000)}", nation = rng.Pick(Data.Nations).id, target = lvl, race = kind.race });
-                g.name = kind.name;
+                named[kind.name] = named.TryGetValue(kind.name, out var cnt) ? cnt + 1 : 1;
+                g.name = named[kind.name] > 1 ? $"{kind.name} {named[kind.name]}" : kind.name;
                 o.Add(g);
             }
             return o;
-        }
-
-        static bool IsRanged(Gladiator g)
-        {
-            var w = Data.Weapon(g.equipment.main);
-            return w != null && (w.range > 0 || w.@class == "focus");
-        }
-
-        /// <summary>
-        /// 5:5 진형 전투. 한 교환마다 살아 있는 아군이 차례로 진형이 고른 적과 1:1로 붙고(기존 1:1 전투 엔진),
-        /// 남은 체력을 다음 대결로 이어 간다. 같은 적에게 여럿이 붙으면 자연스레 협공이 된다.
-        /// 진형 배율은 대결에서 깎인 체력에 곱한다.
-        /// </summary>
-        public static SkirmishResult Skirmish(Rng rng, List<Gladiator> party, List<Gladiator> foes, string formation, Dictionary<string, double> startHp = null, List<BattleBout> record = null)
-        {
-            startHp ??= new Dictionary<string, double>();
-            var F = Formations[formation];
-            var hp = new Dictionary<string, double>();
-            foreach (var g in party.Concat(foes)) hp[g.id] = startHp.TryGetValue(g.id, out var h) ? h : 1;
-            var kills = new Dictionary<string, double>();
-            var downed = new List<string>();
-            List<Gladiator> Up(List<Gladiator> list) => list.Where(g => hp[g.id] > 0.02).ToList();
-            // 방패벽·산개는 근접을 앞에, 원거리를 뒤에 세운다
-            List<Gladiator> Order(List<Gladiator> list) => list.OrderBy(g => IsRanged(g) ? 1 : 0).ToList();
-
-            for (int round = 0; round < 12 && Up(party).Count > 0 && Up(foes).Count > 0; round++)
-            {
-                var allies = Order(Up(party));
-                for (int i = 0; i < allies.Count; i++)
-                {
-                    var a = allies[i];
-                    var targets = Up(foes);
-                    if (targets.Count == 0 || hp[a.id] <= 0.02) continue;
-                    Gladiator foe;
-                    if (F.focus == "weakest")
-                    {
-                        foe = targets[0];
-                        for (int k = 1; k < targets.Count; k++) if (hp[targets[k].id] < hp[foe.id]) foe = targets[k];
-                    }
-                    else if (F.focus == "strongest")
-                    {
-                        foe = targets[0];
-                        for (int k = 1; k < targets.Count; k++) if (GladiatorRules.ComputeCA(targets[k]) > GladiatorRules.ComputeCA(foe)) foe = targets[k];
-                    }
-                    else foe = targets[i % targets.Count];
-                    var opts = new MatchOptions
-                    {
-                        rule = "training", noDeath = true, seed = Seed31(rng),
-                        startHp = new double?[] { hp[a.id] < 1 ? hp[a.id] : (double?)null, hp[foe.id] < 1 ? hp[foe.id] : (double?)null },
-                    };
-                    record?.Add(new BattleBout { a = a.id, b = foe.id, seed = opts.seed, startHp = opts.startHp });
-                    var r = Sim.Run(a, foe, opts);
-                    // 포위: 아군이 많을수록, 산개: 원거리면 더 세게
-                    double outnumber = formation == "flank" ? 1 + 0.12 * Math.Max(0, Up(party).Count - targets.Count) : 1;
-                    double dealt = F.dealt * outnumber * (IsRanged(a) ? F.ranged : formation == "spread" ? 0.9 : 1);
-                    double lostA = (hp[a.id] - r.hpLeft[a.id]) * F.taken;
-                    double lostF = (hp[foe.id] - r.hpLeft[foe.id]) * dealt;
-                    hp[a.id] = r.winnerId == a.id ? Math.Max(0.03, hp[a.id] - lostA) : 0;
-                    hp[foe.id] = r.winnerId == foe.id ? Math.Max(0.03, hp[foe.id] - lostF) : 0;
-                    if (hp[foe.id] <= 0.02) kills[a.id] = (kills.TryGetValue(a.id, out var kc) ? kc : 0) + 1;
-                    if (hp[a.id] <= 0.02) downed.Add(a.id);
-                }
-                // 적의 반격: 아군이 다 붙지 못한 남는 적은 후열을 노린다
-                var spare = Up(foes).Skip(allies.Count).ToList();
-                foreach (var foe in spare)
-                {
-                    var ordered = Order(Up(party));
-                    if (ordered.Count == 0) break;
-                    var t = ordered[ordered.Count - 1]; // reverse()[0]
-                    var opts = new MatchOptions
-                    {
-                        rule = "training", noDeath = true, seed = Seed31(rng),
-                        startHp = new double?[] { hp[foe.id] < 1 ? hp[foe.id] : (double?)null, hp[t.id] < 1 ? hp[t.id] : (double?)null },
-                    };
-                    record?.Add(new BattleBout { a = foe.id, b = t.id, seed = opts.seed, startHp = opts.startHp });
-                    var r = Sim.Run(foe, t, opts);
-                    hp[t.id] = r.winnerId == t.id ? Math.Max(0.03, hp[t.id] - (hp[t.id] - r.hpLeft[t.id]) * F.taken) : 0;
-                    hp[foe.id] = r.winnerId == foe.id ? Math.Max(0.03, hp[foe.id] - (hp[foe.id] - r.hpLeft[foe.id]) * F.dealt) : 0;
-                    if (hp[t.id] <= 0.02) downed.Add(t.id);
-                }
-            }
-            bool won = Up(foes).Count == 0 && Up(party).Count > 0;
-            var partyHp = new Dictionary<string, double>();
-            foreach (var g in party) partyHp[g.id] = hp[g.id];
-            // [...new Set(downed)]: 처음 나온 순서
-            var uniq = new List<string>();
-            var seen = new HashSet<string>();
-            foreach (var id in downed) if (seen.Add(id)) uniq.Add(id);
-            return new SkirmishResult { won = won, downed = uniq, hp = partyHp, kills = kills };
         }
 
         static List<string> LootPool() =>

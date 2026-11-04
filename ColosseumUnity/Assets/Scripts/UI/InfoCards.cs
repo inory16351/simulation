@@ -214,7 +214,7 @@ namespace Colosseum.UI
             if (d == null) return null;
             string dim = Theme.Hex(Theme.TextDim);
             var foes = string.Join(", ", d.foes.Select(f => $"{f.name} ({Tips.Race(f.race)})"));
-            string body = $"{d.desc}\n\n<color={dim}>층</color> {d.floors}층 · <color={dim}>원정</color> {d.days}일 · <color={dim}>적 수준</color> {d.level} · <color={dim}>층당 사망 위험</color> {d.death:0%}" +
+            string body = $"{d.desc}\n\n<color={dim}>층</color> {d.floors}층 · <color={dim}>원정</color> {d.days}일 · <color={dim}>적 수준</color> {Widgets.Stars(DungeonLogic.FoeCa(d))}" +
                           $"\n<color={dim}>적</color> {foes}\n<color={dim}>우두머리</color> {d.boss.name} ({Tips.Race(d.boss.race)})" +
                           $"\n<color={dim}>전리품</color> 보통 {d.loot[0]}% · 정교 {d.loot[1]}% · 명품 {d.loot[2]}% · 전설 {d.loot[3]}%";
             return new InfoCard { title = d.name, sub = $"던전 · {d.tier}등급", body = body, actionLabel = "던전으로", action = () => GameController.I.Go("dungeon") };

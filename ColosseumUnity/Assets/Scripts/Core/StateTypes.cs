@@ -259,21 +259,18 @@ namespace Colosseum.Core
         public List<FloorBattle> battles;
     }
 
-    /// <summary>던전 한 층의 전투 기록: 그때의 양쪽 모습과 대결 순서. 시드로 같은 싸움을 다시 돌려 보여 준다</summary>
+    /// <summary>던전 한 층의 난전 기록: 그때의 양쪽 모습과 시드. 같은 싸움을 다시 돌려 보여 준다. seed가 없으면 옛 방식 기록이라 볼 수 없다</summary>
     public class FloorBattle
     {
         public int floor;
         public bool boss, won;
         public List<Gladiator> party = new(), foes = new();
-        public List<BattleBout> bouts = new();
-    }
-
-    /// <summary>진형 전투 속 1:1 대결 하나</summary>
-    public class BattleBout
-    {
-        public string a, b;
-        public uint seed;
-        public double?[] startHp;
+        public uint? seed;
+        public string policy;
+        /// <summary>우리 검투사별 쓰러졌을 때 죽을 확률</summary>
+        public Dictionary<string, double> deathOf;
+        /// <summary>우리 편 시작 체력 비율 (party 순서, null이면 가득)</summary>
+        public List<double?> startHp;
     }
 
     public class DungeonQuest
