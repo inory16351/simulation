@@ -13,7 +13,7 @@ namespace Colosseum.EditorTools
     {
         static readonly (string id, string label, bool bar)[] KvRows =
         {
-            ("Style", "스타일", false), ("Status", "신분", false), ("Wage", "주급", false), ("Ca", "현재 능력", false), ("Pa", "잠재력", false),
+            ("Style", "스타일", false), ("Status", "계약", false), ("Wage", "주급", false), ("Ca", "현재 능력", false), ("Pa", "잠재력", false),
             ("Morale", "사기", true), ("Popularity", "인기", true), ("Fitness", "체력", true), ("Sharpness", "경기감각", true), ("Wear", "혹사도", true),
             ("Perf", "경기력", false), ("State", "상태", false), ("Record", "전적", false),
         };
@@ -52,12 +52,12 @@ namespace Colosseum.EditorTools
 
             var acquire = BuildAcquire(content);
 
-            // 탭: 정보 / 장비 / 전술 — 한 번에 하나만 보여 장비와 교범이 섞이지 않게
+            // 탭: 정보 / 경력 / 장비 / 전술 — 한 번에 하나만 보여 장비와 교범이 섞이지 않게 (경력은 FM 경력·일대기 화면처럼 따로)
             var tabRow = Rect("Tabs", content);
             HRow(tabRow, 4);
             var tabs = new List<Button>();
             var roots = new List<GameObject>();
-            foreach (var (id, label) in new[] { ("Info", "정보"), ("Gear", "장비"), ("Tactics", "전술") })
+            foreach (var (id, label) in new[] { ("Info", "정보"), ("Career", "경력"), ("Gear", "장비"), ("Tactics", "전술") })
             {
                 tabs.Add(Button("Tab_" + id, tabRow, label, false, 15).Layout(prefW: 140, prefH: 36));
                 var root = Rect("Tab" + id, content);
@@ -98,10 +98,10 @@ namespace Colosseum.EditorTools
             Text("Name", skTpl.transform, "", 14, Theme.Parchment).rectTransform.Anchor(new Vector2(0, 0), new Vector2(1, 1), new Vector2(52, 0), new Vector2(-6, 0));
             skTpl.gameObject.SetActive(false);
             var skills = Text("Empty", sk, "", 13, Theme.TextFaint);
-            var career = BuildCareer(infoTab);
+            var career = BuildCareer(roots[1].transform);
 
-            var equip = BuildEquip(roots[1].transform);
-            var doctrine = BuildDoctrine(roots[2].transform);
+            var equip = BuildEquip(roots[2].transform);
+            var doctrine = BuildDoctrine(roots[3].transform);
 
             var s = rt.gameObject.AddComponent<GladiatorScreen>();
             s.screenId = "gladiator";
@@ -146,6 +146,7 @@ namespace Colosseum.EditorTools
             var bar = Bar("InfoBar", top);
             var scout = Button("Scout", top, "정찰 보내기", false, 14).Layout(prefW: 140, prefH: 30);
             var shortB = Button("Short", top, "☆ 관심 명단", false, 14).Layout(prefW: 160, prefH: 30);
+            var reg = Button("Reg", top, "등록", false, 14).Layout(prefW: 150, prefH: 30);
             var msg = Text("Msg", pad, "", 14, new Color32(0xd9, 0xa2, 0x9b, 0xff));
             var mood = Text("Mood", pad, "", 14);
 
@@ -175,7 +176,7 @@ namespace Colosseum.EditorTools
             var so = new UnityEditor.SerializedObject(p);
             void S(string prop, Object v) => so.FindProperty(prop).objectReferenceValue = v;
             S("title", pad.parent.Find("Head/Text").GetComponent<TMP_Text>());
-            S("info", info); S("infoBar", bar); S("scout", scout); S("shortlist", shortB); S("msg", msg); S("mood", mood);
+            S("info", info); S("infoBar", bar); S("scout", scout); S("shortlist", shortB); S("regButton", reg); S("msg", msg); S("mood", mood);
             S("freeRoot", free.gameObject); S("freeHint", freeHint); S("want", want); S("wage", wage); S("sign", sign);
             S("clubRoot", club.gameObject); S("value", value); S("fee", fee); S("bid", bid);
             S("dealRoot", deal.gameObject); S("dealText", dealText); S("dealGo", dealGo);
@@ -345,11 +346,11 @@ namespace Colosseum.EditorTools
         // 시즌별 기록 칸 (이름, 머리글, 폭)  폭 0 = 남는 폭
         static readonly (string id, string label, float w)[] CareerCols =
         {
-            ("Season", "시즌", 36), ("Ludus", "루두스", 0), ("Apps", "출전", 38), ("Wins", "승", 32), ("Losses", "패", 32), ("Kills", "살해", 38),
-            ("Injuries", "부상", 38), ("Ca", "능력", 104), ("Pop", "인기", 40), ("Earnings", "수익", 92),
+            ("Season", "시즌", 36), ("Ludus", "루두스", 0), ("Apps", "출전", 38), ("Wins", "승", 32), ("Losses", "패", 32), ("Kills", "살해", 38), ("Rating", "평점", 44),
+            ("Injuries", "부상", 38), ("Ca", "능력", 104), ("Pop", "인기", 40), ("Earnings", "수익", 92), ("Awards", "수상", 52),
         };
 
-        /// <summary>경력 패널 (웹판 CareerPanel, grid2 1.3fr 1fr): 시즌별 기록 표 + 일대기</summary>
+        /// <summary>경력 탭 (FM 경력·일대기처럼): 왼쪽 시즌별 기록 표, 오른쪽 수상·우승과 일대기</summary>
         static CareerPanel BuildCareer(Transform parent)
         {
             var grid = Rect("Career", parent);
@@ -376,9 +377,15 @@ namespace Colosseum.EditorTools
             foreach (var (id, _, w) in CareerCols)
                 CareerCell(Text(id, total.transform, id == "Season" ? "통산" : "", 13, Theme.Parchment, false, FontStyles.Bold, CareerAlign(id)), w);
 
-            var lp = TitledPanel("Log", grid, "일대기", 6);
-            lp.parent.Layout(minW: 0, prefW: 0, flexW: 1);
+            var right = Rect("Right", grid).Layout(minW: 430, prefW: 430, flexW: 0);
+            VCol(right, 14);
+            var hp = TitledPanel("Honours", right, "수상 · 우승", 6);
+            var honours = Text("Text", hp, "", 13);
+            honours.lineSpacing = 10;
+            honours.raycastTarget = true;
+            var lp = TitledPanel("Log", right, "일대기", 6);
             var log = Text("Text", lp, "", 13);
+            log.raycastTarget = true;
             log.lineSpacing = 14;
             var empty = Text("Empty", lp, "아직 남긴 기록이 없습니다.", 13, Theme.TextFaint);
             var moreRow = Rect("MoreRow", lp);
@@ -388,7 +395,7 @@ namespace Colosseum.EditorTools
             var so = new UnityEditor.SerializedObject(p);
             void S(string prop, Object v) => so.FindProperty(prop).objectReferenceValue = v;
             S("seasonTemplate", row.rectTransform); S("totalRow", total.rectTransform);
-            S("log", log); S("logEmpty", empty.gameObject); S("logMore", more);
+            S("log", log); S("logEmpty", empty.gameObject); S("logMore", more); S("honours", honours);
             so.ApplyModifiedPropertiesWithoutUndo();
             return p;
         }

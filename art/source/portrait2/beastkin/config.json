@@ -34,8 +34,28 @@
  ],
  "extra": [
   {
-   "heads": [],
-   "front": []
+   "heads": [
+    "f",
+    "m",
+    "f",
+    "m",
+    "f",
+    "m",
+    "f",
+    "m",
+    "f"
+   ],
+   "front": [
+    "helmet_crest_4",
+    "helmet_crest_5",
+    "armor_harness_3",
+    "armor_plate_3",
+    "armor_harness_4",
+    null,
+    null,
+    null,
+    null
+   ]
   },
   {
    "heads": [],

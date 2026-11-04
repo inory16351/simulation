@@ -12,7 +12,7 @@ using System.Linq;
 
 namespace Colosseum.Core
 {
-    /// <summary>답을 기다리는 제안. kind: fee(이적료) | terms(이적 개인 계약) | free(무소속 계약) | renew(재계약)</summary>
+    /// <summary>답을 기다리는 제안. kind: fee(이적료) | terms(이적 개인 계약) | free(무소속 계약) | renew(재계약) | youth(유소년 계약)</summary>
     public class PendingBid
     {
         public string id, kind, gladiatorId, dealId;
@@ -92,6 +92,7 @@ namespace Colosseum.Core
                 case "terms": Transfers.CancelDeal(s, d.dealId); Haggling.Forget(s, Transfers.DealKey(d.dealId)); break;
                 case "free": Haggling.Forget(s, Economy.WageKey(d.gladiatorId)); break;
                 case "renew": Haggling.Forget(s, Contracts.RenewKey(d.gladiatorId)); break;
+                case "youth": Haggling.Forget(s, Youth.YouthKey(d.gladiatorId)); break;
             }
         }
 
@@ -105,6 +106,7 @@ namespace Colosseum.Core
                 "terms" => $"{name} 이적 계약 역제안",
                 "free" => $"{name} 계약 역제안",
                 "renew" => $"{name} 재계약 역제안",
+                "youth" => $"{name} 유소년 계약 역제안",
                 _ => name,
             };
         }
@@ -123,15 +125,16 @@ namespace Colosseum.Core
             var b = new PendingBid { id = $"B{s.nextId++}", kind = kind, gladiatorId = gladiatorId, dealId = dealId, amount = amount, seasons = seasons, sentAt = now, replyAt = now + days, terms = terms?.Clone() };
             (s.bids ??= new List<PendingBid>()).Add(b);
             ClearDecision(s, kind, KeyOf(kind, gladiatorId, dealId));
-            if (kind != "renew") MaybeRival(s, rng, s.gladiators[gladiatorId]);
+            // 재계약·유소년 계약에는 경쟁자가 없다 (입단 테스트 후보는 마감까지 우리만 협상한다)
+            if (kind != "renew" && kind != "youth") MaybeRival(s, rng, s.gladiators[gladiatorId]);
             return new HaggleResult { status = "sent", line = $"제안을 보냈습니다. {WhenLine(s, b)} 서판으로 답이 옵니다" };
         }
 
         static ContractTerms TermsOf(PendingBid b) => b.terms ?? new ContractTerms { wage = b.amount, seasons = Math.Max(1, b.seasons) };
 
         /// <summary>개인 계약의 기준 주급 (Transfers.TransferDemand, Economy.FreeAgentDemand와 같다)</summary>
-        static double BaseWage(GameState s, Gladiator g, bool free) =>
-            free ? g.wage : Transfers.TransferBaseWage(s, g);
+        static double BaseWage(GameState s, Gladiator g, bool free, int tier) =>
+            free ? Economy.FreeAgentBaseWage(g, tier) : Transfers.TransferBaseWage(s, g, tier);
 
         /// <summary>처음 제안할 때 경쟁자가 붙을지 정한다. 이름난 검투사일수록 노리는 데가 많다</summary>
         static void MaybeRival(GameState s, Rng rng, Gladiator g)
@@ -142,7 +145,7 @@ namespace Colosseum.Core
             var owner = Career.LudusOf(s, g.id);
             bool free = owner == null;
             double need = free ? g.wage * 8 : Economy.MarketValue(g, s) * 1.1;
-            var cands = s.ludi.Values.Where(l => !l.isPlayer && l != owner && l.nation == s.nation && l.treasury > need).ToList();
+            var cands = s.ludi.Values.Where(l => !l.isPlayer && l != owner && l.nation == s.nation && l.treasury > need && Economy.Affords(s, l, BaseWage(s, g, free, l.tier))).ToList();
             double chance = Math.Clamp(0.12 + Reputation.GladiatorStanding(g) / 160, 0.12, 0.6);
             var r = new RivalBid { until = now + 10 };
             if (cands.Count > 0 && rng.Chance(chance))
@@ -150,7 +153,7 @@ namespace Colosseum.Core
                 var l = rng.Pick(cands);
                 r.ludusId = l.id;
                 if (!free) r.fee = JsMath.Round(Transfers.AskingPrice(s, g, owner) * rng.Range(0.8, 1.1) / 50) * 50;
-                r.wage = JsMath.Round(BaseWage(s, g, free) * rng.Range(0.95, 1.25));
+                r.wage = JsMath.Round(BaseWage(s, g, free, l.tier) * rng.Range(0.95, 1.25));
             }
             s.rivals[g.id] = r;
         }
@@ -158,7 +161,8 @@ namespace Colosseum.Core
         /// <summary>검투사 눈에 경쟁자 조건이 얼마나 좋아 보이나: 그 루두스 명성으로 원할 주급에 견준 비율</summary>
         static double RivalAppeal(GameState s, Gladiator g, RivalBid r, bool free)
         {
-            var d = Reputation.DemandFor(Reputation.GladiatorStanding(g), BaseWage(s, g, free), Reputation.LudusReputation(s, s.ludi[r.ludusId]));
+            var rival = s.ludi[r.ludusId];
+            var d = Reputation.DemandFor(Reputation.GladiatorStanding(g), BaseWage(s, g, free, rival.tier), Reputation.LudusReputation(s, rival));
             return d.refuse ? 0 : r.wage / d.wage;
         }
 
@@ -194,6 +198,7 @@ namespace Colosseum.Core
                 if (b.kind == "fee") ReplyFee(s, rng, b, g);
                 else if (b.kind == "terms") ReplyTerms(s, rng, b, g);
                 else if (b.kind == "renew") ReplyRenew(s, rng, b, g);
+                else if (b.kind == "youth") ReplyYouth(s, rng, b, g);
                 else ReplyFree(s, rng, b, g);
             }
             if (s.bids.Count == 0) s.bids = null;
@@ -243,6 +248,8 @@ namespace Colosseum.Core
                 case "walked":
                     Msg(s, "warning", $"이적 협상 결렬: {g.name}",
                         $"{who}: \"{res.line}\"\n{Haggling.LockDays}일 동안은 상대하지 않습니다.{RivalNote(s, g, rival)}");
+                    // FM처럼: 더 이름난 우리 루두스로 갈 길이 막히면 그 검투사가 불만을 품는다
+                    if (owner != null && !owner.isPlayer) Grievances.OnOfferRejected(s, g, s.ludi[s.playerLudusId]);
                     break;
                 default:
                     Msg(s, "warning", $"이적료 제안 무효: {g.name}", res.line);
@@ -368,6 +375,34 @@ namespace Colosseum.Core
                     break;
                 default:
                     Msg(s, "warning", $"재계약 제안 무효: {g.name}", res.line);
+                    break;
+            }
+        }
+
+        static void ReplyYouth(GameState s, Rng rng, PendingBid b, Gladiator g)
+        {
+            var t = TermsOf(b);
+            string name = g.name;
+            var res = Youth.ResolveTrial(s, rng, g.id, t);
+            switch (res.status)
+            {
+                case "accepted":
+                    Msg(s, "info", $"유소년 계약: {name}",
+                        $"{Josa.J(name, "이/가")} 주급 {Loc(t.wage)} D, {t.seasons}시즌 유소년 계약에 서명하고 학당에 들어왔습니다." +
+                        (t.signingFee > 0 ? $" 계약금 {Loc(t.signingFee)} D를 냈습니다." : "") + ClauseNote(t));
+                    break;
+                case "countered":
+                    var d = AddDecision(s, "youth", g, null, res.line);
+                    d.counterTerms = res.terms;
+                    d.lastTerms = t;
+                    Msg(s, "decision", $"유소년 계약 역제안: {name}",
+                        $"{Josa.J(name, "이/가")} 우리가 낸 조건(주급 {Loc(t.wage)} D)을 거절했습니다. {res.line}{DecideLine}");
+                    break;
+                case "walked":
+                    Msg(s, "warning", $"유소년 협상 결렬: {name}", $"{name}: \"{res.line}\"\n협상이 깨져 아이는 집으로 돌아갔습니다.");
+                    break;
+                default:
+                    Msg(s, "warning", $"유소년 계약 제안 무효: {name}", res.line);
                     break;
             }
         }

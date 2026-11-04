@@ -89,7 +89,10 @@ namespace Colosseum.UI
             subLine.text = $"{Tips.Race(g.race)} · {Tips.Nation(g.nation, true)} 출신 · {g.age}세 ({GladiatorRules.AgeStageNames[GladiatorRules.AgeStage(g)]}) · {Tips.Ludus(owner)}";
 
             Kv("Style", $"{Tips.Style(g.style)} — <color={dim}>{style?.desc}</color>");
-            Kv("Status", StatusNames.TryGetValue(g.status, out var st) ? st : g.status);
+            // FM식: 신분 대신 계약 (노예·자유민 구분 없음)
+            Kv("Status", FmRules.Enabled
+                ? (g.contract != null ? $"시즌 {g.contract.untilSeason}까지" + (g.contract.untilSeason <= S.season ? $" <color={Theme.Hex(Neg)}>(이번 시즌 만료)</color>" : "") : S.freeAgents.Contains(g.id) ? "무소속" : "—")
+                : StatusNames.TryGetValue(g.status, out var st) ? st : g.status);
             Kv("Wage", $"{g.wage} D" + (g.unpaidWeeks > 0 ? $"  <color={Theme.Hex(Neg)}>급료 {g.unpaidWeeks}회 밀림</color>" : ""));
             if (isMine) Kv("Ca", $"<color={Theme.Hex(Theme.Torch)}>{Widgets.CaStars(S, g)}</color> <color={faint}>(독토레 평가)</color>");
             else { var r = Scouting.CaRange(S, g); Kv("Ca", RangeStars(r.lo, r.hi)); }
@@ -107,8 +110,8 @@ namespace Colosseum.UI
             Kv("Perf", $"<b><color={Theme.Hex(pc)}>{Math.Round(perf * 100)}%</color></b>" +
                 string.Concat(GladiatorRules.PerformanceParts(g).Select(p => $"  <color={dim}>{p.label} {(p.value > 0 ? "+" : "")}{Math.Round(p.value * 100)}%</color>")));
             Kv("State", !g.alive ? $"<color={Theme.Hex(Neg)}>사망 — 시즌 {g.diedAt?.season} {Calendar.DateLabel(g.diedAt?.day ?? 1)}, {g.diedAt?.cause}</color>"
-                : g.injury != null ? $"<color=#f0b3aa>{GladiatorTable.InjuryLabel(g)}</color>" : "출전 가능");
-            Kv("Record", $"{g.record.wins}승 {g.record.losses}패 · 살해 {g.record.kills}");
+                : (g.injury != null ? $"<color=#f0b3aa>{GladiatorTable.InjuryLabel(g)}</color>" : "출전 가능") + (Grievances.Line(S, g) is string grief ? $"  <color=#f0b3aa>{grief}</color>" : ""));
+            Kv("Record", $"{g.record.wins}승 {g.record.losses}패 · 살해 {g.record.kills}" + (Tips.AwardsOf(S, g) is var aw && aw.Length > 0 ? $" · {aw}" : ""));
 
             var race = Data.Race(g.race);
             var tags = new List<string> { Tips.Racial(g.race, Theme.Hex(Theme.Parchment)) };

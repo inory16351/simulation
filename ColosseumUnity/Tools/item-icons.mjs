@@ -253,6 +253,11 @@ const COMP_MENU = {
   natcup: "a small two-handled bronze cup on a square plinth",
   olympica: "a laurel wreath encircling six tiny shields",
 };
+// 일정 메뉴 · 수상 메달 (Unity판 일정 화면, Logic/Awards.cs)
+const EXTRA = {
+  "menu/schedule": "a bronze wax-tablet calendar: a small hinged wooden tablet with a grid of carved day squares and one square marked by a red seal, simple bold shape readable as a tiny 26px menu icon",
+  award: "an award medal: a round gold medallion stamped with a laurel wreath around a pair of crossed gladius swords, hanging from a short dark-red ribbon",
+};
 const TROPHY = {
   pantheon: "the grand continental trophy: a tall ornate golden chalice with two big curled handles, a temple-pillar stem and a small winged victory figure on the lid, the most splendid trophy of all",
   olympica: "the national-team trophy: a broad silver and gold laurel crown resting on a stepped marble pedestal with six small heraldic shields around its base",
@@ -281,6 +286,7 @@ const GROUPS = {
   menux: { dir: "icon/menu", size: 64, clean: true, cell: `${ICON} Very simple bold shape, readable as a tiny 26px menu icon.`, list: Object.entries(STRATEGY_MENU).map(([id, desc]) => ({ id, desc })) },
   menuy: { dir: "icon/menu", size: 64, clean: true, cell: `${ICON} Very simple bold shape, readable as a tiny 26px menu icon.`, list: Object.entries(COMP_MENU).map(([id, desc]) => ({ id, desc })) },
   trophy: { dir: "icon/trophy", size: 256, clean: true, cell: "Each cell: one TROPHY object, upright, front view, centered, filling about 80% of the cell, no pedestal shadow, no people, no text, no letters. Keep every trophy fully inside its own cell.", list: Object.entries(TROPHY).map(([id, desc]) => ({ id, desc })) },
+  extra: { dir: "icon", size: 128, clean: true, cell: `${ICON} Very simple bold shape.`, list: Object.entries(EXTRA).map(([id, desc]) => ({ id, desc })) },
   fx: { dir: "fx", size: 256, clean: false, cell: "Each cell: one 2D combat effect sprite, centered, filling about 75% of the cell, no ground, no characters, edges made of loose gouache brush strokes. Keep every effect fully inside its own cell.", list: Object.entries(FX).map(([id, desc]) => ({ id, desc })) },
 };
 

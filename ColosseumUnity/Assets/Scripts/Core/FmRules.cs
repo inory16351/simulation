@@ -41,7 +41,16 @@ namespace Colosseum.Core
         /// <summary>리그 단계에 따른 몸값·주급 배율 (높은 리그에서 뛰는 검투사가 비싸다)</summary>
         public static double TierValueMult(int tier) => tier switch { 1 => 1.35, 2 => 1.0, 3 => 0.78, _ => 0.62 };
 
+        /// <summary>아래 부의 고정비 배율 (시설 유지비·식솔 급료). 3·4부 수입으로도 루두스를 꾸릴 수 있게. 웹판 규칙은 1</summary>
+        public static double CostTierMult(int tier) => !Enabled ? 1 : tier switch { 3 => 0.8, 4 => 0.6, _ => 1.0 };
+
+        /// <summary>하부 리그 지원금: 3·4부 플레이어 루두스가 급료일마다 받는 돈 (세금 전). AI의 부수입(Economy.AiSideIncome)에 해당한다. 웹판 규칙은 0</summary>
+        public static double LowerLeagueGrant(int tier) => !Enabled ? 0 : tier switch { 4 => 120, 3 => 70, _ => 0 };
+
         public static string TierName(int tier) => $"{tier}부";
+
+        /// <summary>AI 루두스 기본 인원 (웹판 aiRoster 8). 등록 로스터 15명 중 여유를 두고, 나머지는 AI가 무소속 영입으로 판단해 채운다</summary>
+        public static int AiRoster => Enabled ? 11 : (int)Bal.Economy["aiRoster"];
 
         // ── 시즌 흐름: 정규 리그 15~105일 → 국내 컵 106~129일 → 판테온 컵 131~157일 ──
 

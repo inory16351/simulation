@@ -14,11 +14,203 @@ namespace Colosseum.Core
         public static int YouthCapacity(Ludus ludus) => ludus.facilities.academy != 0 ? ludus.facilities.academy * 3 + 3 : 0;
         public const int ApprenticeInterval = 28;
 
-        /// <summary>시즌 시작(서리달 1일) 입학</summary>
+        /// <summary>FM식 입단 테스트 후보 수: 학당 단계가 높을수록 많다 (1단계 3명 ~ 5단계 11명)</summary>
+        public static int TrialCount(int lvl) => lvl * 2 + 1;
+        /// <summary>입단 테스트 후보를 붙잡아 둘 날 수</summary>
+        public const int TrialDays = 28;
+
+        public static readonly string[] OutlookNames = { "평범한", "괜찮은", "뛰어난", "황금 세대" };
+
+        /// <summary>후보 수준: 평범 60% · 괜찮음 25% · 뛰어남 10% · 황금 세대 5%</summary>
+        static int RollOutlook(Rng rng)
+        {
+            double r = rng.Next();
+            return r < 0.05 ? 3 : r < 0.15 ? 2 : r < 0.40 ? 1 : 0;
+        }
+
+        /// <summary>FM식 우리 루두스 입단 테스트 날 (불꽃달 1일, 시즌 중반·정규 리그 한가운데). 첫 시즌도 이날 처음 열린다</summary>
+        public const int TrialDay = 85;
+
+        /// <summary>입단 예고일 (입단 테스트 4주 전, 꽃달 1일)</summary>
+        public const int PreviewDay = TrialDay - 28;
+
+        public static string TrialDate => Calendar.DateLabel(TrialDay);
+
+        /// <summary>FM처럼 입단 예고: 학당장이 다음 입단 후보의 수준을 미리 알린다 (우리 루두스)</summary>
+        public static void Preview(GameState state, Rng rng, Ludus ludus)
+        {
+            if (ludus.facilities.academy == 0) return;
+            int o = RollOutlook(rng);
+            ludus.youthOutlook = o;
+            string line = o switch
+            {
+                3 => "\"이런 아이들은 평생 한 번 볼까 말까 합니다. 황금 세대입니다.\"",
+                2 => "\"올해는 눈에 띄는 아이가 여럿 있습니다. 기대하셔도 좋습니다.\"",
+                1 => "\"쓸 만한 아이가 한둘은 있을 겁니다.\"",
+                _ => "\"솔직히 올해는 평범합니다. 큰 기대는 마십시오.\"",
+            };
+            StateUtil.PushMessage(state, new InboxMessage
+            {
+                kind = "info",
+                title = $"유소년 입단 예고: {OutlookNames[o]} 세대",
+                body = $"학당장의 보고입니다. {line}\n\n{TrialDate}에 후보 {TrialCount(ludus.facilities.academy)}명이 입단 테스트를 봅니다. 학당 단계가 높을수록 후보가 많고 잠재력도 좋습니다.",
+            });
+        }
+
+        /// <summary>FM식 (우리 루두스): 입단 테스트 날(TrialDay)에 후보를 뽑는다. 후보는 유소년 계약을 협상해 맺어야 학당에 들어온다</summary>
+        public static List<Gladiator> Trial(GameState state, Rng rng, Ludus ludus)
+        {
+            int lvl = ludus.facilities.academy;
+            if (lvl == 0) return new List<Gladiator>();
+            ClearTrial(state, ludus);
+            // 예고에서 정한 수준대로 (예고가 없었으면 지금 정한다)
+            int outlook = ludus.youthOutlook ?? RollOutlook(rng);
+            ludus.youthOutlook = null;
+            bool golden = outlook == 3;
+            var used = new HashSet<string>(state.gladiators.Values.Select(x => x.name));
+            var output = new List<Gladiator>();
+            for (int i = 0; i < TrialCount(lvl); i++)
+            {
+                string race = rng.Weighted(Data.Nation(ludus.nation).races);
+                var r = Data.Race(race).age;
+                var g = GladiatorGen.Generate(rng, new GenOptions
+                {
+                    id = $"G{state.nextId++}", nation = ludus.nation, race = race, status = "free",
+                    target = rng.Range(2.5, 4.5), age = r.debut - rng.Int(1, 4), paCap = (int)FacilitiesLogic.AcademyPaCap(lvl), usedNames = used,
+                });
+                // 수준: 괜찮음 +8, 뛰어남 +15, 황금 세대 +20~40 (잠재력)
+                g.hidden.pa = Math.Min(200, g.hidden.pa + outlook switch { 1 => 8, 2 => 15, 3 => rng.Int(20, 40), _ => 0 });
+                g.wage = rng.Int(2, 5);
+                g.training = new TrainingPlan { focus = "physical", intensity = "normal" };
+                state.gladiators[g.id] = g;
+                output.Add(g);
+            }
+            // FM처럼 입단 날 후보 명단 카드를 띄운다 (Shell이 차례로)
+            (state.ceremonies ??= new List<string>()).Add("youth:trial");
+            ludus.youthTrial = output.Select(g => g.id).ToList();
+            ludus.youthTrialUntil = Calendar.AbsDay(state.season, state.day) + TrialDays;
+            StateUtil.PushMessage(state, new InboxMessage
+            {
+                kind = "info",
+                title = golden ? $"입단 테스트: 황금 세대 후보 {output.Count}명!" : $"입단 테스트 후보 {output.Count}명",
+                body = $"{string.Join("\n", output.Select(g => $"{g.name} ({Data.Race(g.race).name}, {N(g.age)}세)"))}\n\n" +
+                    $"유소년 학당 화면에서 아이를 골라 유소년 계약을 협상하세요. {TrialDays}일이 지나면 계약하지 않은 아이들은 돌아갑니다." +
+                    (golden ? "\n교관들이 술렁입니다. 올해 아이들은 그릇이 다릅니다." : ""),
+            });
+            return output;
+        }
+
+        /// <summary>남은 후보를 돌려보낸다 (세계에서 지운다). 그 아이들과의 협상(답 기다림·역제안·흥정)도 없앤다</summary>
+        static void ClearTrial(GameState state, Ludus ludus)
+        {
+            if (ludus.youthTrial == null) return;
+            var del = new HashSet<string>(ludus.youthTrial.Where(id => !Economy.IsOwned(state, id)));
+            foreach (var id in del) Forget(state, id);
+            StateUtil.RemoveOrdered(state.gladiators, del);
+            ludus.youthTrial = null;
+            ludus.youthTrialUntil = null;
+        }
+
+        /// <summary>후보 한 명과의 협상 흔적을 지운다</summary>
+        static void Forget(GameState state, string id)
+        {
+            // 빈 목록은 그대로 둔다 (Negotiations.Daily가 답장을 도는 중일 수 있다 — 거기서 비면 null로)
+            state.bids?.RemoveAll(b => b.kind == "youth" && b.gladiatorId == id);
+            state.decisions?.RemoveAll(d => d.kind == "youth" && d.gladiatorId == id);
+            if (state.decisions?.Count == 0) state.decisions = null;
+            Haggling.Forget(state, YouthKey(id));
+        }
+
+        // ── 유소년 계약 협상 (FM식, 우리 루두스) ──
+
+        public static string YouthKey(string id) => "youth:" + id;
+
+        /// <summary>아이가 바라는 유소년 계약 주급: 그릇(잠재력)이 클수록 조금 더 바란다 (보통 3~15 D). 명성 격차는 따지지 않는다</summary>
+        public static Demand TrialDemand(GameState s, Gladiator g)
+        {
+            double w = (3 + Math.Max(0, g.hidden.pa - 70) / 10.0) * Data.Race(g.race).wageMult;
+            bool wanted = g.hidden.pa >= 140;
+            return new Demand
+            {
+                wage = Math.Max(2, JsMath.Round(w)),
+                reason = wanted ? "\"다른 학당에서도 오라는 말을 들었어요.\"" : "\"여기서 배우고 싶어요.\"",
+            };
+        }
+
+        /// <summary>협상할 수 있는 후보인지. 안 되면 이유</summary>
+        static string CanNegotiate(GameState s, Ludus me, string id, ContractTerms t)
+        {
+            if (me.youthTrial == null || !me.youthTrial.Contains(id) || !s.gladiators.ContainsKey(id)) return "입단 테스트 후보가 아닙니다";
+            if (me.youth.Count >= YouthCapacity(me)) return $"학당 정원({YouthCapacity(me)}명)이 찼습니다. 학당을 증축하거나 다른 아이를 내보내세요";
+            if (t != null && me.treasury < t.signingFee) return "계약금을 낼 돈이 없습니다";
+            return null;
+        }
+
+        /// <summary>유소년 계약 제안을 보낸다 (답은 하루이틀 뒤 서판으로). 다른 루두스와 경쟁은 없다</summary>
+        public static HaggleResult HaggleTrial(GameState s, Rng rng, string id, ContractTerms t)
+        {
+            var me = s.ludi[s.playerLudusId];
+            var err = CanNegotiate(s, me, id, t);
+            if (err != null) return new HaggleResult { status = "error", line = err };
+            return Negotiations.Send(s, rng, "youth", id, null, t.wage, t.seasons, t);
+        }
+
+        /// <summary>유소년 계약 답장 (Negotiations.Daily). 받아들이면 학당에 들어오고, 협상이 깨지면 아이는 집으로 돌아간다</summary>
+        internal static HaggleResult ResolveTrial(GameState s, Rng rng, string id, ContractTerms t)
+        {
+            var me = s.ludi[s.playerLudusId];
+            var err = CanNegotiate(s, me, id, t);
+            if (err != null) return new HaggleResult { status = "error", line = err };
+            var g = s.gladiators[id];
+            var res = Contracts.Resolve(s, rng, YouthKey(id), g, t, TrialDemand(s, g), me);
+            if (res.Accepted)
+            {
+                Haggling.Forget(s, YouthKey(id));
+                if (t.signingFee > 0) Economy.AddMoney(s, me, -t.signingFee, $"{g.name} 유소년 계약금");
+                SignTrial(s, me, id, t);
+            }
+            else if (res.status == "walked")
+            {
+                me.youthTrial.Remove(id);
+                Forget(s, id);
+                s.gladiators.Remove(id);
+            }
+            return res;
+        }
+
+        /// <summary>후보와 유소년 계약을 맺는다 (협상이 끝난 뒤)</summary>
+        static void SignTrial(GameState state, Ludus ludus, string id, ContractTerms t)
+        {
+            var g = state.gladiators[id];
+            ludus.youthTrial.Remove(id);
+            ludus.youth.Add(id);
+            // 유소년 계약: 합의한 조항 그대로, 1군으로 올릴 때 정식 계약을 다시 맺는다
+            Contracts.Apply(state, g, t);
+            g.contract.clauses.Add("youth");
+            Career.SeasonRecord(state, g);
+            Career.LogCareer(state, g, $"{ludus.name} 유소년 학당과 {t.seasons}시즌 유소년 계약을 맺었습니다 ({N(g.age)}세, 주급 {N(t.wage)} D)", "join");
+        }
+
+        /// <summary>매일: 입단 테스트 마감이 지나면 남은 후보는 돌아간다</summary>
+        public static void DailyTrial(GameState state)
+        {
+            int now = Calendar.AbsDay(state.season, state.day);
+            foreach (var l in state.ludi.Values)
+            {
+                if (l.youthTrial == null || now <= (l.youthTrialUntil ?? 0)) continue;
+                int left = l.youthTrial.Count;
+                ClearTrial(state, l);
+                if (l.isPlayer && left > 0)
+                    StateUtil.PushMessage(state, "info", "입단 테스트 마감", $"계약하지 않은 후보 {left}명이 돌아갔습니다. 다음 입단 테스트는 다음 시즌 {TrialDate}입니다.");
+            }
+        }
+
+        /// <summary>시즌 시작(서리달 1일) 입학. FM식 우리 루두스는 여기서 받지 않고 시즌 중반 입단 테스트(TrialDay, Day.AdvanceDay)에서 골라 협상한다</summary>
         public static List<Gladiator> Intake(GameState state, Rng rng, Ludus ludus)
         {
             int lvl = ludus.facilities.academy;
             if (lvl == 0) return new List<Gladiator>();
+            if (FmRules.Enabled && ludus.isPlayer) return new List<Gladiator>();
             int room = YouthCapacity(ludus) - ludus.youth.Count;
             int count = Math.Min(room, lvl + 1);
             if (count <= 0) return new List<Gladiator>();
@@ -117,6 +309,13 @@ namespace Colosseum.Core
             ludus.youth = ludus.youth.FindAll(x => x != id);
             ludus.gladiators.Add(id);
             g.wage = Math.Max(8, JsMath.Round(GladiatorRules.ComputeCA(g) * 0.5));
+            // FM식: 1군으로 올리면 정식 계약 (바라는 기간, 받을 만한 주급)
+            if (FmRules.Enabled)
+            {
+                // 학당 출신 첫 정식 계약은 FM처럼 가볍게: 받을 만한 주급의 60%
+                g.wage = Math.Max(8, JsMath.Round(Valuation.FairWage(state, g) * 0.6));
+                g.contract = new GladiatorContract { untilSeason = state.season + Contracts.PreferredSeasons(g) - 1, clauses = new List<string>() };
+            }
             // 학당에서 자란 아이는 루두스에 대한 정이 깊다
             g.hidden.loyalty = Math.Min(20, g.hidden.loyalty + 3);
             if (!g.traits.Contains("academy")) g.traits.Add("academy");

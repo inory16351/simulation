@@ -37,6 +37,30 @@
     "mark_tattoo_chin",
     "mark_paint_eyes"
    ]
+  },
+  {
+   "heads": [
+    "f",
+    "m",
+    "f",
+    "m",
+    "f",
+    "m",
+    "f",
+    "m",
+    "f"
+   ],
+   "front": [
+    "hair_long_3",
+    "hair_braids_3",
+    "hair_short_5",
+    "hair_short_6",
+    "hair_long_4",
+    "beard_full_3",
+    "beard_short_5",
+    "beard_short_6",
+    "hair_braids_4"
+   ]
   }
  ]
 }

@@ -9,6 +9,8 @@ namespace Colosseum.Core
         public int season;
         public string ludus;
         public double tier, apps, wins, losses, kills, caStart, caEnd, popularity, injuries, earnings;
+        /// <summary>Unity판: 공식 경기 평점 합과 평점 받은 경기 수 (평균 = ratingSum / rated)</summary>
+        public double? ratingSum, rated;
     }
 
     public class CareerEvent
@@ -40,6 +42,8 @@ namespace Colosseum.Core
         public int tier;
         public double rp, treasury;
         public List<string> gladiators = new();
+        /// <summary>Unity판: 공식 경기에 나갈 등록 명단 (최대 15, Logic/Registration.cs)과 이미 등록 여부를 따져 본 검투사</summary>
+        public List<string> registered, regSeen;
         public bool isPlayer;
         /// <summary>aggressive | stable | grudge | merchant | developer</summary>
         public string aiPersonality;
@@ -49,6 +53,11 @@ namespace Colosseum.Core
         public Construction construction;
         public List<string> staff = new();
         public List<string> youth = new();
+        /// <summary>Unity판: 유소년 입단 테스트 후보 (계약을 골라 맺는다, Logic/Youth.cs)와 마감일(절대 일수)</summary>
+        public List<string> youthTrial;
+        public double? youthTrialUntil;
+        /// <summary>Unity판: 다음 입단 예고에서 정한 후보 수준 (0 평범 · 1 괜찮음 · 2 뛰어남 · 3 황금 세대)</summary>
+        public int? youthOutlook;
         public double? titles;
         public Dictionary<string, double> favor;
         public double? bankruptSince;
@@ -106,6 +115,10 @@ namespace Colosseum.Core
         /// <summary>1, 3, 5</summary>
         public int? format;
         public List<string> fromLineup, toLineup;
+        /// <summary>Unity판: 우리가 일정 화면에서 고른 경기 날 (절대 일수). 받으면 이 날로 잡힌다</summary>
+        public double? wantAt;
+        /// <summary>Unity판: 휴식기 연습전 (훈련전 규칙, RP·상금·리그 경기 수 없음)</summary>
+        public bool? friendly;
     }
 
     public class LedgerEntry { public double at, amount; public string desc; }
@@ -289,6 +302,12 @@ namespace Colosseum.Core
         public List<Consignment> consignments;
         /// <summary>Unity판 전용: 역대 우승 기록 (리그 1·2부, 판테온 컵). Logic/Honours.cs</summary>
         public List<HonourEntry> honours;
+        /// <summary>Unity판 전용: 이번 시즌 대회별 개인 기록 (대회 키 → 검투사 id → 기록). Logic/Awards.cs</summary>
+        public Dictionary<string, Dictionary<string, CompStat>> compStats;
+        /// <summary>Unity판 전용: 역대 수상</summary>
+        public List<AwardEntry> awards;
+        /// <summary>Unity판 전용: 아직 띄우지 않은 시상 카드 링크 (대회가 끝날 때 awards:comp:…, 시즌 끝 awards:season:N)</summary>
+        public List<string> ceremonies;
         public List<Expedition> expeditions;
         public List<DungeonQuest> dungeonQuests;
         public List<LedgerEntry> ledger = new();

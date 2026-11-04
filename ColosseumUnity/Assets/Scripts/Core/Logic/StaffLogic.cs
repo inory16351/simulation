@@ -175,7 +175,8 @@ namespace Colosseum.Core
             return s;
         }
 
-        public static Staff MakeStaff(GameState state, Rng rng, string role, double rating)
+        /// <summary>tier: 이 사람을 쓸 루두스의 부 (FM식은 아래 부일수록 주급이 싸다)</summary>
+        public static Staff MakeStaff(GameState state, Rng rng, string role, double rating, int tier = 2)
         {
             var races = Data.Nation(state.nation).races;
             string race = rng.Weighted(races);
@@ -203,7 +204,7 @@ namespace Colosseum.Core
                 s.rating = RatingFromAttrs(role, s.attrs);
                 rating = s.rating;
             }
-            s.wage = JsMath.Round(10 + rating * rating * 0.6);
+            s.wage = JsMath.Round((10 + rating * rating * 0.6) * FmRules.CostTierMult(tier));
             s.portraitSeed = rng.Int(0, 1_000_000);
             state.staff[s.id] = s;
             return s;
@@ -214,12 +215,14 @@ namespace Colosseum.Core
         {
             StateUtil.RemoveOrdered(state.staff, state.staffMarket);
             state.staffMarket = new List<string>();
+            // 후보는 우리 루두스가 쓸 사람들이라 우리 부 기준 주급
+            int tier = state.playerLudusId != null && state.ludi.TryGetValue(state.playerLudusId, out var me) ? me.tier : 2;
             foreach (var role in Roles)
             {
                 for (int i = 0; i < 9; i++)
                 {
                     double rating = Math.Max(1, Math.Min(20, JsMath.Round(rng.Range(2, 20))));
-                    state.staffMarket.Add(MakeStaff(state, rng, role, rating).id);
+                    state.staffMarket.Add(MakeStaff(state, rng, role, rating, tier).id);
                 }
             }
         }
@@ -227,7 +230,7 @@ namespace Colosseum.Core
         /// <summary>새 게임: 낡은 독토레 한 명으로 시작</summary>
         public static void StartingStaff(GameState state, Rng rng, Ludus ludus)
         {
-            ludus.staff.Add(MakeStaff(state, rng, "doctore", 6).id);
+            ludus.staff.Add(MakeStaff(state, rng, "doctore", 6, ludus.tier).id);
         }
 
         /// <summary>우리 명성에서 이 사람이 원하는 조건</summary>

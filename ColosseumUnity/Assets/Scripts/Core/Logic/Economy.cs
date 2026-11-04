@@ -81,9 +81,13 @@ namespace Colosseum.Core
         public class PayBill
         {
             public double wages, arrears, food, upkeep, staff;
+            /// <summary>그날 먼저 들어오는 하부 리그 지원금 (세금 뺀 값)</summary>
+            public double grant;
             /// <summary>밀린 급료를 뺀, 매주 나가는 돈</summary>
             public double Weekly => wages + food + upkeep + staff;
             public double Total => Weekly + arrears;
+            /// <summary>금고에서 실제로 줄어드는 돈 (나갈 돈 − 지원금)</summary>
+            public double Net => Total - grant;
         }
 
         public static PayBill NextPayBill(GameState state, Ludus ludus)
@@ -93,6 +97,7 @@ namespace Colosseum.Core
                 food = JsMath.Round(WeeklyFood(state, ludus) * Modifiers.ModifierMult(state, "food")),
                 upkeep = FacilitiesLogic.WeeklyUpkeep(ludus),
                 staff = StaffLogic.StaffWages(state, ludus),
+                grant = ludus.isPlayer ? JsMath.Round(FmRules.LowerLeagueGrant(ludus.tier) * (1 - NationRules.RulesOfNation(ludus.nation).taxRate)) : 0,
             };
             if (double.IsNaN(b.upkeep)) b.upkeep = 0;
             if (double.IsNaN(b.staff)) b.staff = 0;
@@ -107,6 +112,33 @@ namespace Colosseum.Core
         /// <summary>FM식: AI 루두스의 주간 부수입 (후원·관중 외 수입)</summary>
         public static double AiSideIncome(int tier) => tier switch { 1 => 650, 2 => 330, 3 => 190, _ => 110 };
 
+        /// <summary>FM식: 루두스가 한 주에 벌 거라고 보는 돈 (부수입 + 경기 상금·관중 + 시즌 배당을 주로 나눔, 세금 뺌)</summary>
+        public static double ExpectedWeeklyIncome(GameState s, Ludus l)
+        {
+            int t = l.tier;
+            // 한 경기 몫: 승패 반반이면 상금의 65%, 관중은 홈·원정 반반이면 관중 수입의 약 1/3. 세금은 경기 수입에만 붙는다
+            double match = (FmRules.TierMoney("purseFm", t) * 0.65 + FmRules.TierMoney("ticketIncomeFm", t) * 0.33) * (1 - NationRules.RulesOfNation(l.nation).taxRate);
+            double weeks = Calendar.DaysPerSeason / 7.0;
+            // 주 2경기 몫 (BalanceSim aifin으로 잰 AI 실제 수입에 맞춤, 컵 상금·수상은 뺀 보수적인 값)
+            double side = l.isPlayer ? FmRules.LowerLeagueGrant(t) * (1 - NationRules.RulesOfNation(l.nation).taxRate) : AiSideIncome(t);
+            return side + match * 2 + FmRules.TierMoney("dividendBaseFm", t) * 1.05 / weeks;
+        }
+
+        /// <summary>FM식 주급 예산: 이 루두스가 감당할 수 있는 한 주 주급 총액 (유소년 포함).
+        /// 기대 수입의 85%에서 식비·식솔 급료·시설 유지비를 빼고, 금고가 석 달치 수입보다 넉넉하면 남는 돈을 두 시즌에 나눠 더 쓴다. 금고가 비었으면 그만큼 줄인다</summary>
+        public static double WageBudget(GameState s, Ludus l)
+        {
+            double income = ExpectedWeeklyIncome(s, l);
+            double fixedCost = WeeklyFood(s, l) + (l.isPlayer ? FacilitiesLogic.WeeklyUpkeep(l) + StaffLogic.StaffWages(s, l) : 0);
+            double reserve = income * 12;
+            double extra = l.treasury > reserve ? (l.treasury - reserve) / 48 : l.treasury < 0 ? l.treasury / 24 : 0;
+            return Math.Max(0, JsMath.Round(income * 0.85 - fixedCost + extra));
+        }
+
+        /// <summary>새 주급(주당 추가분)을 더해도 예산 안인가. 예산을 넘으면 AI는 영입·재계약·인상을 포기한다 (웹판 규칙에선 늘 참)</summary>
+        public static bool Affords(GameState s, Ludus l, double extraWeekly) =>
+            !FmRules.Enabled || WeeklyWages(s, l) + extraWeekly <= WageBudget(s, l);
+
         /// <summary>급료일 처리. 돈이 모자라면 주급이 높은 순으로 주고, 못 받은 검투사는 미납이 쌓인다</summary>
         public static void Payday(GameState state, Ludus ludus)
         {
@@ -118,6 +150,9 @@ namespace Colosseum.Core
                 ludus.treasury -= WeeklyWages(state, ludus) + WeeklyFood(state, ludus);
                 return;
             }
+            // 하부 리그 지원금을 먼저 받고 나서 낸다
+            double grant = FmRules.LowerLeagueGrant(ludus.tier);
+            if (grant > 0) AddMoney(state, ludus, grant, $"{FmRules.TierName(ludus.tier)} 하부 리그 지원금");
             double food = JsMath.Round(WeeklyFood(state, ludus) * Modifiers.ModifierMult(state, "food"));
             AddMoney(state, ludus, -food, "식비");
             double upkeep = FacilitiesLogic.WeeklyUpkeep(ludus);
@@ -178,7 +213,8 @@ namespace Colosseum.Core
             return g.age < r.debut ? "youth" : g.age <= r.growthEnd ? "growth" : g.age <= r.primeEnd ? "prime" : "decline";
         }
 
-        public static int RosterCapacity(Ludus ludus) => FacilitiesLogic.CapacityAt(ludus.facilities.barracks);
+        /// <summary>보유 인원 한도. FM식은 막사 제한이 없다 (주급으로만 제한, 공식 경기는 등록 15명)</summary>
+        public static int RosterCapacity(Ludus ludus) => FmRules.Enabled ? int.MaxValue : FacilitiesLogic.CapacityAt(ludus.facilities.barracks);
 
         /// <summary>무소속 검투사를 하나 만들어 명단에 올린다</summary>
         public static void AddFreeAgent(GameState state, Rng rng, string nation, double target, HashSet<string> used, bool pow = false)
@@ -257,9 +293,15 @@ namespace Colosseum.Core
             Career.LogCareer(state, g, $"{player.name}에서 방출됐습니다", "other");
         }
 
+        /// <summary>무소속이 바라는 주급의 바탕: FM식은 옮겨 갈 루두스의 부에서 받을 만한 주급, 웹판은 지금 주급</summary>
+        public static double FreeAgentBaseWage(Gladiator g, int tier) => FmRules.Enabled ? Valuation.FairWageAt(g, tier) : g.wage;
+
         /// <summary>우리 명성에서 이 검투사가 원하는 주급</summary>
-        public static Demand FreeAgentDemand(GameState state, Gladiator g) =>
-            Reputation.DemandFor(Reputation.GladiatorStanding(g), g.wage, Reputation.LudusReputation(state, state.ludi[state.playerLudusId]));
+        public static Demand FreeAgentDemand(GameState state, Gladiator g)
+        {
+            var me = state.ludi[state.playerLudusId];
+            return Reputation.DemandFor(Reputation.GladiatorStanding(g), FreeAgentBaseWage(g, me.tier), Reputation.LudusReputation(state, me));
+        }
 
         /// <summary>계약금 = 제안 주급 4주치 (웹판)</summary>
         public static double SigningFee(double offer) => offer * 4;

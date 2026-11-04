@@ -159,7 +159,7 @@ namespace Colosseum.UI
             var me = Player;
             var t = Transfers.TransferOf(S);
             double rep = Reputation.LudusReputation(S, me);
-            sub.text = $"우리 명성 {rep} ({Reputation.ReputationNames(rep)}) · 막사 {me.gladiators.Count}/{Economy.RosterCapacity(me)}명 · " +
+            sub.text = $"우리 명성 {rep} ({Reputation.ReputationNames(rep)}) · " + (FmRules.Enabled ? $"검투사 {me.gladiators.Count}명 · 등록 {Registration.Count(me)}/{Registration.Max}" : $"막사 {me.gladiators.Count}/{Economy.RosterCapacity(me)}명") + " · " +
                 (Transfers.InWindow(S)
                     ? $"<b><color={Theme.Hex(Theme.Good)}>{Tips.Window(Transfers.WindowLine(S))}</color></b>"
                     : $"<b><color=#d9a29b>{Tips.Window(Transfers.WindowLine(S))}</color></b> · 그때까지 다른 루두스 검투사에게는 제안할 수 없습니다. 무소속은 언제든 됩니다") +

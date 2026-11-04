@@ -1,4 +1,4 @@
-// 비석의 언덕 화면 조립 (Unity판 전용): 탭 셋(연혁·역대 우승·비석), 탭마다 표 + 줄 원본(하이어라키에 비활성)
+// 비석의 언덕 화면 조립 (Unity판 전용): 탭 넷(연혁·역대 우승·수상·비석), 탭마다 표 + 줄 원본(하이어라키에 비활성)
 using System.Collections.Generic;
 using Colosseum.UI;
 using TMPro;
@@ -16,6 +16,7 @@ namespace Colosseum.EditorTools
             ("Season", "시즌", 80), ("League", "리그", 150), ("Rank", "순위", 80), ("Record", "승-패", 70), ("Rp", "RP", 70), ("Result", "결과", 120), ("Trophies", "우승컵", 0),
         };
         static readonly (string id, string label, float w)[] HonourCols = { ("Season", "시즌", 90), ("Winner", "우승", 0), ("RunnerUp", "준우승", 0) };
+        static readonly (string id, string label, float w)[] AwardCols = { ("Season", "시즌", 80), ("Kind", "상", 150), ("Winner", "수상자", 0), ("Note", "기록", 300) };
         static readonly (string id, string label, float w)[] GraveCols =
         {
             ("Name", "이름", 0), ("Race", "종족", 80), ("Age", "나이", 60), ("Record", "전적", 170), ("When", "죽은 날", 130), ("Cause", "사인", 220),
@@ -29,7 +30,7 @@ namespace Colosseum.EditorTools
             var tabRow = Rect("Tabs", rt);
             HRow(tabRow, 4);
             var tabs = new List<Button>();
-            foreach (var l in new[] { "연혁", "역대 우승", "비석" })
+            foreach (var l in new[] { "연혁", "역대 우승", "수상", "비석" })
                 tabs.Add(Button("Tab_" + tabs.Count, tabRow, l, false, 14).Layout(prefW: 128, prefH: 32));
             var body = Rect("Body", rt).Layout(flexH: 1, flexW: 1);
             var s = rt.gameObject.AddComponent<HallScreen>();
@@ -66,6 +67,19 @@ namespace Colosseum.EditorTools
             var (honEmpty, honRow) = Table(hon, "Winners", HonourCols, "아직 우승한 루두스가 없습니다.");
             Set(s, "honourEmpty", honEmpty);
             Set(s, "honourTemplate", honRow);
+
+            // ── 수상 ──
+            var aw = Tab(body, "Awards", roots);
+            var abar = Rect("Pick", aw).Layout(flexH: 0);
+            HRow(abar, 8);
+            Text("Label", abar, "대회", 14, Theme.TextDim).Layout(prefW: 56, flexW: 0);
+            Set(s, "awardPick", Dropdown("Comp", abar, 300, 32));
+            var ceremony = Text("Ceremony", abar, "", 14, Theme.Parchment).Layout(flexW: 1);
+            ceremony.raycastTarget = true;
+            Set(s, "ceremonyLink", ceremony);
+            var (awEmpty, awRow) = Table(aw, "Awards", AwardCols, "아직 수상 기록이 없습니다. 대회가 끝날 때마다 상이 정해집니다.");
+            Set(s, "awardEmpty", awEmpty);
+            Set(s, "awardTemplate", awRow);
 
             // ── 비석 ──
             var graves = Tab(body, "Graves", roots);

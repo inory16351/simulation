@@ -1,0 +1,60 @@
+{
+ "presets": {
+  "sheet": "ONE square image the same size as the attached image, flat solid MAGENTA background (#FF00FF) where the original is magenta."
+ },
+ "style": "Keep the original painted style exactly. No text, no watermark.",
+ "styleRefPresets": [
+  "sheet"
+ ],
+ "items": [
+  {
+   "id": "dots2.human",
+   "preset": "sheet",
+   "out": "art/tmp/portrait_unity/dots/human_heads_4.png",
+   "styleRef": "art/source/portrait2/human/front_heads_4.png",
+   "prompt": "Copy the attached sheet EXACTLY: same 3x3 grid, same flat magenta background, every drawing in exactly the same position, size and shape (do not move, resize, redraw or restyle anything). The ONLY change: add small solid round marker dots (about 1.5% of the cell width, perfectly flat color, no outline, no glow) on top of the drawings. Use exactly these colors and nothing else in those colors. In EVERY cell mark this character face: one pure RED (#FF0000) dot at the very top of the skull outline (on the outline itself); one pure YELLOW (#FFFF00) dot centered between the eyebrows; one pure BLUE (#0000FF) dot in the center of EACH pupil (two dots); one pure GREEN (#00FF00) dot on the tip of the nose or snout; one pure CYAN (#00FFFF) dot at the center of the mouth; one pure WHITE (#FFFFFF) dot at the bottom of the chin or jaw outline (on the outline, centered); one pure BLACK (#000000) dot at the base of the neck, centered."
+  },
+  {
+   "id": "dots2.dwarf",
+   "preset": "sheet",
+   "out": "art/tmp/portrait_unity/dots/dwarf_heads_2.png",
+   "styleRef": "art/source/portrait2/dwarf/front_heads_2.png",
+   "prompt": "Copy the attached sheet EXACTLY: same 3x3 grid, same flat magenta background, every drawing in exactly the same position, size and shape (do not move, resize, redraw or restyle anything). The ONLY change: add small solid round marker dots (about 1.5% of the cell width, perfectly flat color, no outline, no glow) on top of the drawings. Use exactly these colors and nothing else in those colors. In EVERY cell mark this character face: one pure RED (#FF0000) dot at the very top of the skull outline (on the outline itself); one pure YELLOW (#FFFF00) dot centered between the eyebrows; one pure BLUE (#0000FF) dot in the center of EACH pupil (two dots); one pure GREEN (#00FF00) dot on the tip of the nose or snout; one pure CYAN (#00FFFF) dot at the center of the mouth; one pure WHITE (#FFFFFF) dot at the bottom of the chin or jaw outline (on the outline, centered); one pure BLACK (#000000) dot at the base of the neck, centered."
+  },
+  {
+   "id": "dots2.orc",
+   "preset": "sheet",
+   "out": "art/tmp/portrait_unity/dots/orc_heads_2.png",
+   "styleRef": "art/source/portrait2/orc/front_heads_2.png",
+   "prompt": "Copy the attached sheet EXACTLY: same 3x3 grid, same flat magenta background, every drawing in exactly the same position, size and shape (do not move, resize, redraw or restyle anything). The ONLY change: add small solid round marker dots (about 1.5% of the cell width, perfectly flat color, no outline, no glow) on top of the drawings. Use exactly these colors and nothing else in those colors. In EVERY cell mark this character face: one pure RED (#FF0000) dot at the very top of the skull outline (on the outline itself); one pure YELLOW (#FFFF00) dot centered between the eyebrows; one pure BLUE (#0000FF) dot in the center of EACH pupil (two dots); one pure GREEN (#00FF00) dot on the tip of the nose or snout; one pure CYAN (#00FFFF) dot at the center of the mouth; one pure WHITE (#FFFFFF) dot at the bottom of the chin or jaw outline (on the outline, centered); one pure BLACK (#000000) dot at the base of the neck, centered."
+  },
+  {
+   "id": "dots2.elf",
+   "preset": "sheet",
+   "out": "art/tmp/portrait_unity/dots/elf_heads_2.png",
+   "styleRef": "art/source/portrait2/elf/front_heads_2.png",
+   "prompt": "Copy the attached sheet EXACTLY: same 3x3 grid, same flat magenta background, every drawing in exactly the same position, size and shape (do not move, resize, redraw or restyle anything). The ONLY change: add small solid round marker dots (about 1.5% of the cell width, perfectly flat color, no outline, no glow) on top of the drawings. Use exactly these colors and nothing else in those colors. In EVERY cell mark this character face: one pure RED (#FF0000) dot at the very top of the skull outline (on the outline itself); one pure YELLOW (#FFFF00) dot centered between the eyebrows; one pure BLUE (#0000FF) dot in the center of EACH pupil (two dots); one pure GREEN (#00FF00) dot on the tip of the nose or snout; one pure CYAN (#00FFFF) dot at the center of the mouth; one pure WHITE (#FFFFFF) dot at the bottom of the chin or jaw outline (on the outline, centered); one pure BLACK (#000000) dot at the base of the neck, centered."
+  },
+  {
+   "id": "dots2.minotaur",
+   "preset": "sheet",
+   "out": "art/tmp/portrait_unity/dots/minotaur_heads_2.png",
+   "styleRef": "art/source/portrait2/minotaur/front_heads_2.png",
+   "prompt": "Copy the attached sheet EXACTLY: same 3x3 grid, same flat magenta background, every drawing in exactly the same position, size and shape (do not move, resize, redraw or restyle anything). The ONLY change: add small solid round marker dots (about 1.5% of the cell width, perfectly flat color, no outline, no glow) on top of the drawings. Use exactly these colors and nothing else in those colors. In EVERY cell mark this character face: one pure RED (#FF0000) dot at the very top of the skull outline (on the outline itself); one pure YELLOW (#FFFF00) dot centered between the eyebrows; one pure BLUE (#0000FF) dot in the center of EACH pupil (two dots); one pure GREEN (#00FF00) dot on the tip of the nose or snout; one pure CYAN (#00FFFF) dot at the center of the mouth; one pure WHITE (#FFFFFF) dot at the bottom of the chin or jaw outline (on the outline, centered); one pure BLACK (#000000) dot at the base of the neck, centered."
+  },
+  {
+   "id": "dots2.lizardfolk",
+   "preset": "sheet",
+   "out": "art/tmp/portrait_unity/dots/lizardfolk_heads_2.png",
+   "styleRef": "art/source/portrait2/lizardfolk/front_heads_2.png",
+   "prompt": "Copy the attached sheet EXACTLY: same 3x3 grid, same flat magenta background, every drawing in exactly the same position, size and shape (do not move, resize, redraw or restyle anything). The ONLY change: add small solid round marker dots (about 1.5% of the cell width, perfectly flat color, no outline, no glow) on top of the drawings. Use exactly these colors and nothing else in those colors. In EVERY cell mark this character face: one pure RED (#FF0000) dot at the very top of the skull outline (on the outline itself); one pure YELLOW (#FFFF00) dot centered between the eyebrows; one pure BLUE (#0000FF) dot in the center of EACH pupil (two dots); one pure GREEN (#00FF00) dot on the tip of the nose or snout; one pure CYAN (#00FFFF) dot at the center of the mouth; one pure WHITE (#FFFFFF) dot at the bottom of the chin or jaw outline (on the outline, centered); one pure BLACK (#000000) dot at the base of the neck, centered."
+  },
+  {
+   "id": "dots2.beastkin",
+   "preset": "sheet",
+   "out": "art/tmp/portrait_unity/dots/beastkin_heads_2.png",
+   "styleRef": "art/source/portrait2/beastkin/front_heads_2.png",
+   "prompt": "Copy the attached sheet EXACTLY: same 3x3 grid, same flat magenta background, every drawing in exactly the same position, size and shape (do not move, resize, redraw or restyle anything). The ONLY change: add small solid round marker dots (about 1.5% of the cell width, perfectly flat color, no outline, no glow) on top of the drawings. Use exactly these colors and nothing else in those colors. In EVERY cell mark this character face: one pure RED (#FF0000) dot at the very top of the skull outline (on the outline itself); one pure YELLOW (#FFFF00) dot centered between the eyebrows; one pure BLUE (#0000FF) dot in the center of EACH pupil (two dots); one pure GREEN (#00FF00) dot on the tip of the nose or snout; one pure CYAN (#00FFFF) dot at the center of the mouth; one pure WHITE (#FFFFFF) dot at the bottom of the chin or jaw outline (on the outline, centered); one pure BLACK (#000000) dot at the base of the neck, centered."
+  }
+ ]
+}

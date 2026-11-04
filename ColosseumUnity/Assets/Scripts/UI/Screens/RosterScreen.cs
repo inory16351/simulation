@@ -26,7 +26,7 @@ namespace Colosseum.UI
         {
             var player = S.ludi[S.playerLudusId];
             var list = player.gladiators.Select(id => S.gladiators[id]).ToList();
-            sub.text = $"검투사 {list.Count}명 · 주급 합계 {list.Sum(g => g.wage):N0} D";
+            sub.text = $"검투사 {list.Count}명 · 주급 합계 {list.Sum(g => g.wage):N0} D" + (Registration.Enabled ? $" · 공식 경기 등록 {Registration.Count(player)}/{Registration.Max}명 (해제는 이적 시장 기간에만, 검투사 상세에서)" : "");
             table.Show(list, S);
 
             var hurt = list.Where(g => g.injury != null).OrderByDescending(g => g.injury.daysLeft).ToList();

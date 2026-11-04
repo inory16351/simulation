@@ -161,6 +161,7 @@ namespace Colosseum.Core
             Economy.AddMoney(s, r, PrizeRunnerUp, $"{Name(c.nation)} 준우승 상금");
             w.titles = (w.titles ?? 0) + 0.5;
             Honours.RecordNatCup(s, c.nation, w, r);
+            Awards.NatCupEnd(s, c);
             if (c.nation != s.nation) return;
             bool mine = w.isPlayer;
             string lines = string.Join("\n", table.Select((x, i) => $"{i + 1}위 {s.ludi[x.id].name} · {x.won}승 {x.lost}패 · 쓰러뜨린 상대 {x.downs:0}"));
@@ -218,7 +219,7 @@ namespace Colosseum.Core
                 Commit(s, c, t, side, side == 0 ? new double[] { 5, 0 } : new double[] { 0, 5 }, 0);
                 return new PlayedTie { tie = t, series = new Series { winner = side }, summary = new MatchSummary() };
             }
-            var series = SeriesLogic.RunSeries(s, new[] { home, away }, new[] { lh, la }, new RunOptions { rule = "missio", mode = "best_of", homeLudusId = home.id }, rng);
+            var series = SeriesLogic.RunSeries(s, new[] { home, away }, new[] { lh, la }, new RunOptions { rule = "missio", mode = "best_of", homeLudusId = home.id, comp = "natcup:" + nation }, rng);
             var summary = Commit(s, c, t, series.winner, series.score, series.Crowd());
             return new PlayedTie { tie = t, series = series, summary = summary };
         }

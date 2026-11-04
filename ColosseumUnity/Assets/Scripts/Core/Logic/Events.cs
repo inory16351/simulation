@@ -158,29 +158,35 @@ namespace Colosseum.Core
             }
         }
 
+        /// <summary>Unity판(FM식)은 노예·자유민 구분이 없어 노예 이야기를 바꿔 보여 준다 (웹판 사건 자료는 그대로)</summary>
+        static string Unity(string text) => !FmRules.Enabled || text == null ? text : text
+            .Replace("노예선 난파", "상선 난파")
+            .Replace("카르세아 노예선이 해안에 좌초했습니다. 살아남은 자들이 헐값에 팔려 나옵니다.", "카르세아 상선이 해안에 좌초했습니다. 살아남은 선원과 호위병들이 싼 주급에 일자리를 찾습니다.");
+
         static void Raise(GameState state, Rng rng, EventDef def, Gladiator target = null)
         {
             if (def.grade == "disaster") state.lastDisasterAt = Calendar.AbsDay(state.season, state.day);
             if (def.grade == "luck") state.luckStreak = Math.Min(state.luckStreak, 0) - 1;
             if (def.grade == "trial" || def.grade == "disaster") state.luckStreak = Math.Max(state.luckStreak, 0) + 1;
+            string title = Unity(def.title);
             var pending = new PendingEvent
             {
                 id = $"E{state.nextId++}",
                 eventId = def.id,
                 targetId = target?.id,
-                title = def.title,
-                text = Fill(def.text, target),
+                title = title,
+                text = Unity(Fill(def.text, target)),
             };
             // 선택지가 하나뿐이면 바로 적용하고 알리기만 한다
             if (def.choices.Count == 1)
             {
                 string result = ApplyEffects(state, rng, def.choices[0].effects, target);
-                Msg(state, "event", def.title, $"{pending.text}\n\n{result}".Trim());
+                Msg(state, "event", title, $"{pending.text}\n\n{result}".Trim());
             }
             else
             {
                 state.pendingEvents.Add(pending);
-                Msg(state, "event", $"{def.title} — 어떻게 할지 정해야 합니다", pending.text);
+                Msg(state, "event", $"{title} — 어떻게 할지 정해야 합니다", pending.text);
             }
         }
 
@@ -197,7 +203,7 @@ namespace Colosseum.Core
             Gladiator target = null;
             if (!string.IsNullOrEmpty(p.targetId)) state.gladiators.TryGetValue(p.targetId, out target);
             string result = ApplyEffects(state, rng, choice.effects, target);
-            Msg(state, "event", $"{def.title}: {choice.label}", string.IsNullOrEmpty(result) ? "별일 없이 지나갔습니다." : result);
+            Msg(state, "event", $"{Unity(def.title)}: {choice.label}", string.IsNullOrEmpty(result) ? "별일 없이 지나갔습니다." : result);
             return result;
         }
 

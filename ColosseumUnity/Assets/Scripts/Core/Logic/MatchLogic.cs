@@ -14,6 +14,8 @@ namespace Colosseum.Core
         public bool ranked;
         /// <summary>홈 루두스 (관중 수입을 더 가져간다)</summary>
         public string homeLudusId;
+        /// <summary>Unity판: 수상 기록을 쌓을 대회 ("league"는 각자 리그, 연습전은 null)</summary>
+        public string comp;
     }
 
     public class MatchSummary
@@ -70,6 +72,8 @@ namespace Colosseum.Core
             string ruleName = (string)rule["name"];
             double fameMult = (double)rule["fameMult"];
 
+            Ratings.Record(state, r, opt.comp != null);
+            Awards.RecordBout(state, opt.comp, w, l, r);
             w.record.wins++;
             l.record.losses++;
             Contracts.OnWin(state, w, opt.rule);
@@ -163,8 +167,10 @@ namespace Colosseum.Core
         }
 
         /// <summary>난전 결과를 사람마다 반영한다 (Unity판 전용). 루두스끼리의 RP·돈은 호출한 쪽(TeamSettle, 컵)이 정산한다</summary>
-        public static MatchSummary ApplyTeamResult(GameState state, MatchResult r, string ruleId, Rng rng)
+        public static MatchSummary ApplyTeamResult(GameState state, MatchResult r, string ruleId, Rng rng, string comp = null)
         {
+            Ratings.Record(state, r, comp != null);
+            Awards.RecordMelee(state, comp, r);
             var rule = Bal.Rule(ruleId);
             var winLudus = Career.LudusOf(state, r.sides[r.winnerSide][0]);
             var nr = NationRules.RulesOfNation(winLudus?.nation ?? state.nation);

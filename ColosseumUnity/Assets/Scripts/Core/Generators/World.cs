@@ -63,7 +63,7 @@ namespace Colosseum.Core
             var E = Bal.Economy;
             int teamsPerTier = (int)L["teamsPerTier"];
             double rpTier1 = (double)L["rpTier1"], rpTier2 = (double)L["rpTier2"];
-            int aiRoster = (int)E["aiRoster"], startRoster = (int)E["startRoster"];
+            int aiRoster = FmRules.AiRoster, startRoster = FmRules.Enabled ? 8 : (int)E["startRoster"];
             double startTreasury = (double)E["startTreasury"];
             bool fm = FmRules.Enabled;
             if (!fm) startTier = 2;
@@ -96,11 +96,12 @@ namespace Colosseum.Core
                     opt.nation = ludusNation;
                     opt.target = target + rng.Range(-1.5, 1.5);
                     opt.usedNames = usedGladiatorNames;
-                    // 플레이어 시작 로스터는 노예 위주
-                    opt.status = isPlayer ? (rng.Chance(0.85) ? "slave" : "free") : null;
+                    // 웹판: 플레이어 시작 로스터는 노예 위주. FM식은 신분 구분 없이 모두 계약 검투사
+                    opt.status = isPlayer && !fm ? (rng.Chance(0.85) ? "slave" : "free") : null;
                     var g = GladiatorGen.Generate(rng, opt);
                     // FM식: 자유민은 계약서가 있어야 재계약·만료가 돈다 (시즌 2까지)
-                    if (fm && g.status == "free" && g.contract == null) g.contract = new GladiatorContract { untilSeason = 2, clauses = new List<string>() };
+                    // AI는 1~4시즌으로 나눠 계약이 한꺼번에 끝나지 않게 (로스터 순서로 정해 난수를 쓰지 않는다)
+                    if (fm && g.status == "free" && g.contract == null) g.contract = new GladiatorContract { untilSeason = isPlayer ? 2 + ludus.gladiators.Count % 3 : 1 + ludus.gladiators.Count % 4, clauses = new List<string>() };
                     state.gladiators[g.id] = g;
                     ludus.gladiators.Add(g.id);
                 }
@@ -214,13 +215,36 @@ namespace Colosseum.Core
                 read = false,
             });
 
+            // FM식: 모두 계약 검투사라 주급은 뛰는 리그 수준의 '받을 만한 주급'으로 (4부는 싸고 1부는 비싸다)
+            if (fm)
+                foreach (var l in state.ludi.Values)
+                    foreach (var id in l.gladiators)
+                        state.gladiators[id].wage = Valuation.FairWage(state, state.gladiators[id]);
             // 시즌 시작: 배당금, 무소속 명단, 일대기 첫 줄
             double promoted = (double)E["promotedDividendCoef"];
             foreach (var l in state.ludi.Values.ToList()) Economy.PayDividend(state, l, l.isPlayer ? (fm ? 1.0 : promoted) : (double?)null);
             StaffLogic.RefreshStaffMarket(state, rng);
             Economy.RefreshFreeAgents(state, rng);
+            if (fm)
+            {
+                // 시작부터 무소속인 검투사: 나라마다 4명 (1~4부 수준 하나씩)
+                var used = new HashSet<string>(state.gladiators.Values.Select(g => g.name));
+                foreach (var n in Data.Nations)
+                    for (int tier = 1; tier <= 4; tier++)
+                        Economy.AddFreeAgent(state, rng, n.id, FmRules.RosterTarget(tier) + rng.Range(-1, 1), used);
+            }
             GearLogic.RefreshGearMarket(state, rng, true);
             StaffLogic.StartingStaff(state, rng, state.ludi[state.playerLudusId]);
+            if (fm)
+            {
+                // FM식: 모든 루두스에 유소년 학당(1단계)이 있고, 시작하자마자 첫 입학(우리는 입단 테스트 후보)을 받는다
+                foreach (var l in state.ludi.Values.ToList())
+                {
+                    l.facilities.academy = Math.Max(1, l.facilities.academy);
+                    l.youth ??= new List<string>();
+                    Youth.Intake(state, rng, l);
+                }
+            }
             foreach (var l in state.ludi.Values.ToList())
             {
                 foreach (var id in l.gladiators)

@@ -12,12 +12,14 @@ namespace Colosseum.EditorTools
         public static ScreenBase Build(Transform main)
         {
             var rt = Rect("Screen_overview", main).Stretch(26, 20, 26, 20);
-            VCol(rt, 14);
-            ScreenHeader(rt, "루두스", "안뜰 — 루두스의 오늘");
-            var title = rt.Find("Title").GetComponent<TMP_Text>();
+            // 내용이 늘어도 넘치지 않게 화면 전체를 스크롤 영역으로
+            var page = ScrollView("Scroll", rt, out var pageScroll, 14);
+            pageScroll.Stretch();
+            ScreenHeader(page, "루두스", "안뜰 — 루두스의 오늘");
+            var title = page.Find("Title").GetComponent<TMP_Text>();
 
             // 요약 패널 셋 (grid3)
-            var grid = Rect("Grid", rt);
+            var grid = Rect("Grid", page);
             var gh = HRow(grid, 14);
             gh.childForceExpandWidth = true;
             gh.childForceExpandHeight = false;
@@ -48,7 +50,7 @@ namespace Colosseum.EditorTools
             var injured = Text("Injured", house, "부상자 0명", 15);
 
             // 주력 검투사
-            var bestPad = TitledPanel("Best", rt, "주력 검투사");
+            var bestPad = TitledPanel("Best", page, "주력 검투사");
             var bestRow = Rect("Row", bestPad);
             HRow(bestRow, 18, 0, 0, 0, 0, TextAnchor.UpperLeft);
             var card = Box("BestTemplate", bestRow, new Color(0, 0, 0, 0));

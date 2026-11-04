@@ -8,6 +8,7 @@
     "menux": "ONE square image, a 3x3 grid of equal square cells, flat solid MAGENTA background (#FF00FF) in every cell (must stay magenta, no gradient, no frames, no grid lines, no shadows on the background). No text, no labels. Each cell: one game inventory ICON of a single item, centered, filling about 75% of the cell, slight 3/4 view, no hands, no person, no ground. Keep every item fully inside its own cell. Very simple bold shape, readable as a tiny 26px menu icon.",
     "menuy": "ONE square image, a 3x3 grid of equal square cells, flat solid MAGENTA background (#FF00FF) in every cell (must stay magenta, no gradient, no frames, no grid lines, no shadows on the background). No text, no labels. Each cell: one game inventory ICON of a single item, centered, filling about 75% of the cell, slight 3/4 view, no hands, no person, no ground. Keep every item fully inside its own cell. Very simple bold shape, readable as a tiny 26px menu icon.",
     "trophy": "ONE square image, a 3x3 grid of equal square cells, flat solid MAGENTA background (#FF00FF) in every cell (must stay magenta, no gradient, no frames, no grid lines, no shadows on the background). No text, no labels. Each cell: one TROPHY object, upright, front view, centered, filling about 80% of the cell, no pedestal shadow, no people, no text, no letters. Keep every trophy fully inside its own cell.",
+    "extra": "ONE square image, a 3x3 grid of equal square cells, flat solid MAGENTA background (#FF00FF) in every cell (must stay magenta, no gradient, no frames, no grid lines, no shadows on the background). No text, no labels. Each cell: one game inventory ICON of a single item, centered, filling about 75% of the cell, slight 3/4 view, no hands, no person, no ground. Keep every item fully inside its own cell. Very simple bold shape.",
     "fx": "ONE square image, a 3x3 grid of equal square cells, flat solid MAGENTA background (#FF00FF) in every cell (must stay magenta, no gradient, no frames, no grid lines, no shadows on the background). No text, no labels. Each cell: one 2D combat effect sprite, centered, filling about 75% of the cell, no ground, no characters, edges made of loose gouache brush strokes. Keep every effect fully inside its own cell."
   },
   "style": "Art style: FLAT simplified dark-fantasy graphic novel painted with gouache, matching the attached reference (the portrait panels and the cut-out helmet/armor parts on the right are the exact target look): bold uniform black ink outline around every shape, a FEW LARGE flat color shapes, at most 3 flat tones per material (base, one blocky shadow, one small warm highlight) laid with loose visible brush strokes, desaturated muted palette (bone, rust, dull bronze, iron grey, dark leather, muted red), warm torchlight from the left. Keep detail LOW: no rust speckles or grime texture, no fine engraving, no glossy metal specular shine, no smooth gradients, no photo-real rendering, no bright saturated cartoon colors, NOT chibi, NOT cute storybook. VALUES ARE DARK like the reference: mostly mid-to-dark tones, big blocky near-black shadow shapes covering about 40% of each object on the side away from the light, only thin warm highlights on the lit edge, colors greyed and dirty (old bronze, dull ochre, brick red, ash grey), rough dry-brush gouache texture visible inside the flat shapes. Grim mature illustration, NOT a clean bright mobile-game icon, NOT vector art. The silhouette must read clearly at 48px.",
@@ -21,6 +22,7 @@
     "menux",
     "menuy",
     "trophy",
+    "extra",
     "fx"
   ],
   "items": [
@@ -461,6 +463,16 @@
         "league_2",
         "league_3",
         "league_4"
+      ]
+    },
+    {
+      "id": "extra_01",
+      "preset": "extra",
+      "out": "art/source/icon_sheets/extra_01.png",
+      "prompt": "Cells left-to-right, top-to-bottom:\n1. a bronze wax-tablet calendar: a small hinged wooden tablet with a grid of carved day squares and one square marked by a red seal, simple bold shape readable as a tiny 26px menu icon\n2. an award medal: a round gold medallion stamped with a laurel wreath around a pair of crossed gladius swords, hanging from a short dark-red ribbon\n3-9. leave empty (flat magenta)",
+      "cells": [
+        "menu/schedule",
+        "award"
       ]
     },
     {

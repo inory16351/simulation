@@ -76,6 +76,8 @@ namespace Colosseum.Core.Combat
         /// <summary>죽은 검투사들 (died는 그중 첫 번째)</summary>
         public List<string> deaths;
         public bool IsTeam => sides != null;
+        /// <summary>Unity판: 평점 매니저가 붙인 출전자별 기록과 평점 (Logic/Ratings.cs)</summary>
+        public Dictionary<string, FighterStats> stats;
     }
 
     class Fighter

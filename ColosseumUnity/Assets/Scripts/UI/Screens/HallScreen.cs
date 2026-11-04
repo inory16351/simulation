@@ -1,5 +1,5 @@
 // 비석의 언덕 (Unity판 전용): FM 클럽 연혁·대회 역사처럼 지난 시즌들을 남긴다.
-// 탭 셋: 연혁(루두스 하나의 시즌별 성적과 우승컵 진열장), 역대 우승(대회별 우승·준우승), 비석(우리 루두스에서 죽은 검투사).
+// 탭 넷: 연혁(루두스 하나의 시즌별 성적과 우승컵 진열장), 역대 우승(대회별 우승·준우승), 수상(대회별 개인·라니스타 상), 비석(우리 루두스에서 죽은 검투사).
 using System.Collections.Generic;
 using System.Linq;
 using Colosseum.Core;
@@ -11,7 +11,7 @@ namespace Colosseum.UI
 {
     public class HallScreen : ScreenBase
     {
-        static readonly string[] Tabs = { "club", "honours", "graves" };
+        static readonly string[] Tabs = { "club", "honours", "awards", "graves" };
 
         [SerializeField] List<Button> tabButtons = new();
         [SerializeField] List<GameObject> tabRoots = new();
@@ -29,16 +29,25 @@ namespace Colosseum.UI
         [SerializeField] GameObject honourEmpty;
         [SerializeField] RectTransform honourTemplate;
 
+        [Header("수상")]
+        [SerializeField] TMP_Dropdown awardPick;
+        [SerializeField] TMP_Text ceremonyLink;
+        [SerializeField] GameObject awardEmpty;
+        [SerializeField] RectTransform awardTemplate;
+
         [Header("비석")]
         [SerializeField] TMP_Text graveTitle;
         [SerializeField] GameObject graveEmpty;
         [SerializeField] RectTransform graveTemplate;
 
-        TemplateList<RectTransform> clubRows, honourRows, graveRows;
+        TemplateList<RectTransform> clubRows, honourRows, graveRows, awardRows;
         string tab = "club", clubId;
         // 대회 고르기: (null, 0) = 판테온 컵, (나라, 부) = 리그
         readonly List<(string nation, int tier)> comps = new();
         int compIdx;
+        // 수상 탭 대회: (null, -3) = 시즌 시상(나라별·세계 올해의 검투사), 나머지는 comps와 같다
+        readonly List<(string nation, int tier)> awardComps = new();
+        int awardIdx;
         List<Ludus> clubList = new();
 
         void Awake()
@@ -46,6 +55,8 @@ namespace Colosseum.UI
             clubRows = new TemplateList<RectTransform>(clubTemplate);
             honourRows = new TemplateList<RectTransform>(honourTemplate);
             graveRows = new TemplateList<RectTransform>(graveTemplate);
+            awardRows = new TemplateList<RectTransform>(awardTemplate);
+            awardPick.onValueChanged.AddListener(i => { awardIdx = i; Refresh(); });
             for (int i = 0; i < tabButtons.Count; i++)
             {
                 string t = Tabs[i];
@@ -67,6 +78,7 @@ namespace Colosseum.UI
             {
                 case "club": DrawClub(); break;
                 case "honours": DrawHonours(); break;
+                case "awards": DrawAwards(); break;
                 case "graves": DrawGraves(); break;
             }
         }
@@ -165,6 +177,50 @@ namespace Colosseum.UI
 
         string Nation(string ludusId, bool show) =>
             show && ludusId != null && S.ludi.TryGetValue(ludusId, out var l) ? $" <size=80%><color={Theme.Hex(Theme.TextDim)}>({Data.Nation(l.nation).@short})</color></size>" : "";
+
+        // ── 수상 ──
+
+        static readonly string[] KindOrder = { "world_best", "nation_best", "best", "top", "rookie", "lanista" };
+
+        void DrawAwards()
+        {
+            awardComps.Clear();
+            awardComps.Add((null, -3));
+            awardComps.Add((null, 0));
+            awardComps.Add((null, -2));
+            foreach (var n in Data.Nations.OrderByDescending(n => n.id == S.nation))
+            {
+                for (int t = 1; t <= FmRules.MaxTier; t++) awardComps.Add((n.id, t));
+                awardComps.Add((n.id, -1));
+            }
+            awardIdx = Mathf.Clamp(awardIdx, 0, awardComps.Count - 1);
+            Fill(awardPick, awardComps.Select(x => x.tier == -3 ? "시즌 시상 (올해의 검투사)" : x.tier == 0 ? Honours.CupName : x.tier == -2 ? OlympicaLogic.Name
+                : x.tier == -1 ? NatCupLogic.Name(x.nation) : Honours.LeagueName(x.nation, x.tier)), awardIdx);
+            var (nation, tier) = awardComps[awardIdx];
+            bool Match(AwardEntry a) => tier switch
+            {
+                -3 => a.comp == "world" || a.comp.StartsWith("nation:"),
+                0 => a.comp == "pantheon",
+                -2 => a.comp == "olympica",
+                -1 => a.comp == $"natcup:{nation}",
+                _ => a.comp == $"league:{nation}:{tier}",
+            };
+            var all = S.awards ?? new List<AwardEntry>();
+            int last = all.Count == 0 ? 0 : all.Max(a => a.season);
+            ceremonyLink.text = last > 0 ? $"<color={Theme.Hex(Theme.TextDim)}>지난 시상식:</color> {Tips.Ceremony(last)}" : "";
+            var list = all.Where(Match).OrderByDescending(a => a.season).ThenBy(a => System.Array.IndexOf(KindOrder, a.kind)).ToList();
+            awardEmpty.SetActive(list.Count == 0);
+            string me = S.playerLudusId;
+            awardRows.Sync(list.Count, (row, i) =>
+            {
+                var a = list[i];
+                row.GetComponent<Image>().color = a.ludusId == me ? new Color(0.89f, 0.6f, 0.23f, 0.10f) : Color.clear;
+                T(row, "Season").text = $"시즌 {a.season}";
+                T(row, "Kind").text = a.kind == "nation_best" ? $"{Tips.Nation(a.comp.Substring(7), true)} {Awards.KindNames[a.kind]}" : Awards.KindNames[a.kind];
+                T(row, "Winner").text = $"<color={Theme.Hex(Theme.Torch)}>★</color> {InfoCards.AwardWho(S, a)}";
+                T(row, "Note").text = a.note ?? "";
+            });
+        }
 
         // ── 비석 ──
 

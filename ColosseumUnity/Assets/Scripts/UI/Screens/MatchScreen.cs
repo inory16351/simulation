@@ -73,8 +73,12 @@ namespace Colosseum.UI
         [SerializeField] Button skipButton;
         [SerializeField] Button closeButton;
         [SerializeField] Button rosterButton;
+        [Header("결과창 (평점 매니저 기록)")]
+        [SerializeField] GameObject resultPanel;
+        [SerializeField] TMP_Text resultMvp;
+        [SerializeField] RectTransform resultTemplate;
 
-        TemplateList<RectTransform> officials, teams;
+        TemplateList<RectTransform> officials, teams, resultRows;
         readonly List<GameObject> lines = new();
 
         string speed = "normal", returnScreen;
@@ -109,9 +113,17 @@ namespace Colosseum.UI
         {
             officials = new TemplateList<RectTransform>(officialTemplate);
             teams = new TemplateList<RectTransform>(teamTemplate);
+            resultRows = new TemplateList<RectTransform>(resultTemplate);
             lineTemplate.gameObject.SetActive(false);
             for (int i = 0; i < speedButtons.Count; i++) { string s = Speeds[i].id; speedButtons[i].onClick.AddListener(() => { speed = s; Refresh(); }); }
-            skipButton.onClick.AddListener(() => { if (playing != null) StopCoroutine(playing); playing = null; ShowAll(); });
+            // 중계 중에는 결과로 건너뛰기, 끝난 뒤에는 결과창 ↔ 중계 기록 전환
+            skipButton.onClick.AddListener(() =>
+            {
+                if (live != null && shown >= live.items.Count) { resultPanel.SetActive(!resultPanel.activeSelf); UpdateButtons(); return; }
+                if (playing != null) StopCoroutine(playing);
+                playing = null;
+                ShowAll();
+            });
             closeButton.onClick.AddListener(OnClose);
             rosterButton.onClick.AddListener(() => { live = null; seriesLives = null; returnScreen = null; G.Go("roster"); });
         }
@@ -156,7 +168,7 @@ namespace Colosseum.UI
             row.Find("Them/Portrait").GetComponentInChildren<PortraitView>(true).Show(them);
             row.Find("Them/Name").GetComponent<TMP_Text>().text = Tips.Name(them);
             var rt = row.Find("Vs/Rule").GetComponent<TMP_Text>();
-            rt.text = RuleName(c.rule);
+            rt.text = ChallengeLogic.RuleLabel(c);
             rt.color = c.rule == "sudden" ? Neg : Theme.Text;
             row.Find("Vs/Opp").GetComponent<TMP_Text>().text = Tips.Ludus(opp);
             EnterButton(row.Find("Enter").GetComponent<Button>(), c);
@@ -167,14 +179,14 @@ namespace Colosseum.UI
             bool iAmFrom = S.ludi[c.from].isPlayer;
             var opp = S.ludi[iAmFrom ? c.to : c.from];
             int n = c.format.Value;
-            var pool = player.gladiators.Select(id => S.gladiators[id]).Where(g => GladiatorRules.CanFight(g) && ChallengeLogic.Availability(S, g) == null).ToList();
+            var pool = player.gladiators.Select(id => S.gladiators[id]).Where(g => GladiatorRules.CanFight(g) && ChallengeLogic.Availability(S, g, null, c.friendly != true) == null).ToList();
             if (!lineups.TryGetValue(c.id, out var order))
             {
                 var keep = new List<string> { iAmFrom ? c.fromGladiator : c.toGladiator }.Where(x => x != null).ToList();
-                order = SeriesLogic.AutoLineup(S, player, n, ChallengeLogic.Now(S), keep).Select(g => g.id).ToList();
+                order = SeriesLogic.AutoLineup(S, player, n, ChallengeLogic.Now(S), keep, c.friendly != true).Select(g => g.id).ToList();
             }
             var rt = row.Find("Info/Rule").GetComponent<TMP_Text>();
-            rt.text = $"{SeriesLogic.FormatNames[n]} · {RuleName(c.rule)}";
+            rt.text = $"{SeriesLogic.FormatNames[n]} · {ChallengeLogic.RuleLabel(c)}";
             rt.color = c.rule == "sudden" ? Neg : Theme.Text;
             row.Find("Info/Hint").GetComponent<TMP_Text>().text = $"상대: {opp.name}. 양쪽 출전자 전원이 한꺼번에 싸웁니다. 한쪽이 모두 쓰러지거나 마지막 한 명이 항복하면 끝납니다";
             var slots = row.Find("Lineup");
@@ -285,7 +297,7 @@ namespace Colosseum.UI
                 StateUtil.PushMessage(draft, dead.Count > 0 ? "death" : "match", $"{SeriesLogic.FormatNames[n]} {(won ? "승리" : "패배")}: {opp.name}",
                     detail +
                     $"\nRP {(rp >= 0 ? "+" : "")}{rp} · 수입 {money:N0} D (세전)" + (dead.Count > 0 ? $"\n\n죽은 자: {string.Join(", ", dead)}" : ""));
-                seriesLives = SeriesLives(s, meFirst, c.rule, $"{SeriesLogic.FormatNames[n]} · {RuleName(c.rule)}");
+                seriesLives = SeriesLives(s, meFirst, c.rule, $"{SeriesLogic.FormatNames[n]} · {ChallengeLogic.RuleLabel(c)}");
                 seriesLives[seriesLives.Count - 1].commit = draft;
                 seriesIdx = 0;
                 Begin(seriesLives[0]);
@@ -296,14 +308,15 @@ namespace Colosseum.UI
             var l = draft.gladiators[r.loserId];
             var died = r.died != null ? draft.gladiators[r.died] : null;
             StateUtil.PushMessage(draft, died != null ? "death" : "match",
-                died != null ? $"{died.name}, 모래 위에서 숨을 거두었습니다" : $"{RuleName(c.rule)}: {w.name} 승리",
+                died != null ? $"{died.name}, 모래 위에서 숨을 거두었습니다" : $"{ChallengeLogic.RuleLabel(c)}: {w.name} 승리",
                 $"{w.name} vs {l.name} — {w.name} 승리 ({ReasonNames[r.reason]}, {r.rounds}라운드)\n" +
                 $"RP {(rp >= 0 ? "+" : "")}{rp} · 수입 {money:N0} D (세전)" +
                 (died != null ? $"\n\n{died.name}의 이름이 비석에 새겨졌습니다. 다시는 돌아오지 않습니다." : ""));
             Begin(new Live
             {
                 result = r, a = meFirst ? played.a : played.b, b = meFirst ? played.b : played.a,
-                items = BuildItems(r, played.a, played.b, (uint)r.rounds), rule = c.rule, commit = draft, sub = "공식 경기",
+                items = BuildItems(r, played.a, played.b, (uint)r.rounds), rule = c.rule, commit = draft,
+                title = ChallengeLogic.RuleLabel(c), sub = c.friendly == true ? "연습전 · 훈련전 규칙, 명성·상금·RP 없음" : "공식 경기",
             });
         }
 
@@ -379,6 +392,7 @@ namespace Colosseum.UI
             }
             cutOverlay.SetActive(false);
             flash.gameObject.SetActive(false);
+            resultPanel.SetActive(false);
             Refresh();
             playTitle.text = l.title ?? RuleName(l.rule);
             playSub.text = l.sub ?? "모래 마당 연습 시합";
@@ -505,6 +519,7 @@ namespace Colosseum.UI
 
         void Finish()
         {
+            if (!doneCalled) ShowResult();
             UpdateButtons();
             DrawFighters();
             if (doneCalled) return;
@@ -513,12 +528,53 @@ namespace Colosseum.UI
             if (live.commit != null) { var next = live.commit; live.commit = null; G.Replace(next); }
         }
 
+        /// <summary>결과창: 평점 매니저가 매긴 출전자별 기록. 우리 편 먼저, 경기 최우수 검투사 표시</summary>
+        void ShowResult()
+        {
+            var st = live.result?.stats;
+            if (st == null || st.Count == 0) { resultPanel.SetActive(false); return; }
+            var mine = live.teamA ?? new List<Gladiator> { live.a };
+            var theirs = live.teamB ?? new List<Gladiator> { live.b };
+            var people = mine.Select(g => (g, ours: true)).Concat(theirs.Select(g => (g, ours: false))).Where(x => x.g != null && st.ContainsKey(x.g.id)).ToList();
+            if (people.Count == 0) { resultPanel.SetActive(false); return; }
+            var best = people.OrderByDescending(x => st[x.g.id].rating).ThenByDescending(x => st[x.g.id].dealt).First();
+            var bs = st[best.g.id];
+            resultMvp.text = $"<color={Theme.Hex(Theme.Torch)}>★ 경기 최우수 검투사</color>  <b>{Tips.Name(best.g)}</b>  평점 {Rate(bs.rating)}  " +
+                $"<color={Theme.Hex(Theme.TextDim)}>입힌 피해 {bs.dealt:0} · 쓰러뜨림 {bs.downs}</color>";
+            resultRows.Sync(people.Count, (row, i) =>
+            {
+                var (g, ours) = people[i];
+                var f = st[g.id];
+                row.GetComponent<Image>().color = ours ? new Color(0.89f, 0.6f, 0.23f, 0.08f) : Color.clear;
+                string mark = f.died ? $" <color={Theme.Hex(ToneColors["death"])}>†</color>" : f.downed ? $" <color={Theme.Hex(Theme.TextFaint)}>(쓰러짐)</color>" : "";
+                string side = live.teamA != null ? $"<color={Theme.Hex(Theme.TextFaint)}>{(ours ? "우리" : "상대")}</color>  " : "";
+                RT(row, "Name").text = side + Tips.Name(g) + mark;
+                RT(row, "Rating").text = Rate(f.rating);
+                RT(row, "Dealt").text = f.dealt.ToString("0");
+                RT(row, "Taken").text = f.taken.ToString("0");
+                RT(row, "Acc").text = f.attacks > 0 ? $"{f.hits}/{f.attacks}" : "—";
+                RT(row, "Block").text = (f.blocks + f.parries).ToString();
+                RT(row, "Dodge").text = f.dodges.ToString();
+                RT(row, "Crit").text = f.crits.ToString();
+                RT(row, "Downs").text = f.downs + (f.kills > 0 ? $" <color={Theme.Hex(ToneColors["death"])}>({f.kills})</color>" : "");
+            });
+            resultPanel.SetActive(true);
+        }
+
+        /// <summary>평점 글자 (FM처럼 7.5 이상 녹색, 6.5 아래 붉은빛)</summary>
+        static string Rate(double r) => $"<b><color={Theme.Hex(r >= 7.5 ? Theme.Good : r >= 6.5 ? Theme.Parchment : Neg)}>{r:0.0}</color></b>";
+
+        static TMP_Text RT(Transform row, string path) => row.Find(path).GetComponent<TMP_Text>();
+
         void OnClose()
         {
+            resultPanel.SetActive(false);
             if (seriesLives != null && seriesIdx < seriesLives.Count - 1) { seriesIdx++; Begin(seriesLives[seriesIdx]); return; }
             live = null;
             seriesLives = null;
             if (returnScreen != null) { var to = returnScreen; returnScreen = null; G.Go(to); return; }
+            // 오늘 남은 경기가 없으면 서판으로 (FM처럼 경기 뒤 다음 일로)
+            if (ChallengeLogic.TodaysPlayerMatches(S).Count == 0) { G.Go("inbox"); return; }
             Refresh();
         }
 
@@ -537,11 +593,13 @@ namespace Colosseum.UI
         void UpdateButtons()
         {
             bool finished = live != null && shown >= live.items.Count;
-            skipButton.gameObject.SetActive(!finished);
+            bool hasResult = live?.result?.stats != null;
+            skipButton.gameObject.SetActive(!finished || hasResult);
+            skipButton.GetComponentInChildren<TMP_Text>().text = !finished ? "결과 보기" : resultPanel.activeSelf ? "중계 기록" : "결과창";
             closeButton.gameObject.SetActive(finished);
             rosterButton.gameObject.SetActive(finished);
             bool lastBout = seriesLives == null || seriesIdx >= seriesLives.Count - 1;
-            closeButton.GetComponentInChildren<TMP_Text>().text = seriesLives == null ? "한 판 더" : lastBout ? "돌아가기" : "다음 판";
+            closeButton.GetComponentInChildren<TMP_Text>().text = lastBout ? "다음으로" : "다음 판";
         }
 
         void DrawFighters()

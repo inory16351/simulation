@@ -19,10 +19,12 @@ namespace Colosseum.EditorTools
         public static ScreenBase Build(Transform main)
         {
             var rt = Rect("Screen_league", main).Stretch(26, 20, 26, 20);
-            VCol(rt, 12);
-            ScreenHeader(rt, "서열표", "시즌이 끝나면 RP 순위에 따라 승격과 강등이 갈립니다. 나라마다 1~4부가 있고, 부마다 1·2위는 한 부 위로 올라가고 9·10위는 한 부 아래로 떨어집니다.");
+            // 내용이 늘어도 넘치지 않게 화면 전체를 스크롤 영역으로
+            var page = ScrollView("Scroll", rt, out var pageScroll, 12);
+            pageScroll.Stretch();
+            ScreenHeader(page, "서열표", "시즌이 끝나면 RP 순위에 따라 승격과 강등이 갈립니다. 나라마다 1~4부가 있고, 부마다 1·2위는 한 부 위로 올라가고 9·10위는 한 부 아래로 떨어집니다.");
 
-            var bar = Rect("Filter", rt);
+            var bar = Rect("Filter", page);
             HRow(bar, 4);
             var t1 = Button("Tier1", bar, "1부 리그", false, 14).Layout(prefW: 110, prefH: 32);
             var t2 = Button("Tier2", bar, "2부 리그", false, 14).Layout(prefW: 110, prefH: 32);
@@ -31,7 +33,7 @@ namespace Colosseum.EditorTools
             Rect("Gap", bar).Layout(prefW: 10, flexW: 0);
             var nation = Dropdown("Nation", bar, 220, 32);
 
-            var table = Panel("Table", rt);
+            var table = Panel("Table", page);
             VCol(table.transform, 0, 1, 1, 1, 1);
             table.transform.Find("Fill").gameObject.AddComponent<LayoutElement>().ignoreLayout = true;
             var head = Box("Head", table.transform, Theme.Bg2).Layout(minH: 30, prefH: 30);

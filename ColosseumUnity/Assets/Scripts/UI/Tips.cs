@@ -105,6 +105,28 @@ namespace Colosseum.UI
             return $"<b>{s.name}</b>  <color={Theme.Hex(Theme.TextDim)}>{StaffLogic.RoleNames[s.role]} · 평점 {StateUtil.Num(s.rating)} · {StateUtil.Num(s.age)}세</color>\n{StaffKeyAttrs(s)}{More}";
         }
 
+        // ── 수상 (Logic/Awards.cs): awards:g:검투사 = 그 검투사가 받은 상, awards:season:N = 시즌 시상식 ──
+
+        /// <summary>검투사가 받은 상 개수 링크 (없으면 빈 글)</summary>
+        public static string AwardsOf(GameState s, Gladiator g)
+        {
+            int n = s.awards?.Count(a => a.gladiatorId == g.id) ?? 0;
+            return n == 0 ? "" : $"<link=\"awards:g:{g.id}\">수상 {n}회</link>";
+        }
+
+        public static string Ceremony(int season) => $"<link=\"awards:season:{season}\">시즌 {season} 시상식</link>";
+
+        static string AwardsTip(string id)
+        {
+            var s = GameController.I?.State;
+            if (s == null) return null;
+            if (id.StartsWith("season:")) return $"<b>시즌 {id.Substring(7)} 시상식</b>\n대회별 수상과 나라별·세계 올해의 검투사{More}";
+            if (!id.StartsWith("g:")) return null;
+            var list = (s.awards ?? new List<AwardEntry>()).Where(a => a.gladiatorId == id.Substring(2)).OrderByDescending(a => a.season).ToList();
+            if (list.Count == 0) return null;
+            return "<b>받은 상</b>\n" + string.Join("\n", list.Take(6).Select(a => $"시즌 {a.season} {Awards.CompName(a.comp)} {Awards.KindNames[a.kind]}")) + (list.Count > 6 ? $"\n… 외 {list.Count - 6}개" : "") + More;
+        }
+
         /// <summary>링크 id에 맞는 툴팁 글. 툴팁 없이 누르기만 하는 링크면 null</summary>
         public static string For(string link)
         {
@@ -128,6 +150,7 @@ namespace Colosseum.UI
                 "staff" => StaffLogic.RoleDesc.TryGetValue(id, out var sd) ? $"<b>{StaffLogic.RoleNames[id]}</b>\n{sd}" : null,
                 "person" => PersonTip(id),
                 "sattr" => StaffLogic.AttrDesc.TryGetValue(id, out var ad) ? $"<b>{StaffLogic.AttrNames[id]}</b>\n{ad}" : null,
+                "awards" => AwardsTip(id),
                 _ => null,
             };
         }
@@ -168,13 +191,15 @@ namespace Colosseum.UI
             {
                 var b = Economy.NextPayBill(s, me);
                 string Row(string k, double v) => $"\n{k} <color={dim}>{v:N0} D</color>";
-                string tail = b.Total > me.treasury
-                    ? $"\n<color=#d9a29b>금고가 {b.Total - me.treasury:N0} D 모자랍니다. 주급이 높은 검투사부터 주고, 못 받은 자는 급료가 밀립니다</color>"
-                    : $"\n<color={faint}>내고 나면 {me.treasury - b.Total:N0} D가 남습니다</color>";
+                string tail = b.Net > me.treasury
+                    ? $"\n<color=#d9a29b>금고가 {b.Net - me.treasury:N0} D 모자랍니다. 주급이 높은 검투사부터 주고, 못 받은 자는 급료가 밀립니다</color>"
+                    : $"\n<color={faint}>내고 나면 {me.treasury - b.Net:N0} D가 남습니다</color>";
                 return $"<b>다음 급료일 · {Calendar.NextPaydayLabel(s.day)}</b>" +
                     Row("검투사 주급", b.wages) + (b.arrears > 0 ? $"\n밀린 급료 <color=#d9a29b>{b.arrears:N0} D</color>" : "") +
                     Row("식비", b.food) + Row("시설 유지비", b.upkeep) + Row("식솔 급료", b.staff) +
-                    $"\n<b>합계 {b.Total:N0} D</b>{tail}\n<color={faint}>용병으로 나간 검투사의 주급은 고용국이 냅니다</color>";
+                    $"\n<b>합계 {b.Total:N0} D</b>" +
+                    (b.grant > 0 ? $"\n하부 리그 지원금 <color={Theme.Hex(Theme.Good)}>+{b.grant:N0} D</color> <color={faint}>(급료일에 먼저 들어옴, 세금 뺀 값)</color>" : "") +
+                    $"{tail}\n<color={faint}>용병으로 나간 검투사의 주급은 고용국이 냅니다</color>";
             }
             if (id == "window")
                 return $"<b>{Transfers.WindowLine(s)}</b>\n<color={dim}>이적 시장 기간: {Transfers.WindowLabel}</color>\n" +

@@ -1,0 +1,109 @@
+{
+ "presets": {
+  "sheet": "ONE square image, a 3x3 grid of equal square cells, flat solid MAGENTA background (#FF00FF) in every cell (must stay magenta, not transparent, no gradient, no frames, no grid lines)."
+ },
+ "style": "Art style: simplified dark-fantasy graphic novel with gouache brush texture, exactly like the attached sheet: bold black ink outlines, flat blocky black shadow shapes, 2-3 flat tones per material with loose brush strokes, desaturated bone/rust/bronze/grey palette, warm torchlight rim from the left, grim young adult faces (aged 20-35, NO wrinkles, NO grey hair, NOT old), NOT chibi, NOT cute. No text, no watermark.",
+ "styleRefPresets": [
+  "sheet"
+ ],
+ "items": [
+  {
+   "id": "heads2.human",
+   "preset": "sheet",
+   "out": "art/source/portrait2/human/front_heads_4.png",
+   "styleRef": "art/source/portrait2/human/front_heads.png",
+   "prompt": "Portrait PARTS for a modular character creator: HUMANS. Nine NEW young adult gladiators on the IDENTICAL bust template as the attached sheet in every cell: strictly front view, perfectly symmetric, centered, exactly the same head top, eye height, chin height, head size, neck and bare shoulders as the attached sheet. Make the faces clearly DIFFERENT from the attached ones (face shape, jaw, cheekbones, eye shape and size, nose, brow, mouth, skin tone, expression): 1) olive-skinned woman with a long narrow face, hooded eyes and a hooked nose; 2) very dark-skinned man with a broad flat nose, wide cheekbones and heavy-lidded eyes; 3) pale freckled woman with a round face, a small upturned nose and wide-set eyes; 4) tan man with a long face, deep-set narrow eyes and a cleft chin; 5) light-brown woman with a square jaw, thick straight brows and full lips; 6) ruddy young man with a round boyish face, big ears and a crooked broken nose; 7) brown-skinned woman with a heart-shaped face, a sharp pointed chin and almond eyes; 8) pale man with gaunt hollow cheeks, a thin long nose and a scowl; 9) dark-skinned woman with high cheekbones, a wide mouth and a calm hard stare. All completely BALD and beardless (keep the eyebrows), no helmet, no clothing, so hair, beards and armor can be layered on top later."
+  },
+  {
+   "id": "parts2.human",
+   "preset": "sheet",
+   "out": "art/source/portrait2/human/front_parts_4.png",
+   "styleRef": "art/source/portrait2/human/front_heads.png",
+   "prompt": "Overlay parts that fit the attached HUMAN heads. Draw ONLY the item itself, exactly where it would sit on the attached heads (same cell, same head size and position), strictly front view, centered, symmetric: do NOT draw any head, face, ears, horns, tusks, snout, nose, lips, skin or neck; every area that would be skin stays flat magenta (face openings, around beards, above armor collars). Cells: 1) wavy black hair to the shoulders; 2) two thick dark-brown braids hanging in front of the shoulders; 3) short tight curly black hair; 4) slicked-back dark hair; 5) long straight blond hair with a center part; 6) a thick reddish-brown full beard with mustache; 7) a short black goatee with a thin mustache; 8) heavy dark stubble over the jaw and upper lip; 9) a crown of braided auburn hair wrapped around the head."
+  },
+  {
+   "id": "heads2.dwarf",
+   "preset": "sheet",
+   "out": "art/source/portrait2/dwarf/front_heads_2.png",
+   "styleRef": "art/source/portrait2/dwarf/front_heads.png",
+   "prompt": "Portrait PARTS for a modular character creator: stout fantasy DWARVES with wide faces, big round noses, heavy brows and thick necks. Nine NEW young adult gladiators on the IDENTICAL bust template as the attached sheet in every cell: strictly front view, perfectly symmetric, centered, exactly the same head top, eye height, chin height, head size, neck and bare shoulders as the attached sheet. Make the faces clearly DIFFERENT from the attached ones (face shape, jaw, cheekbones, eye shape and size, nose, brow, mouth, skin tone, expression): 1) sunburnt dwarf woman with a broad square jaw and small deep-set eyes; 2) pale dwarf man with a long face, a hooked nose and narrow eyes; 3) dark-brown dwarf woman with round cheeks, wide-set eyes and a button nose; 4) olive-skinned dwarf man with a heavy jaw, a flat broken nose and thick lips; 5) ruddy freckled dwarf woman with high cheekbones, a sharp chin and a scowl; 6) tan young dwarf man with puffy cheeks, a big bulbous nose and wide eyes; 7) grey-brown dwarf woman with heavy-lidded eyes and a split eyebrow; 8) deep reddish dwarf man with a wide flat face, tiny eyes and a crooked smirk; 9) pale bluish dwarf woman with a long nose, a narrow face and a cold stare. All completely BALD and BEARDLESS (keep the bushy eyebrows), no helmet, no clothing, so hair, beards and armor can be layered on top later."
+  },
+  {
+   "id": "parts2.dwarf",
+   "preset": "sheet",
+   "out": "art/source/portrait2/dwarf/front_parts_2.png",
+   "styleRef": "art/source/portrait2/dwarf/front_heads.png",
+   "prompt": "Overlay parts that fit the attached DWARF heads. Draw ONLY the item itself, exactly where it would sit on the attached heads (same cell, same head size and position), strictly front view, centered, symmetric: do NOT draw any head, face, ears, horns, tusks, snout, nose, lips, skin or neck; every area that would be skin stays flat magenta (face openings, around beards, above armor collars). Cells: 1) a long dark-brown beard tied into three braids with bronze rings, with mustache; 2) a bushy square blond beard with mustache; 3) a thick braided goatee with a wide mustache; 4) a huge walrus mustache with short stubble; 5) a shaved head with a short black mohawk; 6) two thick copper braids hanging in front of the shoulders; 7) long black hair tied back loosely; 8) short curly ginger hair; 9) a wide black beard braided into one thick plait to the chest, with mustache."
+  },
+  {
+   "id": "heads2.orc",
+   "preset": "sheet",
+   "out": "art/source/portrait2/orc/front_heads_2.png",
+   "styleRef": "art/source/portrait2/orc/front_heads.png",
+   "prompt": "Portrait PARTS for a modular character creator: fantasy ORCS with green or grey-green skin, small lower tusks, pointed ears and a heavy brow. Nine NEW young adult gladiators on the IDENTICAL bust template as the attached sheet in every cell: strictly front view, perfectly symmetric, centered, exactly the same head top, eye height, chin height, head size, neck and bare shoulders as the attached sheet. Make the faces clearly DIFFERENT from the attached ones (face shape, jaw, cheekbones, eye shape and size, nose, brow, mouth, skin tone, expression): 1) light-green orc woman with a narrow face, small tusks and slanted eyes; 2) dark grey-green orc man with a massive square jaw and huge tusks; 3) olive orc woman with a round face, a flat wide nose and a nose ring; 4) yellow-green young orc man with a long face, sunken cheeks and one chipped tusk; 5) deep-green orc woman with high cheekbones and a snarl; 6) brown-green orc man with a broad flat face, tiny eyes and a heavy brow ridge; 7) grey-green orc woman with a pointed chin and wide-set eyes; 8) black-green orc man with a wide nose, thick lips and a torn ear; 9) pale olive orc woman with a long jaw and a cold stare. All completely BALD and beardless (keep the tusks and ears), no helmet, no clothing, so hair, beards and armor can be layered on top later."
+  },
+  {
+   "id": "parts2.orc",
+   "preset": "sheet",
+   "out": "art/source/portrait2/orc/front_parts_2.png",
+   "styleRef": "art/source/portrait2/orc/front_heads.png",
+   "prompt": "Overlay parts that fit the attached ORC heads. Draw ONLY the item itself, exactly where it would sit on the attached heads (same cell, same head size and position), strictly front view, centered, symmetric: do NOT draw any head, face, ears, horns, tusks, snout, nose, lips, skin or neck; every area that would be skin stays flat magenta (face openings, around beards, above armor collars). Cells: 1) a tall black mohawk; 2) wild matted black hair to the shoulders; 3) a topknot with two side braids; 4) a short buzz cut with shaved tribal lines; 5) a chin beard braided into a short spike (lips and tusks left open); 6) a thick bushy black beard with mustache (lips and tusks left open); 7) a drooping black mustache down to the jaw (lips and tusks left open); 8) long straight black hair with bone beads; 9) thick rope dreadlocks hanging down behind the shoulders."
+  },
+  {
+   "id": "heads2.elf",
+   "preset": "sheet",
+   "out": "art/source/portrait2/elf/front_heads_2.png",
+   "styleRef": "art/source/portrait2/elf/front_heads.png",
+   "prompt": "Portrait PARTS for a modular character creator: fantasy ELVES with long pointed ears, slender sharp faces and high cheekbones. Nine NEW young adult gladiators on the IDENTICAL bust template as the attached sheet in every cell: strictly front view, perfectly symmetric, centered, exactly the same head top, eye height, chin height, head size, neck and bare shoulders as the attached sheet. Make the faces clearly DIFFERENT from the attached ones (face shape, jaw, cheekbones, eye shape and size, nose, brow, mouth, skin tone, expression): 1) dark-skinned elf woman with a narrow face and sleepy hooded eyes; 2) pale elf man with a sharp angular face, hollow cheeks and thin lips; 3) golden-tan elf woman with a soft round face and big almond eyes; 4) olive-skinned elf man with a long straight nose and a square jaw; 5) ash-grey-skinned elf woman with very high cheekbones and a cruel smirk; 6) copper-skinned elf man with a broad face and wide-set narrow eyes; 7) fair freckled elf woman with a pointed chin and an upturned nose; 8) deep-brown elf man with heavy brows and a stern frown; 9) pale bluish elf woman with a long face and a calm cold stare. All completely BALD and beardless (keep the eyebrows and the long ears), no helmet, no clothing, so hair, beards and armor can be layered on top later."
+  },
+  {
+   "id": "parts2.elf",
+   "preset": "sheet",
+   "out": "art/source/portrait2/elf/front_parts_2.png",
+   "styleRef": "art/source/portrait2/elf/front_heads.png",
+   "prompt": "Overlay parts that fit the attached ELF heads. Draw ONLY the item itself, exactly where it would sit on the attached heads (same cell, same head size and position), strictly front view, centered, symmetric: do NOT draw any head, face, ears, horns, tusks, snout, nose, lips, skin or neck; every area that would be skin stays flat magenta (face openings, around beards, above armor collars). Cells: 1) long straight raven-black hair tucked behind the long ears; 2) a high bun of ash-blond hair with a few loose strands; 3) short spiky ash-blond hair; 4) shoulder-length wavy dark-brown hair with a few thin braids, ears poking through; 5) a short dark undercut with the top swept back; 6) long copper hair held by a leather headband, ears poking through; 7) white hair in many thin braids tied back; 8) a cropped black pixie cut; 9) long straight black hair with blunt bangs above the eyebrows, ears poking through."
+  },
+  {
+   "id": "heads2.minotaur",
+   "preset": "sheet",
+   "out": "art/source/portrait2/minotaur/front_heads_2.png",
+   "styleRef": "art/source/portrait2/minotaur/front_heads.png",
+   "prompt": "Portrait PARTS for a modular character creator: MINOTAURS: bull-headed people with short fur, a broad muzzle with a nose ring hole, curved horns. Nine NEW young adult gladiators on the IDENTICAL bust template as the attached sheet in every cell: strictly front view, perfectly symmetric, centered, exactly the same head top, eye height, chin height, head size, neck and bare shoulders as the attached sheet. Make the faces clearly DIFFERENT from the attached ones (face shape, jaw, cheekbones, eye shape and size, nose, brow, mouth, skin tone, expression): 1) tawny cow-woman with short lyre-shaped horns; 2) jet-black bull with thick horns curving forward; 3) white cow-woman with brown patches and small upturned horns; 4) brindle bull with very wide straight horns; 5) reddish-brown cow-woman with long curved horns and a gold nose ring; 6) dun-yellow young bull with stubby horns and a very broad muzzle; 7) blue-grey cow-woman with downward-curving horns; 8) dark red bull with one broken horn; 9) black-and-white piebald cow-woman with thin horns. No hair tufts and no beard (just the short fur, horns and ears), no clothing, no helmet, no clothing, so hair, beards and armor can be layered on top later."
+  },
+  {
+   "id": "parts2.minotaur",
+   "preset": "sheet",
+   "out": "art/source/portrait2/minotaur/front_parts_2.png",
+   "styleRef": "art/source/portrait2/minotaur/front_heads.png",
+   "prompt": "Overlay parts that fit the attached MINOTAUR heads. Draw ONLY the item itself, exactly where it would sit on the attached heads (same cell, same head size and position), strictly front view, centered, symmetric: do NOT draw any head, face, ears, horns, tusks, snout, nose, lips, skin or neck; every area that would be skin stays flat magenta (face openings, around beards, above armor collars). Cells: 1) a short spiky reddish-brown forelock tuft between the horns; 2) a long wild dark mane down both sides of the neck; 3) two thin beaded braids hanging from the forelock past the ears; 4) a short pointed chin tuft under the muzzle; 5) a braided chin beard with a bronze ring under the muzzle; 6) a long matted black mane falling over the shoulders; 7) an open iron brow band with a small crest between the horns (face open); 8) crossed leather straps with a bronze ring on the chest; 9) a bronze scale cuirass with a fur collar."
+  },
+  {
+   "id": "heads2.lizardfolk",
+   "preset": "sheet",
+   "out": "art/source/portrait2/lizardfolk/front_heads_2.png",
+   "styleRef": "art/source/portrait2/lizardfolk/front_heads.png",
+   "prompt": "Portrait PARTS for a modular character creator: LIZARDFOLK: reptile-headed people with a scaly snout, small head frills or spines, slit-pupil eyes. Nine NEW young adult gladiators on the IDENTICAL bust template as the attached sheet in every cell: strictly front view, perfectly symmetric, centered, exactly the same head top, eye height, chin height, head size, neck and bare shoulders as the attached sheet. Make the faces clearly DIFFERENT from the attached ones (face shape, jaw, cheekbones, eye shape and size, nose, brow, mouth, skin tone, expression): 1) emerald-green female with a short blunt snout and a red throat frill; 2) rust-red male with a long narrow crocodile snout; 3) sand-yellow female with brown spots and small horns behind the eyes; 4) slate-grey male with a heavy broad snout and spiky cheek scales; 5) turquoise female with a slender snout and a tall head fin; 6) dark-brown male with a beaked turtle-like snout; 7) pale pink-and-white female with a short rounded snout; 8) olive-green male with a horned brow ridge; 9) violet-blue female with yellow stripes along the head. No hair, no clothing, no helmet, no clothing, so hair, beards and armor can be layered on top later."
+  },
+  {
+   "id": "parts2.lizardfolk",
+   "preset": "sheet",
+   "out": "art/source/portrait2/lizardfolk/front_parts_2.png",
+   "styleRef": "art/source/portrait2/lizardfolk/front_heads.png",
+   "prompt": "Overlay parts that fit the attached LIZARDFOLK heads. Draw ONLY the item itself, exactly where it would sit on the attached heads (same cell, same head size and position), strictly front view, centered, symmetric: do NOT draw any head, face, ears, horns, tusks, snout, nose, lips, skin or neck; every area that would be skin stays flat magenta (face openings, around beards, above armor collars). Cells: 1) a feathered bone headband around the brow (face and snout open); 2) a beaded leather cap with hanging teeth (face and snout open); 3) an iron lamellar cuirass with pauldrons; 4) a leather crossbelt with a bronze disc on the chest; 5) a turtle-shell breastplate tied with cords; 6) leave this cell completely empty magenta; 7) leave this cell completely empty magenta; 8) leave this cell completely empty magenta; 9) leave this cell completely empty magenta."
+  },
+  {
+   "id": "heads2.beastkin",
+   "preset": "sheet",
+   "out": "art/source/portrait2/beastkin/front_heads_2.png",
+   "styleRef": "art/source/portrait2/beastkin/front_heads.png",
+   "prompt": "Portrait PARTS for a modular character creator: BEASTKIN: animal-headed people with fur, a short muzzle and big animal ears. Nine NEW young adult gladiators on the IDENTICAL bust template as the attached sheet in every cell: strictly front view, perfectly symmetric, centered, exactly the same head top, eye height, chin height, head size, neck and bare shoulders as the attached sheet. Make the faces clearly DIFFERENT from the attached ones (face shape, jaw, cheekbones, eye shape and size, nose, brow, mouth, skin tone, expression): 1) red fox woman with big pointed ears; 2) spotted hyena man with round ears; 3) white goat woman with small curved horns and floppy ears; 4) golden lion man with a short dark mane; 5) grey lynx woman with tufted ears; 6) black boar man with small tusks and bristly ears; 7) brown otter woman with small round ears; 8) grey badger man with a black-and-white striped face; 9) tan jackal woman with tall pointed ears. No clothing, no helmet, no clothing, so hair, beards and armor can be layered on top later."
+  },
+  {
+   "id": "parts2.beastkin",
+   "preset": "sheet",
+   "out": "art/source/portrait2/beastkin/front_parts_2.png",
+   "styleRef": "art/source/portrait2/beastkin/front_heads.png",
+   "prompt": "Overlay parts that fit the attached BEASTKIN heads. Draw ONLY the item itself, exactly where it would sit on the attached heads (same cell, same head size and position), strictly front view, centered, symmetric: do NOT draw any head, face, ears, horns, tusks, snout, nose, lips, skin or neck; every area that would be skin stays flat magenta (face openings, around beards, above armor collars). Cells: 1) a bronze circlet with a red stone on the brow (face and ears open); 2) a cloth bandana tied on the brow with the ears free (face open); 3) a fur cloak with a bone clasp on one shoulder; 4) a studded leather cuirass with shoulder guards; 5) a leather baldric across the chest with a bronze disc; 6) leave this cell completely empty magenta; 7) leave this cell completely empty magenta; 8) leave this cell completely empty magenta; 9) leave this cell completely empty magenta."
+  }
+ ]
+}

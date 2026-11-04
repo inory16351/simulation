@@ -19,17 +19,19 @@ namespace Colosseum.EditorTools
         public static ScreenBase Build(Transform main)
         {
             var rt = Rect("Screen_training", main).Stretch(26, 20, 26, 20);
-            VCol(rt, 14);
-            ScreenHeader(rt, "연무장", "훈련 성과는 매일 조금씩 쌓입니다. 강도를 높이면 빨리 성장하지만 쉽게 지치고 다칩니다. 훈련전과 미시오, 사투 같은 실전에서도 능력치가 오릅니다.");
+            // 내용이 늘어도 넘치지 않게 화면 전체를 스크롤 영역으로
+            var page = ScrollView("Scroll", rt, out var pageScroll, 14);
+            pageScroll.Stretch();
+            ScreenHeader(page, "연무장", "훈련 성과는 매일 조금씩 쌓입니다. 강도를 높이면 빨리 성장하지만 쉽게 지치고 다칩니다. 훈련전과 미시오, 사투 같은 실전에서도 능력치가 오릅니다.");
 
-            var bulk = TitledPanel("Bulk", rt, "한꺼번에 지시");
+            var bulk = TitledPanel("Bulk", page, "한꺼번에 지시");
             var br = Rect("Row", bulk);
             HRow(br, 10);
             Text("Hint", br, "모두에게", 14, Theme.TextDim).Layout(prefW: 70, flexW: 0);
             var allFocus = Dropdown("AllFocus", br, 160);
             var allInt = Dropdown("AllIntensity", br, 120);
 
-            var table = Panel("Table", rt);
+            var table = Panel("Table", page);
             VCol(table.transform, 0, 1, 1, 1, 1);
             table.transform.Find("Fill").gameObject.AddComponent<LayoutElement>().ignoreLayout = true;
             var head = Box("Head", table.transform, Theme.Bg2).Layout(minH: 30, prefH: 30);

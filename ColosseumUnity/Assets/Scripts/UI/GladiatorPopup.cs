@@ -76,10 +76,11 @@ namespace Colosseum.UI
             var pr = Scouting.PaRange(s, g);
             string state = !g.alive ? $"<color={Theme.Hex(Neg)}>사망 — {g.diedAt?.cause}</color>"
                 : g.injury != null ? $"<color=#f0b3aa>{GladiatorTable.InjuryLabel(g)}</color>" : $"<color={Theme.Hex(Theme.Good)}>출전 가능</color>";
+            if (g.alive && Grievances.Line(s, g) is string grief) state += $"  <color=#f0b3aa>{grief}</color>";
             info.text =
                 $"<color={dim}>소속</color>  {(owner != null ? (owner.isPlayer ? $"<b>{Tips.Ludus(owner)}</b>" : Tips.Ludus(owner)) : "무소속")}\n" +
                 $"<color={dim}>현재</color>  {caText}    <color={dim}>잠재</color>  {RangeStars(pr)}\n" +
-                $"<color={dim}>전적</color>  {g.record.wins}승 {g.record.losses}패 · 살해 {g.record.kills}    <color={dim}>인기</color>  {g.popularity}\n" +
+                $"<color={dim}>전적</color>  {g.record.wins}승 {g.record.losses}패 · 살해 {g.record.kills}    <color={dim}>인기</color>  {g.popularity}" + (Tips.AwardsOf(s, g) is var aw && aw.Length > 0 ? $"    {aw}" : "") + "\n" +
                 $"<color={dim}>상태</color>  {state}    <color={dim}>주급</color>  {g.wage} D";
 
             var race = Data.Race(g.race);

@@ -284,3 +284,70 @@
 - **씬 적용·플레이 확인** (MCP `execute_code`로 `GameSceneBuilder.Build()`, 콘솔 오류 0): 국내 컵 40강 중계·복귀, 5강 표, 판테온 플레이오프 조, 올림피카 감독 제안·1라운드 중계·순위표·대표 명단, 비석의 언덕 트로피 진열을 플레이로 확인. 메뉴 20칸이라 줄 높이 42→36. 스크린샷 `Assets/Screenshots/`(git 제외).
 - 플레이로 못 본 것: 판테온 8강~결승 중계(로직은 테스트), 여러 시즌 연속 실제 플레이, Windows 빌드는 이 변경 전 것.
 - 세션에 UnityMCP 도구가 안 잡혀도 서버가 떠 있으면 8080에 JSON-RPC(`initialize` → `tools/call`, `mcp-session-id` 헤더)로 직접 부를 수 있다.
+
+### 진행 (2026-11-04) 일정 탭 · 날짜 지정 도전/연습전 · 대회 수상 · 경력 탭
+- **일정 탭** (메뉴 '일정', `UI/Screens/ScheduleScreen.cs` + `Editor/Screens/ScheduleBuilder.cs`): 한 달 28일 = 7×4 달력(칸 원본 `CellTemplate`, 그리드 안 비활성). 칸마다 우리 경기·답 대기·컵 일정·대표 주간·이적 시장·급료일 표시, 밝은 칸 = 정규 리그 기간. 날을 누르면 오른쪽에 그날 일정 + 보내기 양식.
+- **날짜 지정 도전** (`ChallengeLogic.TryCreateChallengeOn/CanChallengeOn/DateBlock`, `Challenge.wantAt`): 오늘+3일부터 시즌 끝까지. 정규 리그 기간(15~105일)이면 리그 도전장(대표 주간 제외), 그 밖이면 **연습전**(`Challenge.friendly`): 훈련전 고정, 명성·상금·RP·리그 경기 수 없음(성장만), 거절해도 불이익 없음, AI는 80% 수락. 상대는 **컵 일정이 끝난 팀만**(`InCup` = `InNatCup` || `InPantheon`, 판테온 추첨 전엔 1부 1~3위·국내 컵 우승 팀을 살아 있는 것으로 봄). 우리 컵 경기 날은 못 고름(`CupOn`). 받으면 그 날짜로 잡힘(`Schedule`), AI가 그날 낼 사람이 없으면 거절.
+- **대회 수상** (`Logic/Awards.cs`, `GameState.compStats/awards/ceremonySeason`): 경기마다 대회별 개인 기록(출전·승·쓰러뜨린 상대·죽음)을 쌓음 — `ApplyOptions.comp`, `RunOptions.comp`, `ApplyTeamResult(..., comp)`. 리그(106일, 나라×부), 국내 컵·판테온·올림피카(끝날 때)마다 최우수 검투사 · 최다 처치 · 최우수 신인(종족별 **성장기** 나이) · 올해의 라니스타(리그: 전력 순위보다 가장 높이 오른 팀, 컵: 멀리 간 정도 + 아래 부 가산, 올림피카: 우승국 대표팀 감독). 시즌 끝(`EndSeason` 처음)에 나라별 올해의 검투사 + 세계 올해의 검투사. 보상: 명성(+4~12), 소정의 상금(리그 1부 2,000 ~ 4부 500, 세계 8,000), 경력 기록. `Awards.Enabled = Honours.Enabled && FmRules.Enabled`(골든 테스트는 꺼짐). 다른 나라 국내 컵 앞 라운드는 `QuickTie`라 개인 기록이 없음.
+- **수상 화면**: 서판 알림(우리 나라 대회만), 시즌이 끝나면 **시상식 카드**(`InfoCards` `awards:season:N`, Shell이 한 번 띄움), 검투사 카드·상세의 '수상 N회' 링크(`awards:g:ID`), 비석의 언덕 **'수상' 탭**(대회 고르기, 시즌 시상 포함).
+- **경력 탭**: 검투사 상세 탭이 정보 / **경력** / 장비 / 전술. 경력 = 시즌별 기록 표(수상 칸 추가) + 수상·우승(받은 상, 뛰던 루두스가 그 시즌 든 우승컵) + 일대기(이름 링크, 25개씩 '전부 보기').
+- 그림: Codex 묶음 `extra`(`Tools/item-icons.mjs`) → `icon/menu/schedule.png`, `icon/award.png`.
+- 테스트: `FmRulesTests.DatedChallengeAndFriendly`, `AwardsAfterFullSeason` 추가, EditMode 26/26 통과. 사이드바 메뉴 21칸이라 줄 높이 35.
+- 플레이 확인: 일정 화면(9번 시험 칸, 사용자 저장 칸은 안 건드림) — 20일 리그 도전·6일 연습전이 답을 받아 잡힘. 수상·경력 탭은 씬 재조립 뒤 확인 필요(아래).
+- **(같은 날 이어서) 바뀐 점**
+  - 휴식기 경기 이름은 **연습전**(규칙은 훈련전 고정). `ChallengeLogic.RuleLabel`.
+  - 시상 카드 줄: `GameState.ceremonies`(링크 목록). 대회가 끝날 때마다 `awards:comp:<대회 키>:<시즌>` 카드(우리 리그·우리 국내 컵·판테온·올림피카), 시즌 끝 `awards:season:N`은 **세계·나라별 올해의 검투사만**. Shell이 갱신마다 하나씩 띄움.
+  - **평점 매니저** `Logic/Ratings.cs`: 모든 경기(1:1·난전) 전투 기록 → 출전자별 `FighterStats`(입힌·받은 피해, 명중, 막기, 피하기, 치명타, 쓰러뜨림, 죽음)와 평점 3.0~10.0(6.0 기준). `MatchResult.stats`. 공식 경기만 `SeasonRecord.ratingSum/rated`, `CompStat.ratingSum`에 쌓고, 수상 점수는 평균 평점을 가장 크게 반영. 경력 표 '평점' 칸.
+  - **경기 결과창** (`MatchBuilder` Result, `MatchScreen.ShowResult`): 경기가 끝나면 경기장 위에 출전자 표 + 경기 최우수 검투사. '결과창/중계 기록' 전환, '한 판 더' 없앰 → '다음으로'(오늘 경기가 더 없으면 서판으로) / 단체전 '다음 판'.
+  - **명성과 주급** (`Reputation.DemandFor`, FM식만): 명문일수록 완만하게 덜 요구(격차 −30이면 ×0.79, 최소 ×0.75). 우리보다 격이 12 넘게 높은 검투사는 계약금·최소 이적료가 없으면 아쉬워함(최대 −12%, 협상 창 역제안 한마디).
+  - **불만·인상 요구** `Logic/Grievances.cs` (`Gladiator.grievance/grievanceUntil/raiseSeason/raiseBy`): 우리·AI 검투사 같은 규칙 — ① 소속보다 이름난(+8) 루두스의 제안이 거절됨(우리가 `RejectOffer`, AI가 우리 제안에 '결렬'), 사기 최대 −12, 6주 ② 인상 요구(받을 만한 주급의 1/1.35 미만, 급료일, 시즌 1번): 우리는 14일 안에 재계약 안 하면 −8·4주, AI는 금고·성향으로 수락 아니면 불만 ③ 주전급(루두스 상위 5)이 리그 중 35일 넘게 결장 −5·4주 ④ AI끼리 영입 시도: 소속보다 격이 8 넘게 높은 AI 검투사에게 급료일마다 2.5% 확률로 같은 나라 더 큰 루두스가 제안했다가 거절(→①). 불만이면 매일 사기 −0.2(30까지), **몸값 ×0.85**. 재계약(`Contracts.Apply`)이면 풀림. 측정(한 시즌, 1,940명, 사용자 목표 10~15%): 불만 207~229명(10.7~11.8%), 동시 최대 112~119명.
+  - **몸값과 계약 기간** (`Valuation.MarketValue`): 남은 계약 0시즌 ×0.85→×0.65(시즌 말로 갈수록), 1시즌 ×0.92, 2시즌 ×1.0, 3시즌 이상 ×1.05.
+  - 테스트: `RejectingBiggerClubUpsetsGladiator` 추가.
+- **(같은 날 이어서) 불만은 원인별로 풀림 · 계약 만료**
+  - `Gladiator.grievanceKind`(raise | transfer | bench), `grievanceLudus`, `grievanceAt`. 풀리는 조건(`Grievances.Resolved`): 기한(시간) / 다른 루두스로 옮김(모두) / bench는 그 뒤 경기에 나가면 / transfer는 이적 명단에 올리면. **재계약(`Contracts.Apply` → `OnNewContract`)은 raise만 푼다.** 화면 한 줄·서판에 푸는 방법(`Grievances.Remedy`)을 보여 줌, 경기·이적 명단으로 풀리면 우리 검투사는 서판 알림.
+  - **계약 만료**: 우리 검투사는 재계약하지 않으면 시즌 끝에 무소속(전부터 있던 규칙)인데, `RefreshFreeAgents`가 바로 지워 버리던 버그 → 만료로 나간 검투사는 명단을 새로 만든 **뒤에** `freeAgents`에 넣는다(`Day.EndSeason`의 `released`). **AI도 만료 처리**(`Day.AiContracts`): 능력 상위 3(또는 쇠퇴기 아닌 상위 6)은 대개 재계약(바라는 기간, 받을 만한 주급), 루두스보다 격이 12 넘게 높으면 45%·불만이면 +30%·충성으로 덜 떠남, 나머지는 무소속. 계약서 없는 AI 자유민은 시즌 끝에 1~3시즌 계약을 받음. 새 게임 AI 자유민 계약은 로스터 순서로 1~4시즌(우리는 그대로 2). 시즌 끝 서판 '계약 만료로 풀린 검투사 N명'(우리 나라 눈에 띄는 5명).
+  - AI는 무소속을 영입하지 않는다(ReplenishAi가 새로 뽑음). 풀린 검투사는 `WeeklyFreeAgents`로 조금씩 사라진다 — 필요하면 AI 무소속 영입을 다음에.
+  - 측정(한 시즌): 불만 231명/1,984(11.6%), 동시 최대 99, 시즌 끝 AI 만료 무소속 42명. 테스트 `ExpiredContractsBecomeFreeAgents` 추가, 28/28.
+- **(같은 날 이어서) 등록 로스터 · AI 무소속 영입 · 인원 · 이름 · 스크롤**
+  - **등록 로스터** `Logic/Registration.cs` (`Ludus.registered/regSeen`): 공식 경기(리그·컵)는 등록 15명만. 미등록은 훈련·연습전·던전만. `ChallengeLogic.Availability(..., official)`(기본 true) + `FreeOn/CanReceive/PickFighter/SeriesLogic.AutoLineup`의 `official` 인자 — 연습전 경로만 false. 해제는 이적 시장 기간(`Transfers.InWindow`)에만, 빈자리는 언제든. `Registration.Daily`(하루 처리 처음): 떠난 사람 정리, 새로 온 사람은 자리가 있으면 자동 등록, 처음엔 강한 15명. AI는 1일·78일에 강한 15명으로 다시, 빈자리는 늘 채움. UI: 검투사 상세 계약 패널 '등록하기/등록 해제 (n/15)'(`AcquirePanel.regButton`, 빌더 `Reg`), 막사 머리글 등록 수, 표 상태 '미등록', 시장 머리글.
+  - **막사 인원 제한 없앰** (FM식 `Economy.RosterCapacity` = 무제한, 숙소 효과 글에서 정원 뺌). 보유는 주급으로만 제한.
+  - **AI 무소속 영입** `Logic/FreeAgency.cs` (급료일, `Economy.WeeklyFreeAgents` 뒤): 인원이 기본보다 적으면 채우고(60%), 등록 자리가 남고 금고가 (주급+새 주급)×12주 이상이면 능력 5위+2보다 나은 무소속을 데려옴(15%). 올 마음(명성 격차) 확인, 우리가 협상 중인 검투사 제외, 한 주 최대 3명, 무소속 명단 12명 이하면 멈춤.
+  - **인원**: AI 기본 인원 `FmRules.AiRoster` 11(웹판 8), 플레이어 시작 8명(웹판 6), 새 게임 때 나라마다 무소속 4명(1~4부 수준) 추가. 대륙 약 2,700명.
+  - **이름**: `Tools/gen-names.mjs` 음절 조합 종족당 남 120·여 70 → PersonName 1,990줄(전 1,149). `node ColosseumUnity/Tools/check-tables.mjs`로 Resources에 복사.
+  - **스크롤**: `UiKit.ScrollView`에 세로 스크롤바(넘칠 때만, AutoHideAndExpandViewport). 스크롤이 없던 도전장·서열표·안뜰·연무장·유소년 학당·일정 화면을 화면 전체 스크롤로 감쌈(`page`). 씬 재조립함.
+- **(같은 날 이어서) 측정 · 신분 구분 없앰 · 유소년 계약**
+  - 측정(에디터, 1.5시즌): AI 무소속 영입 시즌 1에 63명, 무소속 명단 48→12(바닥)→시즌 끝 131, AI 평균 10.3~11명(최대 12, 등록 15 찬 AI 없음), AI 금고 중앙값 증가·적자 1~3곳(−1,650까지). 성능: 등록 정리 10→1.9ms/일, 불만 급료일 38→15.6ms(능력 정렬을 필요할 때만). dotnet BalanceSim 하루 20~26ms(예전 기록 25ms와 비슷, 에디터는 ~100ms).
+  - **노예·자유민 구분 없앰** (FM식): 새 검투사 모두 계약(`GladiatorGen` status), 시작 로스터도 계약(우리 2~4시즌, AI 1~4시즌으로 나눔), 시작 주급은 모두 `Valuation.FairWage`(리그 수준), 옛 저장의 노예는 하루 처리 처음에 계약 검투사로 바꿈(주급 받을 만한 값의 80%). 검투사 상세 '신분' 칸 → '계약'(시즌 N까지). 나라 소개 글(nations.json·Nation.csv)과 학당 설명에서 노예 문구 뺌. 사건 '노예선 난파'는 웹판 비교 테스트 때문에 JSON은 그대로 두고 `Events.Unity()`로 FM식에서만 '상선 난파'로 보여 줌.
+  - BalanceSim(자동 플레이어, 2시즌): 1부 +78k, 2부 +25k, 3부 +2k, **4부 −4.7k**(자동 플레이어가 모든 도전을 받아 11명 전사, 로스터 붕괴). 앞선 측정에서 4부 반란 게임 오버는 시작 주급이 높았던 탓(급료 밀림 → 반란)이라 FairWage로 고친 뒤 사라짐. 자동 플레이어는 인상 요구에 재계약하도록 고침.
+  - **유소년**: 모든 루두스에 학당 1단계 기본(옛 저장도). 우리 루두스는 서리달 1일 **입단 테스트 후보**(학당 단계×2+1명, 잠재력 상한은 단계별 `AcademyPaCap`)를 받고, 28일 안에 골라 **유소년 계약**(흥정 없음, 주급 2~5 D, 정원 단계×3+3). 고르지 않은 후보는 마감에 돌아감(`Youth.DailyTrial`). AI는 예전처럼 자동 입학. 1군 승격 시 정식 계약(바라는 기간, 받을 만한 주급의 60%). **입단 예고**(140일): 학당장이 다음 세대 수준(평범 60%·괜찮음 25%·뛰어남 10%·황금 세대 5%, 잠재력 +0/8/15/20~40)을 알림. 입단 날 후보 명단 팝업(`InfoCards` `youth:trial`, `GameState.ceremonies`). 유소년 화면에 후보 표(`YouthBuilder` Trial, `YouthScreen.trial*`).
+  - 이적 제안이 우리 검투사(이제 모두 계약 선수)에게도 들어와 `ContractCounterBlocksUntilAnswered` 테스트 루프에서 제안을 거절하게 고침. EditMode 28/28.
+  - 초상화 파츠 추가는 별도 세션 "Generate more portrait parts with Codex"에서 진행 중(오크 끝, 미노타우로스·도마뱀·수인 남음).
+
+### 진행 (2026-11-04 오후) 초상화 7종족 추가분 넣기 · 4부 경제 (주급 요구·AI 주급 예산·아래 부 고정비)
+- **초상화**: Codex로 만든 7종족 새 시트(사람 `front_*_4`, 나머지 `front_*_2`)와 점 지도를 `portrait-more.mjs anchors` → `build`로 Unity에 넣음(종족마다 머리 +9). 견본 `node ColosseumUnity/Tools/portrait-more.mjs sample art/tmp/portrait_unity/sample.png`로 확인, 웹판 data/·public/은 안 바뀜. 엘프 새 머리 3번은 턱 점이 없음(목 점 빠짐은 기존 세트도 같음).
+- **주급 수준** `Valuation.WageTierMult` 1.35/1.0/0.72/0.52 (몸값 배율 `TierValueMult`와 따로, 3·4부를 더 낮춤). `FairWageAt(g, tier)` = 옮겨 갈 루두스 부 기준.
+- **영입 요구**: 무소속 바탕 주급 `Economy.FreeAgentBaseWage(g, tier)` = 우리 부 기준 FairWage(전: 무소속 자기 주급, 2~3부 사이 기준). 이적 `TransferBaseWage(s, g, tier)`도 옮겨 갈 부 기준. `Reputation.DemandFor` FM식 웃돈: 격차 12까지 0, 그 위 1점당 +2.5%(전 +3.3%, 4부는 명성이 늘 격보다 10쯤 낮아 늘 웃돈이 붙었음). 재계약 `RenewDemand`도 격차 12까지 0, 최대 +30%. 측정(`run.sh wages`): 무소속 요구 4부 91→39, 3부 112→66, 2부 111→94, 1부 98→132(1부는 올라감).
+- **AI 주급 예산** `Economy.ExpectedWeeklyIncome/WageBudget/Affords`: 기대 수입(부수입 + 주 2경기 몫 + 배당/24, aifin으로 잰 실제 수입에 맞춤)의 85% − 식비(플레이어는 시설·식솔도) + 금고 여유(석 달치 수입 넘는 돈/48, 적자면 빼기). 예산을 넘으면 AI는 포기: 무소속 영입(`FreeAgency.BestFor`), 시즌 끝 재계약(`Day.AiContracts` — 인상 없이 지금 주급으로만 붙잡고, 지금 주급도 버거우면 주전 셋 말고 내보냄), 인상 요구(`Grievances`, 수락 5%), 우리 검투사 이적 제안(`Transfers.Buyers`), 협상 경쟁자(`Negotiations.MaybeRival`). `ReplenishAi`로 새로 뽑힌 검투사 주급도 FairWage. 웹판 규칙이면 `Affords`는 늘 참.
+- 측정(`run.sh aifin 2`): 4부 AI 적자 2시즌 뒤 10곳→0곳, 금고 중앙값 6.6천→1만, 주급 합 375→527(전)·290→348(후). 예상 수입 4부 419/실제 443, 3부 734/750.
+- **아래 부 고정비** `FmRules.CostTierMult` 3부 ×0.8 · 4부 ×0.6: 시설 유지비(`FacilitiesLogic.WeeklyUpkeep`), 식솔 주급(`StaffLogic.MakeStaff(..., tier)` — 후보 시장은 우리 부, 시작 독토레는 그 루두스 부). 옛 저장의 식솔 주급은 그대로.
+- **상단 바**: '급료일에 낼 돈' 한 줄 → `주급 N · 유지비 N D` + `급료일 합계 N D` 두 줄(유지비 = 식비 + 시설 + 식솔, 툴팁은 항목별). 씬 재조립 필요 없음(글자만), 플레이로 줄이 넘치지 않는지 확인 필요.
+- BalanceSim: `wages`(부별 명성·격·주급·무소속 요구), `aifin [시즌]`(AI 금고·예산·실제 수입) 모드 추가, `ECON_VERBOSE=1`이면 '기타' 지출을 항목별로.
+- **남은 문제**: 플레이어 4부(자동 플레이어, 매 시즌 꼴찌 4승 13패·3승 17패)는 3시즌째 반란. 주당 수입 ~261(상금·관중 + 배당) vs 지출 ~383(주급 212 · 식비 52 · 유지비 39 · 식솔 31 · 사건 40). AI는 4부 부수입 110/주를 받지만 플레이어는 없음 — 후원 수입을 줄지, 자동 플레이어가 너무 약한지(4부 AI 인원 11 vs 우리 7~8) 사용자 결정 대기.
+- EditMode 테스트는 Unity를 안 켜서 못 돌림(Core는 dotnet 빌드 통과). 다음에 Unity를 켜면 먼저 테스트 돌릴 것.
+- **(이어서) 하부 리그 지원금** (사용자 결정): `FmRules.LowerLeagueGrant` 4부 120 · 3부 70 D/주(세금 전), 플레이어만, 급료일에 다른 돈을 내기 전에 먼저 들어옴(`Economy.Payday`, 장부 'N부 하부 리그 지원금'). `PayBill.grant`(세금 뺀 값)·`Net` 추가 — 상단 바 붉은 표시, 재정 화면 '모자랍니다', 급료일 툴팁(지원금 줄)이 지원금을 셈에 넣음. `ExpectedWeeklyIncome`에도 반영.
+  - 측정(`run.sh econ 3`, 자동 플레이어): 4부 매 시즌 꼴찌(4승 13패·3승 17패·5승 11패)여도 3시즌 버팀 — 금고 6,500 → 6,759 → 5,965 → 3,032 (3시즌째 전사 보충 영입으로 주급 187 → 279). 3부 11,000 → 24,340, 2부 19,500 → 37,524, 1부 30,000 → 111,988.
+- **(이어서) Windows 빌드 교체**: 열려 있던 에디터에서 MCP로 강제 새로 고침·컴파일 → EditMode 28/28 통과 → `BuildWindows.Build()` 성공(오류·경고 0) → `Builds/ColosseumWindows/` 덮어씀, `Builds/ColosseumWindows.zip` 새로 만듦(172 MB). 12초 실행해 Player.log에 오류 없음. 화면(상단 바 두 줄 등)은 직접 플레이로 아직 안 봄.
+
+### 진행 (2026-11-04 오후) 유소년 입단 시기 · 유소년 계약 협상 (사용자 결정: 매 시즌 중반, 모든 조항, 경쟁 없음)
+- **시기**: 우리 루두스 입단 테스트 `Youth.TrialDay` = 85일(불꽃달 1일), 예고 `PreviewDay` = 57일(꽃달 1일). 새 게임 첫날·시즌 시작(`Youth.Intake`)에는 우리 루두스(FM식)는 받지 않고 `Day.AdvanceDay`에서 그날 `Youth.Trial`. 첫 시즌도 85일에 처음. AI는 그대로 시즌 시작 자동 입학. 마감은 그대로 28일(수확달 1일).
+- **협상**: kind `youth`가 다른 계약과 같은 길로 감 — `Youth.HaggleTrial` → `Negotiations.Send`(경쟁자 없음) → 하루이틀 뒤 `ReplyYouth` → `Youth.ResolveTrial`(`Contracts.Resolve`, 키 `youth:<id>`). 받아들이면 계약금 내고 `Contracts.Apply` + 조항 `youth`, 역제안이면 결정할 일(`youth`, 다음 날 막음), 결렬이면 아이는 돌아감(세계에서 지움). 마감에 남은 후보의 답 기다림·역제안·흥정도 지움(`Youth.Forget`).
+- 바라는 주급 `Youth.TrialDemand`: (3 + max(0, 잠재력−70)/10) × 종족 주급 배율, 보통 3~15 D. 명성 격차는 안 따짐(보장 조항 요구 없음).
+- UI: 학당 후보 줄 버튼 '계약 협상'(역제안이 오면 '역제안 보기', 답 기다리면 '답 기다리는 중') → `NegotiationPopup.OpenContract("youth", id)` (모든 조항, 유소년은 주급 ±1 D·바라는 주급 1 D 단위, 정보 줄: 마감·학당 정원·데뷔까지). 입단 카드·학당 빈 화면 문구 바꿈(`YouthBuilder`, 씬 재조립함).
+- 테스트 `FmRulesTests.YouthTrialMidSeasonWithNegotiation` 추가, EditMode 29/29. 플레이 확인(9번 시험 칸, 4부 새 게임): 1일 후보 없음 → 85일 입단 카드 → 협상 창 → 제안 → 87일 서명·학당 입학, 남은 후보 2명 표에 남음.
+- Windows 빌드 다시 뽑음(11:26, 오류·경고 0), zip 교체(172 MB), 12초 실행 Player.log 오류 없음.
+
+### 진행 (2026-11-04 낮) 새 수염이 얼굴에 붙던 문제
+- 증상: 새 세트 수염(사람 beard_full_3·short_5·short_6, 드워프 full_2~4·short_2·3, 오크 full_2·short_2·3, 미노타우로스 short·short_2)이 코·입 위로 올라가거나 콧수염·수염 자국이 사라짐.
+- 원인 ①: 새 수염에 점이 없어 자르기 도구가 '가운데 줄 첫 픽셀을 코 밑에' 놓음 — 입·엄니 자리를 비운 수염은 첫 픽셀이 턱수염이라 코까지 올라감. ②: 자르기 도구의 부스러기 지우기(`anchors.cjs` load)가 가장 큰 덩어리에서 떨어진 조각을 지워 염소수염 위 콧수염·수염 자국이 없어지고, 남은 덩어리가 입 줄에서 안 나뉘어 엉뚱한 데 붙음.
+- 고침(웹판 tools/는 그대로, `Tools/portrait-more.mjs`만): `anchors`가 새 수염 점으로 같은 칸 첫 세트 머리의 코·입·턱 점을 씀(새 파츠는 front_heads.png 같은 칸 머리에 맞춰 그림). `build`가 `placeNewBeards`로 새 수염을 다시 놓음 — 칸 그림을 그대로(가장자리에 닿은 작은 덩어리만 지움) 쓰고, 그 머리의 입 줄에서 위는 코 점·아래는 입~턱 점에 머리마다 맞춤(splitBeard와 같은 셈). 입 위가 비면 통째로 입~턱(오크 short_2, 미노타우로스 short·short_2, 그때 `_lo` 파일 지움).
+- 점검표(`portrait-more.mjs audit <종족>`)로 사람·드워프·오크·미노타우로스 수염, 엘프·도마뱀·수인 머리카락·투구 확인. Windows 빌드·zip 다시 뽑음(11:49).

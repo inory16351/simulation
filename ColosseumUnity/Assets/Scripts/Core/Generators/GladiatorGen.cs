@@ -78,7 +78,8 @@ namespace Colosseum.Core
                 race = raceId,
                 nation = opt.nation,
                 age = age,
-                status = opt.status ?? (rng.Chance(0.7) ? "slave" : "free"),
+                // Unity판(FM식)은 노예·자유민 구분이 없다: 모두 계약 검투사
+                status = opt.status ?? (FmRules.Enabled ? "free" : rng.Chance(0.7) ? "slave" : "free"),
                 style = style.id,
                 attrs = attrs,
                 prof = prof,

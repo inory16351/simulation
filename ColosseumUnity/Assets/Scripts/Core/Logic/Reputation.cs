@@ -13,6 +13,8 @@ namespace Colosseum.Core
         /// <summary>원하는 주급</summary>
         public double wage;
         public string reason;
+        /// <summary>Unity판: 검투사 격 − 루두스 명성 (양수면 우리가 '작은' 루두스)</summary>
+        public double gap;
     }
 
     public static class Reputation
@@ -55,10 +57,13 @@ namespace Colosseum.Core
         {
             double gap = standing - reputation;
             if (gap > 35) return new Demand { refuse = true, wage = 0, reason = "\"이런 무명 루두스엔 안 가.\"" };
-            double mult = gap > 0 ? 1 + gap / 30 : Math.Max(0.85, 1 + gap / 120);
+            // FM식: 명문일수록 완만하게 덜 요구한다 (격차 30이면 ×0.79, 최소 ×0.75). 웹판은 ×0.85까지
+            // FM식 웃돈: 아래 부는 명성이 늘 검투사 격보다 10점쯤 낮으므로 격차 12까지는 웃돈이 없고, 그 위로 1점당 +2.5% (웹판은 1점당 +3.3%)
+            double premium = FmRules.Enabled ? Math.Max(0, gap - 12) / 40 : gap / 30;
+            double mult = gap > 0 ? 1 + premium : FmRules.Enabled ? Math.Max(0.75, 1 + gap / 140) : Math.Max(0.85, 1 + gap / 120);
             double wage = JsMath.Round(baseWage * mult);
             string reason = gap > 20 ? "\"가긴 하겠지만 그만한 값은 받아야겠어.\"" : gap > 0 ? "\"조금만 더 쳐 줘.\"" : "\"명문이라면 기꺼이 가지.\"";
-            return new Demand { refuse = false, wage = wage, reason = reason };
+            return new Demand { refuse = false, wage = wage, reason = reason, gap = gap };
         }
 
         public static readonly string[] InterestNames = { "관심 없음", "낮음", "보통", "높음", "매우 높음" };

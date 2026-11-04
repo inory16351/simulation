@@ -184,6 +184,7 @@ namespace Colosseum.Core
             o.champion = table[0].id;
             o.runnerUp = table[1].id;
             Honours.RecordOlympica(s, o.champion, o.runnerUp);
+            Awards.OlympicaEnd(s, o);
             foreach (var id in o.squads[o.champion])
             {
                 if (!s.gladiators.TryGetValue(id, out var g) || !g.alive) continue;

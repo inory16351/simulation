@@ -233,9 +233,9 @@ namespace Colosseum.Core
             return res;
         }
 
-        /// <summary>옮길 때 바라는 주급의 바탕: 지금 주급보다 조금 더 (FM식은 몸값 모델의 주급과 견준다)</summary>
-        public static double TransferBaseWage(GameState s, Gladiator g) => FmRules.Enabled
-            ? Math.Max(JsMath.Round(g.wage * 1.1), Valuation.FairWage(s, g))
+        /// <summary>옮길 때 바라는 주급의 바탕: 지금 주급보다 조금 더 (FM식은 옮겨 갈 루두스의 부 — 기본은 우리 — 에서 받을 만한 주급과 견준다)</summary>
+        public static double TransferBaseWage(GameState s, Gladiator g, int? tier = null) => FmRules.Enabled
+            ? Math.Max(JsMath.Round(g.wage * 1.1), Valuation.FairWageAt(g, tier ?? s.ludi[s.playerLudusId].tier))
             : Math.Max(JsMath.Round(g.wage * 1.2), GladiatorGen.ComputeWage(g, GladiatorRules.ComputeCA(g)));
 
         /// <summary>개인 계약 조건: 지금 받는 주급보다 많이, 그리고 우리 명성에 맞춰</summary>
@@ -453,7 +453,8 @@ namespace Colosseum.Core
         {
             var me = s.ludi[s.playerLudusId];
             double st = Reputation.GladiatorStanding(g);
-            return s.ludi.Values.Where(l => !l.isPlayer && l.nation == s.nation && l.treasury > fee * 1.1 && l.gladiators.Count < 12)
+            // 이적료를 낼 금고와, 그 검투사 주급을 더해도 주급 예산 안이어야 한다
+            return s.ludi.Values.Where(l => !l.isPlayer && l.nation == s.nation && l.treasury > fee * 1.1 && l.gladiators.Count < 12 && Economy.Affords(s, l, TransferBaseWage(s, g, l.tier)))
                 .OrderBy(l => Math.Abs(Reputation.LudusReputation(s, l) - st) + (l.tier - me.tier) * 2)
                 .Take(4).ToList();
         }
@@ -518,6 +519,10 @@ namespace Colosseum.Core
         public static void RejectOffer(GameState s, string offerId)
         {
             var t = TransferOf(s);
+            // FM처럼: 더 이름난 루두스의 제안을 막으면 검투사가 실망한다
+            var o = t.offers.FirstOrDefault(x => x.id == offerId);
+            if (o != null && s.gladiators.TryGetValue(o.gladiatorId, out var g) && s.ludi.TryGetValue(o.fromLudus, out var buyer))
+                Grievances.OnOfferRejected(s, g, buyer);
             t.offers = t.offers.Where(x => x.id != offerId).ToList();
         }
 

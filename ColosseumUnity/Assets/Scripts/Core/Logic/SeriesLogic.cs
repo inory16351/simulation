@@ -46,6 +46,8 @@ namespace Colosseum.Core
         public string homeLudusId;
         /// <summary>승자가 다음 판 전에 숨을 고르며 되찾는 체력 비율</summary>
         public double? breather;
+        /// <summary>Unity판: 수상 기록을 쌓을 대회 (ApplyOptions.comp)</summary>
+        public string comp;
     }
 
     public static class SeriesLogic
@@ -64,15 +66,15 @@ namespace Colosseum.Core
         static double LineupKey(Gladiator g) => GladiatorRules.ComputeCA(g) * (1 - g.wear / 200);
 
         /// <summary>출전 명단을 자동으로 짠다: 강하고 상태 좋은 순</summary>
-        public static List<Gladiator> AutoLineup(GameState state, Ludus ludus, int n, double at, List<string> keep = null)
+        public static List<Gladiator> AutoLineup(GameState state, Ludus ludus, int n, double at, List<string> keep = null, bool official = true)
         {
             keep ??= new List<string>();
             var output = keep
                 .Select(id => id != null && state.gladiators.TryGetValue(id, out var g) ? g : null)
-                .Where(g => g != null && g.alive && ludus.gladiators.Contains(g.id) && g.injury?.severity != "serious" && g.deployment == null)
+                .Where(g => g != null && g.alive && ludus.gladiators.Contains(g.id) && g.injury?.severity != "serious" && g.deployment == null && (!official || Registration.IsRegistered(state, g)))
                 .ToList();
             var pool = ludus.gladiators.Select(id => state.gladiators[id])
-                .Where(g => !output.Contains(g) && ChallengeLogic.Availability(state, g, at) == null && !Condition.IsJaded(g))
+                .Where(g => !output.Contains(g) && ChallengeLogic.Availability(state, g, at, official) == null && !Condition.IsJaded(g))
                 .ToList()
                 .OrderByDescending(LineupKey)
                 .ToList();
@@ -95,7 +97,7 @@ namespace Colosseum.Core
                 // 우리 편은 전략 화면의 기본값, AI는 감독 성향대로
                 teamTactics = new[] { Tactics.TeamFor(sides[0], lineups[0]), Tactics.TeamFor(sides[1], lineups[1]) },
             });
-            var summary = MatchLogic.ApplyTeamResult(state, result, o.rule, rng);
+            var summary = MatchLogic.ApplyTeamResult(state, result, o.rule, rng, o.comp);
             int n = Math.Max(lineups[0].Count, lineups[1].Count);
             double Downed(int side) => result.downs.Count(d => result.sides[1 - side].Contains(d.Key));
             return new Series
@@ -119,7 +121,7 @@ namespace Colosseum.Core
                 medicalLevel = new double[] { 2, 2 },
                 teamTactics = new[] { Tactics.AutoTeam(null, lineups[0]), Tactics.AutoTeam(null, lineups[1]) },
             });
-            var summary = MatchLogic.ApplyTeamResult(state, result, rule, rng);
+            var summary = MatchLogic.ApplyTeamResult(state, result, rule, rng, "olympica");
             double Downed(int side) => result.downs.Count(d => result.sides[1 - side].Contains(d.Key));
             return new Series { melee = result, meleeSides = snaps, meleeSummary = summary, score = new[] { Downed(0), Downed(1) }, winner = result.winnerSide };
         }
@@ -145,7 +147,7 @@ namespace Colosseum.Core
                     medicalLevel = new[] { ChallengeLogic.MedicalOf(state, sides[0]), ChallengeLogic.MedicalOf(state, sides[1]) },
                     startHp = new double?[] { hp[0] < 1 ? hp[0] : null, hp[1] < 1 ? hp[1] : null },
                 });
-                var summary = MatchLogic.ApplyMatchResult(state, result, new ApplyOptions { rule = o.rule, ranked = false, homeLudusId = o.homeLudusId }, rng);
+                var summary = MatchLogic.ApplyMatchResult(state, result, new ApplyOptions { rule = o.rule, ranked = false, homeLudusId = o.homeLudusId, comp = o.comp }, rng);
                 bouts.Add(new Bout { result = result, a = snapA, b = snapB, summary = summary, startHp = hp });
                 return result;
             }

@@ -133,10 +133,29 @@ namespace Colosseum.EditorTools
             flash.raycastTarget = false;
             flash.gameObject.SetActive(false);
 
+            // 결과창: 경기가 끝나면 경기장 위에 뜬다 (평점 매니저 기록, 줄 원본은 비활성)
+            var res = Panel("Result", arena.transform, Theme.Bg2);
+            res.gameObject.AddComponent<LayoutElement>().ignoreLayout = true;
+            res.rectTransform.Stretch(30, 20, 30, 20);
+            VCol(res.transform, 4, 22, 22, 18, 18).childForceExpandHeight = false;
+            res.transform.Find("Fill").gameObject.AddComponent<LayoutElement>().ignoreLayout = true;
+            Text("Title", res.transform, "경기 결과", 22, Theme.Parchment, true, FontStyles.Bold).Layout(prefH: 32);
+            var mvp = Text("Mvp", res.transform, "", 15, Theme.Text).Layout(prefH: 30);
+            mvp.raycastTarget = true;
+            var rhead = Box("Head", res.transform, Theme.Panel2).Layout(minH: 28, prefH: 28);
+            HRow(rhead.transform, 8, 10, 10);
+            foreach (var (id, label, w) in ResultCols) ResultCell(Text(id, rhead.transform, label, 12, Theme.TextDim, false, FontStyles.Bold, id == "Name" ? TextAlignmentOptions.MidlineLeft : TextAlignmentOptions.MidlineRight), w);
+            var rrow = Box("RowTemplate", res.transform, Color.clear).Layout(minH: 30, prefH: 30);
+            HRow(rrow.transform, 8, 10, 10);
+            foreach (var (id, _, w) in ResultCols) ResultCell(Text(id, rrow.transform, "", 14, id == "Name" ? Theme.Parchment : Theme.Text, false, FontStyles.Normal, id == "Name" ? TextAlignmentOptions.MidlineLeft : TextAlignmentOptions.MidlineRight), w);
+            rrow.gameObject.SetActive(false);
+            Text("Hint", res.transform, "평점은 6.0이 보통입니다. 이기고, 쓰러뜨리고, 많이 깎고, 덜 맞고, 잘 막고 피할수록 오릅니다.", 12, Theme.TextFaint).Layout(prefH: 24);
+            res.gameObject.SetActive(false);
+
             var btns = Rect("Buttons", root);
             HRow(btns, 8);
             var skip = Button("Skip", btns, "결과 보기", false, 15).Layout(prefW: 130, prefH: 38);
-            var close = Button("Close", btns, "한 판 더", true, 15).Layout(prefW: 130, prefH: 38);
+            var close = Button("Close", btns, "다음으로", true, 15).Layout(prefW: 130, prefH: 38);
             var roster = Button("Roster", btns, "막사로", false, 15).Layout(prefW: 110, prefH: 38);
 
             Set(s, "playRoot", root.gameObject);
@@ -154,7 +173,25 @@ namespace Colosseum.EditorTools
             Set(s, "skipButton", skip);
             Set(s, "closeButton", close);
             Set(s, "rosterButton", roster);
+            Set(s, "resultPanel", res.gameObject);
+            Set(s, "resultMvp", mvp);
+            Set(s, "resultTemplate", rrow.rectTransform);
             root.gameObject.SetActive(false);
+        }
+
+        // 결과창 칸 (이름, 머리글, 폭)  폭 0 = 남는 폭
+        static readonly (string id, string label, float w)[] ResultCols =
+        {
+            ("Name", "검투사", 0), ("Rating", "평점", 60), ("Dealt", "입힌 피해", 86), ("Taken", "받은 피해", 86), ("Acc", "명중", 80),
+            ("Block", "막기", 56), ("Dodge", "피하기", 60), ("Crit", "치명타", 60), ("Downs", "쓰러뜨림", 72),
+        };
+
+        static void ResultCell(TMP_Text t, float w)
+        {
+            t.textWrappingMode = TextWrappingModes.NoWrap;
+            t.overflowMode = TextOverflowModes.Ellipsis;
+            if (w > 0) t.Layout(minW: w, prefW: w, flexW: 0, minH: 28, prefH: 28);
+            else t.Layout(minW: 120, flexW: 1, minH: 28, prefH: 28);
         }
 
         /// <summary>웹판 .fighter: 초상화 + 이름·스타일·체력 막대. 오른쪽 선수는 거울로</summary>

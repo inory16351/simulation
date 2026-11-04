@@ -20,5 +20,5 @@ int,string,enum:EventScope,enum:EventGrade,float,enum:EventCondition,string,stri
 17,emperor_festival,World,Luck,2,None,황제의 축제,황제가 제국 곳곳에 축제를 열었습니다. 앞으로 28일간 투기장마다 사람이 넘칩니다.
 18,good_harvest,World,Luck,2,None,풍년,곡물 값이 떨어졌습니다. 한동안 식비 걱정은 덜었습니다.
 19,famine,World,Trial,2,None,흉년,가뭄이 들어 곡물 값이 치솟습니다.
-20,shipwreck,World,Opportunity,2,None,노예선 난파,카르세아 노예선이 해안에 좌초했습니다. 살아남은 자들이 헐값에 팔려 나옵니다.
+20,shipwreck,World,Opportunity,2,None,상선 난파,카르세아 상선이 해안에 좌초했습니다. 살아남은 선원과 호위병들이 싼 주급에 일자리를 찾습니다.
 21,plague,World,Disaster,1,None,역병,대륙에 역병이 돕니다. 다들 사람 모이는 곳을 피합니다.

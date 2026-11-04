@@ -1,4 +1,5 @@
-// 유소년 학당 화면 조립 (웹판 YouthScreen.tsx). 줄마다 훈련 드롭다운이 있어 스크롤 영역은 쓰지 않는다 (정원 최대 18명).
+// 유소년 학당 화면 조립 (웹판 YouthScreen.tsx). 화면 전체가 스크롤 영역이고, 입단 테스트 후보 표(유소년 계약)와 학생 표가 있다.
+using Colosseum.Core;
 using Colosseum.UI;
 using TMPro;
 using UnityEngine;
@@ -16,26 +17,73 @@ namespace Colosseum.EditorTools
             ("Name", "이름", 200), ("Race", "종족", 70), ("Age", "나이", 150), ("Style", "스타일", 0), ("Ca", "현재", 80),
             ("Pa", "추정 잠재", 130), ("Focus", "훈련", 140), ("Intensity", "강도", 100), ("Act", "", 250),
         };
+        static readonly (string id, string label, float w)[] TrialCols =
+        {
+            ("Name", "이름", 200), ("Race", "종족", 70), ("Age", "나이", 150), ("Style", "스타일", 0), ("Ca", "현재", 80),
+            ("Pa", "추정 잠재", 130), ("Act", "", 140),
+        };
 
         public static ScreenBase Build(Transform main)
         {
             var rt = Rect("Screen_youth", main).Stretch(26, 20, 26, 20);
-            VCol(rt, 14);
-            ScreenHeader(rt, "유소년 학당", "");
-            var sub = rt.Find("Sub").GetComponent<TMP_Text>();
-            var msg = Text("Msg", rt, "", 14, Neg);
+            // 내용이 늘어도 넘치지 않게 화면 전체를 스크롤 영역으로
+            var page = ScrollView("Scroll", rt, out var pageScroll, 14);
+            pageScroll.Stretch();
+            ScreenHeader(page, "유소년 학당", "");
+            var sub = page.Find("Sub").GetComponent<TMP_Text>();
+            var msg = Text("Msg", page, "", 14, Neg);
 
             // 학당이 없을 때
-            var none = Panel("None", rt);
+            var none = Panel("None", page);
             VCol(none.transform, 10, 14, 14, 14, 14);
             none.transform.Find("Fill").gameObject.AddComponent<LayoutElement>().ignoreLayout = true;
-            Text("Text", none.transform, "학당이 아직 없습니다. <b>증축</b>에서 유소년 학당을 지으면 매 시즌 서리달 1일에 아이들이 들어옵니다. 처음 지으면 바로 첫 입학생을 받습니다.", 15);
+            Text("Text", none.transform, $"학당이 아직 없습니다. <b>증축</b>에서 유소년 학당을 지으면 매 시즌 {Youth.TrialDate}에 입단 테스트가 열립니다. 후보를 골라 유소년 계약을 협상합니다.", 15);
             var goRow = Rect("Buttons", none.transform);
             HRow(goRow, 0);
             var goFac = Button("GoFacilities", goRow, "증축으로", true, 15).Layout(prefW: 140, prefH: 34);
 
+            // 입단 테스트 후보 (FM식): 골라서 유소년 계약
+            var trialPad = TitledPanel("Trial", page, "입단 테스트 후보", 0);
+            var trialTitle = trialPad.parent.Find("Head/Text").GetComponent<TMP_Text>();
+            var thead = Box("Head", trialPad, Theme.Bg2).Layout(minH: 30, prefH: 30);
+            HRow(thead.transform, 6, 8, 8);
+            foreach (var c in TrialCols)
+            {
+                var t = Text(c.id, thead.transform, c.label, 13, Theme.TextDim, false, FontStyles.Bold);
+                t.textWrappingMode = TextWrappingModes.NoWrap;
+                Cell(t.rectTransform, c.w);
+            }
+            var trow = Rect("TrialTemplate", trialPad).Layout(minH: 40, prefH: 40);
+            HRow(trow, 6, 8, 8);
+            foreach (var c in TrialCols)
+            {
+                if (c.id == "Name")
+                {
+                    var nm = Box("Name", trow, new Color(0, 0, 0, 0));
+                    nm.gameObject.AddComponent<Button>().targetGraphic = nm;
+                    Cell(nm.rectTransform, c.w);
+                    HRow(nm.transform, 8);
+                    Portrait("Portrait", nm.transform, 30);
+                    Text("Text", nm.transform, "이름", 15, Theme.Parchment, false, FontStyles.Bold).Layout(flexW: 1);
+                }
+                else if (c.id == "Act")
+                {
+                    var act = Rect("Act", trow);
+                    Cell(act, c.w);
+                    HRow(act, 6);
+                    Button("Sign", act, "계약 협상", true, 14).Layout(minW: 120, prefW: 120, prefH: 30, flexW: 0);
+                }
+                else
+                {
+                    var t = Text(c.id, trow, "", c.id is "Ca" or "Pa" ? 13 : 14, c.id is "Ca" or "Pa" ? Theme.Torch : Theme.Text);
+                    t.textWrappingMode = TextWrappingModes.NoWrap;
+                    Cell(t.rectTransform, c.w);
+                }
+            }
+            trow.gameObject.SetActive(false);
+
             // 학생 표
-            var table = Panel("Table", rt);
+            var table = Panel("Table", page);
             VCol(table.transform, 0, 1, 1, 1, 1);
             table.transform.Find("Fill").gameObject.AddComponent<LayoutElement>().ignoreLayout = true;
             var head = Box("Head", table.transform, Theme.Bg2).Layout(minH: 30, prefH: 30);
@@ -47,7 +95,7 @@ namespace Colosseum.EditorTools
                 Cell(t.rectTransform, c.w);
             }
             Box("Line", table.transform, Theme.Line).Layout(minH: 1, prefH: 1);
-            var empty = Text("Empty", table.transform, "아직 학생이 없습니다. 다음 입학일은 서리달 1일입니다.", 14, Theme.TextDim);
+            var empty = Text("Empty", table.transform, $"아직 학생이 없습니다. 입단 테스트는 매 시즌 {Youth.TrialDate}입니다.", 14, Theme.TextDim);
             empty.margin = new Vector4(12, 0, 12, 0);
             empty.Layout(minH: 40, prefH: 40);
 
@@ -97,6 +145,7 @@ namespace Colosseum.EditorTools
             Set(s, "tableRoot", table.gameObject);
             Set(s, "empty", empty.gameObject);
             Set(s, "rowTemplate", row);
+            Set(s, "trialRoot", trialPad.parent.gameObject); Set(s, "trialTitle", trialTitle); Set(s, "trialTemplate", trow);
             rt.gameObject.SetActive(false);
             return s;
         }

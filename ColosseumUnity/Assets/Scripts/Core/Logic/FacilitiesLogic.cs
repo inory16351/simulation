@@ -28,12 +28,12 @@ namespace Colosseum.Core
 
         public static readonly List<FacilityDef> FacilitiesConst = new()
         {
-            new FacilityDef { id = "barracks", name = "숙소", desc = "검투사가 먹고 자는 곳", effect = l => $"정원 {N(CapacityAt(l))}명 · 사기 +{N(l * 0.5)}/주" },
+            new FacilityDef { id = "barracks", name = "숙소", desc = "검투사가 먹고 자는 곳", effect = l => (FmRules.Enabled ? "" : $"정원 {N(CapacityAt(l))}명 · ") + $"사기 +{N(l * 0.5)}/주" },
             new FacilityDef { id = "training", name = "훈련 마당", desc = "모래를 깐 연습장과 허수아비", effect = l => $"훈련 성장 +{N((l - 1) * 10)}% · 훈련 부상 -{N((l - 1) * 5)}%" },
             new FacilityDef { id = "medical", name = "의무실", desc = "의원과 약초, 붕대", effect = l => $"부상 회복 +{N((l - 1) * 20)}% · 사투 사망 -{N(l * 2)}%p" },
             new FacilityDef { id = "bath", name = "목욕탕", desc = "뜨거운 물과 마사지", effect = l => $"피로 회복 +{N(l * 2)}/일 · 혹사 회복 +{StateUtil.Fixed(l * 0.3, 1)}/일" },
             new FacilityDef { id = "arena", name = "홈 경기장", desc = "우리 루두스의 작은 투기장", effect = l => $"홈 관중 수입 ×{StateUtil.Fixed(ArenaTicketMult(l), 2)}" },
-            new FacilityDef { id = "academy", name = "유소년 학당", desc = "고아와 노예 아이를 검투사로 키우는 학당", effect = l => l != 0 ? $"매 시즌 입학 {N(l + 1)}명 · 잠재력 상한 ★{StateUtil.Fixed(AcademyPaCap(l) / 40.0, 1)} · 정원 {N(l * 3 + 3)}명" : "없음" },
+            new FacilityDef { id = "academy", name = "유소년 학당", desc = "고아와 가난한 집 아이를 검투사로 키우는 학당", effect = l => l != 0 ? $"매 시즌 입학 {N(l + 1)}명 · 잠재력 상한 ★{StateUtil.Fixed(AcademyPaCap(l) / 40.0, 1)} · 정원 {N(l * 3 + 3)}명" : "없음" },
             new FacilityDef { id = "guard", name = "경비 초소", desc = "탈주와 반란을 막는 경비대", effect = l => $"탈주 -{N(l * 10)}% · 반란 -{N(l * 3)}%p" },
         };
 
@@ -84,14 +84,14 @@ namespace Colosseum.Core
             return (JsMath.Round(b * mult), toLevel >= 0 && toLevel < CostDays.Length ? CostDays[toLevel] : 0);
         }
 
-        /// <summary>주간 유지비 (급료일에 나간다)</summary>
+        /// <summary>주간 유지비 (급료일에 나간다). FM식은 아래 부일수록 싸다 (FmRules.CostTierMult)</summary>
         public static double WeeklyUpkeep(Ludus ludus)
         {
             var f = ludus.facilities;
             double s = 0;
             foreach (var lvl in new[] { f.barracks, f.training, f.medical, f.bath, f.arena, f.guard, f.academy })
                 s = s + (lvl >= 0 && lvl < Upkeep.Length ? Upkeep[lvl] : double.NaN);
-            return s;
+            return JsMath.Round(s * FmRules.CostTierMult(ludus.tier));
         }
 
         public static string StartUpgrade(GameState state, Ludus ludus, string id)

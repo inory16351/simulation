@@ -144,8 +144,8 @@ for (const [race, d] of Object.entries(PEOPLE)) {
   for (const n of OLD.gladiator[race] ?? []) push("Given", race, fem.has(n) ? "f" : "m", n);
   for (const n of d.m) push("Given", race, "m", n);
   for (const n of d.f) push("Given", race, "f", n);
-  // 음절 조합으로 더 (종족당 남 40, 여 25)
-  for (const [g, want] of [["m", 40], ["f", 25]]) {
+  // 음절 조합으로 더 (종족당 남 120, 여 70)
+  for (const [g, want] of [["m", 120], ["f", 70]]) {
     const combos = shuffle(d.syl.a.flatMap((a) => d.syl[g].map((e) => a + e)));
     let n = 0;
     for (const c of combos) {

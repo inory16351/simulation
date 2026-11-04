@@ -44,7 +44,8 @@ namespace Colosseum.UI
             treasury.text = $"{me.treasury:N0} D";
             treasury.color = me.treasury < 0 ? Neg : Theme.Parchment;
             string due = $"다음 급료일 {Calendar.NextPaydayLabel(S.day)}에 {bill.Total:N0} D가 나갑니다";
-            treasuryHint.text = Tips.Pay(bill.Total > me.treasury ? $"<color={Theme.Hex(Neg)}>{due} · {bill.Total - me.treasury:N0} D 모자랍니다</color>" : due);
+            if (bill.grant > 0) due += $" (하부 리그 지원금 +{bill.grant:N0} D가 먼저 들어옵니다)";
+            treasuryHint.text = Tips.Pay(bill.Net > me.treasury ? $"<color={Theme.Hex(Neg)}>{due} · {bill.Net - me.treasury:N0} D 모자랍니다</color>" : due);
             weekly.text = $"{week:N0} D";
             weeklyHint.text = $"주급 {bill.wages:N0} · 식비 {bill.food:N0} · 시설 {bill.upkeep:N0} · 식솔 {bill.staff:N0} D" +
                 (bill.arrears > 0 ? $"\n<color={Theme.Hex(Neg)}>밀린 급료 {bill.arrears:N0} D도 다음 급료일에 함께 나갑니다</color>" : "");

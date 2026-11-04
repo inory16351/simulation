@@ -94,6 +94,7 @@ namespace Colosseum.UI
             var status = t.Find("Status").GetComponent<TMP_Text>();
             if (!g.alive) { status.text = "사망"; status.color = new Color32(0xd9, 0xa2, 0x9b, 0xff); }
             else if (g.injury != null) { status.text = InjuryLabel(g); status.color = InjText; }
+            else if (!Registration.IsRegistered(state, g)) { status.text = "미등록"; status.color = Theme.TextDim; }
             else { status.text = "출전 가능"; status.color = Theme.Good; }
             Txt(t, "Record", $"{g.record.wins}-{g.record.losses}", text);
             Txt(t, "Wage", $"{g.wage} D", text);

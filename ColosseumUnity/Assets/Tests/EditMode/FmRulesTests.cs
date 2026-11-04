@@ -44,7 +44,7 @@ namespace Colosseum.Tests
             // 바라는 것의 80%만 주급으로: 역제안이 와야 한다
             var res = Economy.HaggleFreeAgentTerms(s, rng, g.id, new ContractTerms { wage = System.Math.Round(d.wage * 0.8), seasons = Contracts.PreferredSeasons(g) });
             Assert.AreEqual("sent", res.status);
-            for (int i = 0; i < 3 && s.decisions == null && s.freeAgents.Contains(g.id); i++) Day.AdvanceDay(s);
+            for (int i = 0; i < 3 && s.decisions == null && s.freeAgents.Contains(g.id); i++) { foreach (var o in Transfers.OpenOffers(s)) Transfers.RejectOffer(s, o.id); Day.AdvanceDay(s); }
             if (!s.freeAgents.Contains(g.id)) Assert.Inconclusive("경쟁 루두스가 먼저 데려갔다");
             Assert.IsNotNull(s.decisions, "역제안이 결정할 일로 남는다");
             var dec = s.decisions[0];
@@ -59,7 +59,7 @@ namespace Colosseum.Tests
             t.winBonus = 20;
             Economy.HaggleFreeAgentTerms(s, rng, g.id, t);
             Assert.IsNull(s.decisions);
-            for (int i = 0; i < 3 && s.freeAgents.Contains(g.id); i++) Day.AdvanceDay(s);
+            for (int i = 0; i < 3 && s.freeAgents.Contains(g.id); i++) { foreach (var o in Transfers.OpenOffers(s)) Transfers.RejectOffer(s, o.id); Day.AdvanceDay(s); }
             Assert.IsTrue(s.ludi[s.playerLudusId].gladiators.Contains(g.id));
             Assert.AreEqual(20, g.contract.winBonus);
         }
@@ -121,6 +121,116 @@ namespace Colosseum.Tests
             Assert.AreEqual("sudden", CupLogic.TieRule(s, tie));
             var other = s.ludi.Values.First(l => l.nation == "sylvaren");
             Assert.AreEqual("missio", CupLogic.TieRule(s, new CupTie { id = "T2", home = mine.id, away = other.id }));
+        }
+
+        [Test]
+        public void DatedChallengeAndFriendly()
+        {
+            var s = World.NewGame(83, "aurelia", "시험", 2);
+            var rng = new Rng(5);
+            var me = s.ludi[s.playerLudusId];
+            var g = s.gladiators[me.gladiators[0]];
+            // 휴식기(시즌 초)는 연습전: 훈련전으로 바뀐다
+            var opp = s.ludi.Values.First(l => !l.isPlayer && l.nation == s.nation && ChallengeLogic.CanChallengeOn(s, me, l, 6) == null);
+            var f = ChallengeLogic.TryCreateChallengeOn(s, me, opp, g.id, "missio", 6, out var err);
+            Assert.IsNull(err);
+            Assert.AreEqual(true, f.friendly);
+            Assert.AreEqual("training", f.rule);
+            Assert.IsNotNull(ChallengeLogic.DateBlock(s, 2), "너무 가까운 날은 못 고른다");
+            // 리그 기간 날짜는 리그 도전장
+            var g2 = s.gladiators[me.gladiators[1]];
+            var opp2 = s.ludi.Values.First(l => !l.isPlayer && l.nation == s.nation && l.id != opp.id && ChallengeLogic.CanChallengeOn(s, me, l, 20) == null);
+            var lc = ChallengeLogic.TryCreateChallengeOn(s, me, opp2, g2.id, "missio", 20, out err);
+            Assert.IsNull(err);
+            Assert.IsNull(lc.friendly);
+            double rp = me.rp, fame = g.popularity;
+            double played = me.matchesThisSeason;
+            RunTo(s, rng, 1, 7);
+            if (f.status == "declined") Assert.Inconclusive("상대가 연습전을 거절했다");
+            Assert.AreEqual("done", f.status);
+            Assert.AreEqual(6, f.matchAt);
+            Assert.AreEqual(rp, me.rp, "연습전은 RP가 오가지 않는다");
+            Assert.AreEqual(played, me.matchesThisSeason);
+            Assert.AreEqual(fame, g.popularity, "연습전은 명성이 없다");
+            if (lc.status == "scheduled") Assert.AreEqual(20, lc.matchAt);
+        }
+
+        [Test]
+        public void RejectingBiggerClubUpsetsGladiator()
+        {
+            var s = World.NewGame(85, "aurelia", "시험", 4);
+            var me = s.ludi[s.playerLudusId];
+            var g = s.gladiators[me.gladiators[0]];
+            g.hidden.ambition = 18;
+            g.hidden.loyalty = 2;
+            g.morale = 70;
+            var big = s.ludi.Values.First(l => l.nation == s.nation && l.tier == 1);
+            Transfers.TransferOf(s).offers.Add(new Offer { id = "O9", fromLudus = big.id, gladiatorId = g.id, fee = 500, maxFee = 900, status = "open", expiresAt = 9999 });
+            double value = Valuation.MarketValue(s, g);
+            Transfers.RejectOffer(s, "O9");
+            Assert.Less(Valuation.MarketValue(s, g), value, "불만이면 몸값이 내려간다");
+            // 계약이 짧게 남을수록 싸다
+            var keep = g.contract;
+            g.contract = new GladiatorContract { untilSeason = s.season + 3 };
+            double longV = Valuation.MarketValue(s, g);
+            g.contract = new GladiatorContract { untilSeason = s.season };
+            Assert.Less(Valuation.MarketValue(s, g), longV);
+            g.contract = keep;
+            Assert.Less(g.morale, 70, "1부 루두스 제안을 막으면 실망한다");
+            Assert.IsNotNull(g.grievance);
+            Assert.LessOrEqual(70 - g.morale, 12, "과하지 않게");
+            Assert.AreEqual("transfer", g.grievanceKind);
+            Contracts.Apply(s, g, Contracts.TermsOf(g) ?? new ContractTerms { wage = g.wage });
+            Assert.IsNotNull(g.grievance, "이적 불만은 재계약으로 풀리지 않는다");
+            Assert.IsNull(Transfers.ListForTransfer(s, g.id, 1000));
+            Grievances.Daily(s, new Rng(1));
+            Assert.IsNull(g.grievance, "이적 명단에 올리면 풀린다");
+            // 명문일수록 덜 요구한다
+            Assert.Less(Reputation.DemandFor(40, 100, 70).wage, Reputation.DemandFor(40, 100, 45).wage);
+        }
+
+        [Test]
+        public void ExpiredContractsBecomeFreeAgents()
+        {
+            var s = World.NewGame(86, "aurelia", "시험", 2);
+            var me = s.ludi[s.playerLudusId];
+            var g = s.gladiators[me.gladiators[0]];
+            g.status = "free";
+            g.contract = new GladiatorContract { untilSeason = 1, clauses = new System.Collections.Generic.List<string>() };
+            var ai = s.gladiators.Values.Where(x => x.contract?.untilSeason == 1 && !me.gladiators.Contains(x.id)).Select(x => x.id).ToList();
+            Assert.Greater(ai.Count, 0, "AI 계약도 시즌 1에 끝나는 검투사가 있다 (1~4시즌으로 나뉨)");
+            s.day = Calendar.DaysPerSeason;
+            Assert.AreEqual(0, Day.AdvanceDay(s).Count);
+            Assert.AreEqual(2, s.season);
+            Assert.IsFalse(me.gladiators.Contains(g.id), "재계약 안 하면 떠난다");
+            Assert.IsTrue(s.freeAgents.Contains(g.id), "무소속 명단에 남는다");
+            // AI: 재계약했거나 무소속
+            foreach (var id in ai)
+            {
+                var x = s.gladiators[id];
+                if (!x.alive) continue;
+                Assert.IsTrue(s.freeAgents.Contains(id) || x.contract?.untilSeason >= 2, $"{x.name}: 만료된 채 남지 않는다");
+            }
+            Assert.IsTrue(ai.Any(id => s.freeAgents.Contains(id)), "일부는 풀린다");
+        }
+
+        [Test]
+        public void AwardsAfterFullSeason()
+        {
+            var s = World.NewGame(84, "aurelia", "시험", 2);
+            var rng = new Rng(9);
+            RunTo(s, rng, 2, 1);
+            var a = s.awards.Where(x => x.season == 1).ToList();
+            Assert.AreEqual(Data.Nations.Count * FmRules.MaxTier, a.Count(x => x.kind == "lanista" && x.comp.StartsWith("league:")), "리그마다 라니스타 상");
+            Assert.Greater(a.Count(x => x.kind == "best" && x.comp.StartsWith("league:")), 10);
+            Assert.IsTrue(a.Any(x => x.comp == "pantheon" && x.kind == "best"));
+            Assert.IsTrue(a.Any(x => x.comp.StartsWith("natcup:") && x.kind == "lanista"));
+            Assert.AreEqual(1, a.Count(x => x.kind == "world_best"));
+            Assert.AreEqual(Data.Nations.Count, a.Count(x => x.kind == "nation_best"));
+            Assert.IsTrue(a.Where(x => x.kind == "rookie").All(x => x.gladiatorId != null));
+            Assert.IsTrue(s.ceremonies.Contains("awards:season:1"));
+            Assert.IsTrue(s.ceremonies.Any(c => c.StartsWith("awards:comp:league:")));
+            Assert.IsNull(s.compStats);
         }
 
         /// <summary>이날까지 우리 경기를 기계적으로 치르며 넘긴다</summary>
@@ -280,6 +390,56 @@ namespace Colosseum.Tests
             Assert.IsNotNull(st.attrs);
             Assert.AreEqual(StaffLogic.AttrKeys.Length, st.attrs.Count);
             Assert.AreEqual(StaffLogic.RatingFromAttrs(st.role, st.attrs), st.rating);
+        }
+
+        /// <summary>막는 일(사건·받은 제안·오늘 경기·유소년 말고 다른 역제안)을 치우고 하루 넘긴다</summary>
+        static void Next(GameState s)
+        {
+            var rng = new Rng(11);
+            foreach (var p in s.pendingEvents.ToList()) Events.ResolveEvent(s, rng, p.id, 0);
+            foreach (var o in Transfers.OpenOffers(s)) Transfers.RejectOffer(s, o.id);
+            foreach (var d in (s.decisions ?? new System.Collections.Generic.List<Decision>()).Where(d => d.kind != "youth").ToList()) Negotiations.Withdraw(s, d.id);
+            foreach (var c in ChallengeLogic.TodaysPlayerMatches(s)) ChallengeLogic.PlayChallenge(s, c, rng);
+            Day.AdvanceDay(s);
+        }
+
+        [Test]
+        public void YouthTrialMidSeasonWithNegotiation()
+        {
+            var s = World.NewGame(81, "aurelia", "시험", 3);
+            var me = s.ludi[s.playerLudusId];
+            me.treasury = 50000;
+            Assert.IsNull(me.youthTrial, "새 게임 첫날에는 입단 테스트가 없다");
+            Next(s);
+            Assert.IsNull(me.youthTrial);
+            s.day = Youth.TrialDay - 1;
+            Next(s);
+            Assert.AreEqual(Youth.TrialDay, s.day);
+            Assert.IsNotNull(me.youthTrial, "첫 시즌 중반(입단 테스트 날)에 열린다");
+            Assert.AreEqual(Youth.TrialCount(me.facilities.academy), me.youthTrial.Count);
+
+            // 넉넉한 조건: 서명하고 학당에 들어온다
+            var kid = s.gladiators[me.youthTrial[0]];
+            var d = Youth.TrialDemand(s, kid);
+            var t = new ContractTerms { wage = d.wage * 2, seasons = Contracts.PreferredSeasons(kid), signingFee = 50 };
+            Assert.AreEqual("sent", Youth.HaggleTrial(s, new Rng(3), kid.id, t).status);
+            Assert.AreEqual("error", Youth.HaggleTrial(s, new Rng(3), kid.id, t).status, "답을 기다리는 동안 다시 못 보낸다");
+            double before = me.treasury;
+            for (int i = 0; i < 3 && !me.youth.Contains(kid.id); i++) Next(s);
+            Assert.Contains(kid.id, me.youth);
+            Assert.AreEqual(t.wage, kid.wage);
+            Assert.IsTrue(kid.contract.clauses.Contains("youth"));
+            Assert.AreEqual(s.season + t.seasons - 1, kid.contract.untilSeason);
+
+            // 모자란 조건: 역제안(결정할 일)이 오거나 협상이 깨진다
+            if (me.youthTrial.Count == 0) Assert.Inconclusive("후보가 한 명뿐");
+            var kid2 = s.gladiators[me.youthTrial[0]];
+            var d2 = Youth.TrialDemand(s, kid2);
+            Youth.HaggleTrial(s, new Rng(4), kid2.id, new ContractTerms { wage = System.Math.Max(1, System.Math.Round(d2.wage * 0.6)), seasons = Contracts.PreferredSeasons(kid2) });
+            for (int i = 0; i < 3 && Negotiations.Pending(s, "youth", kid2.id) != null; i++) Next(s);
+            var dec = Negotiations.DecisionFor(s, "youth", kid2.id);
+            Assert.IsTrue(dec != null || !s.gladiators.ContainsKey(kid2.id), "역제안이 오거나, 결렬이면 아이가 돌아간다");
+            if (dec != null) Assert.IsTrue(Day.Blockers(s).Any(b => b.Contains("협상") || b.Contains("역제안")), "역제안은 다음 날로 가기 전에 정해야 한다");
         }
     }
 }

@@ -1,4 +1,4 @@
-// 도전장 화면 조립 (웹판 ChallengeScreen.tsx + styles.css .field, .seg). 드롭다운이 있어 스크롤 영역은 쓰지 않는다.
+// 도전장 화면 조립 (웹판 ChallengeScreen.tsx + styles.css .field, .seg). 화면 전체가 스크롤 영역이다.
 using System.Collections.Generic;
 using Colosseum.UI;
 using TMPro;
@@ -15,12 +15,14 @@ namespace Colosseum.EditorTools
         public static ScreenBase Build(Transform main)
         {
             var rt = Rect("Screen_challenge", main).Stretch(26, 20, 26, 20);
-            VCol(rt, 14);
-            ScreenHeader(rt, "도전장", "");
-            var sub = rt.Find("Sub").GetComponent<TMP_Text>();
+            // 내용이 늘어도 넘치지 않게 화면 전체를 스크롤 영역으로
+            var page = ScrollView("Scroll", rt, out var pageScroll, 14);
+            pageScroll.Stretch();
+            ScreenHeader(page, "도전장", "");
+            var sub = page.Find("Sub").GetComponent<TMP_Text>();
 
             // 받은 도전장
-            var incPad = TitledPanel("Incoming", rt, "받은 도전장", 0);
+            var incPad = TitledPanel("Incoming", page, "받은 도전장", 0);
             Head(incPad, ("상대", 200), ("상대 검투사", 230), ("규칙", 150), ("답할 기한", 100), ("우리 출전자", 0), ("", 170));
             var inc = Row("IncomingTemplate", incPad);
             Cell(Text("Opp", inc, "", 14).rectTransform, 200);
@@ -38,7 +40,7 @@ namespace Colosseum.EditorTools
             inc.gameObject.SetActive(false);
 
             // 두 칸: 보내기 | 잡힌 경기 + 답 기다림
-            var cols = Rect("Cols", rt);
+            var cols = Rect("Cols", page);
             HRow(cols, 14, 0, 0, 0, 0, TextAnchor.UpperLeft);
 
             var sendPad = TitledPanel("Send", cols, "도전장 보내기", 10);

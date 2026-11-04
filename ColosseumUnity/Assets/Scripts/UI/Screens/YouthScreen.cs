@@ -25,6 +25,11 @@ namespace Colosseum.UI
         [SerializeField] GameObject tableRoot;
         [SerializeField] GameObject empty;
         [SerializeField] RectTransform rowTemplate;
+        [Header("입단 테스트 후보 (FM식, 골라서 유소년 계약)")]
+        [SerializeField] GameObject trialRoot;
+        [SerializeField] TMP_Text trialTitle;
+        [SerializeField] RectTransform trialTemplate;
+        TemplateList<RectTransform> trialRows;
 
         TemplateList<RectTransform> rows;
         // 화면 상태: 오류 글, 내보내기 확인 중인 아이 (웹판 confirm)
@@ -33,6 +38,7 @@ namespace Colosseum.UI
         void Awake()
         {
             rows = new TemplateList<RectTransform>(rowTemplate);
+            trialRows = new TemplateList<RectTransform>(trialTemplate);
             goFacilities.onClick.AddListener(() => G.Go("facilities"));
         }
 
@@ -61,6 +67,43 @@ namespace Colosseum.UI
             empty.SetActive(kids.Count == 0);
             if (confirmRelease != null && !kids.Any(g => g.id == confirmRelease)) confirmRelease = null;
             rows.Sync(kids.Count, (row, i) => Bind(row, kids[i], full));
+
+            // 입단 테스트 후보: 골라서 유소년 계약 (잠재력 높은 순)
+            var trial = (player.youthTrial ?? new List<string>()).Where(S.gladiators.ContainsKey).Select(id => S.gladiators[id])
+                .OrderByDescending(g => Scouting.PaRange(S, g).mid).ToList();
+            trialRoot.SetActive(trial.Count > 0);
+            bool roomLeft = kids.Count < Youth.YouthCapacity(player);
+            if (trial.Count > 0)
+                trialTitle.text = $"◆  입단 테스트 후보 {trial.Count}명 — {Calendar.DateLabel(Calendar.FromAbs(player.youthTrialUntil ?? 0).day)}까지 계약할 아이를 고르세요" +
+                    (roomLeft ? "" : $"  <color={Theme.Hex(Neg)}>학당 정원이 찼습니다</color>");
+            trialRows.Sync(trial.Count, (row, i) =>
+            {
+                var g = trial[i];
+                string id = g.id;
+                row.GetComponentInChildren<PortraitView>(true).Show(g);
+                var nameBtn = row.Find("Name").GetComponent<Button>();
+                nameBtn.onClick.RemoveAllListeners();
+                nameBtn.onClick.AddListener(() => G.ShowGladiator(id));
+                T(row, "Name/Text").text = Tips.Name(g);
+                T(row, "Race").text = Tips.Race(g.race);
+                T(row, "Age").text = $"{g.age} <size=80%><color={Theme.Hex(Theme.TextFaint)}>데뷔까지 {Math.Max(0, Data.Race(g.race).age.debut - g.age)}년</color></size>";
+                T(row, "Style").text = Tips.Style(g.style);
+                T(row, "Ca").text = Widgets.CaStars(S, g);
+                var pr = Scouting.PaRange(S, g);
+                T(row, "Pa").text = Widgets.RangeStars(pr.lo, pr.hi);
+                // 다른 계약처럼 협상 창에서 조건을 정해 보낸다 (답은 하루이틀 뒤 서판으로, 역제안이 오면 그 창으로)
+                var sign = row.Find("Act/Sign").GetComponent<Button>();
+                var dec = Negotiations.DecisionFor(S, "youth", id);
+                bool waiting = Negotiations.Pending(S, "youth", id) != null;
+                sign.GetComponentInChildren<TMP_Text>().text = dec != null ? "역제안 보기" : waiting ? "답 기다리는 중" : "계약 협상";
+                sign.interactable = roomLeft || dec != null || waiting;
+                sign.onClick.RemoveAllListeners();
+                sign.onClick.AddListener(() =>
+                {
+                    if (dec != null) NegotiationPopup.OpenDecision(dec.id);
+                    else NegotiationPopup.OpenContract("youth", id);
+                });
+            });
         }
 
         void Bind(RectTransform row, Gladiator g, bool full)

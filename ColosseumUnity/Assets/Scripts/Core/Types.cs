@@ -147,5 +147,14 @@ namespace Colosseum.Core
         public Deployment deployment;
         public List<SeasonRecord> history = new();
         public List<CareerEvent> career = new();
+        /// <summary>Unity판: 불만 (Logic/Grievances.cs). 사라지는 날(절대 일수)까지 사기가 조금씩 깎인다</summary>
+        public string grievance;
+        public double? grievanceUntil;
+        /// <summary>불만 종류: raise(인상 요구 거절·무시 → 재계약하면 풀림) | transfer(이적이 막힘 → 이적 명단·이적·시간) | bench(출전 못 함 → 경기에 나가거나 시간)</summary>
+        public string grievanceKind, grievanceLudus;
+        public double? grievanceAt;
+        /// <summary>Unity판: 주급 인상을 요구한 시즌과 답할 기한</summary>
+        public int? raiseSeason;
+        public double? raiseBy;
     }
 }

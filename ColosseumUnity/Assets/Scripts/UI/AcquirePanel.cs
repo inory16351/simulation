@@ -17,6 +17,8 @@ namespace Colosseum.UI
         [SerializeField] RectTransform infoBar;
         [SerializeField] Button scout;
         [SerializeField] Button shortlist;
+        [Tooltip("우리 검투사: 공식 경기 등록·해제 (Logic/Registration.cs)")]
+        [SerializeField] Button regButton;
         [SerializeField] TMP_Text msg;
         [Tooltip("흥정 상태 줄 (인내심·역제안)")]
         [SerializeField] TMP_Text mood;
@@ -65,6 +67,17 @@ namespace Colosseum.UI
                     if (d.shortlist.Contains(id)) d.shortlist = d.shortlist.Where(x => x != id).ToList();
                     else d.shortlist.Add(id);
                 });
+            });
+            regButton.onClick.AddListener(() =>
+            {
+                string id = gid, err = null;
+                G.Mutate(d =>
+                {
+                    var me = d.ludi[d.playerLudusId];
+                    bool on = me.registered?.Contains(id) == true;
+                    err = on ? Registration.Unregister(d, me, id) : Registration.Register(d, me, id);
+                });
+                Say(err);
             });
             sign.onClick.AddListener(Sign);
             bid.onClick.AddListener(Bid);
@@ -151,6 +164,11 @@ namespace Colosseum.UI
             scout.GetComponentInChildren<TMP_Text>().text = renewPending != null ? "재계약 답 기다림" : "재계약 협상";
             scout.interactable = renewPending == null;
             shortlist.GetComponentInChildren<TMP_Text>().text = listed ? $"이적 명단 ({S.transferList[g.id]:N0} D)" : "이적 명단에 올리기";
+            // 공식 경기 등록 (15명까지, 해제는 이적 시장 기간에만)
+            var me = S.ludi[S.playerLudusId];
+            bool reg = Registration.IsRegistered(S, g);
+            regButton.gameObject.SetActive(Registration.Enabled && g.alive);
+            regButton.GetComponentInChildren<TMP_Text>().text = reg ? $"등록 해제 ({Registration.Count(me)}/{Registration.Max})" : $"등록하기 ({Registration.Count(me)}/{Registration.Max})";
             freeRoot.SetActive(false);
             clubRoot.SetActive(false);
             dealRoot.SetActive(false);
@@ -167,6 +185,7 @@ namespace Colosseum.UI
         {
             if (gid == null || !S.gladiators.TryGetValue(gid, out var g)) return;
             if (Mine) { DrawMine(g); return; }
+            regButton.gameObject.SetActive(false);
             infoBar.gameObject.SetActive(true);
             scout.gameObject.SetActive(true);
             var owner = Career.LudusOf(S, g.id);

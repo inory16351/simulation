@@ -25,6 +25,7 @@ namespace Colosseum.EditorTools
             ["strategy"] = StrategyBuilder.Build,
             ["training"] = TrainingBuilder.Build,
             ["challenge"] = ChallengeBuilder.Build,
+            ["schedule"] = ScheduleBuilder.Build,
             ["match"] = MatchBuilder.Build,
             ["league"] = LeagueBuilder.Build,
             ["cup"] = CupBuilder.Build,
@@ -205,7 +206,7 @@ namespace Colosseum.EditorTools
 
         static MenuButton MenuItem(Transform parent, string id, string label, bool icon = true)
         {
-            var bg = Box("Menu_" + id, parent, new Color(0, 0, 0, 0)).Layout(minH: 36, prefH: 36);
+            var bg = Box("Menu_" + id, parent, new Color(0, 0, 0, 0)).Layout(minH: 35, prefH: 35);
             var btn = bg.gameObject.AddComponent<Button>();
             btn.targetGraphic = bg;
             var colors = btn.colors;
@@ -216,7 +217,7 @@ namespace Colosseum.EditorTools
             accent.gameObject.AddComponent<LayoutElement>().ignoreLayout = true;
             ((RectTransform)accent.transform).Anchor(Vector2.zero, new Vector2(0, 1), Vector2.zero, new Vector2(4, 0));
             accent.enabled = false;
-            if (icon) Sprite("Icon", bg.transform, $"icon/menu/{(id == "dungeon" ? "dungeon" : id)}", 26, 26);
+            if (icon) Sprite("Icon", bg.transform, $"icon/menu/{id}", 26, 26);
             var t = Text("Label", bg.transform, label, 16).Layout(flexW: 1);
             var badge = Box("Badge", bg.transform, Theme.Blood).Layout(minW: 26, prefW: 26, prefH: 20);
             var bt = Text("Text", badge.transform, "1", 13, Color.white, false, FontStyles.Bold, TextAlignmentOptions.Center);

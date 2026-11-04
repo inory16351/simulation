@@ -37,10 +37,12 @@ namespace Colosseum.Core
         public static bool InRegularPeriod(GameState state) => state.day >= 15 && state.day <= (FmRules.Enabled ? FmRules.RegularEnd : 154);
 
         /// <summary>오늘 출전할 수 있는가 (쉬는 기간·부상·예약된 경기 확인). null이면 출전 가능</summary>
-        public static string Availability(GameState state, Gladiator g, double? atOpt = null)
+        /// <param name="official">공식 경기(리그·컵)면 등록 명단도 본다. 연습전은 false</param>
+        public static string Availability(GameState state, Gladiator g, double? atOpt = null, bool official = true)
         {
             double at = atOpt ?? Now(state);
             if (!g.alive) return "사망";
+            if (official && !Registration.IsRegistered(state, g)) return "미등록";
             if (g.deployment != null) return g.deployment.kind == "dungeon" ? "던전 원정 중" : "용병 파견 중";
             if (GladiatorRules.AgeStage(g) == "youth") return "아직 어립니다";
             if (g.injury?.severity == "serious") return "중상";
@@ -71,17 +73,139 @@ namespace Colosseum.Core
 
         /// <summary>FM식: 받는 쪽이 이 도전을 받을 수 있는가 (부상·경기 예정·휴식·원정으로 내보낼 사람이 없으면 보낼 수 없다).
         /// 이미 답을 기다리는 도전장만큼 사람을 빼고 센다. 우리 루두스에는 답을 기다리는 도전장이 2통까지만 온다</summary>
-        public static string CanReceive(GameState state, Ludus to, int format)
+        public static string CanReceive(GameState state, Ludus to, int format, double? at = null, bool official = true)
         {
             int t = Now(state);
             var pending = state.challenges.Where(c => c.to == to.id && c.status == "pending").ToList();
             if (to.isPlayer && pending.Count >= 2) return "상대가 이미 답할 도전장이 밀려 있습니다";
             int reserved = pending.Sum(c => Math.Max(1, c.format ?? 1));
-            int free = to.gladiators.Count(id => state.gladiators.TryGetValue(id, out var g) && Availability(state, g, t) == null && Availability(state, g, t + L("matchDelayMin")) == null);
+            // 날짜를 고른 도전장은 그날 나올 수 있는지만 본다
+            int free = at.HasValue
+                ? to.gladiators.Count(id => state.gladiators.TryGetValue(id, out var g) && FreeOn(state, g, at.Value, official))
+                : to.gladiators.Count(id => state.gladiators.TryGetValue(id, out var g) && Availability(state, g, t) == null && Availability(state, g, t + L("matchDelayMin")) == null);
             if (free - reserved < Math.Max(1, format))
                 return format > 1 ? $"상대에게 지금 {format}명을 내보낼 여력이 없습니다 (부상·경기 예정·휴식)" : "상대에게 지금 내보낼 검투사가 없습니다 (부상·경기 예정·휴식)";
             return null;
         }
+
+        // ── 날짜를 골라 보내는 도전장 (Unity판, 일정 화면): 정규 리그 기간이면 리그 경기, 휴식기면 컵에서 탈락한 팀과 연습전 ──
+
+        /// <summary>리그 경기를 치르는 날인가 (정규 기간)</summary>
+        public static bool IsLeagueDay(int day) => day >= 15 && day <= (FmRules.Enabled ? FmRules.RegularEnd : 154);
+
+        /// <summary>그날 다른 경기가 잡혀 있지 않고 나올 수 있는가</summary>
+        public static bool FreeOn(GameState state, Gladiator g, double at, bool official = true) =>
+            Availability(state, g, at, official) == null && !state.challenges.Any(c => c.status == "scheduled" && c.matchAt == at && (c.fromGladiator == g.id || c.toGladiator == g.id));
+
+        /// <summary>국내 컵에서 아직 살아 있는가 (지지 않았고 우승도 정해지지 않았다)</summary>
+        public static bool InNatCup(GameState state, string ludusId)
+        {
+            if (!state.ludi.TryGetValue(ludusId, out var l)) return false;
+            var c = NatCupLogic.Of(state, l.nation);
+            if (c == null || c.season != state.season || !string.IsNullOrEmpty(c.champion) || !c.teams.Contains(ludusId)) return false;
+            if (c.ties.Any(t => t.stage != "league5" && !string.IsNullOrEmpty(t.winner) && (t.home == ludusId || t.away == ludusId) && t.winner != ludusId)) return false;
+            return c.final5 == null || c.final5.Contains(ludusId);
+        }
+
+        /// <summary>판테온 컵에서 아직 살아 있는가. 추첨 전이면 나갈 것이 거의 확실한 팀(1부 1~3위, 국내 컵 우승)을 넣는다</summary>
+        public static bool InPantheon(GameState state, string ludusId)
+        {
+            if (!FmRules.Enabled || !state.ludi.TryGetValue(ludusId, out var l)) return false;
+            var cup = state.cup;
+            if (cup == null || cup.season != state.season || cup.fm != true)
+            {
+                if (!FmRules.Frozen(state) || state.day >= CupLogic.FmDrawDay) return false;
+                var nc = NatCupLogic.Of(state, l.nation);
+                if (nc != null && nc.season == state.season && nc.champion == ludusId) return true;
+                return l.tier == 1 && Economy.TierRanking(state, 1, l.nation).Take(3).Any(x => x.id == ludusId);
+            }
+            if (!string.IsNullOrEmpty(cup.champion) || !cup.teams.Contains(ludusId)) return false;
+            bool Plays(CupTie t) => t.home == ludusId || t.away == ludusId;
+            bool inPo = cup.poGroups?.Any(g => g.Contains(ludusId)) == true;
+            bool inMain = cup.groups.Any(g => g.Contains(ludusId));
+            if (inPo && cup.groups.Count > 0 && !inMain) return false;
+            if (cup.ties.Any(t => t.stage == "qf") && !cup.ties.Any(t => t.stage == "qf" && Plays(t))) return false;
+            return !cup.ties.Any(t => (t.stage == "qf" || t.stage == "sf" || t.stage == "final") && !string.IsNullOrEmpty(t.winner) && Plays(t) && t.winner != ludusId);
+        }
+
+        /// <summary>아직 컵 일정이 남은 팀인가</summary>
+        public static bool InCup(GameState state, string ludusId) => InNatCup(state, ludusId) || InPantheon(state, ludusId);
+
+        /// <summary>이 루두스가 그날 컵 경기를 치를 수 있으면 그 대회 이름 (아직 살아 있거나 추첨 전인 대회의 경기 날)</summary>
+        public static string CupOn(GameState state, string ludusId, int day)
+        {
+            if (!FmRules.Enabled || !state.ludi.TryGetValue(ludusId, out var l)) return null;
+            bool natDay = NatCupLogic.KoDays.Contains(day) || NatCupLogic.LeagueDays.Contains(day);
+            if (natDay && (!FmRules.Frozen(state) || InNatCup(state, ludusId))) return NatCupLogic.Name(l.nation);
+            bool panDay = CupLogic.FmPoDays.Contains(day) || CupLogic.FmGroupDays.Contains(day) || day == CupLogic.FmQfDay || day == CupLogic.FmSfDay || day == CupLogic.FmFinalDay;
+            if (panDay && (InPantheon(state, ludusId) || (!FmRules.Frozen(state) && l.tier == 1))) return "판테온 컵";
+            return null;
+        }
+
+        /// <summary>우리가 이 날짜에 경기를 잡을 수 있는가. null이면 가능</summary>
+        public static string DateBlock(GameState state, int day)
+        {
+            int lead = LI("matchDelayMin");
+            if (day < state.day + lead) return $"오늘부터 {lead}일 뒤의 날짜부터 고를 수 있습니다 (상대가 답하고 준비할 시간)";
+            if (day > Calendar.DaysPerSeason) return "이번 시즌 안의 날짜만 고를 수 있습니다";
+            if (IsLeagueDay(day) && OlympicaLogic.IsMatchDay(state, day)) return "대표 주간(올림피카 컵)에는 리그 경기를 잡지 않습니다";
+            if (CupOn(state, state.playerLudusId, day) is string cup) return $"그날은 우리 {cup} 경기가 있을 수 있습니다";
+            return null;
+        }
+
+        /// <summary>이 날짜에 이 상대에게 도전장(리그 기간) 또는 연습전(휴식기)을 보낼 수 있는가. null이면 가능</summary>
+        public static string CanChallengeOn(GameState state, Ludus from, Ludus to, int day, int format = 1)
+        {
+            if (from.id == to.id) return "자기 자신";
+            if (from.nation != to.nation) return "다른 나라";
+            if (IsLeagueDay(day))
+            {
+                double range = L("challengeRange");
+                if (from.tier != to.tier && Math.Abs(from.rp - to.rp) > range) return $"다른 리그는 RP ±{N(range)} 안에서만";
+            }
+            else
+            {
+                if (InCup(state, to.id)) return "아직 컵 일정이 남은 팀입니다 (연습전은 컵에서 떨어진 팀과만)";
+                if (CupOn(state, to.id, day) != null) return "그날 컵 경기가 있을 수 있는 팀입니다";
+            }
+            int week = Now(state) - 6;
+            int sent = state.challenges.Count(c => c.from == from.id && c.createdAt >= week);
+            double perWeek = L("challengesPerWeek");
+            if (sent >= perWeek) return $"일주일에 {N(perWeek)}번까지만 신청할 수 있습니다";
+            if (state.challenges.Any(c => c.from == from.id && c.to == to.id && c.status == "pending")) return "이미 답을 기다리는 중";
+            double at = Calendar.AbsDay(state.season, day);
+            if (state.challenges.Any(c => (c.from == to.id || c.to == to.id) && ((c.status == "scheduled" && c.matchAt == at) || (c.status == "pending" && c.wantAt == at)))) return "그날 이미 경기가 잡힌 팀입니다";
+            return CanReceive(state, to, format, at, IsLeagueDay(day));
+        }
+
+        /// <summary>날짜를 골라 도전장을 보낸다. 휴식기면 훈련전 규칙의 연습전이 된다. 실패하면 null과 이유</summary>
+        public static Challenge TryCreateChallengeOn(GameState state, Ludus from, Ludus to, string fromGladiator, string rule, int day, out string error, int format = 1)
+        {
+            error = DateBlock(state, day) ?? CanChallengeOn(state, from, to, day, format);
+            if (error != null) return null;
+            bool friendly = !IsLeagueDay(day);
+            if (friendly) rule = "training";
+            if (rule == "sudden" && NationRules.RulesOfNation(from.nation).suddenBanned) { error = "이 나라 리그에서는 사투를 금합니다"; return null; }
+            double at = Calendar.AbsDay(state.season, day);
+            if (fromGladiator == null || !state.gladiators.TryGetValue(fromGladiator, out var g)) { error = "출전자 고르기"; return null; }
+            if (!FreeOn(state, g, at, !friendly)) { error = $"{g.name}: 그날 나올 수 없습니다 ({Availability(state, g, at, !friendly) ?? "다른 경기 예정"})"; return null; }
+            if (format > 1 && SeriesLogic.AutoLineup(state, from, format, at, null, !friendly).Count < format)
+            {
+                error = $"{SeriesLogic.FormatNames[format]}에 내보낼 검투사가 그날 {format}명이 안 됩니다";
+                return null;
+            }
+            var c = new Challenge
+            {
+                id = $"C{state.nextId++}", from = from.id, to = to.id, fromGladiator = fromGladiator, rule = rule,
+                createdAt = Now(state), respondBy = Now(state) + L("respondDays"), status = "pending",
+                format = format > 1 ? format : (int?)null, wantAt = at, friendly = friendly ? true : (bool?)null,
+            };
+            state.challenges.Add(c);
+            return c;
+        }
+
+        /// <summary>규칙 이름. 휴식기 경기는 '연습전' (규칙은 훈련전)</summary>
+        public static string RuleLabel(Challenge c) => c.friendly == true ? "연습전" : RuleName(c.rule);
 
         /// <summary>TS createChallenge (Challenge | string). 실패하면 null</summary>
         public static Challenge CreateChallenge(GameState state, Ludus from, Ludus to, string fromGladiator, string rule, string toGladiator = null, double stake = 0, int format = 1) =>
@@ -113,9 +237,9 @@ namespace Colosseum.Core
         }
 
         /// <summary>경기에 내보낼 검투사를 고른다 (가장 강하고 상태가 좋은 쪽)</summary>
-        public static Gladiator PickFighter(GameState state, Ludus ludus, string rule, double at)
+        public static Gladiator PickFighter(GameState state, Ludus ludus, string rule, double at, bool official = true)
         {
-            var pool = ludus.gladiators.Select(id => state.gladiators[id]).Where(g => Availability(state, g, at) == null && !Condition.IsJaded(g)).ToList();
+            var pool = ludus.gladiators.Select(id => state.gladiators[id]).Where(g => Availability(state, g, at, official) == null && !Condition.IsJaded(g)).ToList();
             if (pool.Count == 0) return null;
             // 사투에는 아끼는 최강자 대신 두 번째로 강한 자를 내보내는 루두스가 많다
             var sorted = pool.OrderByDescending(g => GladiatorRules.ComputeCA(g) * (1 - g.wear / 200)).ToList();
@@ -131,6 +255,8 @@ namespace Colosseum.Core
                 .Where(x => x != c && x.status == "scheduled" && new[] { x.fromGladiator, x.toGladiator }.Any(id => id == c.fromGladiator || id == defender.id))
                 .Select(x => x.matchAt.Value)
                 .ToList();
+            // 우리가 날짜를 골라 보낸 도전장은 그날로 (보낼 때 이미 확인했다)
+            if (c.wantAt.HasValue) { c.matchAt = c.wantAt; return; }
             double rest = L("restDays");
             double day = Now(state) + rng.Int(LI("matchDelayMin"), LI("matchDelayMax"));
             // 대표 주간(올림피카)에는 리그 경기를 잡지 않는다
@@ -146,9 +272,10 @@ namespace Colosseum.Core
             var from = state.ludi[c.from];
             if (accept)
             {
-                var defender = !string.IsNullOrEmpty(defenderId) ? (state.gladiators.TryGetValue(defenderId, out var dg) ? dg : null) : PickFighter(state, to, c.rule, Now(state) + L("matchDelayMin"));
+                double at = c.wantAt ?? Now(state) + L("matchDelayMin");
+                var defender = !string.IsNullOrEmpty(defenderId) ? (state.gladiators.TryGetValue(defenderId, out var dg) ? dg : null) : PickFighter(state, to, c.rule, at, c.friendly != true);
                 if (defender == null) return "내보낼 검투사가 없습니다";
-                var busy = Availability(state, defender);
+                var busy = !c.wantAt.HasValue ? Availability(state, defender) : FreeOn(state, defender, at, c.friendly != true) ? null : Availability(state, defender, at, c.friendly != true) ?? "그날 다른 경기 예정";
                 if (busy != null) return $"{defender.name}: {busy}";
                 Schedule(state, c, rng, defender);
                 var msgTarget = from.isPlayer ? from : to.isPlayer ? to : null;
@@ -160,14 +287,21 @@ namespace Colosseum.Core
                     {
                         kind = "match",
                         title = HasFormat(c)
-                            ? $"{SeriesLogic.FormatNames[c.format.Value]} {RuleName(c.rule)} 확정: {(from.isPlayer ? to.name : from.name)}"
-                            : $"{RuleName(c.rule)} 확정: {mine.name} vs {theirs.name}",
+                            ? $"{SeriesLogic.FormatNames[c.format.Value]} {RuleLabel(c)} 확정: {(from.isPlayer ? to.name : from.name)}"
+                            : $"{RuleLabel(c)} 확정: {mine.name} vs {theirs.name}",
                         body = $"상대 루두스: {(from.isPlayer ? to.name : from.name)}\n날짜: {DateOf(c.matchAt.Value)}\n우리: {mine.name} / 상대: {theirs.name}",
                     });
                 }
                 return null;
             }
             c.status = "declined";
+            // 연습전은 거절해도 불이익이 없다
+            if (c.friendly == true)
+            {
+                if (from.isPlayer)
+                    StateUtil.PushMessage(state, new InboxMessage { kind = "info", title = $"{Josa.J(to.name, "이/가")} 연습전을 거절했습니다", body = $"{DateOf(c.wantAt ?? Now(state))} 연습전 제안을 받지 않았습니다. 다른 팀이나 다른 날을 골라 보세요." });
+                return null;
+            }
             to.refusalsUsed++;
             // 사투 도전은 거절해도 페널티가 절반, 약한 상대를 피하면 두 배
             double penalty = 0;
@@ -208,8 +342,10 @@ namespace Colosseum.Core
         {
             var to = state.ludi[c.to];
             var challenger = state.gladiators[c.fromGladiator];
-            var best = PickFighter(state, to, c.rule, Now(state) + L("matchDelayMin"));
+            var best = PickFighter(state, to, c.rule, c.wantAt ?? Now(state) + L("matchDelayMin"), c.friendly != true);
             if (best == null) return false;
+            // 컵에서 떨어져 쉬는 팀은 연습 상대를 반긴다
+            if (c.friendly == true) return rng.Chance(0.8);
             string p = to.aiPersonality ?? "stable";
             double chance = AcceptChance[p];
             if (c.rule == "sudden") chance *= p == "aggressive" || p == "grudge" ? 0.8 : 0.35;
@@ -254,8 +390,8 @@ namespace Colosseum.Core
                 var to = state.ludi[c.to];
                 if (!to.isPlayer)
                 {
-                    // AI는 다음 날 답한다
-                    if (t > c.createdAt) Respond(state, c, AiWantsToAccept(state, c, rng), rng);
+                    // AI는 다음 날 답한다. 날짜를 고른 도전장은 그날 낼 사람이 없으면 거절한다
+                    if (t > c.createdAt && Respond(state, c, AiWantsToAccept(state, c, rng), rng) != null && c.wantAt.HasValue) Respond(state, c, false, rng);
                 }
                 else if (t > c.respondBy)
                 {
@@ -319,7 +455,7 @@ namespace Colosseum.Core
                         var lb = SeriesLogic.AutoLineup(state, b, 3, t);
                         if (la.Count == 3 && lb.Count == 3)
                         {
-                            TeamSettle(state, a, b, SeriesLogic.RunSeries(state, new[] { a, b }, new[] { la, lb }, new RunOptions { rule = rule, mode = "winner_stays", homeLudusId = b.id }, rng), rule, 3, b.id);
+                            TeamSettle(state, a, b, SeriesLogic.RunSeries(state, new[] { a, b }, new[] { la, lb }, new RunOptions { rule = rule, mode = "winner_stays", homeLudusId = b.id, comp = "league" }, rng), rule, 3, b.id);
                             continue;
                         }
                     }
@@ -333,7 +469,7 @@ namespace Colosseum.Core
                         missioDeathMult = NationRules.RulesOfNation(a.nation).missioDeathMult,
                         medicalLevel = new[] { MedicalOf(state, a), MedicalOf(state, b) },
                     });
-                    MatchLogic.ApplyMatchResult(state, r, new ApplyOptions { rule = rule, ranked = true, homeLudusId = b.id }, rng);
+                    MatchLogic.ApplyMatchResult(state, r, new ApplyOptions { rule = rule, ranked = true, homeLudusId = b.id, comp = "league" }, rng);
                 }
             }
         }
@@ -381,19 +517,19 @@ namespace Colosseum.Core
             Gladiator Resolve(Ludus ludus, string id)
             {
                 Gladiator g = !string.IsNullOrEmpty(id) && state.gladiators.TryGetValue(id, out var x) ? x : null;
-                if (g != null && g.alive && Career.LudusOf(state, g.id) == ludus && g.injury?.severity != "serious") return g;
-                return PickFighter(state, ludus, c.rule, t);
+                if (g != null && g.alive && Career.LudusOf(state, g.id) == ludus && g.injury?.severity != "serious" && (c.friendly == true || Registration.IsRegistered(state, g))) return g;
+                return PickFighter(state, ludus, c.rule, t, c.friendly != true);
             }
             if (c.format.HasValue && c.format.Value > 1)
             {
                 c.status = "done";
-                var la = SeriesLogic.AutoLineup(state, from, c.format.Value, t, c.fromLineup ?? new List<string> { c.fromGladiator });
-                var lb = SeriesLogic.AutoLineup(state, to, c.format.Value, t, c.toLineup ?? (!string.IsNullOrEmpty(c.toGladiator) ? new List<string> { c.toGladiator } : new List<string>()));
+                var la = SeriesLogic.AutoLineup(state, from, c.format.Value, t, c.fromLineup ?? new List<string> { c.fromGladiator }, c.friendly != true);
+                var lb = SeriesLogic.AutoLineup(state, to, c.format.Value, t, c.toLineup ?? (!string.IsNullOrEmpty(c.toGladiator) ? new List<string> { c.toGladiator } : new List<string>()), c.friendly != true);
                 if (la.Count == 0 || lb.Count == 0)
                 {
                     var loser = la.Count == 0 ? from : to;
-                    if (!FmRules.Frozen(state)) loser.rp -= 25;
-                    loser.matchesThisSeason++;
+                    if (c.friendly != true && !FmRules.Frozen(state)) loser.rp -= 25;
+                    if (c.friendly != true) loser.matchesThisSeason++;
                     return new PlayedMatch
                     {
                         challenge = c, result = null,
@@ -402,8 +538,9 @@ namespace Colosseum.Core
                     };
                 }
                 var snaps = new[] { MatchLogic.CloneGladiator(la[0]), MatchLogic.CloneGladiator(lb[0]) };
-                var series = SeriesLogic.RunSeries(state, new[] { from, to }, new[] { la, lb }, new RunOptions { rule = c.rule, mode = "winner_stays", homeLudusId = to.id }, rng);
-                var teamSummary = TeamSettle(state, from, to, series, c.rule, c.format.Value, to.id);
+                var series = SeriesLogic.RunSeries(state, new[] { from, to }, new[] { la, lb }, new RunOptions { rule = c.rule, mode = "winner_stays", homeLudusId = to.id, comp = c.friendly == true ? null : "league" }, rng);
+                // 연습전은 루두스끼리 정산하지 않는다
+                var teamSummary = c.friendly == true ? new MatchSummary() : TeamSettle(state, from, to, series, c.rule, c.format.Value, to.id);
                 return new PlayedMatch
                 {
                     challenge = c, result = series.melee ?? (series.bouts.Count > 0 ? series.bouts[series.bouts.Count - 1].result : null),
@@ -417,8 +554,8 @@ namespace Colosseum.Core
             {
                 // 기권: 나오지 못한 쪽이 RP를 잃는다
                 var loser = a == null ? from : to;
-                if (!FmRules.Frozen(state)) loser.rp -= 15;
-                loser.matchesThisSeason++;
+                if (c.friendly != true && !FmRules.Frozen(state)) loser.rp -= 15;
+                if (c.friendly != true) loser.matchesThisSeason++;
                 return new PlayedMatch { challenge = c, result = null, a = a ?? b, b = b ?? a, forfeit = $"{loser.name} 기권 (출전 가능한 검투사가 없습니다)" };
             }
             var snapA = MatchLogic.CloneGladiator(a);
@@ -430,7 +567,7 @@ namespace Colosseum.Core
                 missioDeathMult = NationRules.RulesOfNation(to.nation).missioDeathMult,
                 medicalLevel = new[] { MedicalOf(state, from), MedicalOf(state, to) },
             });
-            var summary = MatchLogic.ApplyMatchResult(state, result, new ApplyOptions { rule = c.rule, ranked = true, homeLudusId = to.id }, rng);
+            var summary = MatchLogic.ApplyMatchResult(state, result, new ApplyOptions { rule = c.rule, ranked = c.friendly != true, homeLudusId = to.id, comp = c.friendly == true ? null : "league" }, rng);
             return new PlayedMatch { challenge = c, result = result, a = snapA, b = snapB, summary = summary };
         }
 

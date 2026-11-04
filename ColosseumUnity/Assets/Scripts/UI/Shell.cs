@@ -22,7 +22,7 @@ namespace Colosseum.UI
         public static readonly (string id, string label)[] Menu =
         {
             ("inbox", "서판"), ("overview", "안뜰"), ("roster", "막사"), ("strategy", "전략"), ("training", "연무장"), ("challenge", "도전장"),
-            ("match", "모래 마당"), ("league", "서열표"), ("natcup", "국내 컵"), ("cup", "판테온 컵"), ("olympica", "올림피카 컵"), ("market", "이적 시장"), ("dungeon", "던전"),
+            ("schedule", "일정"), ("match", "모래 마당"), ("league", "서열표"), ("natcup", "국내 컵"), ("cup", "판테온 컵"), ("olympica", "올림피카 컵"), ("market", "이적 시장"), ("dungeon", "던전"),
             ("youth", "유소년 학당"), ("staff", "식솔"), ("facilities", "증축"), ("finance", "금고"), ("world", "대륙 정세"), ("hall", "비석의 언덕"),
         };
 
@@ -138,10 +138,12 @@ namespace Colosseum.UI
             paydayText.text = $"{Tips.Window(window)} · {Tips.Pay(payIn == 1 ? "급료일 내일" : $"급료일까지 {payIn}일")}";
             treasuryText.text = $"{p.treasury:N0} D";
             treasuryText.color = p.treasury < 0 ? Theme.Blood : Theme.Parchment;
-            // 다음 급료일에 실제로 나갈 돈 (주급 + 밀린 급료 + 식비 + 시설 + 식솔). 금고가 모자라면 붉게
-            double bill = Economy.NextPayBill(s, p).Total;
-            string billText = $"급료일에 낼 돈 {bill:N0} D";
-            wagesText.text = Tips.Pay(bill > p.treasury ? $"<color={Theme.Hex(Theme.Blood)}>{billText}</color>" : billText);
+            // 다음 급료일에 한꺼번에 나갈 돈: 주급(밀린 급료 포함) · 유지비(식비 + 시설 + 식솔), 그 아래 합계. 금고가 모자라면 합계를 붉게
+            var pay = Economy.NextPayBill(s, p);
+            double bill = pay.Total;
+            string totalText = $"급료일 합계 {bill:N0} D";
+            wagesText.text = Tips.Pay($"주급 {pay.wages + pay.arrears:N0} · 유지비 {pay.food + pay.upkeep + pay.staff:N0} D\n" +
+                (pay.Net > p.treasury ? $"<color={Theme.Hex(Theme.Blood)}>{totalText}</color>" : totalText));
 
             var blocked = Day.Blockers(s);
             int unreadNow = s.inbox.Count(m => !m.read);
@@ -181,6 +183,15 @@ namespace Colosseum.UI
                 bool show = sc.screenId == G.Screen;
                 sc.gameObject.SetActive(show);
                 if (show) sc.Refresh();
+            }
+
+            // 대회·시즌이 끝났으면 시상 카드를 하나씩 띄운다 (다음 것은 다음 갱신 때)
+            if (s.ceremonies is { Count: > 0 })
+            {
+                string link = s.ceremonies[0];
+                s.ceremonies.RemoveAt(0);
+                if (s.ceremonies.Count == 0) s.ceremonies = null;
+                G.ShowInfo(link);
             }
         }
     }

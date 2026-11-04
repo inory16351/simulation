@@ -23,6 +23,8 @@ class Program
         if (mode is "econ" or "all") Econ(args.Length > 1 ? int.Parse(args[1]) : 2);
         if (mode == "melee") MeleeCost();
         if (mode == "chal") ChallengeDebug();
+        if (mode == "wages") Wages();
+        if (mode == "aifin") AiFinance(args.Length > 1 ? int.Parse(args[1]) : 2);
         return 0;
     }
 
@@ -218,6 +220,62 @@ class Program
 
     // ── 경제 ──
 
+    /// <summary>AI 루두스 금고: 부별 금고 중앙값·적자 수·주급 합·인원 (시즌 안 몇 번)</summary>
+    static void AiFinance(int seasons)
+    {
+        var s = World.NewGame(2001, "aurelia", "시험 루두스", 2);
+        var rng = new Rng(77);
+        void Report()
+        {
+            Console.WriteLine($"  시즌 {s.season} {s.day}일");
+            for (int tier = 1; tier <= 4; tier++)
+            {
+                var ai = s.ludi.Values.Where(l => !l.isPlayer && l.tier == tier).ToList();
+                var tr = ai.Select(l => l.treasury).OrderBy(x => x).ToList();
+                var wages = ai.Select(l => Economy.WeeklyWages(s, l)).ToList();
+                Console.WriteLine($"    {tier}부 {ai.Count}곳: 금고 중앙값 {tr[tr.Count / 2],8:N0} · 하위10% {tr[tr.Count / 10],8:N0} · 적자 {tr.Count(x => x < 0),2}곳 · 주급 합 평균 {wages.Average(),5:0} (최대 {wages.Max():0}) · 예산 평균 {ai.Average(l => Economy.WageBudget(s, l)),5:0} · 인원 {ai.Average(l => l.gladiators.Count(id => s.gladiators[id].alive)):0.0} · 경기 {ai.Average(l => l.matchesThisSeason):0.0}");
+            }
+        }
+        Report();
+        int start = s.season, days = 0;
+        // 부별 실제 수입 (금고 변화 + 급료일에 낸 주급·식비)
+        var earned = new double[5];
+        while (s.season < start + seasons && s.gameOver == null)
+        {
+            var ai = s.ludi.Values.Where(l => !l.isPlayer).ToList();
+            bool pay = Calendar.IsPayday(s.day);
+            var pre = ai.ToDictionary(l => l.id, l => (l.treasury, cost: pay ? Economy.WeeklyWages(s, l) + Economy.WeeklyFood(s, l) : 0, l.tier));
+            Autoplay(s, rng);
+            days++;
+            foreach (var l in ai) earned[pre[l.id].tier] += l.treasury - pre[l.id].treasury + pre[l.id].cost;
+            if (s.day is 60 or 120 or 1) Report();
+        }
+        double weeks = days / 7.0;
+        for (int t = 1; t <= 4; t++)
+        {
+            var l0 = s.ludi.Values.First(l => !l.isPlayer && l.tier == t);
+            Console.WriteLine($"  {t}부 실제 수입 {earned[t] / 60 / weeks:0}/주 (예상 {Economy.ExpectedWeeklyIncome(s, l0):0})");
+        }
+    }
+
+    /// <summary>부별 명성·격·주급, 무소속이 우리(그 부)에게 바라는 주급</summary>
+    static void Wages()
+    {
+        for (int tier = 1; tier <= 4; tier++)
+        {
+            var s = World.NewGame(1000 + tier, "aurelia", "시험 루두스", tier);
+            var me = s.ludi[s.playerLudusId];
+            var ai = s.ludi.Values.Where(l => !l.isPlayer && l.tier == tier).ToList();
+            var gs = ai.SelectMany(l => l.gladiators).Select(id => s.gladiators[id]).ToList();
+            double myRep = Reputation.LudusReputation(s, me);
+            var fa = s.freeAgents.Select(id => s.gladiators[id]).Select(g => (g, d: Economy.FreeAgentDemand(s, g))).ToList();
+            var ok = fa.Where(x => !x.d.refuse).ToList();
+            Console.WriteLine($"{tier}부: 우리 명성 {myRep:0}, AI 명성 평균 {ai.Average(l => Reputation.LudusReputation(s, l)):0.0} · 검투사 격 평균 {gs.Average(Reputation.GladiatorStanding):0.0} · CA {gs.Average(g => GladiatorRules.ComputeCA(g)):0} · 주급 {gs.Average(g => g.wage):0} (우리 {me.gladiators.Average(id => s.gladiators[id].wage):0})");
+            Console.WriteLine($"     무소속 {fa.Count}명 (거절 {fa.Count - ok.Count}) · 격 {ok.Average(x => Reputation.GladiatorStanding(x.g)):0.0} · CA {ok.Average(x => GladiatorRules.ComputeCA(x.g)):0} · 지금 주급 {ok.Average(x => x.g.wage):0} → 요구 {ok.Average(x => x.d.wage):0} (×{ok.Average(x => x.d.wage / Math.Max(1, x.g.wage)):0.00})");
+            Console.WriteLine($"     주당 고정비: 주급 {Economy.WeeklyWages(s, me):0}, 식솔 {StaffLogic.StaffWages(s, me):0} · 경기 상금 {FmRules.TierMoney("purseFm", tier)} · 관중 {FmRules.TierMoney("ticketIncomeFm", tier)} · 배당 {FmRules.TierMoney("dividendBaseFm", tier)}");
+        }
+    }
+
     static void Econ(int seasons)
     {
         for (int tier = 1; tier <= 4; tier++)
@@ -264,6 +322,7 @@ class Program
     static string Category(string desc)
     {
         if (desc.Contains("배당")) return "배당금";
+        if (desc.Contains("지원금")) return "하부 리그 지원금";
         if (desc.Contains("상금")) return "상금·관중";
         if (desc.Contains("주급")) return "주급";
         if (desc.Contains("식비")) return "식비";
@@ -272,8 +331,10 @@ class Program
         if (desc.Contains("이적료")) return "이적료";
         if (desc.Contains("계약금")) return "계약금";
         if (desc.Contains("수당") || desc.Contains("보너스")) return "수당·보너스";
-        return "기타";
+        return Verbose ? "기타: " + System.Text.RegularExpressions.Regex.Replace(desc, @"[\d,]+", "#") : "기타";
     }
+
+    static bool Verbose => Environment.GetEnvironmentVariable("ECON_VERBOSE") == "1";
 
     /// <summary>단순한 플레이어: 사건은 첫 선택지, 도전장은 받고, 사흘마다 같은 리그에 미시오 도전, 제안·역제안은 거절·철회</summary>
     static void Autoplay(GameState s, Rng rng)
@@ -287,6 +348,15 @@ class Program
         }
         foreach (var o in Transfers.OpenOffers(s)) Transfers.RejectOffer(s, o.id);
         foreach (var d in (s.decisions ?? new List<Decision>()).ToList()) Negotiations.Withdraw(s, d.id);
+        // 주급 인상 요구에는 바라는 조건 그대로 재계약 (불만이 쌓이지 않게)
+        foreach (var g in me.gladiators.Select(id => s.gladiators[id]).Where(g => g.alive && g.raiseBy != null).ToList())
+        {
+            var d = Contracts.RenewDemand(s, g);
+            if (d.refuse) continue;
+            int until = g.contract.untilSeason;
+            Contracts.Apply(s, g, new ContractTerms { wage = d.wage, seasons = 2 });
+            g.contract.untilSeason = Math.Max(until, s.season + 1);
+        }
         // 재계약: 바라는 조건 그대로 2시즌
         if (s.day == 150)
             foreach (var g in Contracts.Expiring(s))

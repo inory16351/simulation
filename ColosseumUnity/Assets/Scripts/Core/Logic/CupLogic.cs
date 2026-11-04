@@ -368,7 +368,7 @@ namespace Colosseum.Core
             var lh = SeriesLogic.AutoLineup(state, home, bouts, at, home.isPlayer ? lineup : null);
             var la = SeriesLogic.AutoLineup(state, away, bouts, at, away.isPlayer ? lineup : null);
             string rule = TieRule(state, tie);
-            var series = SeriesLogic.RunSeries(state, new[] { home, away }, new[] { lh, la }, new RunOptions { rule = rule, mode = "best_of", homeLudusId = home.id }, rng);
+            var series = SeriesLogic.RunSeries(state, new[] { home, away }, new[] { lh, la }, new RunOptions { rule = rule, mode = "best_of", homeLudusId = home.id, comp = "pantheon" }, rng);
             tie.score = series.score;
             var (w, l) = series.winner == 0 ? (home, away) : (away, home);
             tie.winner = w.id;
@@ -386,6 +386,7 @@ namespace Colosseum.Core
                 Economy.AddMoney(state, l, CupConst.Prize.RunnerUp, "판테온 컵 준우승 상금");
                 w.titles = (w.titles ?? 0) + 1;
                 Honours.RecordCup(state, w, l);
+                Awards.PantheonEnd(state, cup, l.id);
                 StateUtil.PushMessage(state, new InboxMessage
                 {
                     kind = "info",

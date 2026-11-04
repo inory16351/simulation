@@ -168,6 +168,19 @@ namespace Colosseum.EditorTools
             content.gameObject.AddComponent<ContentSizeFitter>().verticalFit = ContentSizeFitter.FitMode.PreferredSize;
             sr.viewport = vp;
             sr.content = content;
+            // 세로 스크롤바: 내용이 넘칠 때만 보이고, 보일 때는 내용 칸을 그만큼 줄인다
+            var track = Box("Scrollbar", root, new Color(Theme.Line.r, Theme.Line.g, Theme.Line.b, 0.35f));
+            track.rectTransform.Anchor(new Vector2(1, 0), Vector2.one, new Vector2(-8, 0), Vector2.zero);
+            var area = Rect("Sliding", track.transform).Stretch(1, 1, 1, 1);
+            var handle = Box("Handle", area, Theme.BronzeHi);
+            handle.rectTransform.Stretch();
+            var bar = track.gameObject.AddComponent<Scrollbar>();
+            bar.direction = Scrollbar.Direction.BottomToTop;
+            bar.handleRect = handle.rectTransform;
+            bar.targetGraphic = handle;
+            sr.verticalScrollbar = bar;
+            sr.verticalScrollbarVisibility = ScrollRect.ScrollbarVisibility.AutoHideAndExpandViewport;
+            sr.verticalScrollbarSpacing = 6;
             return content;
         }
 

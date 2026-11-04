@@ -164,7 +164,7 @@ namespace Colosseum.UI
             {
                 var c = outs[i];
                 T(row, "Opp").text = Tips.Ludus(S.ludi[c.to]);
-                T(row, "Rule").text = RuleName(c.rule);
+                T(row, "Rule").text = RuleLabel(c);
                 T(row, "Fighter").text = Tips.Name(S.gladiators[c.fromGladiator]);
             });
         }
@@ -227,7 +227,7 @@ namespace Colosseum.UI
         }
 
         static string RuleName(string r) => (string)Bal.Rule(r)["name"];
-        static string RuleLabel(Challenge c) => (c.format is int f && f != 0 ? $"{SeriesLogic.FormatNames[f]} · " : "") + RuleName(c.rule);
+        static string RuleLabel(Challenge c) => (c.format is int f && f != 0 ? $"{SeriesLogic.FormatNames[f]} · " : "") + ChallengeLogic.RuleLabel(c);
         string FighterLabel(Gladiator g) => $"{g.name} · {Data.Style(g.style)?.name} · {Widgets.Stars(Scouting.CaRange(S, g).mid)}";
         static TMP_Text T(Transform row, string path) => row.Find(path).GetComponent<TMP_Text>();
 

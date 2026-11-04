@@ -44,6 +44,8 @@ namespace Colosseum.Core
         /// <summary>제안 하나하나가 몇 D/주로 보이나 (협상 창 설명용)</summary>
         public List<(string label, double perWeek)> parts = new();
         public double Ratio => want > 0 ? value / want : 0;
+        /// <summary>검투사 격 − 우리 명성 (클수록 '작은' 루두스로 오는 셈이라 보장 조항을 바란다)</summary>
+        public double gap;
     }
 
     public static class Contracts
@@ -64,6 +66,7 @@ namespace Colosseum.Core
         public static void Apply(GameState s, Gladiator g, ContractTerms t)
         {
             g.wage = t.wage;
+            Grievances.OnNewContract(g);
             g.contract = new GladiatorContract
             {
                 untilSeason = s.season + t.seasons - 1, clauses = new List<string>(),
@@ -124,7 +127,7 @@ namespace Colosseum.Core
         /// <summary>제안을 검투사 눈으로 본다. want는 FM식 몸값 모델의 바라는 주급 + 우리 명성 차이</summary>
         public static ContractView View(GameState s, Gladiator g, ContractTerms t, Demand demand, Ludus to)
         {
-            var v = new ContractView { want = demand.wage, refuse = demand.refuse, reason = demand.reason };
+            var v = new ContractView { want = demand.wage, refuse = demand.refuse, reason = demand.reason, gap = demand.gap };
             double amb = g.hidden.ambition / 20.0, greed = g.hidden.greed / 20.0;
             double wr = WinRate(g), kr = KillRate(g);
             var (up, down) = TierOdds(s, to);
@@ -152,6 +155,9 @@ namespace Colosseum.Core
             // 기간: 바라는 기간에서 멀수록 싫다
             int pref = PreferredSeasons(g);
             Part("계약 기간", -t.wage * 0.04 * Math.Abs(t.seasons - pref));
+            // FM식: 자기보다 이름 없는 루두스로 갈 때는 주급만으로는 아쉽다 — 계약금이나 최소 이적료 같은 보장을 바란다 (최대 −12%)
+            if (FmRules.Enabled && demand.gap > 12 && t.signingFee <= 0 && t.releaseClause <= 0)
+                Part("보장 조항 없음", -t.wage * Math.Min(0.12, (demand.gap - 12) / 150));
             v.value = Math.Round(v.value);
             return v;
         }
@@ -171,7 +177,8 @@ namespace Colosseum.Core
             c.wage = Math.Max(t.wage, Math.Round(t.wage + (target - v.value)));
             string note = "";
             var (up, _) = TierOdds(s, Career.LudusOf(s, g.id) ?? s.ludi[s.playerLudusId]);
-            if (g.hidden.ambition >= 14 && t.releaseClause <= 0) note = "최소 이적료 조항을 넣어 주면 주급은 조금 양보할 수 있다는 눈치입니다.";
+            if (FmRules.Enabled && v.gap > 12 && t.signingFee <= 0 && t.releaseClause <= 0) note = "이름이 덜한 루두스로 오는 만큼 계약금이나 최소 이적료 조항 같은 보장을 원합니다.";
+            else if (g.hidden.ambition >= 14 && t.releaseClause <= 0) note = "최소 이적료 조항을 넣어 주면 주급은 조금 양보할 수 있다는 눈치입니다.";
             else if (g.hidden.greed >= 14 && t.signingFee <= 0) note = "계약금을 두둑이 주면 주급은 조금 양보할 수 있다는 눈치입니다.";
             else if (up > 0.2 && t.promoBonus <= 0) note = "승격하면 보너스를 받고 싶다고 합니다.";
             else if (t.relegCut > 0) note = "강등 시 주급 삭감 조항이 마음에 들지 않는다고 합니다.";
@@ -304,9 +311,10 @@ namespace Colosseum.Core
             double manage = StaffLogic.Roles.Max(r => StaffLogic.AttrOf(s, me, r, "manage"));
             double loyal = 1 - g.hidden.loyalty / 200.0 - Math.Max(0, g.morale - 60) / 400.0 - manage * 0.004;
             if (g.morale < 25) return new Demand { refuse = true, reason = "\"여기서 더 있을 생각은 없어.\"" };
-            // 이미 우리 루두스에 있으니 명성 격차는 영입보다 약하게 본다 (격차 1점당 1%, 최대 +40%)
+            // 이미 우리 루두스에 있으니 명성 격차는 영입보다 약하게 본다 (격차 1점당 1%, 최대 +40%).
+            // FM식은 영입(DemandFor)처럼 격차 12까지 웃돈이 없고 최대 +30%
             double gap = Reputation.GladiatorStanding(g) - Reputation.LudusReputation(s, me);
-            double mult = 1 + Math.Min(40, Math.Max(0, gap)) / 100;
+            double mult = FmRules.Enabled ? 1 + Math.Min(30, Math.Max(0, gap - 12)) / 100 : 1 + Math.Min(40, Math.Max(0, gap)) / 100;
             string reason = gap > 25 ? "\"이 정도 루두스에 남으려면 그만한 값은 받아야겠어.\"" : gap > 0 ? "\"조금만 더 쳐 주면 남지.\"" : "\"여기가 마음에 들어. 남겠어.\"";
             return new Demand { wage = JsMath.Round(baseWage * loyal * mult), reason = reason };
         }

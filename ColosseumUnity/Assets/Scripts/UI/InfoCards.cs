@@ -50,7 +50,116 @@ namespace Colosseum.UI
                 "status" => SkillBook.Statuses.TryGetValue(id, out var st) ? new InfoCard { title = st.name, sub = "상태 이상", body = Tips.StatusTip(id).Substring(Tips.StatusTip(id).IndexOf('\n') + 1), iconSprite = UnityEngine.Resources.Load<UnityEngine.Sprite>("Art/icon/" + st.icon) } : null,
                 "dungeon" => Dungeon(s, id),
                 "person" => s.staff.TryGetValue(id, out var person) ? Person(s, person) : null,
+                "awards" => AwardsCard(s, id),
+                "youth" => YouthTrialCard(s),
                 _ => null,
+            };
+        }
+
+        // ── 유소년 입단 (FM 유소년 입단 화면처럼) ──
+
+        static InfoCard YouthTrialCard(GameState s)
+        {
+            var me = s.ludi[s.playerLudusId];
+            var list = (me.youthTrial ?? new List<string>()).Where(s.gladiators.ContainsKey).Select(id => s.gladiators[id]).ToList();
+            if (list.Count == 0) return null;
+            string until = me.youthTrialUntil is double u ? Calendar.DateLabel(Calendar.FromAbs(u).day) : "";
+            var body = string.Join("\n", list.OrderByDescending(g => g.hidden.pa).Select(g =>
+            {
+                var pr = Scouting.PaRange(s, g);
+                return $"{Tips.Name(g)}  <color={Faint}>{Tips.Race(g.race)} · {g.age}세 · {Tips.Style(g.style)}</color>  " +
+                       $"현재 <color={Torch}>{Widgets.CaStars(s, g)}</color>  잠재 <color={Torch}>{Widgets.RangeStars(pr.lo, pr.hi)}</color>";
+            }));
+            return new InfoCard
+            {
+                title = "유소년 입단 테스트", sub = $"후보 {list.Count}명 · {until}까지 계약할 아이를 고르세요",
+                body = body + $"\n\n<color={Faint}>유소년 학당 화면에서 아이마다 '계약 협상'으로 주급·기간·계약금 같은 조건을 정해 제안합니다. 답은 하루이틀 뒤 서판으로 오고, 협상이 깨지면 그 아이는 돌아갑니다. 학당 정원 {me.youth.Count}/{Youth.YouthCapacity(me)}명. 고르지 않은 아이는 마감 날 돌아갑니다.</color>",
+                iconSprite = UnityEngine.Resources.Load<UnityEngine.Sprite>("Art/icon/menu/youth"),
+                actionLabel = "유소년 학당으로", action = () => GameController.I.Go("youth"),
+            };
+        }
+
+        // ── 수상 (시즌 시상식 · 검투사가 받은 상) ──
+
+        /// <summary>수상 한 줄: 상 이름 · 수상자(링크) · 소속 · 기록</summary>
+        public static string AwardWho(GameState s, AwardEntry a)
+        {
+            if (a.gladiatorId != null)
+            {
+                string name = s.gladiators.TryGetValue(a.gladiatorId, out var g) ? Tips.Name(g) : a.name;
+                return $"{name} <color={Faint}>({(a.ludusId != null ? Tips.Ludus(a.ludusId, a.ludusName) : "무소속")})</color>";
+            }
+            return a.ludusId != null ? Tips.Ludus(a.ludusId, a.ludusName) : a.nation != null ? $"{Tips.Nation(a.nation)} 대표팀" : "";
+        }
+
+        static string AwardLine(GameState s, AwardEntry a) =>
+            $"<color={Torch}>★</color> {Awards.KindNames[a.kind]}  {AwardWho(s, a)}" + (a.note != null ? $"  <color={Faint}>{a.note}</color>" : "");
+
+        static InfoCard AwardsCard(GameState s, string id)
+        {
+            var all = s.awards ?? new List<AwardEntry>();
+            if (id.StartsWith("g:"))
+            {
+                string gid = id.Substring(2);
+                var mine = all.Where(a => a.gladiatorId == gid).OrderByDescending(a => a.season).ToList();
+                string name = s.gladiators.TryGetValue(gid, out var g) ? g.name : mine.FirstOrDefault()?.name ?? "";
+                return new InfoCard
+                {
+                    title = name, sub = $"받은 상 {mine.Count}개",
+                    body = mine.Count == 0 ? $"<color={Faint}>아직 받은 상이 없습니다</color>"
+                        : string.Join("\n", mine.Select(a => $"시즌 {a.season}  <color={Torch}>★</color> {CompLinkOf(a.comp)} {Awards.KindNames[a.kind]}" + (a.note != null ? $"  <color={Faint}>{a.note}</color>" : ""))),
+                    iconSprite = UnityEngine.Resources.Load<UnityEngine.Sprite>("Art/icon/award"),
+                };
+            }
+            // 대회 시상: comp:<대회 키>:<시즌>
+            if (id.StartsWith("comp:"))
+            {
+                int cut = id.LastIndexOf(':');
+                string comp = id.Substring(5, cut - 5);
+                if (!int.TryParse(id.Substring(cut + 1), out int cs)) return null;
+                var got = all.Where(a => a.season == cs && a.comp == comp).OrderBy(a => Array.IndexOf(new[] { "best", "top", "rookie", "lanista" }, a.kind)).ToList();
+                return new InfoCard
+                {
+                    title = $"{Awards.CompName(comp)} 시상", sub = $"시즌 {cs} · 최우수 검투사 · 최다 처치 · 최우수 신인 · 올해의 라니스타",
+                    body = got.Count == 0 ? $"<color={Faint}>수상 기록이 없습니다</color>" : CompLinkOf(comp) + "\n\n" + string.Join("\n", got.Select(a => AwardLine(s, a))),
+                    iconSprite = UnityEngine.Resources.Load<UnityEngine.Sprite>("Art/icon/award"),
+                    actionLabel = "비석의 언덕으로", action = () => GameController.I.Go("hall"),
+                };
+            }
+            if (!id.StartsWith("season:") || !int.TryParse(id.Substring(7), out int season)) return null;
+            var list = all.Where(a => a.season == season).ToList();
+            string Group(string head, IEnumerable<AwardEntry> xs)
+            {
+                var l = xs.ToList();
+                return l.Count == 0 ? "" : Head(head) + string.Join("\n", l.Select(a => AwardLine(s, a))) + "\n";
+            }
+            // 시즌 시상식은 세계 최고와 나라별 최우수만 (대회별 상은 대회가 끝날 때 따로 띄운다)
+            var body = Group("세계 올해의 검투사", list.Where(a => a.kind == "world_best"));
+            body += list.Any(a => a.kind == "nation_best")
+                ? Head("나라별 올해의 검투사") + string.Join("\n", list.Where(a => a.kind == "nation_best").Select(a => $"{Tips.Nation(a.comp.Substring(7), true)}  {AwardWho(s, a)}  <color={Faint}>{a.note}</color>")) + "\n"
+                : "";
+            body += $"\n<color={Faint}>대회별 수상은 비석의 언덕 '수상' 탭에서 볼 수 있습니다.</color>";
+            return new InfoCard
+            {
+                title = $"시즌 {season} 시상식", sub = "세계 올해의 검투사 · 나라별 올해의 검투사",
+                body = !list.Any(a => a.kind is "world_best" or "nation_best") ? $"<color={Faint}>이 시즌에는 수상 기록이 없습니다</color>" : body.TrimStart('\n'),
+                iconSprite = UnityEngine.Resources.Load<UnityEngine.Sprite>("Art/icon/award"),
+                actionLabel = "비석의 언덕으로", action = () => GameController.I.Go("hall"),
+            };
+        }
+
+        /// <summary>대회 키(league:나라:부 …)를 대회 링크로</summary>
+        public static string CompLinkOf(string comp)
+        {
+            var p = comp.Split(':');
+            return p[0] switch
+            {
+                "league" => Tips.League(p[1], int.Parse(p[2])),
+                "natcup" => Tips.NatCup(p[1]),
+                "pantheon" => Tips.Cup(),
+                "olympica" => Tips.Olympica(),
+                "nation" => $"{Tips.Nation(p[1], true)} 시즌 시상",
+                _ => "대륙 시즌 시상",
             };
         }
 
