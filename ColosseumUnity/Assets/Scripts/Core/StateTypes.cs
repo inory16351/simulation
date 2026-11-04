@@ -11,6 +11,12 @@ namespace Colosseum.Core
         public double tier, apps, wins, losses, kills, caStart, caEnd, popularity, injuries, earnings;
         /// <summary>Unity판: 공식 경기 평점 합과 평점 받은 경기 수 (평균 = ratingSum / rated)</summary>
         public double? ratingSum, rated;
+        /// <summary>Unity판: 이 줄의 루두스 id (이적할 때마다 줄을 나눈다)</summary>
+        public string ludusId;
+        /// <summary>Unity판: 이 루두스로 올 때 낸 이적료. 0이면 자유 이적, null이면 표시 없음</summary>
+        public double? fee;
+        /// <summary>Unity판: 이적료 대신 보여 줄 말 (학당 출신 등)</summary>
+        public string via;
     }
 
     public class CareerEvent
@@ -150,6 +156,8 @@ namespace Colosseum.Core
         public int season, day;
         public string kind, title, body;
         public bool read;
+        /// <summary>Unity판: 다시 볼 수 있는 전투 링크 (fight:원정:층 순서). 없으면 null</summary>
+        public string replay;
     }
 
     public class ScoutingState
@@ -247,6 +255,25 @@ namespace Colosseum.Core
         public double startedAt, endsAt, floor, coins;
         public List<string> loot = new(), log = new();
         public Dictionary<string, double> hp = new();
+        /// <summary>Unity판: 층마다 치른 전투 기록 (전투 화면으로 다시 보기)</summary>
+        public List<FloorBattle> battles;
+    }
+
+    /// <summary>던전 한 층의 전투 기록: 그때의 양쪽 모습과 대결 순서. 시드로 같은 싸움을 다시 돌려 보여 준다</summary>
+    public class FloorBattle
+    {
+        public int floor;
+        public bool boss, won;
+        public List<Gladiator> party = new(), foes = new();
+        public List<BattleBout> bouts = new();
+    }
+
+    /// <summary>진형 전투 속 1:1 대결 하나</summary>
+    public class BattleBout
+    {
+        public string a, b;
+        public uint seed;
+        public double?[] startHp;
     }
 
     public class DungeonQuest
@@ -310,6 +337,8 @@ namespace Colosseum.Core
         public List<string> ceremonies;
         public List<Expedition> expeditions;
         public List<DungeonQuest> dungeonQuests;
+        /// <summary>Unity판: 이번 주에 열린 던전 (급료일마다 등급별로 하나씩 새로 뽑는다)</summary>
+        public List<string> dungeonRotation;
         public List<LedgerEntry> ledger = new();
         public List<PendingEvent> pendingEvents = new();
         public double lastDisasterAt;

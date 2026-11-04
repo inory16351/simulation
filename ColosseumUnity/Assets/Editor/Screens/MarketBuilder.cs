@@ -198,7 +198,7 @@ namespace Colosseum.EditorTools
         /// <summary>장비 표: 장비·종류·성능 + 추가 칸. 줄 원본을 돌려주고 버튼은 부른 쪽이 붙인다</summary>
         static RectTransform ItemTable(Transform parent, MarketScreen s, string key, string title, float btnW, params (string id, string label, float w)[] extra)
         {
-            // 내놓은 장비 표는 몇 줄 안 되니 스크롤 없이 패널 높이만큼만
+            // 내놓은 장비 표는 줄 수만큼 자라다가 일정 높이부터 스크롤한다 (높이는 MarketScreen이 맞춘다)
             bool consigned = key == "consigned";
             var pad = TitledPanel(consigned ? "Consigned" : "Items", parent, title, 0);
             var cols = new List<(string, string, float)> { ("Slot", "", 40), ("Item", "장비", 220), ("Grade", "등급", 70), ("Kind", "종류", 70), ("Stats", "성능", 0) };
@@ -209,7 +209,9 @@ namespace Colosseum.EditorTools
             {
                 Set(s, "consignedRoot", pad.parent.gameObject);
                 Head(pad, cols.ToArray());
-                content = pad;
+                content = ScrollView("Scroll", pad, out var cscroll);
+                cscroll.Layout(minH: 48, prefH: 48, flexH: 0);
+                Set(s, "consignedScroll", cscroll);
             }
             else
             {

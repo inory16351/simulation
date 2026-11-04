@@ -190,6 +190,88 @@ namespace Colosseum.Tests
         }
 
         [Test]
+        public void BenchGrievanceNeedsSteadyAppearances()
+        {
+            var s = World.NewGame(86, "aurelia", "시험", 4);
+            var me = s.ludi[s.playerLudusId];
+            var g = s.gladiators[me.gladiators[0]];
+            s.day = 40;
+            int start = Calendar.AbsDay(s.season, s.day);
+            g.grievance = "출전 기회가 없다"; g.grievanceKind = "bench"; g.grievanceLudus = me.id; g.grievanceAt = start; g.grievanceUntil = start + 1;
+            void Play(int day, bool fought)
+            {
+                s.day = day;
+                if (fought) g.lastFightAt = Calendar.AbsDay(s.season, day);
+                Grievances.Daily(s, new Rng(1));
+            }
+            Play(45, true);
+            Assert.IsNotNull(g.grievance, "한 경기로는 풀리지 않는다");
+            Assert.AreEqual(1, g.benchApps);
+            Play(90, false);
+            Assert.IsNotNull(g.grievance, "우리 검투사는 시간이 지나도 풀리지 않는다");
+            Assert.AreEqual(0, g.benchApps, "오래 쉬면 처음부터 다시 센다");
+            Play(95, true);
+            Play(105, true);
+            Assert.IsNotNull(g.grievance);
+            Assert.AreEqual(2, g.benchApps);
+            Play(115, true);
+            Assert.IsNull(g.grievance, "꾸준히 나가면 풀린다");
+            Assert.IsNull(g.benchApps);
+        }
+
+        [Test]
+        public void CareerSplitsOnTransferAndKeepsFee()
+        {
+            var s = World.NewGame(87, "aurelia", "시험", 4);
+            var me = s.ludi[s.playerLudusId];
+            var buyer = s.ludi.Values.First(l => !l.isPlayer);
+            var g = s.gladiators[me.gladiators[0]];
+            Career.SeasonRecord(s, g).apps = 4;
+            int before = g.history.Count;
+            me.gladiators.Remove(g.id);
+            buyer.gladiators.Add(g.id);
+            Career.Joined(s, g, 1200);
+            Assert.AreEqual(before + 1, g.history.Count, "시즌 중 이적하면 줄이 나뉜다");
+            var now = g.history[g.history.Count - 1];
+            Assert.AreEqual(buyer.id, now.ludusId);
+            Assert.AreEqual(1200, now.fee);
+            Assert.AreEqual(0, now.apps);
+            Assert.AreEqual(4, g.history[g.history.Count - 2].apps, "이적 전 기록은 그대로");
+            Assert.AreSame(now, Career.SeasonRecord(s, g), "같은 루두스면 그 줄을 이어 쓴다");
+        }
+
+        [Test]
+        public void DungeonRotatesOnPaydayAndFightsCanBeReplayed()
+        {
+            var s = World.NewGame(88, "aurelia", "시험", 4);
+            var me = s.ludi[s.playerLudusId];
+            var rot = DungeonLogic.Rotation(s);
+            Assert.AreEqual(DungeonLogic.Dungeons.Select(d => d.tier).Distinct().Count(), rot.Count, "등급마다 하나");
+            var seen = new System.Collections.Generic.HashSet<string>(rot);
+            var rng = new Rng(5);
+            for (int i = 0; i < 12; i++) { DungeonLogic.WeeklyRotation(s, rng); seen.UnionWith(DungeonLogic.Rotation(s)); }
+            Assert.Greater(seen.Count, rot.Count, "급료일마다 다른 던전이 열린다");
+            string closed = DungeonLogic.Dungeons.First(d => !DungeonLogic.Rotation(s).Contains(d.id)).id;
+            var party = me.gladiators.Take(3).ToList();
+            Assert.IsNotNull(DungeonLogic.StartExpedition(s, closed, party.ToList(), "shieldwall"), "닫힌 던전은 못 간다");
+
+            string open = DungeonLogic.Rotation(s)[0];
+            Assert.IsNull(DungeonLogic.StartExpedition(s, open, party.ToList(), "shieldwall"));
+            var ex = DungeonLogic.ExpeditionsOf(s)[0];
+            s.day += DungeonLogic.GetDungeon(open).days;
+            DungeonLogic.DailyDungeons(s, new Rng(9));
+            Assert.Greater(ex.battles.Count, 0, "층마다 전투 기록이 남는다");
+            var bouts = DungeonLogic.Replay(ex.battles[0]);
+            Assert.Greater(bouts.Count, 0);
+            Assert.IsTrue(bouts.All(b => b.result.events.Count > 0));
+            Assert.IsTrue(bouts.All(b => party.Contains(b.a.id)), "우리 검투사가 왼쪽");
+            // 저장했다 불러와도 같은 싸움이 나온다
+            var loaded = SaveSystem.FromJson(SaveSystem.ToJson(s));
+            var again = DungeonLogic.Replay(DungeonLogic.ExpeditionsOf(loaded)[0].battles[0]);
+            CollectionAssert.AreEqual(bouts.Select(b => b.result.winnerId).ToList(), again.Select(b => b.result.winnerId).ToList());
+        }
+
+        [Test]
         public void ExpiredContractsBecomeFreeAgents()
         {
             var s = World.NewGame(86, "aurelia", "시험", 2);

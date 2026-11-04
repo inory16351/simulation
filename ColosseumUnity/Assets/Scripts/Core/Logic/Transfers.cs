@@ -281,7 +281,7 @@ namespace Colosseum.Core
             Contracts.Apply(s, g, terms);
             g.morale = Math.Min(100, g.morale + 8);
             t.deals = t.deals.Where(x => x != deal).ToList();
-            Career.SeasonRecord(s, g);
+            Career.Joined(s, g, deal.fee);
             Career.LogCareer(s, g, $"{from.name}에서 {Josa.J(me.name, "으로/로")} 이적했습니다 ({Loc(deal.fee)} D)", "join");
         }
 
@@ -489,7 +489,7 @@ namespace Colosseum.Core
             t.offers = t.offers.Where(x => x.gladiatorId != gid).ToList();
             Unlist(s, gid);
             g.contract = new GladiatorContract { untilSeason = s.season + 2, clauses = new List<string>() };
-            Career.SeasonRecord(s, g);
+            Career.Joined(s, g, fee);
             Career.LogCareer(s, g, $"{me.name}에서 {Josa.J(buyer.name, "으로/로")} 팔려 갔습니다 ({Loc(fee)} D)", "other");
             foreach (var id in me.gladiators) s.gladiators[id].morale = Math.Max(0, s.gladiators[id].morale - (g.popularity > 40 ? 4 : 1));
         }

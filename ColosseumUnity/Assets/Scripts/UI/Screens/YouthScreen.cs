@@ -25,7 +25,7 @@ namespace Colosseum.UI
         [SerializeField] GameObject tableRoot;
         [SerializeField] GameObject empty;
         [SerializeField] RectTransform rowTemplate;
-        [Header("입단 테스트 후보 (FM식, 골라서 유소년 계약)")]
+        [Header("모래 시험 응시자 (FM식, 골라서 학당 서약)")]
         [SerializeField] GameObject trialRoot;
         [SerializeField] TMP_Text trialTitle;
         [SerializeField] RectTransform trialTemplate;
@@ -68,13 +68,13 @@ namespace Colosseum.UI
             if (confirmRelease != null && !kids.Any(g => g.id == confirmRelease)) confirmRelease = null;
             rows.Sync(kids.Count, (row, i) => Bind(row, kids[i], full));
 
-            // 입단 테스트 후보: 골라서 유소년 계약 (잠재력 높은 순)
+            // 모래 시험 응시자: 골라서 학당 서약 (잠재력 높은 순)
             var trial = (player.youthTrial ?? new List<string>()).Where(S.gladiators.ContainsKey).Select(id => S.gladiators[id])
                 .OrderByDescending(g => Scouting.PaRange(S, g).mid).ToList();
             trialRoot.SetActive(trial.Count > 0);
             bool roomLeft = kids.Count < Youth.YouthCapacity(player);
             if (trial.Count > 0)
-                trialTitle.text = $"◆  입단 테스트 후보 {trial.Count}명 — {Calendar.DateLabel(Calendar.FromAbs(player.youthTrialUntil ?? 0).day)}까지 계약할 아이를 고르세요" +
+                trialTitle.text = $"◆  모래 시험 응시자 {trial.Count}명 — {Calendar.DateLabel(Calendar.FromAbs(player.youthTrialUntil ?? 0).day)}까지 서약을 받을 아이를 고르세요" +
                     (roomLeft ? "" : $"  <color={Theme.Hex(Neg)}>학당 정원이 찼습니다</color>");
             trialRows.Sync(trial.Count, (row, i) =>
             {
@@ -95,7 +95,7 @@ namespace Colosseum.UI
                 var sign = row.Find("Act/Sign").GetComponent<Button>();
                 var dec = Negotiations.DecisionFor(S, "youth", id);
                 bool waiting = Negotiations.Pending(S, "youth", id) != null;
-                sign.GetComponentInChildren<TMP_Text>().text = dec != null ? "역제안 보기" : waiting ? "답 기다리는 중" : "계약 협상";
+                sign.GetComponentInChildren<TMP_Text>().text = dec != null ? "역제안 보기" : waiting ? "답 기다리는 중" : "서약 받기";
                 sign.interactable = roomLeft || dec != null || waiting;
                 sign.onClick.RemoveAllListeners();
                 sign.onClick.AddListener(() =>

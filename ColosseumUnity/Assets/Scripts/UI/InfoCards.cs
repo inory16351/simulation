@@ -41,7 +41,7 @@ namespace Colosseum.UI
             {
                 "nation" => Nation(s, id),
                 "ludus" => s.ludi.TryGetValue(id, out var l) ? Ludus(s, l) : null,
-                "comp" => Comp(s, id),
+                "comp" => WithAwards(s, id, Comp(s, id)),
                 "item" => Item(id),
                 "race" or "racial" => Data.Race(id) == null ? null : new InfoCard { title = Data.Race(id).name, sub = "종족", body = Tips.RaceText(id) },
                 "style" => Data.Style(id) == null ? null : new InfoCard { title = Data.Style(id).name, sub = "전투 스타일", body = Tips.StyleText(id) + StyleGear(id) },
@@ -56,7 +56,7 @@ namespace Colosseum.UI
             };
         }
 
-        // ── 유소년 입단 (FM 유소년 입단 화면처럼) ──
+        // ── 모래 시험 (시즌 중반 학당 선발) ──
 
         static InfoCard YouthTrialCard(GameState s)
         {
@@ -72,8 +72,8 @@ namespace Colosseum.UI
             }));
             return new InfoCard
             {
-                title = "유소년 입단 테스트", sub = $"후보 {list.Count}명 · {until}까지 계약할 아이를 고르세요",
-                body = body + $"\n\n<color={Faint}>유소년 학당 화면에서 아이마다 '계약 협상'으로 주급·기간·계약금 같은 조건을 정해 제안합니다. 답은 하루이틀 뒤 서판으로 오고, 협상이 깨지면 그 아이는 돌아갑니다. 학당 정원 {me.youth.Count}/{Youth.YouthCapacity(me)}명. 고르지 않은 아이는 마감 날 돌아갑니다.</color>",
+                title = "모래 시험", sub = $"찾아온 아이 {list.Count}명 · {until}까지 서약을 받을 아이를 고르세요",
+                body = body + $"\n\n<color={Faint}>유소년 학당 화면에서 아이마다 '서약 받기'로 주급·기간·계약금 같은 조건을 정해 제안합니다. 답은 하루이틀 뒤 서판으로 오고, 협상이 깨지면 그 아이는 돌아갑니다. 학당 정원 {me.youth.Count}/{Youth.YouthCapacity(me)}명. 고르지 않은 아이는 시험이 끝나는 날 돌아갑니다.</color>",
                 iconSprite = UnityEngine.Resources.Load<UnityEngine.Sprite>("Art/icon/menu/youth"),
                 actionLabel = "유소년 학당으로", action = () => GameController.I.Go("youth"),
             };
@@ -107,8 +107,10 @@ namespace Colosseum.UI
                 {
                     title = name, sub = $"받은 상 {mine.Count}개",
                     body = mine.Count == 0 ? $"<color={Faint}>아직 받은 상이 없습니다</color>"
-                        : string.Join("\n", mine.Select(a => $"시즌 {a.season}  <color={Torch}>★</color> {CompLinkOf(a.comp)} {Awards.KindNames[a.kind]}" + (a.note != null ? $"  <color={Faint}>{a.note}</color>" : ""))),
+                        : string.Join("\n", mine.Select(a => $"시즌 {a.season}  <color={Torch}>★</color> {CompLinkOf(a.comp)} {AwardKindLink(a)}" + (a.note != null ? $"  <color={Faint}>{a.note}</color>" : ""))),
                     iconSprite = UnityEngine.Resources.Load<UnityEngine.Sprite>("Art/icon/award"),
+                    actionLabel = mine.Count > 0 ? "역대 수상자 보기" : null,
+                    action = mine.Count > 0 ? () => GameController.I.OpenHallAwards(mine[0].comp) : null,
                 };
             }
             // 대회 시상: comp:<대회 키>:<시즌>
@@ -123,7 +125,7 @@ namespace Colosseum.UI
                     title = $"{Awards.CompName(comp)} 시상", sub = $"시즌 {cs} · 최우수 검투사 · 최다 처치 · 최우수 신인 · 올해의 라니스타",
                     body = got.Count == 0 ? $"<color={Faint}>수상 기록이 없습니다</color>" : CompLinkOf(comp) + "\n\n" + string.Join("\n", got.Select(a => AwardLine(s, a))),
                     iconSprite = UnityEngine.Resources.Load<UnityEngine.Sprite>("Art/icon/award"),
-                    actionLabel = "비석의 언덕으로", action = () => GameController.I.Go("hall"),
+                    actionLabel = "역대 수상자 보기", action = () => GameController.I.OpenHallAwards(comp),
                 };
             }
             if (!id.StartsWith("season:") || !int.TryParse(id.Substring(7), out int season)) return null;
@@ -144,8 +146,24 @@ namespace Colosseum.UI
                 title = $"시즌 {season} 시상식", sub = "세계 올해의 검투사 · 나라별 올해의 검투사",
                 body = !list.Any(a => a.kind is "world_best" or "nation_best") ? $"<color={Faint}>이 시즌에는 수상 기록이 없습니다</color>" : body.TrimStart('\n'),
                 iconSprite = UnityEngine.Resources.Load<UnityEngine.Sprite>("Art/icon/award"),
-                actionLabel = "비석의 언덕으로", action = () => GameController.I.Go("hall"),
+                actionLabel = "역대 수상자 보기", action = () => GameController.I.OpenHallAwards("world"),
             };
+        }
+
+        /// <summary>상 이름 링크: 누르면 그 대회·시즌 수상자 카드 (거기서 역대 수상자로 이어진다)</summary>
+        public static string AwardKindLink(AwardEntry a) => $"<link=\"awards:comp:{a.comp}:{a.season}\">{Awards.KindNames[a.kind]}</link>";
+
+        /// <summary>대회 카드 끝에 최근 수상자를 붙인다. 상 이름을 누르면 수상자 카드, 거기서 역대 수상자 표로 간다</summary>
+        static InfoCard WithAwards(GameState s, string id, InfoCard card)
+        {
+            if (card == null || s.awards == null) return card;
+            string comp = id == "cup" ? "pantheon" : id;
+            var got = s.awards.Where(a => a.comp == comp).ToList();
+            if (got.Count == 0) return card;
+            int last = got.Max(a => a.season);
+            card.body += Head($"최근 수상자 · 시즌 {last}") + string.Join("\n", got.Where(a => a.season == last).Select(a =>
+                $"<color={Torch}>★</color> {AwardKindLink(a)}  {AwardWho(s, a)}"));
+            return card;
         }
 
         /// <summary>대회 키(league:나라:부 …)를 대회 링크로</summary>

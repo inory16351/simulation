@@ -165,7 +165,7 @@ namespace Colosseum.UI
             I.Open("list");
         }
 
-        /// <summary>계약 협상. kind: free(무소속) | terms(이적 개인 계약, dealId 필요) | renew(재계약) | youth(입단 테스트 후보와 유소년 계약)</summary>
+        /// <summary>계약 협상. kind: free(무소속) | terms(이적 개인 계약, dealId 필요) | renew(재계약) | youth(모래 시험 응시자와 학당 서약)</summary>
         public static void OpenContract(string kind, string gid, string dealId = null)
         {
             if (I == null) return;
@@ -348,7 +348,7 @@ namespace Colosseum.UI
             var to = S.ludi[S.playerLudusId];
             var v = Contracts.View(S, g, terms, d, to);
             var dec = decisionId != null ? Negotiations.DecisionById(S, decisionId) : null;
-            string what = kind switch { "free" => "무소속 계약", "terms" => "이적 개인 계약", "youth" => "유소년 계약", _ => "재계약" };
+            string what = kind switch { "free" => "무소속 계약", "terms" => "이적 개인 계약", "youth" => "학당 서약", _ => "재계약" };
             title.text = $"{what} — {Tips.Name(g)}";
             string pref = $"바라는 기간 {Contracts.PreferredSeasons(g)}시즌";
             // 바라는 주급은 대리인이 흘린 대략의 값만 (5 D 단위)
@@ -361,7 +361,7 @@ namespace Colosseum.UI
             {
                 "terms" when deal != null => $"이적료 {deal.fee:N0} D 합의 ({Calendar.DateLabel(Calendar.FromAbs(deal.expiresAt).day)}까지)",
                 "renew" => $"지금 계약: 주급 {g.wage:N0} D, 시즌 {g.contract?.untilSeason}까지{(Contracts.ClauseLine(g.contract) is string cl && cl.Length > 0 ? " · " + cl : "")}",
-                "youth" => $"입단 테스트 후보 · {Calendar.DateLabel(Calendar.FromAbs(to.youthTrialUntil ?? 0).day)}까지 · 학당 정원 {to.youth.Count}/{Youth.YouthCapacity(to)}명 · {g.age}세, 데뷔까지 {Math.Max(0, Data.Race(g.race).age.debut - g.age)}년",
+                "youth" => $"모래 시험 응시자 · {Calendar.DateLabel(Calendar.FromAbs(to.youthTrialUntil ?? 0).day)}까지 · 학당 정원 {to.youth.Count}/{Youth.YouthCapacity(to)}명 · {g.age}세, 데뷔까지 {Math.Max(0, Data.Race(g.race).age.debut - g.age)}년",
                 _ => $"{Reputation.InterestNames[Reputation.InterestIn(S, g, Reputation.LudusReputation(S, to))]} 관심",
             };
             info.text = $"{extra}\n금고 {to.treasury:N0} D · 전적 {g.record.wins}승 {g.record.losses}패 {g.record.kills}킬 · 인기 {JsMath.Round(g.popularity)}";

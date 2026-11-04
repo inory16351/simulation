@@ -351,3 +351,14 @@
 - 원인 ①: 새 수염에 점이 없어 자르기 도구가 '가운데 줄 첫 픽셀을 코 밑에' 놓음 — 입·엄니 자리를 비운 수염은 첫 픽셀이 턱수염이라 코까지 올라감. ②: 자르기 도구의 부스러기 지우기(`anchors.cjs` load)가 가장 큰 덩어리에서 떨어진 조각을 지워 염소수염 위 콧수염·수염 자국이 없어지고, 남은 덩어리가 입 줄에서 안 나뉘어 엉뚱한 데 붙음.
 - 고침(웹판 tools/는 그대로, `Tools/portrait-more.mjs`만): `anchors`가 새 수염 점으로 같은 칸 첫 세트 머리의 코·입·턱 점을 씀(새 파츠는 front_heads.png 같은 칸 머리에 맞춰 그림). `build`가 `placeNewBeards`로 새 수염을 다시 놓음 — 칸 그림을 그대로(가장자리에 닿은 작은 덩어리만 지움) 쓰고, 그 머리의 입 줄에서 위는 코 점·아래는 입~턱 점에 머리마다 맞춤(splitBeard와 같은 셈). 입 위가 비면 통째로 입~턱(오크 short_2, 미노타우로스 short·short_2, 그때 `_lo` 파일 지움).
 - 점검표(`portrait-more.mjs audit <종족>`)로 사람·드워프·오크·미노타우로스 수염, 엘프·도마뱀·수인 머리카락·투구 확인. Windows 빌드·zip 다시 뽑음(11:49).
+
+### 진행 (2026-11-04 저녁) 경력 이적별 분리 · 출전 불만 · 던전 순환과 전투 보기 · 모래 시험 · 수상 링크
+- **씬 재빌드 필요** (`GameSceneBuilder.Build()`, 이번 세션은 UnityMCP 연결 실패로 못 함): 내놓은 장비 표 스크롤(`consignedScroll`), 학당 화면에 박힌 안내 글. 재빌드 전에는 내놓은 장비를 앞 3줄만 보여 준다. 나머지 변경은 재빌드 없이 동작하게 짰다.
+- 화면 깨짐: 코드로 찾은 원인은 '내놓은 장비' 표에 스크롤이 없어 많이 내놓으면 창고 표를 밀어내던 것. 3줄 높이로 묶고 스크롤. **에디터에서 재현·확인은 못 함.**
+- 경력: `Career.SeasonRecord`가 소속이 바뀌면 새 줄을 연다. `Career.Joined(s, g, fee, via)`로 이적료 기록(0 = 자유, via = "학당"). `SeasonRecord.ludusId/fee/via` 추가. 경력 탭 '수익' 칸 → '이적료' (칸 이름은 Earnings 그대로). 수상은 받을 때 뛰던 루두스 줄에.
+- 출전 불만: 21일(`BenchGapDays`)을 넘기지 않고 3경기(`BenchClearApps`) 출전해야 풀림. 우리 검투사는 시간으로 안 풀리고(이적하면 풀림), AI는 시간으로도 풀림.
+- 던전: 14종, `s.dungeonRotation`에 등급별 하나씩 급료일마다 새로 뽑음(`WeeklyRotation`). 층마다 `Expedition.battles`에 싸우기 전 사본과 대결 시드를 남기고 `DungeonLogic.Replay`로 다시 돌려 `MatchScreen.WatchFight`(링크 `fight:원정:층`)로 중계. 던전 화면·서판 소식(`InboxMessage.replay`)에 링크. 다시 보기 중 '그만 보기'로 나감.
+- 유소년 문구: 입단 테스트 → 모래 시험, 유소년 계약 → 학당 서약, 황금 세대 → 전설의 씨앗. 코드 id(`youth`, `youthTrial`)는 그대로.
+- 수상: 상 이름 링크(`InfoCards.AwardKindLink`) → 수상자 카드 → '역대 수상자 보기'(`G.OpenHallAwards`) → 비석의 언덕 수상 탭의 그 대회. 대회 카드 끝에 최근 수상자.
+- 확인: `sh Tools/TestRunner/run.sh` 32개 통과(새 테스트 3개). 게임 화면은 못 봄 → 재빌드 뒤 창고, 던전 '전투 보기', 수상 링크를 눌러 볼 것.
+- (같은 날) MCP로 `Colosseum/Build Game Scene` 재빌드 완료. 씬에 `consignedScroll` 연결, 새 문구 확인, 플레이 모드 진입 시 콘솔 오류 없음. 저장 칸을 건드리지 않으려고 게임 안을 눌러 보지는 않았다 → 창고, 던전 '전투 보기', 수상 링크는 직접 눌러 볼 것.

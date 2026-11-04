@@ -47,6 +47,8 @@ namespace Colosseum.UI
             public List<Gladiator> teamA, teamB;
             public List<Gladiator>[] simSides;
             public int mySimSide;
+            /// <summary>던전 전투 다시 보기: 상태를 바꾸지 않고, 언제든 나갈 수 있다</summary>
+            public bool replay;
         }
 
         [Header("준비 화면")]
@@ -92,6 +94,7 @@ namespace Colosseum.UI
         bool doneCalled;
         readonly Dictionary<string, (double hp, double max)> hp = new();
         readonly Dictionary<RectTransform, string> drawnFor = new();
+        string rosterLabel;
         /// <summary>장면에 보여 준 이벤트 수</summary>
         int stageCount;
 
@@ -125,7 +128,14 @@ namespace Colosseum.UI
                 ShowAll();
             });
             closeButton.onClick.AddListener(OnClose);
-            rosterButton.onClick.AddListener(() => { live = null; seriesLives = null; returnScreen = null; G.Go("roster"); });
+            rosterButton.onClick.AddListener(() =>
+            {
+                string back = live?.replay == true && returnScreen != null ? returnScreen : "roster";
+                if (playing != null) StopCoroutine(playing);
+                playing = null;
+                live = null; seriesLives = null; returnScreen = null;
+                G.Go(back);
+            });
         }
 
         public override void Refresh()
@@ -375,6 +385,39 @@ namespace Colosseum.UI
             }).ToList();
         }
 
+        // ───────── 던전 전투 다시 보기 ─────────
+
+        /// <summary>링크(fight:원정:층 순서)를 눌렀을 때: 그 층의 대결들을 이 화면에서 차례로 보여 준다</summary>
+        public static void WatchFight(string link)
+        {
+            var G = GameController.I;
+            var p = link.Split(':');
+            if (p.Length != 3 || !int.TryParse(p[2], out int idx)) return;
+            var ex = DungeonLogic.ExpeditionsOf(G.State).FirstOrDefault(x => x.id == p[1]);
+            if (ex?.battles == null || idx < 0 || idx >= ex.battles.Count) return;
+            var screen = FindFirstObjectByType<MatchScreen>(FindObjectsInactive.Include);
+            if (screen == null) return;
+            // 공식 경기 중계가 아직 끝나지 않았으면 (결과를 반영하기 전이니) 그쪽으로 돌려보낸다
+            if (screen.live?.commit != null || screen.seriesLives?.LastOrDefault()?.commit != null) { G.Go("match"); return; }
+            var lives = DungeonLives(ex, ex.battles[idx]);
+            if (lives.Count == 0) return;
+            screen.RunSeries(lives, null, screen.speed, G.Screen);
+        }
+
+        static List<Live> DungeonLives(Expedition ex, FloorBattle fb)
+        {
+            var d = DungeonLogic.GetDungeon(ex.dungeon);
+            string form = DungeonLogic.Formations.TryGetValue(ex.formation, out var f) ? f.name : ex.formation;
+            string title = $"{d.name} {fb.floor}층{(fb.boss ? " · 우두머리" : "")}";
+            var bouts = DungeonLogic.Replay(fb);
+            return bouts.Select((x, i) => new Live
+            {
+                result = x.result, a = x.a, b = x.b, rule = "training", startHp = x.startHp, replay = true, title = title,
+                items = BuildItems(x.result, x.a, x.b, (uint)(x.result.rounds + i)),
+                sub = $"{i + 1}/{bouts.Count}번째 대결 · 진형 {form} · {(fb.won ? "이 층을 이겼습니다" : "이 층에서 물러났습니다")}",
+            }).ToList();
+        }
+
         // ───────── 중계 ─────────
 
         void Begin(Live l)
@@ -597,7 +640,11 @@ namespace Colosseum.UI
             skipButton.gameObject.SetActive(!finished || hasResult);
             skipButton.GetComponentInChildren<TMP_Text>().text = !finished ? "결과 보기" : resultPanel.activeSelf ? "중계 기록" : "결과창";
             closeButton.gameObject.SetActive(finished);
-            rosterButton.gameObject.SetActive(finished);
+            bool replay = live?.replay == true;
+            rosterButton.gameObject.SetActive(finished || replay);
+            var rosterText = rosterButton.GetComponentInChildren<TMP_Text>();
+            rosterLabel ??= rosterText.text;
+            rosterText.text = replay ? "그만 보기" : rosterLabel;
             bool lastBout = seriesLives == null || seriesIdx >= seriesLives.Count - 1;
             closeButton.GetComponentInChildren<TMP_Text>().text = lastBout ? "다음으로" : "다음 판";
         }

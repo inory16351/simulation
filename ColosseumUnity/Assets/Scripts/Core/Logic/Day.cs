@@ -110,6 +110,7 @@ namespace Colosseum.Core
                 FreeAgency.Weekly(state, rng);
                 GearLogic.RefreshGearMarket(state, rng, state.gearMarket == null || state.gearMarket.Count == 0);
                 DungeonLogic.WeeklyQuests(state, rng);
+                DungeonLogic.WeeklyRotation(state, rng);
                 // 기술 습득 판정 (기술 테이블, 주 1회)
                 SkillBook.WeeklyLearn(state, rng);
             }

@@ -38,6 +38,9 @@ namespace Colosseum.UI
         void Awake()
         {
             seasonRows = new TemplateList<RectTransform>(seasonTemplate);
+            // 수익 칸 자리에 이적료를 보여 준다 (칸 이름은 Earnings 그대로, 예전 씬의 머리글도 여기서 고친다)
+            var feeHead = seasonTemplate.parent.Find("Head/Earnings")?.GetComponent<TMP_Text>();
+            if (feeHead != null) feeHead.text = "이적료";
             logMore.onClick.AddListener(() =>
             {
                 showAll = !showAll;
@@ -60,19 +63,21 @@ namespace Colosseum.UI
             seasonRows.Sync(history.Count, (row, i) =>
             {
                 var h = history[i];
-                double caEnd = h.season == last && g.alive ? GladiatorRules.ComputeCA(g) : h.caEnd;
+                // 지금 뛰는 줄(맨 끝)만 현재 능력으로, 이적 전 줄은 떠날 때 값으로
+                bool current = i == history.Count - 1 && g.alive;
+                double caEnd = current ? GladiatorRules.ComputeCA(g) : h.caEnd;
                 double delta = caEnd - h.caStart;
                 var dc = delta > 0 ? Theme.Good : delta < 0 ? Warn : Theme.TextFaint;
                 string ds = delta > 0 ? $"+{N(delta)}" : delta < 0 ? N(delta) : "±0";
                 if (FmRules.Enabled)
                 {
-                    string stars = h.season == last && g.alive ? Widgets.CaStars(s, g) : Widgets.RangeStars(caEnd - blur, caEnd + blur);
+                    string stars = current ? Widgets.CaStars(s, g) : Widgets.RangeStars(caEnd - blur, caEnd + blur);
                     // 시즌 동안 별 반 개(CA 10) 넘게 움직였을 때만 화살표
                     string arrow = delta >= 10 ? $" <color={Theme.Hex(Theme.Good)}>▲</color>" : delta <= -10 ? $" <color={Theme.Hex(Warn)}>▼</color>" : "";
                     T(row, "Ca").text = $"<size=85%><color={Theme.Hex(Theme.Torch)}>{stars}</color>{arrow}</size>";
                 }
                 T(row, "Season").text = h.season.ToString();
-                T(row, "Ludus").text = $"{h.ludus} <color={faint}><size=80%>{(h.tier != 0 ? $"{N(h.tier)}부" : "")}</size></color>";
+                T(row, "Ludus").text = $"{Tips.Ludus(h.ludusId, h.ludus)} <color={faint}><size=80%>{(h.tier != 0 ? $"{N(h.tier)}부" : "")}</size></color>";
                 T(row, "Apps").text = N(h.apps);
                 T(row, "Wins").text = N(h.wins);
                 T(row, "Losses").text = N(h.losses);
@@ -81,8 +86,11 @@ namespace Colosseum.UI
                 T(row, "Injuries").text = N(h.injuries);
                 if (!FmRules.Enabled) T(row, "Ca").text = $"{N(caEnd)} <size=75%><color={Theme.Hex(dc)}>{ds}</color></size>";
                 T(row, "Pop").text = N(h.popularity);
-                T(row, "Earnings").text = h.earnings.ToString("N0");
-                int won = awards.Count(a => a.season == h.season);
+                T(row, "Earnings").text = FeeText(h);
+                // 상은 받을 때 뛰던 루두스 줄에 (한 시즌에 여러 줄이면 맞는 줄이 없는 상은 그 시즌 마지막 줄에)
+                var sameSeason = history.Where(x => x.season == h.season).ToList();
+                bool lastOfSeason = sameSeason[sameSeason.Count - 1] == h;
+                int won = awards.Count(a => a.season == h.season && (a.ludusName == h.ludus || (lastOfSeason && !sameSeason.Any(x => x.ludus == a.ludusName))));
                 T(row, "Awards").text = won > 0 ? $"<link=\"awards:g:{g.id}\"><color={Theme.Hex(Theme.Torch)}>★{won}</color></link>" : "";
             });
             T(totalRow, "Apps").text = N(history.Sum(h => h.apps));
@@ -90,15 +98,16 @@ namespace Colosseum.UI
             T(totalRow, "Losses").text = N(history.Sum(h => h.losses));
             T(totalRow, "Kills").text = N(history.Sum(h => h.kills));
             T(totalRow, "Rating").text = RatingText(Ratings.Average(history.Sum(h => h.ratingSum ?? 0), history.Sum(h => h.rated ?? 0)));
-            T(totalRow, "Earnings").text = history.Sum(h => h.earnings).ToString("N0");
+            double fees = history.Sum(h => h.fee ?? 0);
+            T(totalRow, "Earnings").text = fees > 0 ? $"{fees:N0} D" : "";
             T(totalRow, "Awards").text = awards.Count > 0 ? $"<link=\"awards:g:{g.id}\">★{awards.Count}</link>" : "";
 
             // 수상 · 우승: 받은 상, 그다음 뛰던 루두스가 그 시즌 들어 올린 우승컵 (FM 경력의 Honours처럼)
             var lines = awards.OrderByDescending(a => a.season)
-                .Select(a => $"<color={Theme.Hex(Theme.Torch)}>★</color> <color={faint}><size=80%>시즌 {a.season}</size></color>  {InfoCards.CompLinkOf(a.comp)} <b>{Awards.KindNames[a.kind]}</b>").ToList();
+                .Select(a => $"<color={Theme.Hex(Theme.Torch)}>★</color> <color={faint}><size=80%>시즌 {a.season}</size></color>  {InfoCards.CompLinkOf(a.comp)} <b><link=\"awards:comp:{a.comp}:{a.season}\">{Awards.KindNames[a.kind]}</link></b>").ToList();
             foreach (var h in Enumerable.Reverse(history))
             {
-                var club = s.ludi.Values.FirstOrDefault(l => l.name == h.ludus);
+                var club = s.ludi.Values.FirstOrDefault(l => h.ludusId != null ? l.id == h.ludusId : l.name == h.ludus);
                 var cups = club?.seasons?.FirstOrDefault(x => x.season == h.season)?.trophies;
                 if (cups == null) continue;
                 foreach (var t in cups) lines.Add($"<color={Theme.Hex(Theme.BronzeHi)}>◆</color> <color={faint}><size=80%>시즌 {h.season}</size></color>  {InfoCards.CompLink(t)} 우승 <color={faint}>({Tips.Ludus(club)})</color>");
@@ -127,6 +136,15 @@ namespace Colosseum.UI
         public static string RatingText(double? r) => r is double v
             ? $"<color={Theme.Hex(v >= 7.5 ? Theme.Good : v >= 6.5 ? Theme.Parchment : Warn)}>{v:0.00}</color>"
             : $"<color={Theme.Hex(Theme.TextFaint)}>—</color>";
+
+        /// <summary>이 루두스로 올 때의 이적료 칸: 금액, 자유, 학당, 또는 빈칸</summary>
+        static string FeeText(SeasonRecord h)
+        {
+            string faint = Theme.Hex(Theme.TextFaint);
+            if (h.via != null) return $"<color={faint}>{h.via}</color>";
+            if (h.fee is not double f) return "";
+            return f > 0 ? $"{f:N0} D" : $"<color={faint}>자유</color>";
+        }
 
         static string N(double v) => Math.Round(v).ToString();
         static TMP_Text T(Transform row, string path) => row.Find(path).GetComponent<TMP_Text>();

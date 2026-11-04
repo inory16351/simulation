@@ -121,6 +121,11 @@ namespace Colosseum.UI
             var s = GameController.I?.State;
             if (s == null) return null;
             if (id.StartsWith("season:")) return $"<b>시즌 {id.Substring(7)} 시상식</b>\n대회별 수상과 나라별·세계 올해의 검투사{More}";
+            if (id.StartsWith("comp:"))
+            {
+                int cut = id.LastIndexOf(':');
+                return $"<b>{Awards.CompName(id.Substring(5, cut - 5))}</b> 시즌 {id.Substring(cut + 1)} 수상자{More}";
+            }
             if (!id.StartsWith("g:")) return null;
             var list = (s.awards ?? new List<AwardEntry>()).Where(a => a.gladiatorId == id.Substring(2)).OrderByDescending(a => a.season).ToList();
             if (list.Count == 0) return null;
@@ -151,6 +156,7 @@ namespace Colosseum.UI
                 "person" => PersonTip(id),
                 "sattr" => StaffLogic.AttrDesc.TryGetValue(id, out var ad) ? $"<b>{StaffLogic.AttrNames[id]}</b>\n{ad}" : null,
                 "awards" => AwardsTip(id),
+                "fight" => "<b>전투 보기</b>\n이 층에서 벌어진 대결을 모래 마당 중계로 봅니다",
                 _ => null,
             };
         }

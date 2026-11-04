@@ -41,7 +41,7 @@ namespace Colosseum.UI
         [SerializeField] RectTransform graveTemplate;
 
         TemplateList<RectTransform> clubRows, honourRows, graveRows, awardRows;
-        string tab = "club", clubId;
+        string tab = "club", clubId, awardFocus;
         // 대회 고르기: (null, 0) = 판테온 컵, (나라, 부) = 리그
         readonly List<(string nation, int tier)> comps = new();
         int compIdx;
@@ -69,6 +69,7 @@ namespace Colosseum.UI
         public override void Refresh()
         {
             if (G.HallFocus != null) { clubId = G.HallFocus; G.HallFocus = null; tab = "club"; }
+            if (G.HallAwardFocus != null) { awardFocus = G.HallAwardFocus; G.HallAwardFocus = null; tab = "awards"; }
             for (int i = 0; i < tabButtons.Count; i++)
             {
                 Seg(tabButtons[i], tab == Tabs[i]);
@@ -193,6 +194,21 @@ namespace Colosseum.UI
                 for (int t = 1; t <= FmRules.MaxTier; t++) awardComps.Add((n.id, t));
                 awardComps.Add((n.id, -1));
             }
+            // 수상 카드에서 넘어왔으면 그 대회의 역대 수상자를 연다
+            if (awardFocus != null)
+            {
+                var p = awardFocus.Split(':');
+                (string nation, int tier) want = p[0] switch
+                {
+                    "pantheon" => (null, 0),
+                    "olympica" => (null, -2),
+                    "natcup" => (p[1], -1),
+                    "league" => (p[1], int.Parse(p[2])),
+                    _ => (null, -3),
+                };
+                awardIdx = Mathf.Max(0, awardComps.IndexOf(want));
+                awardFocus = null;
+            }
             awardIdx = Mathf.Clamp(awardIdx, 0, awardComps.Count - 1);
             Fill(awardPick, awardComps.Select(x => x.tier == -3 ? "시즌 시상 (올해의 검투사)" : x.tier == 0 ? Honours.CupName : x.tier == -2 ? OlympicaLogic.Name
                 : x.tier == -1 ? NatCupLogic.Name(x.nation) : Honours.LeagueName(x.nation, x.tier)), awardIdx);
@@ -216,7 +232,7 @@ namespace Colosseum.UI
                 var a = list[i];
                 row.GetComponent<Image>().color = a.ludusId == me ? new Color(0.89f, 0.6f, 0.23f, 0.10f) : Color.clear;
                 T(row, "Season").text = $"시즌 {a.season}";
-                T(row, "Kind").text = a.kind == "nation_best" ? $"{Tips.Nation(a.comp.Substring(7), true)} {Awards.KindNames[a.kind]}" : Awards.KindNames[a.kind];
+                T(row, "Kind").text = a.kind == "nation_best" ? $"{Tips.Nation(a.comp.Substring(7), true)} {InfoCards.AwardKindLink(a)}" : InfoCards.AwardKindLink(a);
                 T(row, "Winner").text = $"<color={Theme.Hex(Theme.Torch)}>★</color> {InfoCards.AwardWho(S, a)}";
                 T(row, "Note").text = a.note ?? "";
             });

@@ -1,7 +1,7 @@
 // 검투사 불만과 주급 인상 요구 (Unity판 전용, FM처럼 — 단 과하지 않게). 우리 검투사도 남의 검투사도 같은 상황에서만 생긴다:
 // · transfer: 소속 루두스보다 이름난 루두스의 영입 제안이 거절됐다 (6주) → 이적 명단에 올리거나, 다른 루두스로 옮기거나, 시간이 지나야 풀린다
 // · raise: 받을 만한 주급보다 한참 적게 받아 인상을 요구했는데 거절·무시됐다 (4주) → 재계약하면 풀린다
-// · bench: 리그 기간에 오랫동안 경기에 못 나갔다 (4주) → 경기에 나가거나 시간이 지나야 풀린다
+// · bench: 리그 기간에 오랫동안 경기에 못 나갔다 → 한 경기로는 안 풀린다. 간격을 두지 않고 꾸준히 출전해야(BenchClearApps경기) 풀린다
 // 불만인 검투사는 사기가 조금씩 떨어지고 몸값이 싸진다 (Valuation.MarketValue). 루두스를 옮기면 모두 풀린다.
 using System;
 using System.Collections.Generic;
@@ -18,6 +18,10 @@ namespace Colosseum.Core
         const int RaiseDays = 14;
         /// <summary>이만큼 경기에 못 나가면 출전 불만 (리그 기간)</summary>
         const int BenchDays = 35;
+        /// <summary>출전 불만이 풀리는 데 필요한 출전 수</summary>
+        public const int BenchClearApps = 3;
+        /// <summary>출전 사이 간격이 이보다 길면 '꾸준히'가 끊겨 처음부터 다시 센다</summary>
+        public const int BenchGapDays = 21;
 
         static int Now(GameState s) => Calendar.AbsDay(s.season, s.day);
 
@@ -26,7 +30,7 @@ namespace Colosseum.Core
         {
             "raise" => "재계약으로 주급을 올려 주면 풀립니다",
             "transfer" => "이적 명단에 올려 길을 열어 주거나, 시간이 지나야 풀립니다",
-            "bench" => "경기에 내보내면 풀립니다. 아니면 시간이 지나야 풀립니다",
+            "bench" => $"한 경기로는 풀리지 않습니다. {BenchGapDays}일을 넘기지 않고 {BenchClearApps}경기를 꾸준히 내보내야 풀립니다",
             _ => "시간이 지나면 풀립니다",
         };
 
@@ -38,6 +42,8 @@ namespace Colosseum.Core
             g.grievanceLudus = Career.LudusOf(s, g.id)?.id;
             g.grievanceAt = Now(s);
             g.grievanceUntil = Math.Max(g.grievanceUntil ?? 0, Now(s) + days);
+            g.benchApps = null;
+            g.benchLastAt = null;
         }
 
         static void Clear(Gladiator g)
@@ -47,6 +53,20 @@ namespace Colosseum.Core
             g.grievanceLudus = null;
             g.grievanceAt = null;
             g.grievanceUntil = null;
+            g.benchApps = null;
+            g.benchLastAt = null;
+        }
+
+        /// <summary>출전 불만 동안의 출전을 센다: 새 출전이 있으면 +1, 너무 오래 쉬면 처음부터</summary>
+        static void TrackBench(Gladiator g, int now)
+        {
+            if (g.lastFightAt is double f && f > (g.benchLastAt ?? g.grievanceAt ?? 0))
+            {
+                bool broken = g.benchLastAt is double last && f - last > BenchGapDays;
+                g.benchApps = broken ? 1 : (g.benchApps ?? 0) + 1;
+                g.benchLastAt = f;
+            }
+            else if (g.benchLastAt is double last2 && now - last2 > BenchGapDays) g.benchApps = 0;
         }
 
         /// <summary>불만이 생길 때 사기를 깎고 (우리 검투사면) 서판에 알린다</summary>
@@ -63,9 +83,14 @@ namespace Colosseum.Core
         /// <summary>불만이 풀렸으면 그 까닭 (아니면 null): 시간, 루두스를 옮김, 경기에 나감, 이적 명단</summary>
         static string Resolved(GameState s, Gladiator g, int now)
         {
-            if (now > (g.grievanceUntil ?? 0)) return "time";
             if (g.grievanceLudus != null && Career.LudusOf(s, g.id)?.id != g.grievanceLudus) return "moved";
-            if (g.grievanceKind == "bench" && g.lastFightAt > g.grievanceAt) return "played";
+            if (g.grievanceKind == "bench")
+            {
+                if ((g.benchApps ?? 0) >= BenchClearApps) return "played";
+                // 우리 검투사의 출전 불만은 시간으로 풀리지 않는다. 남의 루두스는 그 루두스 사정을 알 수 없으니 시간으로도 풀린다
+                if (Career.LudusOf(s, g.id)?.isPlayer == true) return null;
+            }
+            if (now > (g.grievanceUntil ?? 0)) return "time";
             if (g.grievanceKind == "transfer" && Transfers.Listed(s, g.id)) return "listed";
             return null;
         }
@@ -99,13 +124,14 @@ namespace Colosseum.Core
             // 불만이 풀렸나 (원인별). 우리 검투사가 경기·이적 명단으로 풀리면 알려 준다
             foreach (var x in s.gladiators.Values)
             {
+                if (x.grievance != null && x.grievanceKind == "bench") TrackBench(x, now);
                 if (x.grievance == null || Resolved(s, x, now) is not string why) continue;
                 bool mine = x.grievanceLudus == me.id && me.gladiators.Contains(x.id);
                 string was = x.grievance;
                 Clear(x);
                 if (mine && why is "played" or "listed")
                     StateUtil.PushMessage(s, "info", $"{x.name}, 불만이 풀렸습니다",
-                        why == "played" ? $"경기에 나서자 '{was}' 불만이 풀렸습니다." : $"이적 명단에 올려 길을 열어 주자 '{was}' 불만이 풀렸습니다.");
+                        why == "played" ? $"꾸준히 경기에 나서자 '{was}' 불만이 풀렸습니다." : $"이적 명단에 올려 길을 열어 주자 '{was}' 불만이 풀렸습니다.");
             }
             foreach (var id in me.gladiators.ToList())
             {
@@ -187,7 +213,7 @@ namespace Colosseum.Core
         {
             if (g.raiseBy is double by) return $"주급 인상을 바랍니다 ({Math.Max(0, by - Now(s))}일 안에 재계약)";
             if (g.grievance == null) return null;
-            string hint = g.grievanceKind switch { "raise" => "재계약하면 풀림", "transfer" => "이적 명단에 올리거나 시간이 지나면 풀림", "bench" => "경기에 내보내면 풀림", _ => null };
+            string hint = g.grievanceKind switch { "raise" => "재계약하면 풀림", "transfer" => "이적 명단에 올리거나 시간이 지나면 풀림", "bench" => $"꾸준히 내보내면 풀림 · 출전 {g.benchApps ?? 0}/{BenchClearApps}", _ => null };
             return $"불만: {g.grievance}" + (hint != null ? $" ({hint})" : "");
         }
     }

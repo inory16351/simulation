@@ -387,7 +387,7 @@ namespace Colosseum.Core
             g.status = "free";
             state.freeAgents = state.freeAgents.Where(x => x != id).ToList();
             player.gladiators.Add(id);
-            Career.SeasonRecord(state, g);
+            Career.Joined(state, g, 0);
             Career.LogCareer(state, g, $"자유민으로 {Josa.J(player.name, "과/와")} {seasons}시즌 계약했습니다 (주급 {StateUtil.Num(offer)} D)", "join");
         }
     }

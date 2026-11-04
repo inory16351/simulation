@@ -180,11 +180,22 @@ namespace Colosseum.UI
         /// <summary>나라·루두스·대회·장비·종족·스타일 링크를 누르면 부른다 (link = "nation:aurelia" 같은 TMP 링크 id)</summary>
         public void ShowInfo(string link)
         {
+            // 던전 전투 다시 보기는 카드 없이 바로 중계 화면으로
+            if (State != null && link.StartsWith("fight:")) { MatchScreen.WatchFight(link); return; }
             if (State != null && InfoCards.For(State, link) != null) InfoRequested?.Invoke(link);
         }
 
         /// <summary>비석의 언덕 연혁 탭에서 이 루두스를 열어 달라는 요청 (HallScreen이 읽고 지운다)</summary>
         public string HallFocus { get; set; }
+
+        /// <summary>비석의 언덕 수상 탭에서 이 대회(AwardEntry.comp)의 역대 수상자를 열어 달라는 요청</summary>
+        public string HallAwardFocus { get; set; }
+
+        public void OpenHallAwards(string comp)
+        {
+            HallAwardFocus = comp;
+            Go("hall");
+        }
 
         public void OpenHall(string ludusId)
         {

@@ -51,6 +51,7 @@ namespace Colosseum.Core
             l.gladiators.Add(g.id);
             g.wage = d.wage;
             g.contract = new GladiatorContract { untilSeason = s.season + Contracts.PreferredSeasons(g) - 1, clauses = new List<string>() };
+            if (FmRules.Enabled) Career.Joined(s, g, 0);
             Career.LogCareer(s, g, $"무소속에서 {l.name}에 입단했습니다", "join");
         }
 

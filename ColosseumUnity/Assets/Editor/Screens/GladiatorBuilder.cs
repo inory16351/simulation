@@ -347,7 +347,7 @@ namespace Colosseum.EditorTools
         static readonly (string id, string label, float w)[] CareerCols =
         {
             ("Season", "시즌", 36), ("Ludus", "루두스", 0), ("Apps", "출전", 38), ("Wins", "승", 32), ("Losses", "패", 32), ("Kills", "살해", 38), ("Rating", "평점", 44),
-            ("Injuries", "부상", 38), ("Ca", "능력", 104), ("Pop", "인기", 40), ("Earnings", "수익", 92), ("Awards", "수상", 52),
+            ("Injuries", "부상", 38), ("Ca", "능력", 104), ("Pop", "인기", 40), ("Earnings", "이적료", 92), ("Awards", "수상", 52),
         };
 
         /// <summary>경력 탭 (FM 경력·일대기처럼): 왼쪽 시즌별 기록 표, 오른쪽 수상·우승과 일대기</summary>

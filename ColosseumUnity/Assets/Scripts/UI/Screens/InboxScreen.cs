@@ -81,7 +81,7 @@ namespace Colosseum.UI
             var msg = S.inbox.FirstOrDefault(m => m.id == sel);
             readTitle.text = msg != null ? Tips.AutoLink(S, msg.title) : "";
             readMeta.text = msg != null ? $"시즌 {msg.season} · {Calendar.DateLabel(msg.day)}" : "";
-            readBody.text = msg != null ? Tips.AutoLink(S, msg.body) : "소식이 없습니다.";
+            readBody.text = msg != null ? Tips.AutoLink(S, msg.body) + (msg.replay != null ? $"\n\n<link=\"{msg.replay}\"><color={Theme.Hex(Theme.Torch)}><u>▶ 이 전투 보기</u></color></link>" : "") : "소식이 없습니다.";
         }
 
         /// <summary>올림피카 컵 대표팀 감독 제안 카드</summary>

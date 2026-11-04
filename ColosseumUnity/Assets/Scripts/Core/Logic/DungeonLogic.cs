@@ -82,7 +82,39 @@ namespace Colosseum.Core
                 foes = new() { new("lizardfolk", "화염 도마뱀 전사"), new("minotaur", "용암 광전사") }, boss = new("minotaur", "불의 미궁 주인") },
             new DungeonDef { id = "abyss", name = "심연의 신전", desc = "가장 깊은 곳. 살아 돌아온 자가 드뭅니다", tier = 5, floors = 5, days = 21, level = 13, death = 0.17, loot = new double[] { 10, 32, 40, 18 },
                 foes = new() { new("elf", "심연의 사제"), new("orc", "타락한 전사"), new("minotaur", "심연의 수문장") }, boss = new("elf", "잊힌 신의 대리인") },
+            // 아래부터 Unity판 추가 던전 (급료일 순환용. 앞 다섯의 순서는 바꾸지 않는다)
+            new DungeonDef { id = "bandit", name = "산적 소굴", desc = "국경 언덕의 동굴. 탈영병과 산적이 진을 쳤습니다", tier = 1, floors = 3, days = 7, level = 5.5, death = 0.05, loot = new double[] { 56, 34, 10, 0 },
+                foes = new() { new("human", "언덕 산적"), new("orc", "탈영한 용병") }, boss = new("human", "산적 두령") },
+            new DungeonDef { id = "cellar", name = "버려진 술 창고", desc = "밀주꾼과 들짐승 같은 수인 패거리가 눌러앉은 지하 창고입니다", tier = 1, floors = 3, days = 8, level = 4.5, death = 0.03, loot = new double[] { 64, 30, 6, 0 },
+                foes = new() { new("beastkin", "술 창고 패거리"), new("dwarf", "밀주꾼") }, boss = new("beastkin", "창고지기 늑대") },
+            new DungeonDef { id = "drowned", name = "물에 잠긴 요새", desc = "썰물 때만 드러나는 요새. 늪의 약탈자들이 보물을 지킵니다", tier = 2, floors = 3, days = 10, level = 7.5, death = 0.08, loot = new double[] { 42, 38, 17, 3 },
+                foes = new() { new("lizardfolk", "늪 약탈자"), new("human", "익사한 수비병") }, boss = new("lizardfolk", "물길 족장") },
+            new DungeonDef { id = "forge", name = "식어 버린 대장간", desc = "옛 장인들의 산속 공방. 쓸 만한 무기가 아직 남아 있습니다", tier = 2, floors = 3, days = 11, level = 8, death = 0.08, loot = new double[] { 38, 40, 19, 3 },
+                foes = new() { new("dwarf", "미친 대장장이"), new("orc", "고철 도적") }, boss = new("dwarf", "마지막 장인") },
+            new DungeonDef { id = "oldarena", name = "피의 옛 투기장", desc = "무너진 옛 원형 경기장. 패배를 인정하지 않은 투사들이 남아 있습니다", tier = 3, floors = 4, days = 14, level = 9.5, death = 0.11, loot = new double[] { 28, 40, 26, 6 },
+                foes = new() { new("human", "옛 투사의 망령"), new("minotaur", "사슬 황소") }, boss = new("minotaur", "피투성이 챔피언") },
+            new DungeonDef { id = "thorn", name = "가시 숲 성소", desc = "길이 매일 바뀌는 숲. 침입자를 심판하는 사제들이 지킵니다", tier = 3, floors = 4, days = 13, level = 9, death = 0.1, loot = new double[] { 32, 40, 23, 5 },
+                foes = new() { new("elf", "가시 사제"), new("beastkin", "숲 사냥꾼") }, boss = new("elf", "숲의 심판자") },
+            new DungeonDef { id = "frost", name = "얼음 금고", desc = "얼어붙은 왕실 금고. 서리 파수꾼들이 아직 임무를 지킵니다", tier = 4, floors = 4, days = 18, level = 11.5, death = 0.14, loot = new double[] { 18, 38, 34, 10 },
+                foes = new() { new("dwarf", "서리 파수꾼"), new("human", "얼어붙은 근위병") }, boss = new("dwarf", "얼음 왕") },
+            new DungeonDef { id = "spire", name = "무너진 마탑", desc = "실험이 끝나지 않은 탑. 무엇이 튀어나올지 모릅니다", tier = 4, floors = 4, days = 17, level = 11, death = 0.13, loot = new double[] { 22, 36, 32, 10 },
+                foes = new() { new("elf", "미친 마법사"), new("lizardfolk", "탑의 실험체") }, boss = new("elf", "탑의 주인") },
+            new DungeonDef { id = "kings", name = "왕들의 골짜기", desc = "대륙 첫 왕조의 무덤. 황금과 저주가 함께 묻혀 있습니다", tier = 5, floors = 5, days = 21, level = 13.5, death = 0.18, loot = new double[] { 8, 32, 42, 18 },
+                foes = new() { new("human", "왕의 근위 망령"), new("minotaur", "황금 황소") }, boss = new("human", "첫 번째 왕") },
         };
+
+        /// <summary>급료일마다 등급별로 하나씩 열 던전을 새로 뽑는다</summary>
+        static List<string> RollRotation(Rng rng) =>
+            Dungeons.GroupBy(d => d.tier).OrderBy(g => g.Key).Select(g => rng.Pick(g.ToList()).id).ToList();
+
+        /// <summary>이번 주에 열린 던전. 옛 저장·새 게임에서 아직 없으면 날짜로 정한다 (게임 난수를 건드리지 않게)</summary>
+        public static List<string> Rotation(GameState s) => s.dungeonRotation ??= RollRotation(new Rng((uint)(s.season * 1000 + s.day)));
+
+        /// <summary>급료일: 던전 입구가 바뀐다</summary>
+        public static void WeeklyRotation(GameState s, Rng rng)
+        {
+            if (FmRules.Enabled) s.dungeonRotation = RollRotation(rng);
+        }
 
         public static DungeonDef GetDungeon(string id) => Dungeons.First(d => d.id == id);
         public const int MaxParty = 5;
@@ -124,6 +156,7 @@ namespace Colosseum.Core
             }
             var q = !string.IsNullOrEmpty(questId) ? QuestsOf(s).FirstOrDefault(x => x.id == questId) : null;
             if (!string.IsNullOrEmpty(questId) && (q == null || q.status != "open")) return "의뢰가 마감됐습니다";
+            if (FmRules.Enabled && q == null && !Rotation(s).Contains(dungeon)) return "이 던전은 이번 주에 열려 있지 않습니다";
             var d = GetDungeon(q?.dungeon ?? dungeon);
             double t = Now(s);
             var hp = new Dictionary<string, double>();
@@ -178,7 +211,14 @@ namespace Colosseum.Core
             bool boss = ex.floor + 1 == d.floors;
             var party = Alive(s, ex).Select(id => s.gladiators[id]).ToList();
             var foes = SpawnFoes(rng, d, boss, quest?.hard ?? 1, ex.floor);
-            var res = Skirmish(rng, party, foes, ex.formation, ex.hp);
+            // 전투 화면으로 다시 볼 수 있게 싸우기 전 모습과 대결 순서를 남긴다
+            var battle = FmRules.Enabled ? new FloorBattle { floor = (int)ex.floor + 1, boss = boss, party = party.Select(Snapshot).ToList(), foes = foes.Select(Snapshot).ToList() } : null;
+            var res = Skirmish(rng, party, foes, ex.formation, ex.hp, battle?.bouts);
+            if (battle != null)
+            {
+                battle.won = res.won;
+                (ex.battles ??= new List<FloorBattle>()).Add(battle);
+            }
             var lines = new List<string> { $"{Num(ex.floor + 1)}층{(boss ? " (우두머리)" : "")}: {string.Join(", ", foes.Select(f => f.name))}" };
 
             foreach (var g in party)
@@ -225,6 +265,36 @@ namespace Colosseum.Core
             Msg(s, lines.Any(l => l.Contains("일어나지 못했습니다")) ? "death" : "info",
                 $"원정 소식: {d.name} {Num(ex.floor + (res.won ? 0 : 1))}층",
                 string.Join("\n", lines));
+            if (battle != null) s.inbox[0].replay = FightLink(ex, ex.battles.Count - 1);
+        }
+
+        /// <summary>전투 다시 보기 링크 id (fight:원정:층 순서)</summary>
+        public static string FightLink(Expedition ex, int index) => $"fight:{ex.id}:{index}";
+
+        /// <summary>전투 기록용 사본: 경력·일대기는 빼서 저장을 가볍게</summary>
+        static Gladiator Snapshot(Gladiator g)
+        {
+            var c = Newtonsoft.Json.JsonConvert.DeserializeObject<Gladiator>(Newtonsoft.Json.JsonConvert.SerializeObject(g, new Newtonsoft.Json.JsonSerializerSettings { NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore }));
+            c.history = new List<SeasonRecord>();
+            c.career = new List<CareerEvent>();
+            return c;
+        }
+
+        /// <summary>층 전투를 시드 그대로 다시 돌린다. 우리 검투사가 언제나 a</summary>
+        public static List<(MatchResult result, Gladiator a, Gladiator b, double[] startHp)> Replay(FloorBattle fb)
+        {
+            var o = new List<(MatchResult, Gladiator, Gladiator, double[])>();
+            var all = new Dictionary<string, Gladiator>();
+            foreach (var g in fb.party.Concat(fb.foes)) all[g.id] = g;
+            var mine = new HashSet<string>(fb.party.Select(g => g.id));
+            foreach (var b in fb.bouts)
+            {
+                if (!all.TryGetValue(b.a, out var x) || !all.TryGetValue(b.b, out var y)) continue;
+                var r = Sim.Run(x, y, new MatchOptions { rule = "training", noDeath = true, seed = b.seed, startHp = b.startHp });
+                double hx = b.startHp[0] ?? 1, hy = b.startHp[1] ?? 1;
+                o.Add(mine.Contains(x.id) ? (r, x, y, new[] { hx, hy }) : (r, y, x, new[] { hy, hx }));
+            }
+            return o;
         }
 
         static List<Gladiator> SpawnFoes(Rng rng, DungeonDef d, bool boss, double hard, double floor)
@@ -253,7 +323,7 @@ namespace Colosseum.Core
         /// 남은 체력을 다음 대결로 이어 간다. 같은 적에게 여럿이 붙으면 자연스레 협공이 된다.
         /// 진형 배율은 대결에서 깎인 체력에 곱한다.
         /// </summary>
-        public static SkirmishResult Skirmish(Rng rng, List<Gladiator> party, List<Gladiator> foes, string formation, Dictionary<string, double> startHp = null)
+        public static SkirmishResult Skirmish(Rng rng, List<Gladiator> party, List<Gladiator> foes, string formation, Dictionary<string, double> startHp = null, List<BattleBout> record = null)
         {
             startHp ??= new Dictionary<string, double>();
             var F = Formations[formation];
@@ -285,11 +355,13 @@ namespace Colosseum.Core
                         for (int k = 1; k < targets.Count; k++) if (GladiatorRules.ComputeCA(targets[k]) > GladiatorRules.ComputeCA(foe)) foe = targets[k];
                     }
                     else foe = targets[i % targets.Count];
-                    var r = Sim.Run(a, foe, new MatchOptions
+                    var opts = new MatchOptions
                     {
                         rule = "training", noDeath = true, seed = Seed31(rng),
                         startHp = new double?[] { hp[a.id] < 1 ? hp[a.id] : (double?)null, hp[foe.id] < 1 ? hp[foe.id] : (double?)null },
-                    });
+                    };
+                    record?.Add(new BattleBout { a = a.id, b = foe.id, seed = opts.seed, startHp = opts.startHp });
+                    var r = Sim.Run(a, foe, opts);
                     // 포위: 아군이 많을수록, 산개: 원거리면 더 세게
                     double outnumber = formation == "flank" ? 1 + 0.12 * Math.Max(0, Up(party).Count - targets.Count) : 1;
                     double dealt = F.dealt * outnumber * (IsRanged(a) ? F.ranged : formation == "spread" ? 0.9 : 1);
@@ -307,11 +379,13 @@ namespace Colosseum.Core
                     var ordered = Order(Up(party));
                     if (ordered.Count == 0) break;
                     var t = ordered[ordered.Count - 1]; // reverse()[0]
-                    var r = Sim.Run(foe, t, new MatchOptions
+                    var opts = new MatchOptions
                     {
                         rule = "training", noDeath = true, seed = Seed31(rng),
                         startHp = new double?[] { hp[foe.id] < 1 ? hp[foe.id] : (double?)null, hp[t.id] < 1 ? hp[t.id] : (double?)null },
-                    });
+                    };
+                    record?.Add(new BattleBout { a = foe.id, b = t.id, seed = opts.seed, startHp = opts.startHp });
+                    var r = Sim.Run(foe, t, opts);
                     hp[t.id] = r.winnerId == t.id ? Math.Max(0.03, hp[t.id] - (hp[t.id] - r.hpLeft[t.id]) * F.taken) : 0;
                     hp[foe.id] = r.winnerId == foe.id ? Math.Max(0.03, hp[foe.id] - (hp[foe.id] - r.hpLeft[foe.id]) * F.dealt) : 0;
                     if (hp[t.id] <= 0.02) downed.Add(t.id);
@@ -414,7 +488,8 @@ namespace Colosseum.Core
         public static void WeeklyQuests(GameState s, Rng rng)
         {
             if (QuestsOf(s).Any(q => q.status == "open") || !rng.Chance(0.18)) return;
-            var d = Dungeons[rng.Int(2, Dungeons.Count - 1)];
+            // 웹판과 같은 결과가 필요할 때(FM 규칙 끔)는 앞 다섯 안에서만 고른다
+            var d = FmRules.Enabled ? rng.Pick(Dungeons.Where(x => x.tier >= 3).ToList()) : Dungeons[rng.Int(2, 4)];
             string nation = rng.Chance(0.6) ? s.nation : rng.Pick(Data.Nations).id;
             double t = Now(s);
             var quest = new DungeonQuest

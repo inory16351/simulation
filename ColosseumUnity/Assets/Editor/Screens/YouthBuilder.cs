@@ -1,4 +1,4 @@
-// 유소년 학당 화면 조립 (웹판 YouthScreen.tsx). 화면 전체가 스크롤 영역이고, 입단 테스트 후보 표(유소년 계약)와 학생 표가 있다.
+// 유소년 학당 화면 조립 (웹판 YouthScreen.tsx). 화면 전체가 스크롤 영역이고, 모래 시험 응시자 표(학당 서약)와 학생 표가 있다.
 using Colosseum.Core;
 using Colosseum.UI;
 using TMPro;
@@ -37,13 +37,13 @@ namespace Colosseum.EditorTools
             var none = Panel("None", page);
             VCol(none.transform, 10, 14, 14, 14, 14);
             none.transform.Find("Fill").gameObject.AddComponent<LayoutElement>().ignoreLayout = true;
-            Text("Text", none.transform, $"학당이 아직 없습니다. <b>증축</b>에서 유소년 학당을 지으면 매 시즌 {Youth.TrialDate}에 입단 테스트가 열립니다. 후보를 골라 유소년 계약을 협상합니다.", 15);
+            Text("Text", none.transform, $"학당이 아직 없습니다. <b>증축</b>에서 유소년 학당을 지으면 매 시즌 {Youth.TrialDate}에 모래 시험이 열립니다. 후보를 골라 학당 서약을 협상합니다.", 15);
             var goRow = Rect("Buttons", none.transform);
             HRow(goRow, 0);
             var goFac = Button("GoFacilities", goRow, "증축으로", true, 15).Layout(prefW: 140, prefH: 34);
 
-            // 입단 테스트 후보 (FM식): 골라서 유소년 계약
-            var trialPad = TitledPanel("Trial", page, "입단 테스트 후보", 0);
+            // 모래 시험 응시자 (FM식): 골라서 학당 서약
+            var trialPad = TitledPanel("Trial", page, "모래 시험 응시자", 0);
             var trialTitle = trialPad.parent.Find("Head/Text").GetComponent<TMP_Text>();
             var thead = Box("Head", trialPad, Theme.Bg2).Layout(minH: 30, prefH: 30);
             HRow(thead.transform, 6, 8, 8);
@@ -95,7 +95,7 @@ namespace Colosseum.EditorTools
                 Cell(t.rectTransform, c.w);
             }
             Box("Line", table.transform, Theme.Line).Layout(minH: 1, prefH: 1);
-            var empty = Text("Empty", table.transform, $"아직 학생이 없습니다. 입단 테스트는 매 시즌 {Youth.TrialDate}입니다.", 14, Theme.TextDim);
+            var empty = Text("Empty", table.transform, $"아직 학생이 없습니다. 모래 시험은 매 시즌 {Youth.TrialDate}입니다.", 14, Theme.TextDim);
             empty.margin = new Vector4(12, 0, 12, 0);
             empty.Layout(minH: 40, prefH: 40);
 

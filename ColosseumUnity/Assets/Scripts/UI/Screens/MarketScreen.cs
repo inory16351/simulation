@@ -87,6 +87,8 @@ namespace Colosseum.UI
         [SerializeField] RectTransform armoryTemplate;
         [Header("장비 내놓기")]
         [SerializeField] GameObject consignRoot;
+        [Tooltip("내놓은 장비 표의 스크롤 영역 (씬을 다시 빌드하기 전이면 비어 있고, 그때는 앞쪽 몇 줄만 보여 준다)")]
+        [SerializeField] RectTransform consignedScroll;
         [SerializeField] TMP_Text consignTitle;
         [SerializeField] TMP_InputField consignPrice;
         [SerializeField] TMP_Text consignHint;
@@ -525,7 +527,13 @@ namespace Colosseum.UI
             }
             var list = GearLogic.ConsignmentsOf(S).ToList();
             consignedRoot.SetActive(list.Count > 0);
-            consignedRows.Sync(list.Count, (row, i) =>
+            // 많이 내놓아도 창고 표 자리를 밀어내지 않게 높이를 묶는다
+            const int MaxConsignRows = 3;
+            const float ConsignRowH = 48;
+            var scrollEl = consignedScroll != null ? consignedScroll.GetComponent<LayoutElement>() : null;
+            if (scrollEl != null) scrollEl.minHeight = scrollEl.preferredHeight = Math.Min(list.Count, MaxConsignRows) * ConsignRowH;
+            int consignShown = consignedScroll != null ? list.Count : Math.Min(list.Count, MaxConsignRows);
+            consignedRows.Sync(consignShown, (row, i) =>
             {
                 var c = list[i];
                 ItemCells(row, c.item);

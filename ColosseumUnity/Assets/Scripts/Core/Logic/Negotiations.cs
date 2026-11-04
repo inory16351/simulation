@@ -12,7 +12,7 @@ using System.Linq;
 
 namespace Colosseum.Core
 {
-    /// <summary>답을 기다리는 제안. kind: fee(이적료) | terms(이적 개인 계약) | free(무소속 계약) | renew(재계약) | youth(유소년 계약)</summary>
+    /// <summary>답을 기다리는 제안. kind: fee(이적료) | terms(이적 개인 계약) | free(무소속 계약) | renew(재계약) | youth(학당 서약)</summary>
     public class PendingBid
     {
         public string id, kind, gladiatorId, dealId;
@@ -106,7 +106,7 @@ namespace Colosseum.Core
                 "terms" => $"{name} 이적 계약 역제안",
                 "free" => $"{name} 계약 역제안",
                 "renew" => $"{name} 재계약 역제안",
-                "youth" => $"{name} 유소년 계약 역제안",
+                "youth" => $"{name} 학당 서약 역제안",
                 _ => name,
             };
         }
@@ -125,7 +125,7 @@ namespace Colosseum.Core
             var b = new PendingBid { id = $"B{s.nextId++}", kind = kind, gladiatorId = gladiatorId, dealId = dealId, amount = amount, seasons = seasons, sentAt = now, replyAt = now + days, terms = terms?.Clone() };
             (s.bids ??= new List<PendingBid>()).Add(b);
             ClearDecision(s, kind, KeyOf(kind, gladiatorId, dealId));
-            // 재계약·유소년 계약에는 경쟁자가 없다 (입단 테스트 후보는 마감까지 우리만 협상한다)
+            // 재계약·학당 서약에는 경쟁자가 없다 (모래 시험 응시자는 마감까지 우리만 협상한다)
             if (kind != "renew" && kind != "youth") MaybeRival(s, rng, s.gladiators[gladiatorId]);
             return new HaggleResult { status = "sent", line = $"제안을 보냈습니다. {WhenLine(s, b)} 서판으로 답이 옵니다" };
         }
@@ -387,22 +387,22 @@ namespace Colosseum.Core
             switch (res.status)
             {
                 case "accepted":
-                    Msg(s, "info", $"유소년 계약: {name}",
-                        $"{Josa.J(name, "이/가")} 주급 {Loc(t.wage)} D, {t.seasons}시즌 유소년 계약에 서명하고 학당에 들어왔습니다." +
+                    Msg(s, "info", $"학당 서약: {name}",
+                        $"{Josa.J(name, "이/가")} 주급 {Loc(t.wage)} D, {t.seasons}시즌 학당 서약에 서명하고 학당에 들어왔습니다." +
                         (t.signingFee > 0 ? $" 계약금 {Loc(t.signingFee)} D를 냈습니다." : "") + ClauseNote(t));
                     break;
                 case "countered":
                     var d = AddDecision(s, "youth", g, null, res.line);
                     d.counterTerms = res.terms;
                     d.lastTerms = t;
-                    Msg(s, "decision", $"유소년 계약 역제안: {name}",
+                    Msg(s, "decision", $"학당 서약 역제안: {name}",
                         $"{Josa.J(name, "이/가")} 우리가 낸 조건(주급 {Loc(t.wage)} D)을 거절했습니다. {res.line}{DecideLine}");
                     break;
                 case "walked":
-                    Msg(s, "warning", $"유소년 협상 결렬: {name}", $"{name}: \"{res.line}\"\n협상이 깨져 아이는 집으로 돌아갔습니다.");
+                    Msg(s, "warning", $"학당 서약 결렬: {name}", $"{name}: \"{res.line}\"\n협상이 깨져 아이는 집으로 돌아갔습니다.");
                     break;
                 default:
-                    Msg(s, "warning", $"유소년 계약 제안 무효: {name}", res.line);
+                    Msg(s, "warning", $"학당 서약 제안 무효: {name}", res.line);
                     break;
             }
         }
@@ -436,7 +436,7 @@ namespace Colosseum.Core
             }
             to.gladiators.Add(gid);
             g.wage = wage;
-            Career.SeasonRecord(s, g);
+            Career.Joined(s, g, from != null ? fee : 0);
             Career.LogCareer(s, g, from != null
                 ? $"{from.name}에서 {Josa.J(to.name, "으로/로")} 이적했습니다 ({Loc(fee)} D)"
                 : $"자유민으로 {Josa.J(to.name, "과/와")} 계약했습니다 (주급 {Loc(wage)} D)", "join");

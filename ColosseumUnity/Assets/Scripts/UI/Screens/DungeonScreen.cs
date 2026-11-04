@@ -84,6 +84,9 @@ namespace Colosseum.UI
             var me = Player;
             var quest = CurrentQuest();
             if (quest == null) questId = null;
+            // 이번 주에 열린 던전만 고를 수 있다 (급료일마다 바뀐다). 토벌 의뢰의 던전은 따로 끼워 보여 준다
+            var rotation = DungeonLogic.Rotation(S);
+            if (!rotation.Contains(dungeon)) dungeon = rotation[0];
             var d = DungeonLogic.GetDungeon(quest?.dungeon ?? dungeon);
             var roster = me.gladiators.Select(id => S.gladiators.TryGetValue(id, out var g) ? g : null).Where(g => g?.alive == true)
                 .OrderByDescending(g => Scouting.CaRange(S, g).mid).ToList();
@@ -95,7 +98,7 @@ namespace Colosseum.UI
             var done = all.Where(x => x.status != "active").Reverse().Take(4).ToList();
             var open = DungeonLogic.QuestsOf(S).Where(q => q.status == "open").ToList();
 
-            sub.text = $"검투사를 최대 {DungeonLogic.MaxParty}명까지 보내 장비를 얻어 옵니다. 돈이나 명성은 거의 못 얻고, 쓰러진 검투사는 목숨을 잃기도 합니다. 층마다 5:5로 진형을 짜서 싸웁니다.";
+            sub.text = $"검투사를 최대 {DungeonLogic.MaxParty}명까지 보내 장비를 얻어 옵니다. 돈이나 명성은 거의 못 얻고, 쓰러진 검투사는 목숨을 잃기도 합니다. 층마다 5:5로 진형을 짜서 싸웁니다.\n<color={Theme.Hex(Theme.Torch)}>열린 던전은 급료일마다 바뀝니다 · 다음 교체 {Calendar.NextPaydayLabel(S.day)}</color>";
 
             // ── 토벌 의뢰 ──
             questPanel.SetActive(open.Count > 0);
@@ -114,7 +117,8 @@ namespace Colosseum.UI
             });
 
             // ── 던전 카드 ──
-            var defs = DungeonLogic.Dungeons;
+            var defs = rotation.Concat(quest != null && !rotation.Contains(quest.dungeon) ? new[] { quest.dungeon } : new string[0])
+                .Select(DungeonLogic.GetDungeon).OrderBy(x => x.tier).ToList();
             cards.Sync(defs.Count, (b, i) =>
             {
                 var x = defs[i];
@@ -177,7 +181,10 @@ namespace Colosseum.UI
                 var dd = DungeonLogic.GetDungeon(ex.dungeon);
                 T(row, "Dungeon").text = Tips.Dungeon(dd.id) + (string.IsNullOrEmpty(ex.questId) ? "" : " (토벌)");
                 T(row, "Result").text = (ex.status == "done" ? $"<color={Theme.Hex(Theme.Good)}>완주</color>" : $"<color={Theme.Hex(Neg)}>퇴각</color>") + $" · {ex.floor}/{dd.floors}층";
-                T(row, "Loot").text = LootLine(ex.loot);
+                var doneLoot = T(row, "Loot");
+                doneLoot.raycastTarget = true;
+                string fights = FightLinks(ex);
+                doneLoot.text = LootLine(ex.loot) + (fights.Length > 0 ? (ex.loot.Count > 0 ? "\n" : "") + fights : "");
             });
         }
 
@@ -221,9 +228,21 @@ namespace Colosseum.UI
             var loot = T(panel, "Pad/Loot");
             loot.gameObject.SetActive(ex.loot.Count > 0);
             loot.text = "전리품: " + LootLine(ex.loot);
-            T(panel, "Pad/Log/Text").text = ex.log.Count > 0
+            var logText = T(panel, "Pad/Log/Text");
+            logText.raycastTarget = true;
+            string fights = FightLinks(ex);
+            logText.text = (fights.Length > 0 ? fights + "\n" : "") + (ex.log.Count > 0
                 ? string.Join("\n", ex.log)
-                : $"<color={Theme.Hex(Theme.TextDim)}>아직 첫 층에 도착하지 않았습니다.</color>";
+                : $"<color={Theme.Hex(Theme.TextDim)}>아직 첫 층에 도착하지 않았습니다.</color>");
+        }
+
+        /// <summary>층별 전투 다시 보기 링크 (누르면 모래 마당 중계 화면에서 그 층 싸움을 보여 준다)</summary>
+        static string FightLinks(Expedition ex)
+        {
+            if (ex.battles == null || ex.battles.Count == 0) return "";
+            string torch = Theme.Hex(Theme.Torch);
+            return "전투 보기:  " + string.Join("   ", ex.battles.Select((b, i) =>
+                $"<link=\"{DungeonLogic.FightLink(ex, i)}\"><color={torch}><u>{b.floor}층{(b.boss ? " 우두머리" : "")}</u></color></link>"));
         }
 
         /// <summary>전리품 이름을 등급 색으로 늘어놓는다 (웹판 .tag ItemName)</summary>
