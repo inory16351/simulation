@@ -72,8 +72,8 @@ namespace Colosseum.UI
                 if (FmRules.Enabled)
                 {
                     string stars = current ? Widgets.CaStars(s, g) : Widgets.RangeStars(caEnd - blur, caEnd + blur);
-                    // 시즌 동안 별 반 개(CA 10) 넘게 움직였을 때만 화살표
-                    string arrow = delta >= 10 ? $" <color={Theme.Hex(Theme.Good)}>▲</color>" : delta <= -10 ? $" <color={Theme.Hex(Warn)}>▼</color>" : "";
+                    // 조금이라도 성장·쇠퇴했으면 화살표 (별은 반 개씩만 움직이니 별만으로는 안 보인다)
+                    string arrow = delta >= 1 ? $" <color={Theme.Hex(Theme.Good)}>▲</color>" : delta <= -1 ? $" <color={Theme.Hex(Warn)}>▼</color>" : "";
                     T(row, "Ca").text = $"<size=85%><color={Theme.Hex(Theme.Torch)}>{stars}</color>{arrow}</size>";
                 }
                 T(row, "Season").text = h.season.ToString();

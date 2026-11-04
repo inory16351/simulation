@@ -177,6 +177,7 @@ namespace Colosseum.UI
             var g = S.gladiators[gid];
             var d = I.DemandNow(g);
             I.terms = existing?.counterTerms?.Clone() ?? new ContractTerms { wage = JsMath.Round(d.wage), seasons = Contracts.PreferredSeasons(g) };
+            I.liveCounter = null;
             I.Open("contract");
         }
 
@@ -189,6 +190,9 @@ namespace Colosseum.UI
             if (d != null) { OpenDecision(d.id); return true; }
             return false;
         }
+
+        /// <summary>이적 개인 계약에서 방금 받은 역제안 (그 자리에서 이어 가는 협상)</summary>
+        ContractTerms liveCounter;
 
         Demand DemandNow(Gladiator g) => kind switch
         {
@@ -327,7 +331,12 @@ namespace Colosseum.UI
             priceLabel.text = "제안할 이적료";
             Quick("몸값", value, "몸값 ×0.8", value * 0.8);
             Buttons("제안 보내기");
-            note.text = "루두스는 하루~사흘 따져 보고 서판으로 답합니다. 마지노선보다 낮으면 역제안이 오고, 너무 낮으면 협상이 깨집니다.";
+            note.text = "루두스는 하루~사흘 따져 보고 서판으로 답합니다. 부르는 값 이상이면 받아들여 개인 계약 협상으로 넘어갑니다. 마지노선보다 낮으면 역제안이 오고, 너무 낮으면 협상이 깨집니다.";
+            if (Transfers.MovedThisWindow(S, g))
+            {
+                note.text = $"<color=#d9a29b>{Transfers.MovedLine(g)}.</color>";
+                primary.interactable = false;
+            }
         }
 
         void DrawList(Gladiator g, double value)
@@ -376,10 +385,16 @@ namespace Colosseum.UI
                 if (r.hint != null) r.hint.text = HintFor(r.key, g);
             }
             mood.text = $"{g.name}의 반응: <b>{Contracts.Mood(v)}</b>";
+            if (kind == "terms")
+            {
+                // 그 자리에서 이어 가는 협상: 인내심이 바닥나면 끝난다
+                if (Widgets.HaggleLine(S, Transfers.DealKey(dealId)) is string patience) mood.text += $"\n{patience}";
+                note.text = $"제안하면 바로 답이 옵니다. 낮게 부를수록 인내심이 줄고, 바닥나면 협상이 끝나고, 그때 {Josa.J(g.name, "을/를")} 노리던 루두스가 있으면 그리로 떠납니다. 조건을 받아들이면 며칠 고민한 뒤 노리는 루두스들과 견줘 갈 곳을 고릅니다.";
+            }
             if (dec != null) note.text = dec.line;
             var pending = Negotiations.Pending(S, kind, kind == "terms" ? dealId : gladiatorId);
             if (pending != null) note.text = $"<color={Theme.Hex(Theme.Torch)}>{Negotiations.WaitLine(S, pending)}</color>";
-            Buttons("제안 보내기", dec?.counterTerms != null ? "상대 조건 그대로 제안" : null, dec != null ? "협상에서 물러서기" : null);
+            Buttons("제안 보내기", dec?.counterTerms != null || liveCounter != null ? "상대 조건 그대로 제안" : null, dec != null || (kind == "terms" && pending == null) ? "협상에서 물러서기" : null);
             primary.interactable = !d.refuse && pending == null;
         }
 
@@ -443,9 +458,18 @@ namespace Colosseum.UI
                 }
                 default:
                 {
+                    if (which == 2 && decisionId == null)
+                    {
+                        // 이적 개인 계약에서 물러서기: 합의를 없던 일로
+                        string gone = dealId;
+                        G.Mutate(s => { Transfers.CancelDeal(s, gone); Haggling.Forget(s, Transfers.DealKey(gone)); });
+                        overlay.SetActive(false);
+                        AfterAction();
+                        return;
+                    }
                     if (which == 2) { string did = decisionId; G.Mutate(s => Negotiations.Withdraw(s, did)); overlay.SetActive(false); AfterAction(); return; }
                     var dec = decisionId != null ? Negotiations.DecisionById(S, decisionId) : null;
-                    var t = (which == 1 && dec?.counterTerms != null ? dec.counterTerms : terms).Clone();
+                    var t = (which == 1 && dec?.counterTerms != null ? dec.counterTerms : which == 1 && liveCounter != null ? liveCounter : terms).Clone();
                     string gid = gladiatorId, did2 = dealId, k = kind;
                     G.Act((s, rng) => res = k switch
                     {
@@ -459,7 +483,12 @@ namespace Colosseum.UI
             }
             if (res != null)
             {
-                if (res.status == "sent") { overlay.SetActive(false); AfterAction(); return; }
+                if (res.status is "sent" or "walked") { overlay.SetActive(false); AfterAction(); return; }
+                if (res.status == "countered" && mode == "contract")
+                {
+                    // 그 자리에서 역제안: 판에는 우리가 낸 값을 두고, 상대 조건은 버튼으로 받을 수 있게
+                    liveCounter = res.terms;
+                }
                 Say(res.line, false);
                 return;
             }

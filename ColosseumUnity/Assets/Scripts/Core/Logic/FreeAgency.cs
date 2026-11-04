@@ -1,7 +1,7 @@
 // AI 루두스의 무소속 영입 (Unity판 전용, FM식): 급료일마다 AI가 스스로 판단한다 —
 // 인원이 기본(aiRoster)보다 적으면 채우고, 등록 자리(15)가 남고 금고에 여유(주급 반 시즌치)가 있으면 주전(능력 5위)보다 나은 무소속을 더 데려온다.
 // 어느 쪽이든 새 주급을 더해도 주급 예산(Economy.WageBudget) 안이어야 한다 — 감당 못 하면 포기.
-// 검투사가 올 마음이 있어야 하고(명성 격차), 우리가 협상 중인 무소속은 건드리지 않는다. 무소속 명단은 우리 몫으로 12명은 남긴다.
+// 검투사가 올 마음이 있어야 하고(명성 격차), 우리가 역제안에 답해야 하는 무소속만 건드리지 않는다 (제안을 보낸 정도면 겹쳐서 먼저 데려갈 수 있다). 무소속 명단은 우리 몫으로 12명은 남긴다.
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,11 +14,8 @@ namespace Colosseum.Core
 
         static double Roster => FmRules.AiRoster;
 
-        /// <summary>우리가 협상 중인 무소속 (답을 기다리는 제안, 역제안, 흥정)</summary>
-        static bool Busy(GameState s, string id) =>
-            (s.bids?.Any(b => b.gladiatorId == id) ?? false) ||
-            (s.decisions?.Any(d => d.gladiatorId == id) ?? false) ||
-            (s.haggles?.Keys.Any(k => k.EndsWith(":" + id)) ?? false);
+        /// <summary>우리가 답해야 하는 역제안이 걸린 무소속 (다음 날로 못 넘어가는 일이 사라지면 안 된다)</summary>
+        static bool Busy(GameState s, string id) => s.decisions?.Any(d => d.gladiatorId == id) ?? false;
 
         /// <summary>이 루두스가 데려올 만하고, 올 마음이 있고, 감당할 수 있는 무소속 중 가장 나은 검투사</summary>
         static Gladiator BestFor(GameState s, Ludus l, double rep, double minCa, double weeklyWages)
@@ -28,7 +25,7 @@ namespace Colosseum.Core
             foreach (var id in s.freeAgents)
             {
                 if (!s.gladiators.TryGetValue(id, out var g) || !g.alive || g.status == "slave" || Busy(s, id)) continue;
-                if (GladiatorRules.AgeStage(g) == "youth") continue;
+                if (GladiatorRules.AgeStage(g) == "youth" || Transfers.MovedThisWindow(s, g)) continue;
                 double ca = GladiatorRules.ComputeCA(g);
                 if (ca < minCa) continue;
                 var d = DemandOf(g, l, rep);
@@ -47,7 +44,7 @@ namespace Colosseum.Core
         {
             var d = DemandOf(g, l, rep);
             s.freeAgents.Remove(g.id);
-            s.rivals?.Remove(g.id);
+            s.suitors?.Remove(g.id);
             l.gladiators.Add(g.id);
             g.wage = d.wage;
             g.contract = new GladiatorContract { untilSeason = s.season + Contracts.PreferredSeasons(g) - 1, clauses = new List<string>() };

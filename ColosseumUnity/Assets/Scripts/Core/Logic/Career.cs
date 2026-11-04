@@ -64,6 +64,8 @@ namespace Colosseum.Core
             if (!FmRules.Enabled) return;
             rec.fee = fee;
             rec.via = via;
+            // 학당 입학은 이적이 아니다. 나머지(이적·무소속 계약)는 이 기간의 이적 한 번으로 친다
+            if (fee != null) g.transferWindow = Transfers.WindowKey(state);
         }
 
         public static void LogCareer(GameState state, Gladiator g, string text, string kind = "other")

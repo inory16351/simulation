@@ -343,6 +343,7 @@ namespace Colosseum.Core
             state.gladiators.TryGetValue(id, out var g);
             HaggleResult Err(string line) => new HaggleResult { status = "error", line = line };
             if (!state.freeAgents.Contains(id)) return Err("이미 다른 곳과 계약했습니다");
+            if (Transfers.MovedThisWindow(state, g)) return Err(Transfers.MovedLine(g));
             if (player.gladiators.Count >= RosterCapacity(player)) return Err("막사에 빈자리가 없습니다");
             var d = FreeAgentDemand(state, g);
             if (d.refuse) return Err($"{g.name}: {d.reason}");

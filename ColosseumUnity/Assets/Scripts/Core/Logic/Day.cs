@@ -60,6 +60,7 @@ namespace Colosseum.Core
             if (state.day >= Calendar.DaysPerSeason) EndSeason(state, rng);
             else state.day++;
             var at = Calendar.AbsDay(state.season, state.day);
+            Training.Today = at;
             var player = state.ludi[state.playerLudusId];
             // FM식: 모든 루두스에 유소년 학당이 있다 (옛 저장)
             if (FmRules.Enabled) foreach (var l in state.ludi.Values) if (l.facilities.academy == 0) l.facilities.academy = 1;

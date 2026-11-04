@@ -362,3 +362,12 @@
 - 수상: 상 이름 링크(`InfoCards.AwardKindLink`) → 수상자 카드 → '역대 수상자 보기'(`G.OpenHallAwards`) → 비석의 언덕 수상 탭의 그 대회. 대회 카드 끝에 최근 수상자.
 - 확인: `sh Tools/TestRunner/run.sh` 32개 통과(새 테스트 3개). 게임 화면은 못 봄 → 재빌드 뒤 창고, 던전 '전투 보기', 수상 링크를 눌러 볼 것.
 - (같은 날) MCP로 `Colosseum/Build Game Scene` 재빌드 완료. 씬에 `consignedScroll` 연결, 새 문구 확인, 플레이 모드 진입 시 콘솔 오류 없음. 저장 칸을 건드리지 않으려고 게임 안을 눌러 보지는 않았다 → 창고, 던전 '전투 보기', 수상 링크는 직접 눌러 볼 것.
+
+### 진행 (2026-11-04 저녁) FM식 이적 거래 (재빌드 불필요)
+- 이적료: 부르는 값(`AskingFor`) 이상이면 협상이 깨져 있어도(`MeetsAsking`) 받아 주고 개인 계약 협상으로. 우리 값이 마지노선 이상이면 경쟁자에게 안 뺏긴다. 낮은 값의 역제안·결렬은 그대로.
+- 개인 계약(이적): 협상 창에서 바로 답(`Transfers.NegotiateTerms`). 모자라면 역제안 + 인내심 감소(`liveCounter`, 결정할 일로 막지 않음), 바닥나면 `Negotiations.GoElsewhere`: 노리던 루두스(`s.suitors`)가 있으면 그중 끌리는 곳으로, 없으면 남고 7일 동안 협상 불가(`TalksKey`, 이적 횟수는 안 씀). 받아들이면 `PendingBid.agreed`로 2~4일 고민한 뒤 `ReplyTerms`가 노리는 루두스들과 견줘 갈 곳을 고른다. 합의 후 협상 거부 없음(`TransferDemand`가 비싸게 부름). 무소속·재계약·학당 서약은 예전처럼 답장식.
+- 한 기간 한 번: `Gladiator.transferWindow`, `Transfers.WindowKey`(시즌당 둘), `MovedThisWindow`. `Career.Joined`에서 기록(학당 입학 제외). 이적 제안·최소 이적료 조항·무소속 계약·AI 영입에서 모두 막는다.
+- 경쟁: 우리 제안으로 생기지 않는다(`MaybeRival` 삭제). `Negotiations.DailyAiMarket`: 이적 시장 동안 AI가 하루 2번 대상을 고르고(`AiPickTarget`: 주전보다 낫고 돈·주급 감당, 같은 나라) 3~7일 뒤 실제로 데려간다. 겹치면 `s.suitors`의 여러 루두스가 곧 경쟁자. 우리 합의 후 고민 중이면 AI는 기다렸다 `ReplyTerms`에서 견준다. AI 무소속 영입도 답 기다리는 대상을 건드릴 수 있다(역제안 걸린 대상만 제외). 옛 저장의 `rivals`는 읽히지 않고 버려진다.
+- 확인: `sh Tools/TestRunner/run.sh` 통과(새 테스트 3개). 게임 화면은 안 봄.
+- 성장 화살표: `Training.Bump`가 `Gladiator.attrTrend`에 움직인 날을 남기고(`Training.Today`, 28일 표시) 검투사 화면 능력치·숙련 칸에 ▲▼(`Widgets.TrendArrow`). 경력 표 능력 화살표는 시즌 변화 1 이상이면 표시. 정찰 범위로 보이는 남의 검투사는 표시 안 함.
+- 미확인: AI 이적이 시즌 단위 밸런스(금고·전력 쏠림)에 주는 영향은 재지 않았다. `AiPicksPerDay`(2)로 조절.

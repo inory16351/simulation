@@ -189,6 +189,185 @@ namespace Colosseum.Tests
             Assert.Less(Reputation.DemandFor(40, 100, 70).wage, Reputation.DemandFor(40, 100, 45).wage);
         }
 
+        /// <summary>이적 시장 첫날, 돈 넉넉한 상태에서 우리 나라 다른 루두스 검투사 하나</summary>
+        static (GameState s, Ludus me, Gladiator g, Ludus owner) TransferSetup(double seed)
+        {
+            var s = World.NewGame(seed, "aurelia", "시험", 2);
+            s.day = 2;
+            foreach (var l in s.ludi.Values) l.treasury = 5000000;
+            var me = s.ludi[s.playerLudusId];
+            var owner = s.ludi.Values.First(l => !l.isPlayer && l.nation == s.nation && l.tier == 2);
+            var g = owner.gladiators.Select(id => s.gladiators[id]).First(x => x.alive);
+            return (s, me, g, owner);
+        }
+
+        /// <summary>보낸 제안에 답이 올 때까지 날짜를 넘긴다. noRival이면 경쟁자를 치운다</summary>
+        static void AwaitReply(GameState s, Rng rng, bool noRival = true)
+        {
+            for (int i = 0; i < 5 && s.bids != null && s.bids.Count > 0; i++)
+            {
+                if (noRival) s.suitors = null;
+                s.day++;
+                Negotiations.Daily(s, rng);
+            }
+        }
+
+        [Test]
+        public void BidAtAskingPriceAlwaysReachesNegotiation()
+        {
+            var (s, me, g, owner) = TransferSetup(90);
+            var rng = new Rng(3);
+            // 낮게 불러 협상이 깨져 있어도
+            Haggling.Open(s, rng, Transfers.FeeKey(g.id), 1000, 0.04, 0.1);
+            Haggling.Get(s, Transfers.FeeKey(g.id)).lockedUntil = Calendar.AbsDay(s.season, s.day) + 7;
+            double asking = Transfers.AskingFor(s, g, owner);
+            Assert.AreEqual("locked", Transfers.HaggleFee(s, rng, g.id, asking * 0.5).status, "낮은 값은 듣지 않는다");
+            Assert.AreEqual("sent", Transfers.HaggleFee(s, rng, g.id, asking).status, "부른 값이면 다시 듣는다");
+            // 경쟁자가 더 높게 불러도 우리 값이 부른 값 이상이면 협상으로 간다
+            var other = s.ludi.Values.First(l => !l.isPlayer && l != owner && l.nation == s.nation);
+            Suitor(s, g, other, asking * 3, 50);
+            AwaitReply(s, rng, false);
+            Assert.AreEqual(owner, Career.LudusOf(s, g.id), "아직 안 옮겼다");
+            Assert.IsTrue(Transfers.TransferOf(s).deals.Any(d => d.gladiatorId == g.id), "이적료 합의가 생긴다");
+        }
+
+        /// <summary>AI 루두스가 이 검투사를 노리게 한다</summary>
+        static void Suitor(GameState s, Gladiator g, Ludus club, double fee, double wage)
+        {
+            s.suitors ??= new System.Collections.Generic.Dictionary<string, System.Collections.Generic.List<RivalBid>>();
+            if (!s.suitors.TryGetValue(g.id, out var l)) s.suitors[g.id] = l = new System.Collections.Generic.List<RivalBid>();
+            l.Add(new RivalBid { ludusId = club.id, fee = fee, wage = wage, until = Calendar.AbsDay(s.season, s.day) + 20 });
+        }
+
+        [Test]
+        public void AiClubsPickTargetsThemselvesAndCompeteOnlyWhenOverlapping()
+        {
+            var (s, me, g, owner) = TransferSetup(94);
+            var rng = new Rng(6);
+            Transfers.HaggleFee(s, rng, g.id, Transfers.AskingFor(s, g, owner));
+            Assert.IsNull(s.suitors, "우리가 제안한다고 경쟁이 붙지는 않는다");
+
+            // AI는 이적 시장 동안 스스로 대상을 골라 실제로 데려간다
+            var (s2, me2, _, _) = TransferSetup(95);
+            var rng2 = new Rng(7);
+            var homeOf = s2.gladiators.Values.ToDictionary(x => x.id, x => Career.LudusOf(s2, x.id)?.id);
+            bool picked = false;
+            for (int day = 1; day <= 14; day++)
+            {
+                s2.day = day;
+                Transfers.DailyTransfers(s2, rng2);
+                picked |= s2.suitors != null;
+            }
+            for (int day = 15; day <= 24; day++) { s2.day = day; Transfers.DailyTransfers(s2, rng2); }
+            Assert.IsTrue(picked, "AI가 영입 대상을 고른다");
+            var moved = s2.gladiators.Values.Where(x => x.alive && Career.LudusOf(s2, x.id) != null && homeOf.TryGetValue(x.id, out var h) && h != null && h != Career.LudusOf(s2, x.id).id).ToList();
+            Assert.Greater(moved.Count, 0, "AI끼리 실제로 이적한다");
+            Assert.IsTrue(moved.All(x => !Career.LudusOf(s2, x.id).isPlayer && homeOf[x.id] != me2.id), "우리 검투사는 받은 제안으로만 떠난다");
+            Assert.IsTrue(moved.All(x => x.history[x.history.Count - 1].fee > 0), "경력에 이적료가 남는다");
+            Assert.IsTrue(moved.All(x => s2.suitors == null || !s2.suitors.ContainsKey(x.id)));
+
+            // 겹치면: 우리가 협상 중이어도 AI가 먼저 데려갈 수 있다
+            var (s3, me3, g3, owner3, deal3, rng3) = AgreedFee(96);
+            var rival3 = s3.ludi.Values.First(l => !l.isPlayer && l != owner3 && l.nation == s3.nation);
+            Suitor(s3, g3, rival3, deal3.fee, 100);
+            s3.suitors[g3.id][0].until = Calendar.AbsDay(s3.season, s3.day);
+            Negotiations.DailyAiMarket(s3, rng3);
+            Assert.AreEqual(rival3, Career.LudusOf(s3, g3.id));
+            Assert.IsEmpty(Transfers.TransferOf(s3).deals.Where(d => d.gladiatorId == g3.id), "우리 합의는 사라진다");
+        }
+
+        /// <summary>이적료 합의까지 끝낸 상태</summary>
+        static (GameState s, Ludus me, Gladiator g, Ludus owner, Deal deal, Rng rng) AgreedFee(double seed)
+        {
+            var (s, me, g, owner) = TransferSetup(seed);
+            var rng = new Rng((uint)seed);
+            Transfers.HaggleFee(s, rng, g.id, Transfers.AskingFor(s, g, owner));
+            AwaitReply(s, rng);
+            return (s, me, g, owner, Transfers.TransferOf(s).deals.First(d => d.gladiatorId == g.id), rng);
+        }
+
+        [Test]
+        public void TermsNegotiateOnTheSpotUntilPatienceRunsOut()
+        {
+            var (s, me, g, owner, deal, rng) = AgreedFee(91);
+            double asking = deal.fee;
+            var first = Transfers.HaggleTransferTerms(s, rng, deal.id, new ContractTerms { wage = System.Math.Round(Transfers.TransferDemand(s, g).wage * 0.7), seasons = 2 });
+            Assert.AreEqual("countered", first.status, "그 자리에서 역제안이 온다");
+            Assert.IsNotNull(first.terms);
+            Assert.IsNull(s.bids, "답을 기다리지 않는다");
+            Assert.IsNull(s.decisions?.FirstOrDefault(d => d.gladiatorId == g.id), "결정할 일로 막지 않는다");
+            Assert.Less(Haggling.Get(s, Transfers.DealKey(deal.id)).patience, 100, "인내심이 준다");
+            HaggleResult last = first;
+            for (int i = 0; i < 20 && last.status == "countered"; i++) last = Transfers.HaggleTransferTerms(s, rng, deal.id, new ContractTerms { wage = 1, seasons = 1 });
+            Assert.AreEqual("walked", last.status, "인내심이 바닥나면 끝난다");
+            Assert.AreEqual(owner, Career.LudusOf(s, g.id), "영입 제안이 없으면 지금 팀에 남는다");
+            Assert.IsEmpty(Transfers.TransferOf(s).deals.Where(d => d.gladiatorId == g.id));
+            Assert.IsFalse(Transfers.MovedThisWindow(s, g), "옮기지 않았으니 이적 횟수는 그대로");
+            Assert.AreEqual("error", Transfers.HaggleFee(s, rng, g.id, asking * 2).status, "한동안 우리와 이야기하지 않는다");
+            s.day += Haggling.LockDays + 1;
+            Assert.AreEqual("sent", Transfers.HaggleFee(s, rng, g.id, Transfers.AskingFor(s, g, owner)).status, "기한이 지나면 다시 된다");
+
+            // 노리던 루두스가 여럿이면 그중 끌리는 곳으로 간다
+            var (s2, me2, g2, owner2, deal2, rng2) = AgreedFee(97);
+            var clubs = s2.ludi.Values.Where(l => !l.isPlayer && l != owner2 && l.nation == s2.nation).Take(2).ToList();
+            var w2 = Transfers.TransferBaseWage(s2, g2, clubs[1].tier);
+            Suitor(s2, g2, clubs[0], deal2.fee, 1);
+            Suitor(s2, g2, clubs[1], deal2.fee, w2 * 20);
+            last = new HaggleResult { status = "countered" };
+            for (int i = 0; i < 20 && last.status == "countered"; i++) last = Transfers.HaggleTransferTerms(s2, rng2, deal2.id, new ContractTerms { wage = 1, seasons = 1 });
+            Assert.AreEqual("walked", last.status);
+            Assert.AreEqual(clubs[1], Career.LudusOf(s2, g2.id), "조건이 좋은 쪽으로 간다");
+            Assert.AreEqual(deal2.fee, g2.history[g2.history.Count - 1].fee, "경력에 이적료가 남는다");
+            Assert.IsTrue(Transfers.MovedThisWindow(s2, g2));
+            Assert.AreEqual("error", Transfers.HaggleFee(s2, rng2, g2.id, 999999).status, "한 기간에 한 번만 옮긴다");
+            s2.day = 80;
+            Assert.IsFalse(Transfers.MovedThisWindow(s2, g2), "다음 이적 시장에는 다시 된다");
+        }
+
+        [Test]
+        public void AgreedTermsWaitThenGladiatorPicksClub()
+        {
+            // 경쟁자가 없으면 고민한 뒤 우리에게 온다
+            var (s, me, g, owner, deal, rng) = AgreedFee(92);
+            var d0 = Transfers.TransferDemand(s, g);
+            Assert.IsFalse(d0.refuse, "이적료가 합의되면 협상 자체는 거부하지 않는다");
+            var ok = new ContractTerms { wage = System.Math.Round(d0.wage * 1.3), seasons = Contracts.PreferredSeasons(g) };
+            Assert.AreEqual("sent", Transfers.HaggleTransferTerms(s, rng, deal.id, ok).status);
+            Assert.AreEqual(owner, Career.LudusOf(s, g.id), "받아들여도 바로 오지 않고 고민한다");
+            Assert.AreEqual(true, Negotiations.Pending(s, "terms", deal.id).agreed);
+            AwaitReply(s, rng);
+            Assert.AreEqual(me, Career.LudusOf(s, g.id));
+            Assert.IsTrue(Transfers.MovedThisWindow(s, g), "우리에게 와도 이번 기간에는 다시 못 판다");
+
+            // 더 좋은 조건의 루두스가 있으면 그쪽을 고른다
+            var (s2, me2, g2, owner2, deal2, rng2) = AgreedFee(93);
+            var d2 = Transfers.TransferDemand(s2, g2);
+            Assert.AreEqual("sent", Transfers.HaggleTransferTerms(s2, rng2, deal2.id, new ContractTerms { wage = System.Math.Round(d2.wage * 1.05), seasons = Contracts.PreferredSeasons(g2) }).status);
+            var other = s2.ludi.Values.First(l => !l.isPlayer && l != owner2 && l.nation == s2.nation);
+            var weak = s2.ludi.Values.First(l => !l.isPlayer && l != owner2 && l != other && l.nation == s2.nation);
+            Suitor(s2, g2, weak, deal2.fee, 1);
+            Suitor(s2, g2, other, deal2.fee, d2.wage * 50);
+            AwaitReply(s2, rng2, false);
+            Assert.AreEqual(other, Career.LudusOf(s2, g2.id), "원하는 루두스를 골라 간다");
+        }
+
+        [Test]
+        public void AttributeChangesShowTrendForFourWeeks()
+        {
+            var s = World.NewGame(98, "aurelia", "시험", 4);
+            var g = s.gladiators[s.ludi[s.playerLudusId].gladiators[0]];
+            g.attrs["str"] = 10;
+            g.attrs["agi"] = 10;
+            Training.Today = 100;
+            Training.Bump(g, "str", 1);
+            Training.Bump(g, "agi", -1);
+            Assert.AreEqual(1, Training.TrendOf(g, "str", 100), "오르면 ▲");
+            Assert.AreEqual(-1, Training.TrendOf(g, "agi", 110), "내리면 ▼");
+            Assert.AreEqual(0, Training.TrendOf(g, "end", 100), "안 움직였으면 없음");
+            Assert.AreEqual(0, Training.TrendOf(g, "str", 100 + Training.TrendDays + 1), "4주가 지나면 사라진다");
+            Assert.AreEqual(1, Training.TrendOf(SaveSystem.FromJson(SaveSystem.ToJson(s)).gladiators[g.id], "str", 100), "저장해도 남는다");
+        }
+
         [Test]
         public void BenchGrievanceNeedsSteadyAppearances()
         {

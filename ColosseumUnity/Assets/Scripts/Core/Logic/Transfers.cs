@@ -59,6 +59,14 @@ namespace Colosseum.Core
             return $"이적 시장 닫힘 · 다음 개장 {(at == 1 ? "다음 시즌 " : "")}{Calendar.DateLabel(at)} ({days}일 뒤)";
         }
 
+        /// <summary>이적 시장 번호: 시즌마다 둘. 기간이 끝난 뒤 온 답장도 그 기간으로 친다</summary>
+        public static int WindowKey(GameState s) => s.season * 10 + (s.day < 78 ? 1 : 2);
+
+        /// <summary>FM식: 모든 검투사는 이적 시장 한 번에 한 번만 옮길 수 있다</summary>
+        public static bool MovedThisWindow(GameState s, Gladiator g) => FmRules.Enabled && g.transferWindow == WindowKey(s);
+
+        public static string MovedLine(Gladiator g) => $"{Josa.J(g.name, "은/는")} 이번 이적 시장에서 더 옮길 수 없습니다. 이적은 기간마다 한 번뿐입니다";
+
         /// <summary>루두스가 부르는 값: 주전일수록, 육성형 루두스일수록 비싸다</summary>
         public static double AskingPrice(GameState s, Gladiator g, Ludus owner)
         {
@@ -121,6 +129,8 @@ namespace Colosseum.Core
 
         public static string FeeKey(string gladiatorId) => "fee:" + gladiatorId;
         public static string DealKey(string dealId) => "deal:" + dealId;
+        /// <summary>개인 계약이 깨져 검투사가 우리와 이야기하지 않는 기간</summary>
+        public static string TalksKey(string gladiatorId) => "talks:" + gladiatorId;
 
         /// <summary>이적료 제안을 보낸다. 답은 며칠 뒤 서판으로 오고, 받아들이면 이적료 합의(Deal)가 생긴다</summary>
         public static HaggleResult HaggleFee(GameState s, Rng rng, string gladiatorId, double fee)
@@ -128,8 +138,16 @@ namespace Colosseum.Core
             var err = CheckFee(s, gladiatorId, fee);
             if (err != null) return new HaggleResult { status = "error", line = err };
             string key = FeeKey(gladiatorId);
-            if (Haggling.IsLocked(s, key)) return new HaggleResult { status = "locked", line = Haggling.LockedLine(s, key) };
+            // 협상이 깨진 뒤라도 부른 값 이상을 내면 루두스는 다시 듣는다 (FM식)
+            if (Haggling.IsLocked(s, key) && !MeetsAsking(s, gladiatorId, fee)) return new HaggleResult { status = "locked", line = Haggling.LockedLine(s, key) };
             return Negotiations.Send(s, rng, "fee", gladiatorId, null, fee, 0);
+        }
+
+        /// <summary>FM식: 이 값이 루두스가 부르는 값 이상인가</summary>
+        static bool MeetsAsking(GameState s, string gladiatorId, double fee)
+        {
+            var owner = Career.LudusOf(s, gladiatorId);
+            return FmRules.Enabled && owner != null && !owner.isPlayer && fee >= AskingFor(s, s.gladiators[gladiatorId], owner);
         }
 
         /// <summary>이적료 제안을 낼 수 있는가. 되면 null</summary>
@@ -140,6 +158,8 @@ namespace Colosseum.Core
             if (owner == null || owner.isPlayer) return "소속 루두스가 없습니다";
             if (WarBlock(s, owner) is string war) return war;
             if (!InWindow(s)) return WindowLine(s);
+            if (MovedThisWindow(s, g)) return MovedLine(g);
+            if (Haggling.IsLocked(s, TalksKey(gladiatorId))) return $"{g.name}: {Haggling.LockedLine(s, TalksKey(gladiatorId))}";
             if (g.deployment != null) return g.deployment.kind == "dungeon" ? "던전 원정 중입니다" : "전장에 나가 있습니다";
             if (fee > s.ludi[s.playerLudusId].treasury) return "금고에 그만한 돈이 없습니다";
             if (TransferOf(s).deals.Any(d => d.gladiatorId == gladiatorId)) return "이미 이적료에 합의했습니다";
@@ -167,6 +187,14 @@ namespace Colosseum.Core
             if (WarBlock(s, owner) is string war) return Err(war + ". 제안은 무효가 됐습니다");
             if (fee > s.ludi[s.playerLudusId].treasury) return Err("금고에 그만한 돈이 없어 제안이 무효가 됐습니다");
             if (TransferOf(s).deals.Any(d => d.gladiatorId == gladiatorId)) return Err("이미 이적료에 합의했습니다");
+            if (MovedThisWindow(s, g)) return Err(MovedLine(g));
+            // 부른 값 이상이면 일단 받고 개인 계약 협상으로 넘어간다 (예전에 협상이 깨졌어도)
+            if (MeetsAsking(s, gladiatorId, fee))
+            {
+                Haggling.Forget(s, FeeKey(gladiatorId));
+                MakeDeal(s, g, owner, fee);
+                return new HaggleResult { status = "accepted", line = "부른 값 그대로다. 거래하자" };
+            }
             OpenFee(s, rng, g, owner);
             var res = Haggling.Offer(s, FeeKey(gladiatorId), fee);
             if (res.Accepted) MakeDeal(s, g, owner, fee);
@@ -188,7 +216,47 @@ namespace Colosseum.Core
             if (Haggling.IsLocked(s, key)) return new HaggleResult { status = "locked", line = Haggling.LockedLine(s, key) };
             var deal = TransferOf(s).deals.First(d => d.id == dealId);
             if (s.ludi[s.playerLudusId].treasury < deal.fee + t.signingFee) return new HaggleResult { status = "error", line = "이적료와 계약금을 함께 낼 돈이 없습니다" };
+            if (FmRules.Enabled) return NegotiateTerms(s, rng, deal, t);
             return Negotiations.Send(s, rng, "terms", deal.gladiatorId, dealId, wage, seasons, t);
+        }
+
+        /// <summary>FM식 개인 계약: 그 자리에서 답이 온다. 모자라면 역제안(인내심이 준다), 인내심이 바닥나면 협상이 끝난다 (노리던 루두스가 있으면 그리로, 없으면 지금 팀에 남는다).
+        /// 받아들이면 며칠 고민한 뒤 노리는 루두스들과 견줘 갈 곳을 고른다 (Negotiations.ReplyTerms)</summary>
+        static HaggleResult NegotiateTerms(GameState s, Rng rng, Deal deal, ContractTerms t)
+        {
+            var g = s.gladiators[deal.gladiatorId];
+            var from = s.ludi[deal.fromLudus];
+            string key = DealKey(deal.id);
+            var res = Contracts.Resolve(s, rng, key, g, t, TransferDemand(s, g), s.ludi[s.playerLudusId]);
+            if (res.status == "walked")
+            {
+                CancelDeal(s, deal.id);
+                Haggling.Forget(s, key);
+                Negotiations.GoElsewhere(s, g, from, deal.fee, res.line);
+                return res;
+            }
+            if (!res.Accepted) return res;
+            var sent = Negotiations.Send(s, rng, "terms", g.id, deal.id, t.wage, t.seasons, t);
+            if (sent.status != "sent") return sent;
+            var bid = Negotiations.Pending(s, "terms", deal.id);
+            bid.agreed = true;
+            bid.replyAt = Now(s) + rng.Int(2, 4);
+            // 고민하는 동안 합의가 사라지지 않게
+            deal.expiresAt = Math.Max(deal.expiresAt, bid.replyAt + 1);
+            sent.line = $"{Josa.J(g.name, "이/가")} 조건을 받아들였습니다. 며칠 고민한 뒤 갈 곳을 정합니다. {Negotiations.WhenLine(s, bid)} 서판으로 소식이 옵니다";
+            return sent;
+        }
+
+        /// <summary>검투사가 우리를 골랐을 때: 이적을 마무리한다. 그사이 형편이 바뀌었으면 이유를 돌려준다</summary>
+        internal static string ConcludeTerms(GameState s, string dealId, ContractTerms t)
+        {
+            var err = CheckTerms(s, dealId);
+            if (err != null) return err;
+            var deal = TransferOf(s).deals.First(d => d.id == dealId);
+            if (s.ludi[s.playerLudusId].treasury < deal.fee + t.signingFee) return "이적료와 계약금을 함께 낼 돈이 없습니다";
+            Haggling.Forget(s, DealKey(dealId));
+            FinishTransfer(s, deal, t);
+            return null;
         }
 
         static string CheckTerms(GameState s, string dealId)
@@ -198,6 +266,7 @@ namespace Colosseum.Core
             var me = s.ludi[s.playerLudusId];
             var g = s.gladiators[deal.gladiatorId];
             if (WarBlock(s, s.ludi[deal.fromLudus]) is string war) return war;
+            if (MovedThisWindow(s, g)) return MovedLine(g);
             if (me.gladiators.Count >= Economy.RosterCapacity(me)) return "막사에 빈자리가 없습니다";
             if (me.treasury < deal.fee) return "이적료를 낼 돈이 없습니다";
             var d = TransferDemand(s, g);
@@ -205,7 +274,7 @@ namespace Colosseum.Core
             return null;
         }
 
-        /// <summary>보낸 개인 계약 제안에 답이 올 때. 받아들이면 이적이 끝나고, 협상이 깨지면 합의도 무산된다</summary>
+        /// <summary>보낸 개인 계약 제안에 답이 올 때 (예전 방식·옛 저장). 받아들이면 이적이 끝나고, 협상이 깨지면 합의도 무산된다</summary>
         internal static HaggleResult ResolveTerms(GameState s, Rng rng, string dealId, ContractTerms terms)
         {
             double wage = terms.wage;
@@ -227,7 +296,7 @@ namespace Colosseum.Core
             {
                 t.deals = t.deals.Where(x => x != deal).ToList();
                 Haggling.Forget(s, key);
-                res.line += $" — {Josa.J(g.name, "이/가")} 협상을 깨서 이적이 무산됐습니다";
+                if (!FmRules.Enabled) res.line += $" — {Josa.J(g.name, "이/가")} 협상을 깨서 이적이 무산됐습니다";
             }
             if (res.Accepted) FinishTransfer(s, deal, terms);
             return res;
@@ -241,6 +310,15 @@ namespace Colosseum.Core
         /// <summary>개인 계약 조건: 지금 받는 주급보다 많이, 그리고 우리 명성에 맞춰</summary>
         public static Demand TransferDemand(GameState s, Gladiator g)
         {
+            // FM식: 이적료를 합의했으면 협상 자체를 거부하지는 않는다. 명성 격차가 크면 그만큼 비싸게 부른다
+            if (FmRules.Enabled)
+            {
+                double standing = Reputation.GladiatorStanding(g), rep = Reputation.LudusReputation(s, s.ludi[s.playerLudusId]);
+                double over = Math.Max(0, standing - rep - 35);
+                var d = Reputation.DemandFor(standing, TransferBaseWage(s, g) * (1 + over / 40), Math.Max(rep, standing - 35));
+                if (over > 0) d.reason = "\"이런 무명 루두스에 가려면 값을 톡톡히 치러야 해.\"";
+                return d;
+            }
             return Reputation.DemandFor(Reputation.GladiatorStanding(g), TransferBaseWage(s, g), Reputation.LudusReputation(s, s.ludi[s.playerLudusId]));
         }
 
@@ -297,7 +375,12 @@ namespace Colosseum.Core
             var t = TransferOf(s);
             double n = Now(s);
             t.deals = t.deals.Where(d => d.expiresAt >= n).ToList();
-            if (FmRules.Enabled) { DailyOffersFm(s, rng); return; }
+            if (FmRules.Enabled)
+            {
+                Negotiations.DailyAiMarket(s, rng);
+                DailyOffersFm(s, rng);
+                return;
+            }
             t.offers = t.offers.Where(o => o.expiresAt >= n).ToList();
             if (!InWindow(s) || !rng.Chance(0.08)) return;
             var me = s.ludi[s.playerLudusId];
@@ -394,7 +477,8 @@ namespace Colosseum.Core
             }
 
             if (!InWindow(s)) return;
-            var mine = me.gladiators.Select(id => Glad(s, id)).Where(g => g != null && g.alive && g.deployment == null).ToList();
+            // 이번 이적 시장에 이미 옮긴 검투사에게는 제안이 오지 않는다
+            var mine = me.gladiators.Select(id => Glad(s, id)).Where(g => g != null && g.alive && g.deployment == null && !MovedThisWindow(s, g)).ToList();
 
             // 2. 최소 이적료 조항: 몸값이 조항 값에 가까우면 누군가 그 값을 낸다. 막을 수 없다
             foreach (var g in mine.ToList())

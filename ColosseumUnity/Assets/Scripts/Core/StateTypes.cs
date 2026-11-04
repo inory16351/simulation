@@ -316,7 +316,8 @@ namespace Colosseum.Core
         /// <summary>Unity판 전용: 답을 기다리는 영입 제안 (Logic/Negotiations.cs)</summary>
         public List<PendingBid> bids;
         /// <summary>Unity판 전용: 같은 검투사를 노리는 경쟁 루두스 (키: 검투사 id)</summary>
-        public Dictionary<string, RivalBid> rivals;
+        /// <summary>Unity판: AI 루두스가 스스로 고른 영입 대상 (검투사 id → 노리는 루두스들). 우리 대상과 겹치면 그게 곧 경쟁이다</summary>
+        public Dictionary<string, List<RivalBid>> suitors;
         /// <summary>Unity판 전용: 이번 시즌 국내 컵 (키: 나라)</summary>
         public Dictionary<string, NatCup> natCups;
         /// <summary>Unity판 전용: 올림피카 컵 (4시즌마다)</summary>

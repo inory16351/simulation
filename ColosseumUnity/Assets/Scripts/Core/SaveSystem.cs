@@ -23,6 +23,7 @@ namespace Colosseum.Core
             if (s.gearMarket == null || s.gearMarket.Count == 0) GearLogic.RefreshGearMarket(s, new Rng(s.rngState), true);
             // 전투 감각이 생기기 전 저장
             foreach (var g in s.gladiators.Values) GladiatorRules.FillSenseAttrs(g);
+            Training.Today = Calendar.AbsDay(s.season, s.day);
             return s;
         }
 

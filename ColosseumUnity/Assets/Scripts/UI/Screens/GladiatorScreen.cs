@@ -135,7 +135,9 @@ namespace Colosseum.UI
                     int v = GladiatorRules.EffectiveAttr(g, row.name);
                     var r = Scouting.AttrRange(S, g, v, i + 3);
                     var tx = val.GetComponent<TMP_Text>();
-                    tx.text = r.lo == r.hi ? v.ToString() : $"{r.lo}~{r.hi}";
+                    // 정찰이 끝나 값이 보일 때만 오르내림도 보인다
+                    tx.textWrappingMode = TextWrappingModes.NoWrap;
+                    tx.text = r.lo == r.hi ? Widgets.TrendArrow(S, g, row.name) + v : $"{r.lo}~{r.hi}";
                     tx.color = AttrColor(r.mid);
                     tx.fontStyle = r.mid > 15 ? FontStyles.Bold : FontStyles.Normal;
                     i++;
@@ -148,7 +150,9 @@ namespace Colosseum.UI
                 int p = g.prof.TryGetValue(row.name, out var pv) ? pv : 0;
                 Widgets.SetBar((RectTransform)row.Find("Bar"), p, 20, Theme.BronzeHi);
                 var tx = val.GetComponent<TMP_Text>();
-                tx.text = p.ToString();
+                // 칸이 좁아 화살표가 붙어도 줄이 바뀌지 않게
+                tx.textWrappingMode = TextWrappingModes.NoWrap;
+                tx.text = Widgets.TrendArrow(S, g, "prof:" + row.name) + p;
                 tx.color = AttrColor(p);
             }
 

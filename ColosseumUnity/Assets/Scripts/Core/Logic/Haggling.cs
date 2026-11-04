@@ -87,6 +87,13 @@ namespace Colosseum.Core
             return r > 0.65 ? "아직 이야기할 만하다는 눈치입니다." : r > 0.35 ? "슬슬 짜증을 냅니다." : "곧 자리를 뜰 것 같습니다.";
         }
 
+        /// <summary>협상 없이 이 키를 며칠 잠근다</summary>
+        public static void Lock(GameState s, string key, int days)
+        {
+            s.haggles ??= new Dictionary<string, Haggle>();
+            s.haggles[key] = new Haggle { lockedUntil = Now(s) + days };
+        }
+
         /// <summary>이제 쓸모없는 흥정 기록을 지운다 (끝난 매물, 기한 지난 결렬)</summary>
         public static void Forget(GameState s, string key) => s.haggles?.Remove(key);
 

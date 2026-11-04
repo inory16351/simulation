@@ -141,6 +141,8 @@ namespace Colosseum.Core
         public Dictionary<string, string> portrait;
         public TrainingPlan training = new();
         public Dictionary<string, double> growth = new();
+        /// <summary>Unity판: 능력치가 최근에 움직인 날 (절대 일수, 내리면 음수). 화면의 ▲▼ 표시용</summary>
+        public Dictionary<string, double> attrTrend;
         public double? lastFightAt;
         public DiedAt diedAt;
         public GladiatorContract contract;
@@ -153,6 +155,8 @@ namespace Colosseum.Core
         /// <summary>불만 종류: raise(인상 요구 거절·무시 → 재계약하면 풀림) | transfer(이적이 막힘 → 이적 명단·이적·시간) | bench(출전 못 함 → 꾸준히 출전해야 풀림)</summary>
         public string grievanceKind, grievanceLudus;
         public double? grievanceAt;
+        /// <summary>Unity판: 마지막으로 소속을 옮긴(또는 이적이 끝난) 이적 시장 번호 (Transfers.WindowKey). 한 기간에 한 번만 옮긴다</summary>
+        public int? transferWindow;
         /// <summary>Unity판: 출전 불만 뒤로 이어 간 출전 수와 마지막 출전일</summary>
         public int? benchApps;
         public double? benchLastAt;

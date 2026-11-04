@@ -59,8 +59,32 @@ namespace Colosseum.Core
             return t;
         }
 
+        /// <summary>오늘 (절대 일수). 하루 진행과 불러오기에서 맞춘다. 0이면 아직 모르는 때라 기록하지 않는다</summary>
+        public static double Today;
+        /// <summary>능력치 변화를 화살표로 보여 주는 날 수</summary>
+        public const int TrendDays = 28;
+
+        /// <summary>이 능력치가 최근에 오르면 1, 내리면 -1, 아니면 0</summary>
+        public static int TrendOf(Gladiator g, string key, double now)
+        {
+            if (g.attrTrend == null || !g.attrTrend.TryGetValue(key, out var at)) return 0;
+            if (now - Math.Abs(at) > TrendDays) return 0;
+            return at > 0 ? 1 : -1;
+        }
+
+        static void NoteTrend(Gladiator g, string key, int delta)
+        {
+            if (!FmRules.Enabled || Today <= 0) return;
+            g.attrTrend ??= new Dictionary<string, double>();
+            // 오래된 표시는 함께 지워 저장을 가볍게
+            foreach (var old in new List<string>(g.attrTrend.Keys))
+                if (Today - Math.Abs(g.attrTrend[old]) > TrendDays) g.attrTrend.Remove(old);
+            g.attrTrend[key] = delta > 0 ? Today : -Today;
+        }
+
         public static void Bump(Gladiator g, string key, int delta)
         {
+            NoteTrend(g, key, delta);
             if (key.StartsWith("prof:", StringComparison.Ordinal))
             {
                 string p = key.Substring(5);

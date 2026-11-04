@@ -1,6 +1,7 @@
 // 웹판 components/common.tsx의 작은 조각들 (Stars, Bar)
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Colosseum.Core;
 using UnityEngine;
 using UnityEngine.UI;
@@ -94,6 +95,14 @@ namespace Colosseum.UI
             icon.color = new Color(0.45f, 0.38f, 0.3f, 0.22f);
         }
 
+        /// <summary>능력치 옆 성장 화살표: 최근 4주 안에 올랐으면 ▲, 내렸으면 ▼ (아니면 빈 글)</summary>
+        public static string TrendArrow(GameState s, Gladiator g, string key)
+        {
+            int t = Training.TrendOf(g, key, Calendar.AbsDay(s.season, s.day));
+            if (t == 0) return "";
+            return $"<size=70%><color={Theme.Hex(t > 0 ? Theme.Good : new Color32(0xe0, 0x8b, 0x80, 0xff))}>{(t > 0 ? "▲" : "▼")}</color></size> ";
+        }
+
         /// <summary>등급 딱지: 등급 색 글자</summary>
         public static string GradeTag(string id)
         {
@@ -129,8 +138,8 @@ namespace Colosseum.UI
             var h = HaggleLine(s, key);
             if (h != null) parts.Add(h);
             if (pending != null) parts.Add($"<color={Theme.Hex(Theme.Torch)}>{Negotiations.WaitLine(s, pending)}</color>");
-            var rival = Negotiations.RivalOf(s, gladiatorId);
-            if (rival != null && rival.known) parts.Add($"<color=#d9a29b>경쟁: {Tips.Ludus(s.ludi[rival.ludusId])}도 노리고 있습니다</color>");
+            var rivals = Negotiations.RivalsOf(s, gladiatorId).Where(r => r.known).ToList();
+            if (rivals.Count > 0) parts.Add($"<color=#d9a29b>경쟁: {string.Join(", ", rivals.Select(r => Tips.Ludus(s.ludi[r.ludusId])))}도 노리고 있습니다</color>");
             return parts.Count == 0 ? null : string.Join("\n", parts);
         }
 
