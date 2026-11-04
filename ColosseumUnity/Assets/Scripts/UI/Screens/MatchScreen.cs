@@ -86,6 +86,8 @@ namespace Colosseum.UI
         readonly List<GameObject> lines = new();
 
         string speed = "normal", returnScreen;
+        /// <summary>지금 재생 중인 경기의 속도. 고른 값(speed)과 따로 두어 '결과만'이 다음 경기로 번지지 않게 한다</summary>
+        string playSpeed = "normal";
         readonly Dictionary<string, List<string>> lineups = new();
 
         Live live;
@@ -112,7 +114,7 @@ namespace Colosseum.UI
             GameAudio.Music(false);
         }
 
-        float SpeedSec => Speeds.First(s => s.id == speed).sec;
+        float SpeedSec => Speeds.First(s => s.id == playSpeed).sec;
 
         void Awake()
         {
@@ -276,6 +278,9 @@ namespace Colosseum.UI
 
         void PlayOfficial(string challengeId)
         {
+            // '결과만'은 이번 경기에만 (여러 판이면 그 판들까지). 다음 경기는 보통 속도로 돌아온다
+            playSpeed = speed;
+            if (speed == "instant") speed = "normal";
             var draft = SaveSystem.FromJson(SaveSystem.ToJson(S));
             var rng = new Rng(draft.rngState);
             var c = draft.challenges.First(x => x.id == challengeId);
@@ -403,7 +408,8 @@ namespace Colosseum.UI
             if (screen.live?.commit != null || screen.seriesLives?.LastOrDefault()?.commit != null) { G.Go("match"); return; }
             var lives = DungeonLives(ex, ex.battles[idx]);
             if (lives.Count == 0) return;
-            screen.RunSeries(lives, null, screen.speed, G.Screen);
+            // 보려고 누른 전투이니 건너뛰지 않는다
+            screen.RunSeries(lives, null, screen.speed == "instant" ? "normal" : screen.speed, G.Screen);
         }
 
         static List<Live> DungeonLives(Expedition ex, FloorBattle fb)
@@ -641,7 +647,7 @@ namespace Colosseum.UI
         /// <summary>다른 화면(판테온 컵)에서 미리 계산한 여러 판 경기를 이 화면에서 중계하고, 끝나면 돌아간다</summary>
         public void RunSeries(List<Live> lives, GameState commit, string speedId, string returnTo)
         {
-            speed = speedId;
+            playSpeed = speedId;
             returnScreen = returnTo;
             seriesLives = lives;
             seriesLives[seriesLives.Count - 1].commit = commit;

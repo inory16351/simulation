@@ -72,6 +72,8 @@ namespace Colosseum.UI
             picker.Reset();
             if (r.series.melee == null && r.series.bouts.Count == 0) { G.Replace(draft); return; }
             match.RunSeries(MatchScreen.SeriesLives(r.series, tie.home == S.playerLudusId, "missio", $"{NatCupLogic.Name(S.nation)} {NatCupLogic.StageNames[tie.stage]}"), draft, speed, "natcup");
+            // '결과만'은 이번 경기에만. 다음 경기는 기본 속도로 돌아온다
+            if (speed == "instant") speed = "fast";
         }
 
         void AskForfeit()

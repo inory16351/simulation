@@ -68,6 +68,8 @@ namespace Colosseum.UI
             if (r.series.melee == null) { G.Replace(draft); return; }
             string opp = tie.home == S.nation ? tie.away : tie.home;
             match.RunSeries(MatchScreen.SeriesLives(r.series, tie.home == S.nation, "missio", $"{OlympicaLogic.Name} · {Data.Nation(opp).@short}전"), draft, speed, "olympica");
+            // '결과만'은 이번 경기에만. 다음 경기는 기본 속도로 돌아온다
+            if (speed == "instant") speed = "fast";
         }
 
         void AddPicked()

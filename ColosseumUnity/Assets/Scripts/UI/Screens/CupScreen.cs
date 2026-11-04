@@ -77,6 +77,8 @@ namespace Colosseum.UI
             bool homeIsMe = tie.home == S.playerLudusId;
             if (r.series.melee == null && r.series.bouts.Count == 0) { G.Replace(draft); return; }
             match.RunSeries(MatchScreen.SeriesLives(r.series, homeIsMe, r.rule, $"판테온 컵 {CupLogic.StageNames[tie.stage]}{(r.rule == "sudden" ? " · 사투 (전쟁 중)" : "")}"), draft, speed, "cup");
+            // '결과만'은 이번 경기에만. 다음 경기는 기본 속도로 돌아온다
+            if (speed == "instant") speed = "fast";
         }
 
         public override void Refresh()
