@@ -25,6 +25,7 @@ class Program
         if (mode == "chal") ChallengeDebug();
         if (mode == "wages") Wages();
         if (mode == "aifin") AiFinance(args.Length > 1 ? int.Parse(args[1]) : 2);
+        if (mode == "world") WorldStats(args.Length > 1 ? int.Parse(args[1]) : 1, args.Length > 2 ? int.Parse(args[2]) : 2);
         return 0;
     }
 
@@ -256,6 +257,59 @@ class Program
             var l0 = s.ludi.Values.First(l => !l.isPlayer && l.tier == t);
             Console.WriteLine($"  {t}부 실제 수입 {earned[t] / 60 / weeks:0}/주 (예상 {Economy.ExpectedWeeklyIncome(s, l0):0})");
         }
+    }
+
+    /// <summary>세계 측정 (FM 세계 확장 기준값): 나라·부별 주전(상위 5)·벤치 CA, 팀 간 편차, 주급 합, 금고, 하루 처리 시간, 저장 크기</summary>
+    static void WorldStats(int seasons, int startTier)
+    {
+        var sw = Stopwatch.StartNew();
+        var s = World.NewGame(3001, "aurelia", "시험 루두스", startTier);
+        Console.WriteLine($"새 게임 {sw.ElapsedMilliseconds} ms · 루두스 {s.ludi.Count} · 검투사 {s.gladiators.Count} · 무소속 {s.freeAgents.Count} · 저장 {SaveSystem.ToJson(s).Length / 1024} KB");
+        var rng = new Rng(55);
+        void Report(string when)
+        {
+            Console.WriteLine($"── {when} (시즌 {s.season} {s.day}일) · 검투사 {s.gladiators.Values.Count(g => g.alive)} 생존 · 저장 {SaveSystem.ToJson(s).Length / 1024} KB");
+            foreach (var n in Data.Nations.Select(x => x.id))
+            {
+                var line = new List<string>();
+                for (int tier = 1; tier <= FmRules.MaxTier; tier++)
+                {
+                    var ls = s.ludi.Values.Where(l => l.nation == n && l.tier == tier).ToList();
+                    if (ls.Count == 0) continue;
+                    var tops = new List<double>(); var benches = new List<double>();
+                    foreach (var l in ls)
+                    {
+                        var cas = l.gladiators.Select(id => s.gladiators[id]).Where(g => g.alive).Select(g => (double)GladiatorRules.ComputeCA(g)).OrderByDescending(x => x).ToList();
+                        tops.Add(cas.Take(5).DefaultIfEmpty(0).Average());
+                        benches.Add(cas.Skip(5).DefaultIfEmpty(0).Average());
+                    }
+                    line.Add($"{tier}부 {ls.Count}팀 주전 {tops.Average(),5:0.0}({tops.Min():0}~{tops.Max():0}) 벤치 {benches.Average(),4:0}");
+                }
+                Console.WriteLine($"  {n,-9} {string.Join(" | ", line)}");
+            }
+            for (int tier = 1; tier <= FmRules.MaxTier; tier++)
+            {
+                var ls = s.ludi.Values.Where(l => l.tier == tier && !l.isPlayer).ToList();
+                var tr = ls.Select(l => l.treasury).OrderBy(x => x).ToList();
+                Console.WriteLine($"  {tier}부 전체: 인원 {ls.Average(l => l.gladiators.Count(id => s.gladiators[id].alive)):0.0} · 주급 합 평균 {ls.Average(l => Economy.WeeklyWages(s, l)):0}/주 · 금고 중앙값 {tr[tr.Count / 2]:N0} · 적자 {tr.Count(x => x < 0)}곳 · 기대 수입 {ls.Average(l => Economy.ExpectedWeeklyIncome(s, l)):0}/주");
+            }
+            var me = s.ludi[s.playerLudusId];
+            Console.WriteLine($"  우리 {me.tier}부: 금고 {me.treasury:N0} · 주급 {Economy.WeeklyWages(s, me):0}/주 · 인원 {me.gladiators.Count}");
+        }
+        Report("시작");
+        int start = s.season, days = 0;
+        var dayWatch = new Stopwatch();
+        double worst = 0;
+        while (s.season < start + seasons && s.gameOver == null)
+        {
+            dayWatch.Restart();
+            Autoplay(s, rng);
+            worst = Math.Max(worst, dayWatch.Elapsed.TotalMilliseconds);
+            days++;
+            if (s.day == 1) Report("시즌 끝");
+            else if (s.day == 106) Report("정규 리그 끝");
+        }
+        Console.WriteLine($"하루 평균 {sw.Elapsed.TotalMilliseconds / Math.Max(1, days):0.0} ms (최대 {worst:0} ms, {days}일)");
     }
 
     /// <summary>부별 명성·격·주급, 무소속이 우리(그 부)에게 바라는 주급</summary>
