@@ -25,6 +25,27 @@ class Program
         if (mode == "chal") ChallengeDebug();
         if (mode == "wages") Wages();
         if (mode == "aifin") AiFinance(args.Length > 1 ? int.Parse(args[1]) : 2);
+        if (mode == "days")
+        {
+            var s = World.NewGame(4004, "aurelia", "시험 루두스", 2);
+            var arng = new Rng(66); for (int i = 0; i < int.Parse(args[1]); i++) { var w = Stopwatch.StartNew(); Autoplay(s, arng); Console.WriteLine($"{s.day}일 {w.ElapsedMilliseconds} ms"); }
+        }
+        if (mode == "illegal")
+        {
+            var s = World.NewGame(4004, "aurelia", "시험 루두스", 2);
+            var by = new Dictionary<string, int>();
+            foreach (var g in s.gladiators.Values)
+                foreach (var sl in Equipment.Slots)
+                {
+                    var it = g.equipment.Get(sl);
+                    if (string.IsNullOrEmpty(it) || it == "cestus" || it == "loincloth") continue;
+                    var why = GearLogic.CannotEquip(g, sl, it);
+                    if (why != null) { string k = $"{sl} {it} {g.style} ({why})"; by[k] = (by.TryGetValue(k, out var v) ? v : 0) + 1; }
+                }
+            foreach (var (k, v) in by.OrderByDescending(x => x.Value).Take(12)) Console.WriteLine($"{v,5} {k}");
+        }
+        if (mode == "prof") Prof(args.Length > 1 ? int.Parse(args[1]) : 20, args.Length > 2 ? int.Parse(args[2]) : 15);
+        if (mode == "ai") AiOps(args.Length > 1 ? int.Parse(args[1]) : 3);
         if (mode == "world") WorldStats(args.Length > 1 ? int.Parse(args[1]) : 1, args.Length > 2 ? int.Parse(args[2]) : 2);
         return 0;
     }
@@ -256,6 +277,73 @@ class Program
         {
             var l0 = s.ludi.Values.First(l => !l.isPlayer && l.tier == t);
             Console.WriteLine($"  {t}부 실제 수입 {earned[t] / 60 / weeks:0}/주 (예상 {Economy.ExpectedWeeklyIncome(s, l0):0})");
+        }
+    }
+
+    /// <summary>하루 처리 시간 나눠 재기: startDay까지 진행한 뒤 days일 동안 하루 전체와 주요 단계를 따로 잰다</summary>
+    static void Prof(int days, int startDay)
+    {
+        var s = World.NewGame(4004, "aurelia", "시험 루두스", 2);
+        var rng = new Rng(66);
+        var arng = new Rng(66);
+        while (Calendar.AbsDay(s.season, s.day) < startDay) Autoplay(s, arng);
+        var t = new Dictionary<string, double>();
+        void M(string k, Action a) { var w = Stopwatch.StartNew(); a(); t[k] = (t.TryGetValue(k, out var v) ? v : 0) + w.Elapsed.TotalMilliseconds; }
+        for (int i = 0; i < days; i++)
+        {
+            M("AiBrain.Daily", () => AiBrain.Daily(s, new Rng(1)));
+            M("DailyConsignments", () => GearLogic.DailyConsignments(s, new Rng(1)));
+            M("Registration.Daily", () => Registration.Daily(s));
+            M("Negotiations.Daily", () => Negotiations.Daily(s, new Rng(1)));
+            M("Grievances.Daily", () => Grievances.Daily(s, new Rng(1)));
+            M("Transfers.DailyTransfers", () => Transfers.DailyTransfers(s, new Rng(1)));
+            M("Events", () => Events.RollDailyEvents(s, new Rng(1)));
+            M("DailyChallenges", () => ChallengeLogic.DailyChallenges(s, new Rng(1)));
+            M("PlayAiScheduled", () => ChallengeLogic.PlayAiScheduled(s, new Rng(1)));
+            M("Scouting", () => Scouting.DailyScouting(s));
+            M("Dungeons", () => DungeonLogic.DailyDungeons(s, new Rng(1)));
+            M("FreeAgency.Weekly", () => FreeAgency.Weekly(s, new Rng(1)));
+            M("Payday(전체 루두스)", () => { foreach (var l in s.ludi.Values.ToList()) Economy.Payday(s, l); });
+            M("SkillBook.WeeklyLearn", () => SkillBook.WeeklyLearn(s, new Rng(1)));
+            M("Autoplay(하루 전체)", () => Autoplay(s, arng));
+        }
+        foreach (var (k, v) in t.OrderByDescending(x => x.Value)) Console.WriteLine($"{k,-28} {v / days,8:0.0} ms/일");
+    }
+
+    /// <summary>FM 세계 단계 7: AI 운영 판단 측정 (몇 곳이 던전·장비·식솔·시설을 했나, 금고 음수 비율, 불법 장비, 하루 처리 시간)</summary>
+    static void AiOps(int seasons)
+    {
+        var s = World.NewGame(4004, "aurelia", "시험 루두스", 2);
+        var rng = new Rng(66);
+        AiBrain.Did.Clear();
+        int start = s.season, days = 0;
+        var sw = Stopwatch.StartNew();
+        int ai = s.ludi.Values.Count(l => !l.isPlayer);
+        while (s.season < start + seasons && s.gameOver == null)
+        {
+            Autoplay(s, rng);
+            days++;
+            if (s.day == 1)
+            {
+                var neg = s.ludi.Values.Where(l => !l.isPlayer).Count(l => l.treasury < 0);
+                int illegal = 0;
+                foreach (var l in s.ludi.Values)
+                    foreach (var id in l.gladiators)
+                    {
+                        var g = s.gladiators[id];
+                        if (!g.alive) continue;
+                        foreach (var sl in Equipment.Slots)
+                        {
+                            var it = g.equipment.Get(sl);
+                            if (string.IsNullOrEmpty(it) || it == "cestus" || it == "loincloth") continue;
+                            if (sl == "off" && g.style == "dimachaerus" && it == Data.Style(g.style).loadout.off) continue; // 쌍검 기본 장비는 스타일 규칙
+                            if (GearLogic.CannotEquip(g, sl, it) != null) illegal++;
+                        }
+                    }
+                string Pct(string k) => AiBrain.Did.TryGetValue(k, out var set) ? $"{set.Count * 100.0 / ai:0}%" : "0%";
+                var med = s.ludi.Values.Where(l => !l.isPlayer).GroupBy(l => l.tier).OrderBy(g => g.Key).Select(g => { var t = g.Select(l => l.treasury).OrderBy(x => x).ToList(); return $"{g.Key}부 {t[t.Count / 2]:N0}"; });
+                Console.WriteLine($"시즌 {s.season - 1} 끝: 던전 {Pct("dungeon")} · 장비 교체 {Pct("gear")} · 식솔 고용 {Pct("staff")} · 시설 {Pct("facility")} · 매물 내놓음 {Pct("sell")} · 구매 {Pct("buy")} · 방출 {Pct("release")} | 금고 음수 {neg}/{ai} · 불법 장비 {illegal} · 금고 중앙값 {string.Join(" ", med)} · 식솔 평균 {s.ludi.Values.Where(l => !l.isPlayer).Average(l => l.staff.Count):0.0}명 · 하루 {sw.Elapsed.TotalMilliseconds / days:0} ms");
+            }
         }
     }
 

@@ -36,6 +36,7 @@ namespace Colosseum.UI
         void Awake()
         {
             rows = new TemplateList<RectTransform>(rowTemplate);
+            GrowRolePads();
             Fill(roleFilter, new[] { "전부" }.Concat(StaffLogic.Roles.Select(r => StaffLogic.RoleNames[r])), 0);
             Fill(ratingFilter, RatingSteps.Select(v => v == 0 ? "제한 없음" : v.ToString()), 0);
             roleFilter.onValueChanged.AddListener(_ => Refresh());
@@ -48,13 +49,81 @@ namespace Colosseum.UI
         public override void Refresh()
         {
             var me = Player;
-            sub.text = $"자리마다 한 명씩 둡니다. 식솔 급료도 급료일에 함께 나가며, 지금은 매주 {StateUtil.Num(StaffLogic.StaffWages(S, me))} D가 나갑니다. 후보는 이적 시장이 열릴 때마다 바뀝니다.";
+            sub.text = (FmRules.Enabled ? "역할마다 여러 명을 둘 수 있습니다 (부·시설에 따라 늘어남). 같은 역할은 가장 잘하는 사람 효과에 둘째는 절반, 셋째는 4분의 1이 더해집니다. " : "자리마다 한 명씩 둡니다. ") + $"식솔 급료도 급료일에 함께 나가며, 지금은 매주 {StateUtil.Num(StaffLogic.StaffWages(S, me))} D가 나갑니다. 후보는 이적 시장이 열릴 때마다 바뀝니다.";
             for (int i = 0; i < rolePads.Count && i < StaffLogic.Roles.Length; i++)
-                BindRole(rolePads[i], StaffLogic.StaffOf(S, me, StaffLogic.Roles[i]));
+                BindRolePeople(rolePads[i], StaffLogic.Roles[i], StaffLogic.StaffsOf(S, me, StaffLogic.Roles[i]));
             DrawMarket();
         }
 
         // ── 자리 ──
+
+        /// <summary>FM 세계: 역할이 여덟이라 씬의 자리 패널(넷, 두 줄)을 줄째 복제해 늘린다 (씬 다시 조립 없이)</summary>
+        void GrowRolePads()
+        {
+            if (rolePads.Count == 0) return;
+            var line = rolePads[rolePads.Count - 1].parent.parent;
+            while (rolePads.Count < StaffLogic.Roles.Length)
+            {
+                var copy = Instantiate(line.gameObject, line.parent);
+                copy.name = "Line" + rolePads.Count / 2;
+                foreach (Transform frame in copy.transform)
+                {
+                    var pad = (RectTransform)frame.Find("Pad");
+                    if (pad != null) rolePads.Add(pad);
+                }
+            }
+            // 제목·설명을 역할 순서대로
+            for (int i = 0; i < rolePads.Count; i++)
+            {
+                bool on = i < StaffLogic.Roles.Length;
+                rolePads[i].parent.gameObject.SetActive(on);
+                if (!on) continue;
+                string role = StaffLogic.Roles[i];
+                rolePads[i].parent.name = "Role_" + role;
+                var desc = rolePads[i].Find("Desc")?.GetComponent<TMP_Text>();
+                if (desc != null) desc.text = StaffLogic.RoleDesc[role];
+            }
+        }
+
+        /// <summary>역할 한 칸: 그 역할 식솔 전원 (카드를 사람 수만큼 복제), 제목에 인원/상한</summary>
+        void BindRolePeople(RectTransform pad, string role, List<Staff> people)
+        {
+            var title = pad.parent.Find("Head/Text")?.GetComponent<TMP_Text>();
+            int cap = StaffLogic.RoleCap(Player, role);
+            if (title != null) title.text = $"◆  {StaffLogic.RoleNames[role]}" + (FmRules.Enabled ? $"  <size=80%><color={Theme.Hex(Theme.TextDim)}>{people.Count}/{cap}명</color></size>" : "");
+            var first = pad.Find("Card");
+            var cards = new List<Transform> { first };
+            foreach (Transform c in pad) if (c != first && c.name.StartsWith("Card")) cards.Add(c);
+            while (cards.Count < people.Count)
+            {
+                var c = Instantiate(first.gameObject, pad).transform;
+                c.name = "Card" + cards.Count;
+                c.SetSiblingIndex(first.GetSiblingIndex() + cards.Count);
+                cards.Add(c);
+            }
+            for (int i = 0; i < cards.Count; i++)
+            {
+                if (i == 0) BindRole(pad, people.Count > 0 ? people[0] : null);
+                else
+                {
+                    cards[i].gameObject.SetActive(i < people.Count);
+                    if (i < people.Count) BindCard(cards[i], people[i]);
+                }
+            }
+            // 줄 높이: 사람이 많은 칸에 맞춘다
+            var line = pad.parent.parent;
+            int most = 1;
+            foreach (Transform frame in line)
+            {
+                var p = frame.Find("Pad");
+                if (p == null || !frame.gameObject.activeSelf) continue;
+                int n = 0;
+                foreach (Transform c in p) if (c.name.StartsWith("Card") && c.gameObject.activeSelf) n++;
+                most = Mathf.Max(most, n);
+            }
+            var le = line.GetComponent<LayoutElement>();
+            if (le != null) le.minHeight = le.preferredHeight = 116 + (most - 1) * 58;
+        }
 
         void BindRole(RectTransform pad, Staff st)
         {
@@ -62,6 +131,11 @@ namespace Colosseum.UI
             card.gameObject.SetActive(st != null);
             pad.Find("Empty").gameObject.SetActive(st == null);
             if (st == null) return;
+            BindCard(card, st);
+        }
+
+        void BindCard(Transform card, Staff st)
+        {
             card.GetComponentInChildren<PortraitView>(true).Show(Face(st));
             T(card, "Info/Name").text = Tips.Person(st);
             Widgets.SetBar((RectTransform)card.Find("Info/Rating/Bar"), st.rating, 20, Theme.Torch);
@@ -118,7 +192,8 @@ namespace Colosseum.UI
             T(row, "Rating/Value").text = StateUtil.Num(c.rating);
 
             string id = c.id, name = c.name;
-            bool taken = StaffLogic.StaffOf(S, Player, c.role) != null;
+            string full = StaffLogic.RoleFull(S, Player, c.role);
+            bool taken = full != null;
             string key = "staff:" + id;
             bool locked = Haggling.IsLocked(S, key);
             var nego = row.Find("Nego");
@@ -130,7 +205,7 @@ namespace Colosseum.UI
             var mood = T(row, "Mood");
             string line = Widgets.HaggleLine(S, key);
             mood.text = d.refuse ? $"<color={Theme.Hex(Theme.TextFaint)}>루두스 명성이 오르면 협상에 응합니다</color>"
-                : taken ? $"<color={Theme.Hex(Theme.TextDim)}>이미 사람이 있는 자리입니다. 지금 있는 식솔을 먼저 내보내야 합니다</color>"
+                : taken ? $"<color={Theme.Hex(Theme.TextDim)}>{full}</color>"
                 : line ?? $"<color={Theme.Hex(Theme.TextDim)}>{d.reason}</color>";
             if (d.refuse) return;
 

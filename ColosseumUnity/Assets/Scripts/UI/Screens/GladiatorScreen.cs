@@ -132,6 +132,7 @@ namespace Colosseum.UI
                 {
                     var val = row.Find("Value");
                     if (val == null) continue;
+                    SetLinkLabel(row, Tips.Attr(row.name));
                     int v = GladiatorRules.EffectiveAttr(g, row.name);
                     var r = Scouting.AttrRange(S, g, v, i + 3);
                     var tx = val.GetComponent<TMP_Text>();
@@ -147,6 +148,7 @@ namespace Colosseum.UI
             {
                 var val = row.Find("Value");
                 if (val == null) continue;
+                SetLinkLabel(row, Tips.Prof(row.name));
                 int p = g.prof.TryGetValue(row.name, out var pv) ? pv : 0;
                 Widgets.SetBar((RectTransform)row.Find("Bar"), p, 20, Theme.BronzeHi);
                 var tx = val.GetComponent<TMP_Text>();
@@ -181,6 +183,15 @@ namespace Colosseum.UI
         }
 
         /// <summary>웹판 attrClass: a1~a4</summary>
+        /// <summary>줄 이름 칸을 툴팁 링크로 (씬은 그대로, 글만 바꾸고 마우스를 받게 한다)</summary>
+        static void SetLinkLabel(Transform row, string text)
+        {
+            var label = row.Find("Label")?.GetComponent<TMP_Text>();
+            if (label == null) return;
+            label.text = text;
+            label.raycastTarget = true;
+        }
+
         static Color AttrColor(double v) => v <= 5 ? new Color32(0x6b, 0x62, 0x55, 0xff) : v <= 10 ? Theme.Parchment : v <= 15 ? Theme.BronzeHi : Theme.Torch;
 
         /// <summary>웹판 RangeStars: 정찰 범위 별점</summary>

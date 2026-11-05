@@ -33,7 +33,7 @@ namespace Colosseum.Core
             new FacilityDef { id = "medical", name = "의무실", desc = "의원과 약초, 붕대", effect = l => $"부상 회복 +{N((l - 1) * 20)}% · 사투 사망 -{N(l * 2)}%p" },
             new FacilityDef { id = "bath", name = "목욕탕", desc = "뜨거운 물과 마사지", effect = l => $"피로 회복 +{N(l * 2)}/일 · 혹사 회복 +{StateUtil.Fixed(l * 0.3, 1)}/일" },
             new FacilityDef { id = "arena", name = "홈 경기장", desc = "우리 루두스의 작은 투기장", effect = l => $"홈 관중 수입 ×{StateUtil.Fixed(ArenaTicketMult(l), 2)}" },
-            new FacilityDef { id = "academy", name = "유소년 학당", desc = "고아와 가난한 집 아이를 검투사로 키우는 학당", effect = l => l != 0 ? $"매 시즌 입학 {N(l + 1)}명 · 잠재력 상한 ★{StateUtil.Fixed(AcademyPaCap(l) / 40.0, 1)} · 정원 {N(l * 3 + 3)}명" : "없음" },
+            new FacilityDef { id = "academy", name = "유소년 학당", desc = "고아와 가난한 집 아이를 검투사로 키우는 학당", effect = l => l != 0 ? (FmRules.Enabled ? $"모래 시험 후보 {N(l * 2 + 1)}명 · 높은 잠재력 유소년이 나올 확률 {StateUtil.Fixed(Youth.PaOdds(l).p160 * 100, 1)}% (특급 {StateUtil.Fixed(Youth.PaOdds(l).p180 * 100, 1)}%) · 정원 {N(l * 3 + 3)}명" : $"매 시즌 입학 {N(l + 1)}명 · 잠재력 상한 ★{StateUtil.Fixed(AcademyPaCap(l) / 40.0, 1)} · 정원 {N(l * 3 + 3)}명") : "없음" },
             new FacilityDef { id = "guard", name = "경비 초소", desc = "탈주와 반란을 막는 경비대", effect = l => $"탈주 -{N(l * 10)}% · 반란 -{N(l * 3)}%p" },
         };
 

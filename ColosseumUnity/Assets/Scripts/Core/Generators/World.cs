@@ -19,15 +19,41 @@ namespace Colosseum.Core
         /// <summary>FM식: AI 루두스 시작 금고 범위 (부마다 최소·최대)</summary>
         static readonly int[,] AiTreasury = { { 10000, 26000 }, { 4500, 13000 }, { 2500, 7500 }, { 1500, 4500 } };
 
+        /// <summary>FM식: 루두스마다 자기 나라 문장을 하나씩 겹치지 않게 (모자라면 겹쳐도). 본 난수와 따로 뽑아 세계 생성 순서를 흔들지 않는다</summary>
+        static void AssignCrests(GameState state, double seed, string playerCrest)
+        {
+            var rng = new Rng(seed + 7919);
+            var taken = new HashSet<string>();
+            var player = state.ludi[state.playerLudusId];
+            if (!string.IsNullOrEmpty(playerCrest)) { player.crest = playerCrest; taken.Add(playerCrest); }
+            foreach (var l in state.ludi.Values)
+            {
+                if (l.crest != null) continue;
+                if (!Data.Crests.TryGetValue(l.nation, out var pool) || pool.Count == 0) continue;
+                var free = pool.Where(c => !taken.Contains(c)).ToList();
+                l.crest = rng.Pick(free.Count > 0 ? free : pool);
+                taken.Add(l.crest);
+            }
+        }
+
+        /// <summary>FM식 부 대역에서 한 검투사의 목표 능력치: 주전(상위 5)·벤치 대역 안에서 팀 전력만큼, 사람마다 ±8 CA</summary>
+        static double TierTarget(Rng rng, int tier, bool starter, double quality, double nationCa)
+        {
+            var (lo, hi) = starter ? FmRules.StarterCa(tier) : FmRules.BenchCa(tier);
+            double ca = lo + (hi - lo) * (0.3 + 0.45 * quality) + nationCa + rng.Range(-8, 8);
+            return FmRules.TargetForCa(ca);
+        }
+
         static readonly string[] Personalities = { "aggressive", "stable", "grudge", "merchant", "developer" };
 
         /// <param name="startTier">시작 리그 (FM식 규칙에서만, 1~4. 아래 부일수록 어렵다)</param>
-        public static GameState NewGame(double seed, string nation = "aurelia", string ludusName = "모래의 집", int startTier = 2)
+        /// <param name="crest">우리 루두스 문장 (새 게임 화면에서 고른 것). 없으면 나라 문장 중 하나를 뽑는다</param>
+        public static GameState NewGame(double seed, string nation = "aurelia", string ludusName = "모래의 집", int startTier = 2, string crest = null)
         {
             var rng = new Rng(seed);
             var state = new GameState
             {
-                version = 9,
+                version = SaveSystem.Current,
                 seed = seed,
                 rngState = 0,
                 season = 1,
@@ -61,16 +87,17 @@ namespace Colosseum.Core
             var usedGladiatorNames = new HashSet<string>();
             var L = Data.Balance["league"];
             var E = Bal.Economy;
-            int teamsPerTier = (int)L["teamsPerTier"];
+            int teamsPerTier = FmRules.TeamsPerTier;
             double rpTier1 = (double)L["rpTier1"], rpTier2 = (double)L["rpTier2"];
-            int aiRoster = FmRules.AiRoster, startRoster = FmRules.Enabled ? 8 : (int)E["startRoster"];
+            int aiRoster = FmRules.AiRoster(2), startRoster = FmRules.Enabled ? 8 : (int)E["startRoster"];
             double startTreasury = (double)E["startTreasury"];
             bool fm = FmRules.Enabled;
             if (!fm) startTier = 2;
             startTier = Math.Max(1, Math.Min(FmRules.MaxTier, startTier));
             if (fm) startTreasury = StartTreasury(startTier);
 
-            Ludus AddLudus(int tier, bool isPlayer, string name, double rp, int rosterSize, double target, string ludusNation = null)
+            // quality: FM식 부 대역 안의 팀 전력 (1 = 가장 강함, 0 = 가장 약함). nationCa: 나라 계수에 따른 CA 가감
+            Ludus AddLudus(int tier, bool isPlayer, string name, double rp, int rosterSize, double target, string ludusNation = null, double quality = -1, double nationCa = 0)
             {
                 ludusNation ??= nation;
                 var ludus = new Ludus();
@@ -94,7 +121,7 @@ namespace Colosseum.Core
                     var opt = new GenOptions();
                     opt.id = NewId("G");
                     opt.nation = ludusNation;
-                    opt.target = target + rng.Range(-1.5, 1.5);
+                    opt.target = quality >= 0 ? TierTarget(rng, tier, i < 5, quality, nationCa) : target + rng.Range(-1.5, 1.5);
                     opt.usedNames = usedGladiatorNames;
                     // 웹판: 플레이어 시작 로스터는 노예 위주. FM식은 신분 구분 없이 모두 계약 검투사
                     opt.status = isPlayer && !fm ? (rng.Chance(0.85) ? "slave" : "free") : null;
@@ -174,23 +201,25 @@ namespace Colosseum.Core
                 player = null;
                 foreach (var n in new[] { nation }.Concat(Data.Nations.Select(x => x.id).Where(x => x != nation)))
                 {
-                    double strength = n == nation ? 0 : (InitialCoefficient[n] - 8) * 0.12;
+                    // 나라 계수가 높은 나라일수록 조금 더 강하다 (능력치 0.12 = CA 약 1.3, 계수 1점마다)
+                    double nationCa = n == nation ? 0 : (InitialCoefficient[n] - 8) * 1.3;
                     for (int tier = 1; tier <= FmRules.MaxTier; tier++)
                     {
                         bool mine = n == nation && tier == startTier;
                         int count = teamsPerTier - (mine ? 1 : 0);
-                        double top = FmRules.RosterTarget(tier) + 0.65 + strength;
                         for (int i = 0; i < count; i++)
                         {
                             string name = LudusNameGen(n);
                             double rp = FmRules.RpBase(tier) + rng.Normal(0, tier == 1 ? 60 : 50);
-                            AddLudus(tier, false, name, rp, aiRoster, top - i * 0.15, n);
+                            AddLudus(tier, false, name, rp, FmRules.AiRoster(tier), 0, n, 1 - i / (double)Math.Max(1, count - 1), nationCa);
                         }
-                        if (mine) player = AddLudus(tier, true, ludusName, FmRules.RpBase(tier) - 60, startRoster, FmRules.RosterTarget(tier) - 1.0);
+                        // 우리 루두스: 그 부의 중하위 전력으로 시작한다
+                        if (mine) player = AddLudus(tier, true, ludusName, FmRules.RpBase(tier) - 60, startRoster, 0, null, 0.3);
                     }
                 }
                 state.playerLudusId = player.id;
             }
+            if (fm) AssignCrests(state, seed, crest);
             state.coefficients = new Dictionary<string, List<double>>();
             foreach (var n in Data.Nations)
             {
@@ -210,7 +239,7 @@ namespace Colosseum.Core
                     $"라니스타, {ludusName}의 문이 열렸습니다.\n\n" +
                     $"금고엔 {StateUtil.Locale(startTreasury)} 데나리, 막사엔 검투사 {startRoster}명이 있습니다. " +
                     "다들 급료 날만 기다립니다. 돈줄이 끊기면 저 칼끝이 누구를 향할지 잊어서는 안 됩니다.\n\n" +
-                    "이번 시즌 목표: 2부 리그 2위 안에 들어 승격.\n\n" +
+                    (fm ? "" : "이번 시즌 목표: 2부 리그 2위 안에 들어 승격.\n\n") +
                     $"{nationDef.name}의 {nationDef.league} 특징:\n{string.Join("\n", nationDef.ruleText.Select(t => $"· {t}"))}",
                 read = false,
             });
@@ -228,7 +257,7 @@ namespace Colosseum.Core
             if (fm)
             {
                 // 시작부터 무소속인 검투사: 나라마다 4명 (1~4부 수준 하나씩)
-                var used = new HashSet<string>(state.gladiators.Values.Select(g => g.name));
+                var used = StateUtil.UsedNames(state);
                 foreach (var n in Data.Nations)
                     for (int tier = 1; tier <= 4; tier++)
                         Economy.AddFreeAgent(state, rng, n.id, FmRules.RosterTarget(tier) + rng.Range(-1, 1), used);
@@ -255,6 +284,8 @@ namespace Colosseum.Core
                 }
             }
 
+            // FM 세계: 시즌 목표와 스폰서 (본 난수와 따로)
+            if (fm) Patrons.SeasonStart(state, new Rng(seed + 104729));
             state.rngState = rng.State;
             return state;
         }

@@ -19,6 +19,29 @@ namespace Colosseum.Core
             return s;
         }
 
+        static GameState namesOwner;
+        static HashSet<string> namesCache;
+
+        /// <summary>검투사 이름 집합 (새 이름이 겹치지 않게). FM식은 세계 공용 집합을 두고 생성기가 이름을 더해 간다 — 480팀에서 부를 때마다 새로 만들면 O(n²).
+        /// 다른 상태(복사본 검증·불러오기)면 다시 만든다. 웹판 규칙은 지금 있는 검투사 이름만으로 새로 만든다 (지운 검투사 이름이 남으면 난수 순서가 달라진다)</summary>
+        public static HashSet<string> UsedNames(GameState state)
+        {
+            if (!FmRules.Enabled) return Names(state);
+            if (namesOwner != state || namesCache == null)
+            {
+                namesOwner = state;
+                namesCache = Names(state);
+            }
+            return namesCache;
+        }
+
+        static HashSet<string> Names(GameState state)
+        {
+            var set = new HashSet<string>();
+            foreach (var g in state.gladiators.Values) set.Add(g.name);
+            return set;
+        }
+
         public static void PushMessage(GameState state, string kind, string title, string body)
         {
             state.inbox.Insert(0, new InboxMessage

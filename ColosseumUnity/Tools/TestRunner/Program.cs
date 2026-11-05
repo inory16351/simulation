@@ -23,11 +23,14 @@ class Program
         var asm = Assembly.LoadFrom(Path.Combine(bin, "Colosseum.Tests.dll"));
         int pass = 0, fail = 0;
         bool Has(MemberInfo m, string attr) => m.GetCustomAttributes(true).Any(a => a.GetType().Name == attr);
-        foreach (var t in asm.GetTypes().Where(t => t.GetMethods().Any(m => Has(m, "TestAttribute"))))
+        // TEST_FILTER=이름 일부 이면 그 테스트만 (480팀 세계라 전체는 15분쯤 걸린다)
+        string filter = Environment.GetEnvironmentVariable("TEST_FILTER");
+        bool Pick(Type t, MethodInfo m) => string.IsNullOrEmpty(filter) || $"{t.Name}.{m.Name}".Contains(filter);
+        foreach (var t in asm.GetTypes().Where(t => t.GetMethods().Any(m => Has(m, "TestAttribute") && Pick(t, m))))
         {
             var inst = Activator.CreateInstance(t);
             foreach (var m in t.GetMethods().Where(m => Has(m, "OneTimeSetUpAttribute"))) m.Invoke(inst, null);
-            foreach (var m in t.GetMethods().Where(m => Has(m, "TestAttribute")))
+            foreach (var m in t.GetMethods().Where(m => Has(m, "TestAttribute") && Pick(t, m)))
             {
                 try { m.Invoke(inst, null); pass++; Console.WriteLine($"PASS {t.Name}.{m.Name}"); }
                 catch (TargetInvocationException ex) { fail++; Console.WriteLine($"FAIL {t.Name}.{m.Name}: {ex.InnerException?.Message?.Split('\n').Take(6).Aggregate((a, b) => a + "\n   " + b)}"); }

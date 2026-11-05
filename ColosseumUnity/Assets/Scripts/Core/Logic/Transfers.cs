@@ -82,7 +82,8 @@ namespace Colosseum.Core
                 "grudge" => 1.15,
                 _ => double.NaN, // TS: 표에 없으면 undefined → NaN
             };
-            double v = Economy.MarketValue(g, s) * (key ? 1.5 : 1) * persona * Modifiers.ModifierMult(s, "market") * NationRules.RulesOfNation(owner.nation).marketMult;
+            // FM 세계: 주전 ×1.3 · 벤치 ×0.8 · 재정 위기 ×0.75 (SelfValue.AskingMult)
+            double v = Economy.MarketValue(g, s) * (FmRules.Enabled ? SelfValue.AskingMult(s, g, owner) : key ? 1.5 : 1) * persona * Modifiers.ModifierMult(s, "market") * NationRules.RulesOfNation(owner.nation).marketMult;
             return JsMath.Round(v / 50) * 50;
         }
 
@@ -163,6 +164,9 @@ namespace Colosseum.Core
             if (g.deployment != null) return g.deployment.kind == "dungeon" ? "던전 원정 중입니다" : "전장에 나가 있습니다";
             if (fee > s.ludi[s.playerLudusId].treasury) return "금고에 그만한 돈이 없습니다";
             if (TransferOf(s).deals.Any(d => d.gladiatorId == gladiatorId)) return "이미 이적료에 합의했습니다";
+            // FM 세계: 이적료 협상 전에 우리 리그로 올 마음이 있는지 (리그 수준 차가 크면 드물게만, 이번 기간 고정)
+            var me = s.ludi[s.playerLudusId];
+            if (!SelfValue.Interested(s, g, me, fee / Math.Max(1, AskingFor(s, g, owner)))) return SelfValue.RefusalLine(g, me);
             return null;
         }
 
@@ -317,7 +321,7 @@ namespace Colosseum.Core
                 double over = Math.Max(0, standing - rep - 35);
                 var d = Reputation.DemandFor(standing, TransferBaseWage(s, g) * (1 + over / 40), Math.Max(rep, standing - 35));
                 if (over > 0) d.reason = "\"이런 무명 루두스에 가려면 값을 톡톡히 치러야 해.\"";
-                return d;
+                return SelfValue.Apply(s, g, s.ludi[s.playerLudusId], d);
             }
             return Reputation.DemandFor(Reputation.GladiatorStanding(g), TransferBaseWage(s, g), Reputation.LudusReputation(s, s.ludi[s.playerLudusId]));
         }

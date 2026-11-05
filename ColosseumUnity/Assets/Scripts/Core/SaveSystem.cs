@@ -9,6 +9,10 @@ namespace Colosseum.Core
     public static class SaveSystem
     {
         public const int Version = 9;
+        /// <summary>FM 세계(부당 20팀, 2026-11-05) 저장 판. 옛 저장은 불러오지 않는다 (변환 코드 없음, 새 게임 필수)</summary>
+        public const int FmVersion = 10;
+        /// <summary>지금 규칙의 저장 판 (웹판 비교 테스트는 9)</summary>
+        public static int Current => FmRules.Enabled ? FmVersion : Version;
         public const string FileName = "colosseum-league.save.v9.json";
 
         static readonly JsonSerializerSettings Settings = new() { NullValueHandling = NullValueHandling.Ignore };
@@ -18,7 +22,7 @@ namespace Colosseum.Core
         public static GameState FromJson(string json)
         {
             var s = JsonConvert.DeserializeObject<GameState>(json, Settings);
-            if (s == null || s.version != Version) return null;
+            if (s == null || s.version != Current) return null;
             // 장비 시장이 생기기 전 저장: 매물을 처음 깐다
             if (s.gearMarket == null || s.gearMarket.Count == 0) GearLogic.RefreshGearMarket(s, new Rng(s.rngState), true);
             // 전투 감각이 생기기 전 저장
@@ -53,6 +57,26 @@ namespace Colosseum.Core
             catch (Exception)
             {
                 return null;
+            }
+        }
+
+        /// <summary>파일은 있는데 판이 달라 못 읽는 옛 저장인가 (로비에 '호환되지 않음'으로 보여 준다)</summary>
+        public static bool IsIncompatible(string dir)
+        {
+            try
+            {
+                string path = Path.Combine(dir, FileName);
+                if (!File.Exists(path)) return false;
+                // 판 번호만 읽는다 (옛 저장은 모양이 달라 통째로 읽다가 깨질 수 있다)
+                using var reader = new JsonTextReader(new StreamReader(path));
+                while (reader.Read())
+                    if (reader.TokenType == JsonToken.PropertyName && (string)reader.Value == "version" && reader.Depth == 1)
+                        return reader.ReadAsInt32() != Current;
+                return true;
+            }
+            catch (Exception)
+            {
+                return true;
             }
         }
 

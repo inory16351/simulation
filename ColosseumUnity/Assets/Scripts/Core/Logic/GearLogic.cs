@@ -69,7 +69,22 @@ namespace Colosseum.Core
             }.Where(s => !string.IsNullOrEmpty(s)));
         }
 
-        public static List<string> ArmoryOf(GameState s) => s.armory ??= new List<string>();
+        /// <summary>우리 창고. FM 세계는 우리 루두스의 창고 (옛 전역 창고가 남아 있으면 옮긴다)</summary>
+        public static List<string> ArmoryOf(GameState s)
+        {
+            if (!FmRules.Enabled || string.IsNullOrEmpty(s.playerLudusId) || !s.ludi.TryGetValue(s.playerLudusId, out var me)) return s.armory ??= new List<string>();
+            return ArmoryOf(s, me);
+        }
+
+        /// <summary>그 루두스의 창고 (FM 세계). 웹판 규칙이면 우리 루두스만 전역 창고를 쓴다</summary>
+        public static List<string> ArmoryOf(GameState s, Ludus l)
+        {
+            if (l == null) return new List<string>();
+            if (!FmRules.Enabled) return l.isPlayer ? (s.armory ??= new List<string>()) : (l.armory ??= new List<string>());
+            l.armory ??= new List<string>();
+            if (l.isPlayer && s.armory != null && s.armory.Count > 0) { l.armory.AddRange(s.armory); s.armory = null; }
+            return l.armory;
+        }
 
         static string GetSlot(Equipment e, string slot) => slot switch
         {
@@ -125,7 +140,9 @@ namespace Colosseum.Core
             s.gladiators.TryGetValue(gId, out var g);
             if (g == null || !g.alive) return "검투사가 없습니다";
             if (g.deployment != null) return "파견 중이라 장비를 바꿀 수 없습니다";
-            var armory = ArmoryOf(s);
+            // FM 세계: 그 검투사가 속한 루두스의 창고에서 (AI 루두스도 같은 함수)
+            var owner = FmRules.Enabled ? Career.LudusOf(s, gId) : null;
+            var armory = owner != null ? ArmoryOf(s, owner) : ArmoryOf(s);
             if (item != null)
             {
                 string why = CannotEquip(g, slot, item);
@@ -151,6 +168,8 @@ namespace Colosseum.Core
         /// <summary>창고 장비 팔기: 기준가의 35%</summary>
         public static string SellItem(GameState s, string item)
         {
+            // FM 세계: 시스템이 즉시 사 주지 않는다. 다른 루두스가 실제로 사야 팔린다 (위탁)
+            if (FmRules.Enabled) return "장비는 다른 루두스가 사야 팔립니다. 위탁으로 내놓으세요";
             var armory = ArmoryOf(s);
             int at = armory.IndexOf(item);
             if (at < 0) return "창고에 없습니다";
@@ -171,6 +190,7 @@ namespace Colosseum.Core
             Economy.AddMoney(s, me, -l.price, $"{ItemName(l.item)} 구입 ({l.seller})");
             ArmoryOf(s).Add(l.item);
             s.gearMarket = market.Where(x => x != l).ToList();
+            PaySeller(s, l, l.price, null);
             return null;
         }
 
@@ -213,8 +233,32 @@ namespace Colosseum.Core
             foreach (var t in tradeIns) armory.RemoveAt(armory.IndexOf(t));
             armory.Add(l.item);
             s.gearMarket = market.Where(x => x != l).ToList();
+            PaySeller(s, l, cash, tradeIns);
             if (tradeIns.Count > 0) res.line += $" ({Josa.J(string.Join(", ", tradeIns.Select(ItemName)), "을/를")} 넘겼습니다)";
             return res;
+        }
+
+        /// <summary>FM 세계: AI 루두스가 내놓은 매물이 팔리면 돈과 맞교환 장비는 그 루두스로 (상인 매물이면 아무것도 안 한다)</summary>
+        public static void PaySeller(GameState s, GearListing l, double cash, List<string> tradeIns)
+        {
+            if (l.sellerLudus == null || !s.ludi.TryGetValue(l.sellerLudus, out var seller)) return;
+            if (cash > 0) Economy.AddMoney(s, seller, cash, $"{ItemName(l.item)} 판매");
+            if (tradeIns != null) ArmoryOf(s, seller).AddRange(tradeIns);
+        }
+
+        /// <summary>FM 세계: AI 루두스가 쓰지 않는 장비를 장비 시장에 내놓는다 (유저·다른 AI가 산다)</summary>
+        public static void ListForSale(GameState s, Ludus l, string item, double price)
+        {
+            GearMarketOf(s).Add(new GearListing { id = $"G{s.nextId++}", item = item, nation = l.nation, price = price, seller = l.name, sellerLudus = l.id });
+        }
+
+        /// <summary>FM 세계: AI 루두스가 장비 시장 매물을 산다 (상인·다른 AI 매물). 돈은 판 쪽으로</summary>
+        public static void AiBuyListing(GameState s, Ludus buyer, GearListing l)
+        {
+            GearMarketOf(s).Remove(l);
+            Economy.AddMoney(s, buyer, -l.price, $"{ItemName(l.item)} 구매");
+            PaySeller(s, l, l.price, null);
+            BuyAndEquip(s, buyer, l.item);
         }
 
         public static List<Consignment> ConsignmentsOf(GameState s) => s.consignments ??= new List<Consignment>();
@@ -241,8 +285,129 @@ namespace Colosseum.Core
             var c = list.Find(x => x.id == id);
             if (c == null) return;
             list.Remove(c);
-            ArmoryOf(s).Add(c.item);
+            (c.seller != null && s.ludi.TryGetValue(c.seller, out var l) ? ArmoryOf(s, l) : ArmoryOf(s)).Add(c.item);
         }
+
+        // ── FM 세계 단계 6: 실거래 시장. 위탁품은 다른 루두스가 실제로 사야 팔린다 ──
+
+        /// <summary>장비가 들어갈 칸</summary>
+        public static string SlotFor(string item)
+        {
+            var w = Data.Weapon(item);
+            if (w != null) return w.offhandOnly ? "off" : "main";
+            var a = Data.Armor(item);
+            return a?.slot switch { "shield" => "off", "armor" => "armor", "helmet" => "helmet", "arms" => "arms", "legs" => "legs", _ => null };
+        }
+
+        /// <summary>그 루두스 주전(상위 5) 중 이 장비로 가장 크게 나아지는 사람과 나아지는 정도 (0~1, 지금 장비 대비 값 차이)</summary>
+        /// <summary>주전 (상위 5, 출전 가능한 사람). 장비 판단을 여러 번 할 때는 한 번만 구해 넘긴다</summary>
+        public static List<Gladiator> StartersOf(GameState s, Ludus l) =>
+            l.gladiators.Select(id => s.gladiators.TryGetValue(id, out var x) ? x : null).Where(x => x != null && x.alive && x.deployment == null)
+                .OrderByDescending(GladiatorRules.ComputeCA).Take(5).ToList();
+
+        public static (Gladiator who, double gain) BestUse(GameState s, Ludus l, string item, List<Gladiator> starters = null)
+        {
+            string slot = SlotFor(item);
+            if (slot == null) return (null, 0);
+            double p = ItemPrice(item);
+            Gladiator best = null;
+            double bestGain = 0;
+            starters ??= StartersOf(s, l);
+            foreach (var g in starters)
+            {
+                if (CannotEquip(g, slot, item) != null) continue;
+                string cur = GetSlot(g.equipment, slot);
+                double now = string.IsNullOrEmpty(cur) ? 0 : ItemPrice(cur);
+                double gain = Math.Min(1, (p - now) / Math.Max(1, p));
+                if (gain > bestGain) { bestGain = gain; best = g; }
+            }
+            return (best, bestGain);
+        }
+
+        /// <summary>이 루두스가 이 장비에 낼 마음이 있는 값 (0 = 안 산다): 정가 × 향상도 × 금고 여유 × 성격. 금고에 주급 6주치는 남긴다</summary>
+        public static double GearDemand(GameState s, Ludus l, string item, double bonus = 0, List<Gladiator> starters = null, double? weeklyWages = null)
+        {
+            if (l == null || l.isPlayer) return 0;
+            var (who, gain) = BestUse(s, l, item, starters);
+            if (who == null || gain < 0.15) return 0;
+            double wages = weeklyWages ?? Economy.WeeklyWages(s, l);
+            double wealth = Math.Max(0.5, Math.Min(1.2, l.treasury / Math.Max(100, wages * 12)));
+            double persona = l.aiPersonality switch { "merchant" => 0.85, "aggressive" => 1.15, _ => 1.0 };
+            double pay = ItemPrice(item) * (0.55 + 0.6 * gain) * wealth * persona * (1 + bonus);
+            if (l.treasury - pay < wages * 6) return 0;
+            return JsMath.Round(pay);
+        }
+
+        /// <summary>산 루두스가 바로 주전에게 입힌다 (벗은 장비는 그 창고로)</summary>
+        static void BuyAndEquip(GameState s, Ludus buyer, string item)
+        {
+            ArmoryOf(s, buyer).Add(item);
+            var (who, _) = BestUse(s, buyer, item);
+            if (who != null) EquipItem(s, who.id, SlotFor(item), item);
+        }
+
+        /// <summary>그 루두스가 위탁품을 산다: 돈은 판 쪽으로(중개인이면 수수료를 떼고), 물건은 산 쪽 창고·주전에게</summary>
+        static void Sell(GameState s, Consignment c, Ludus buyer)
+        {
+            s.consignments.Remove(c);
+            Economy.AddMoney(s, buyer, -c.price, $"{ItemName(c.item)} 구매");
+            BuyAndEquip(s, buyer, c.item);
+            var seller = c.seller != null && s.ludi.TryGetValue(c.seller, out var sl) ? sl : s.ludi[s.playerLudusId];
+            double fee = c.viaAgent ? JsMath.Round(c.price * AgentCommission) : 0;
+            Economy.AddMoney(s, seller, c.price - fee, $"{ItemName(c.item)} 판매{(c.viaAgent ? " (중개인)" : "")}");
+            if (seller.isPlayer)
+                StateUtil.PushMessage(s, "info", $"장비가 팔렸습니다: {ItemName(c.item)}",
+                    $"{buyer.name}({Data.Nation(buyer.nation).@short} {buyer.tier}부)이 {c.price:N0} D에 샀습니다.{(fee > 0 ? $" 중개인 수수료 {fee:N0} D를 뗐습니다." : "")}");
+        }
+
+        /// <summary>이 위탁품을 지금 값에 살 마음이 있는 루두스 수 (중개인 힌트). 중개인은 능력이 높으면 다른 나라까지 안다</summary>
+        public static int InterestedBuyers(GameState s, Consignment c)
+        {
+            var me = s.ludi[s.playerLudusId];
+            double nego = StaffLogic.AgentNego(s, me);
+            return s.ludi.Values.Count(l => !l.isPlayer && l.id != c.seller && (l.nation == me.nation || nego >= 14) && GearDemand(s, l, c.item, AgentBonus(nego)) >= c.price);
+        }
+
+        /// <summary>중개인 웃돈: 협상 능력만큼 +5~15%</summary>
+        static double AgentBonus(double nego) => 0.05 + Math.Min(1, nego / 20) * 0.10;
+
+        /// <summary>오늘이 이 루두스의 주간 차례인가 (480팀을 매일 다 돌리지 않는다: id 해시로 요일을 나눈다)</summary>
+        public static bool TurnDay(GameState s, Ludus l)
+        {
+            uint h = 2166136261;
+            foreach (char ch in l.id) { h ^= ch; h *= 16777619; }
+            return h % 7 == Today(s) % 7;
+        }
+
+        /// <summary>FM 세계: 하루 위탁 시장. ① 중개인 위탁은 중개인이 매일 살 만한 루두스 1~4곳에 직접 제안 ② 직접 위탁은 AI 루두스가 주간 차례에 같은 나라 매물을 둘러보고 지불 의사가 가격 이상이면 산다</summary>
+        static void DailyMarketFm(GameState s)
+        {
+            if (s.consignments == null || s.consignments.Count == 0) return;
+            var me = s.ludi[s.playerLudusId];
+            foreach (var c in s.consignments.Where(x => x.viaAgent).ToList())
+            {
+                var owner = c.seller != null && s.ludi.TryGetValue(c.seller, out var sl) ? sl : me;
+                double nego = StaffLogic.AgentNego(s, owner);
+                int calls = 1 + (int)Math.Min(3, nego / 6);
+                double bonus = AgentBonus(nego);
+                // 살 마음이 큰 곳부터 (능력이 높으면 다른 나라까지)
+                var buyer = s.ludi.Values.Where(l => !l.isPlayer && l != owner && (l.nation == owner.nation || nego >= 14))
+                    .Select(l => (l, pay: GearDemand(s, l, c.item, bonus))).Where(x => x.pay > 0)
+                    .OrderByDescending(x => x.pay).Take(calls).FirstOrDefault(x => x.pay >= c.price);
+                if (buyer.l != null) Sell(s, c, buyer.l);
+            }
+            foreach (var l in s.ludi.Values)
+            {
+                if (l.isPlayer || !TurnDay(s, l)) continue;
+                var pick = s.consignments.Where(c => !c.viaAgent && c.seller != l.id && NationOf(s, c) == l.nation)
+                    .Select(c => (c, pay: GearDemand(s, l, c.item))).Where(x => x.pay >= x.c.price)
+                    .OrderByDescending(x => x.pay - x.c.price).FirstOrDefault();
+                if (pick.c != null) Sell(s, pick.c, l);
+            }
+        }
+
+        static string NationOf(GameState s, Consignment c) =>
+            c.seller != null && s.ludi.TryGetValue(c.seller, out var l) ? l.nation : s.nation;
 
         /// <summary>하루에 팔릴 확률: 기준가보다 쌀수록 빨리 팔린다. 중개인은 사는 사람을 더 잘 찾는다</summary>
         public static double DailySaleChance(GameState s, Consignment c)
@@ -256,6 +421,7 @@ namespace Colosseum.Core
         public static void DailyConsignments(GameState s, Rng rng)
         {
             if (s.consignments == null || s.consignments.Count == 0) return;
+            if (FmRules.Enabled) { DailyMarketFm(s); return; }
             var me = s.ludi[s.playerLudusId];
             foreach (var c in s.consignments.ToList())
             {
@@ -321,13 +487,17 @@ namespace Colosseum.Core
         public static void RefreshGearMarket(GameState s, Rng rng, bool full = false)
         {
             var market = GearMarketOf(s);
-            var keep = full ? new List<GearListing>() : market.Where(_ => rng.Chance(0.65)).ToList();
-            const int want = 48;
+            // FM 세계: AI 루두스가 내놓은 매물은 팔릴 때까지 남는다 (장비가 사라지지 않게). 상인 매물만 바뀐다
+            var listed = FmRules.Enabled ? market.Where(x => x.sellerLudus != null).ToList() : new List<GearListing>();
+            var keep = full ? new List<GearListing>() : market.Where(x => x.sellerLudus == null && rng.Chance(0.65)).ToList();
+            // 상인 매물 수: FM 세계는 AI도 사 가므로 팀 수에 비례
+            int want = FmRules.Enabled ? 48 * FmRules.TeamsPerTier / 10 : 48;
             while (keep.Count < want)
             {
                 string nation = rng.Chance(0.4) ? s.nation : rng.Pick(Data.Nations).id;
                 keep.Add(MakeListing(s, rng, nation));
             }
+            keep.AddRange(listed);
             s.gearMarket = keep;
         }
 
@@ -337,7 +507,12 @@ namespace Colosseum.Core
             var e = dead.equipment;
             var got = new[] { e.main, e.off, e.armor, e.helmet, e.arms, e.legs }.Where(x => !string.IsNullOrEmpty(x) && !Basic.Contains(x)).ToList();
             if (got.Count == 0) return got;
-            ArmoryOf(s).AddRange(got);
+            // FM 세계: 이긴 쪽 루두스 창고로 (AI도 거둔다). 쓰러진 자의 장비는 벗긴다 (장비가 두 곳에 있지 않게)
+            var winner = FmRules.Enabled ? Career.LudusOf(s, killer.id) : null;
+            if (FmRules.Enabled && winner == null) return new List<string>();
+            (winner != null ? ArmoryOf(s, winner) : ArmoryOf(s)).AddRange(got);
+            if (FmRules.Enabled) { e.main = Fallback["main"]; e.armor = Fallback["armor"]; e.off = e.helmet = e.arms = e.legs = null; }
+            if (winner != null && !winner.isPlayer) return got;
             StateUtil.PushMessage(s, "info", $"전리품: {dead.name}의 장비",
                 $"{Josa.J(killer.name, "이/가")} 쓰러뜨린 {dead.name}의 장비를 거뒀습니다.\n{string.Join(", ", got.Select(ItemName))}\n\n막사 → 검투사 화면에서 착용하거나, 이적 시장 → 창고에서 팔 수 있습니다.");
             return got;

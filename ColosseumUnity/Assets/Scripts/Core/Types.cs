@@ -157,6 +157,8 @@ namespace Colosseum.Core
         public double? grievanceAt;
         /// <summary>Unity판: 마지막으로 소속을 옮긴(또는 이적이 끝난) 이적 시장 번호 (Transfers.WindowKey). 한 기간에 한 번만 옮긴다</summary>
         public int? transferWindow;
+        /// <summary>Unity판 FM 세계: 무소속이 된 날 (절대 일수). 무소속이 길수록 요구 주급이 내려가고 아래 리그에도 갈 마음이 생긴다 (Logic/SelfValue.cs)</summary>
+        public double? freeSince;
         /// <summary>Unity판: 출전 불만 뒤로 이어 간 출전 수와 마지막 출전일</summary>
         public int? benchApps;
         public double? benchLastAt;

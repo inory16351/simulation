@@ -517,6 +517,16 @@ namespace Colosseum.UI
                 consignTitle.text = $"◆  내놓기 — {Tips.Item(consignItem)}  {Widgets.GradeTag(consignItem)} · 기준가 {GearLogic.ItemPrice(consignItem):N0} D";
                 var direct = new Consignment { item = consignItem, price = Math.Max(1, price) };
                 var agent = new Consignment { item = consignItem, price = Math.Max(1, price), viaAgent = true };
+                if (FmRules.Enabled)
+                {
+                    var probe = new Consignment { item = consignItem, price = Math.Max(1, price), viaAgent = true };
+                    consignHint.text = price <= 0 ? "내놓을 값을 정합니다." :
+                        "직접: 같은 나라 루두스가 주마다 매물을 둘러보고, 그 값에 살 마음이 있으면 삽니다 · 수수료 없음\n" +
+                        (hasAgent ? $"중개인: 매일 살 만한 루두스를 찾아가 직접 제안합니다 · 이 값에 관심 있는 루두스 {GearLogic.InterestedBuyers(S, probe)}곳 · 수수료 {GearLogic.AgentCommission * 100:0}%"
+                                  : $"<color={Theme.Hex(Theme.TextFaint)}>고용한 중개인이 없습니다. 식솔 화면에서 먼저 고용해야 합니다</color>") +
+                        $"\n<color={Theme.Hex(Theme.TextDim)}>살 루두스는 주전에게 더 나은 장비일 때만 삽니다. 사려는 곳이 없는 값이면 팔리지 않습니다.</color>";
+                }
+                else
                 consignHint.text = price <= 0 ? "내놓을 값을 정합니다." :
                     $"직접: 하루 팔릴 확률 {GearLogic.DailySaleChance(S, direct) * 100:0.#}% · 수수료 없음\n" +
                     (hasAgent ? $"중개인: 하루 {GearLogic.DailySaleChance(S, agent) * 100:0.#}% · 수수료 {GearLogic.AgentCommission * 100:0}% ({JsMath.Round(price * GearLogic.AgentCommission):N0} D)"
@@ -525,7 +535,7 @@ namespace Colosseum.UI
                 consignAgent.interactable = hasAgent && price > 0;
                 consignSelf.interactable = price > 0;
             }
-            var list = GearLogic.ConsignmentsOf(S).ToList();
+            var list = GearLogic.ConsignmentsOf(S).Where(c => c.seller == null).ToList();
             consignedRoot.SetActive(list.Count > 0);
             // 많이 내놓아도 창고 표 자리를 밀어내지 않게 높이를 묶는다
             const int MaxConsignRows = 3;
@@ -539,7 +549,7 @@ namespace Colosseum.UI
                 ItemCells(row, c.item);
                 T(row, "Price").text = $"{c.price:N0} D";
                 T(row, "Via").text = c.viaAgent ? "중개인" : "직접";
-                T(row, "Chance").text = $"하루 {GearLogic.DailySaleChance(S, c) * 100:0.#}%";
+                T(row, "Chance").text = !FmRules.Enabled ? $"하루 {GearLogic.DailySaleChance(S, c) * 100:0.#}%" : hasAgent ? $"관심 {GearLogic.InterestedBuyers(S, c)}곳" : "주간 둘러보기";
                 string cid = c.id;
                 var b = row.Find("Withdraw").GetComponent<Button>();
                 b.onClick.RemoveAllListeners();
@@ -559,8 +569,10 @@ namespace Colosseum.UI
             {
                 string id = items[i];
                 ItemCells(row, id);
-                T(row, "Sell").text = $"{JsMath.Round(GearLogic.ItemPrice(id) * 0.35):N0} D";
+                // FM 세계: 시스템 즉시 판매는 없다 (다른 루두스가 사야 팔린다) → 위탁만
+                T(row, "Sell").text = FmRules.Enabled ? $"<color={Theme.Hex(Theme.TextDim)}>기준가 {GearLogic.ItemPrice(id):N0} D</color>" : $"{JsMath.Round(GearLogic.ItemPrice(id) * 0.35):N0} D";
                 var b = row.Find("SellButton").GetComponent<Button>();
+                b.gameObject.SetActive(!FmRules.Enabled);
                 b.onClick.RemoveAllListeners();
                 b.onClick.AddListener(() => { msg = G.Try(s => GearLogic.SellItem(s, id)); Refresh(); });
                 var cb = row.Find("Consign").GetComponent<Button>();

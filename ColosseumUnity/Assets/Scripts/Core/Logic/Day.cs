@@ -129,7 +129,12 @@ namespace Colosseum.Core
                     if (!g.alive) continue;
                     // 전장에 나간 검투사는 루두스에서 훈련하지 않는다
                     if (g.deployment != null) continue;
-                    if (!l.isPlayer) AiTrainingPlan(g);
+                    // FM 세계: AI 훈련은 주간 차례에 약점·스타일로 정하고(AiBrain), 매일은 지쳤을 때만 바꾼다
+                    if (!l.isPlayer)
+                    {
+                        if (!AiBrain.Enabled) AiTrainingPlan(g);
+                        else if (g.training == null || g.fatigue > 60 || g.wear > 60 || (g.training.focus == "rest" && g.fatigue < 30 && g.wear < 30)) AiBrain.TrainingPlan(g);
+                    }
                     if (motiv != 0) g.morale = Math.Max(0, Math.Min(100, g.morale + motiv));
                     string injured = Training.DailyTraining(g, rng, l.facilities.training, NationRules.RulesOfNation(l.nation).growthMult * StaffLogic.CoachMultFor(state, l, g.training?.focus), StaffLogic.InjuryMultOf(state, l));
                     var healed = Condition.DailyCondition(g, at, l.facilities.medical, l.facilities.bath, StaffLogic.HealMultOf(state, l));
@@ -170,6 +175,8 @@ namespace Colosseum.Core
             Grievances.Daily(state, rng);
             Transfers.DailyTransfers(state, rng);
             GearLogic.DailyConsignments(state, rng);
+            AiBrain.Daily(state, rng);
+            Patrons.Daily(state);
             Haggling.Prune(state);
             Scouting.DailyScouting(state);
             ChallengeLogic.PlayAiScheduled(state, rng);
@@ -202,12 +209,11 @@ namespace Colosseum.Core
         /// <summary>AI 루두스 인원 보충 (시장 갱신 때)</summary>
         public static void ReplenishAi(GameState state, Rng rng)
         {
-            var used = new HashSet<string>(state.gladiators.Values.Select(g => g.name));
-            double aiRoster = FmRules.AiRoster;
+            var used = StateUtil.UsedNames(state);
             foreach (var l in state.ludi.Values.ToList())
             {
                 if (l.isPlayer) continue;
-                while (l.gladiators.Count < aiRoster)
+                while (l.gladiators.Count < FmRules.AiRoster(l.tier))
                 {
                     var g = GladiatorGen.Generate(rng, new GenOptions { id = $"G{state.nextId++}", nation = l.nation, target = (FmRules.Enabled ? FmRules.RosterTarget(l.tier) : l.tier == 1 ? 10.5 : 7.5) + rng.Range(-1.5, 1.5), usedNames = used });
                     state.gladiators[g.id] = g;
@@ -349,7 +355,7 @@ namespace Colosseum.Core
         {
             foreach (var l in state.ludi.Values)
             {
-                double missing = Math.Max(0, L("minMatches") - l.matchesThisSeason);
+                double missing = Math.Max(0, FmRules.MinLeagueMatches - l.matchesThisSeason);
                 if (missing != 0) l.rp -= missing * L("minMatchPenalty");
             }
             var me = state.ludi[state.playerLudusId];
@@ -398,7 +404,7 @@ namespace Colosseum.Core
             if (!FmRules.Enabled)
             {
                 var t2 = Economy.TierRanking(state, 2);
-                int promote = (int)L("promote"), relegate = (int)L("relegate");
+                int promote = FmRules.Promote, relegate = FmRules.Relegate;
                 promoted = t2.Take(promote).ToList();
                 // slice(-n)
                 relegated = t1.Skip(Math.Max(0, t1.Count - relegate)).ToList();
@@ -420,11 +426,11 @@ namespace Colosseum.Core
             }
             else
             {
-                // FM식: 모든 나라 1~4부. 부마다 위 2개는 한 부 올라가고 아래 2개는 한 부 내려간다
+                // FM식: 모든 나라 1~4부. 부마다 위 3개는 한 부 올라가고 아래 3개는 한 부 내려간다
                 promoted = new List<Ludus>();
                 relegated = new List<Ludus>();
                 finalRank = new Dictionary<string, int>();
-                int promote = (int)L("promote"), relegate = (int)L("relegate");
+                int promote = FmRules.Promote, relegate = FmRules.Relegate;
                 foreach (var n in Data.Nations)
                 {
                     var tables = new List<Ludus>[FmRules.MaxTier + 2];
@@ -441,6 +447,7 @@ namespace Colosseum.Core
                     }
                 }
                 Honours.RecordSeason(state, promoted, relegated);
+                Patrons.SeasonEnd(state, finalRank);
                 int oldTier = player.tier;
                 foreach (var l in state.ludi.Values) playedTier[l.id] = l.tier;
                 var upFromMine = promoted.Where(l => l.nation == state.nation && l.tier == oldTier).ToList();
@@ -475,7 +482,7 @@ namespace Colosseum.Core
                     // FM식: 배당은 뛴 리그와 그 순위에 비례한다 (승격·강등과 무관)
                     int r = finalRank[l.id];
                     int tp = playedTier[l.id];
-                    double paid = Economy.PayDividend(state, l, FmRules.DividendCoef(r, (int)L("teamsPerTier")), tp);
+                    double paid = Economy.PayDividend(state, l, FmRules.DividendCoef(r, FmRules.TeamsPerTier), tp);
                     if (l.isPlayer) Msg(state, "info", $"시즌 배당금 {Loc(paid)} D", $"지난 시즌 {tp}부 {r}위 몫으로 배당금 {Loc(paid)} D를 받았습니다. 순위가 높고 리그가 높을수록 많이 받습니다.");
                     continue;
                 }
@@ -539,6 +546,7 @@ namespace Colosseum.Core
             if (released.Count > 0)
             {
                 state.freeAgents.AddRange(released.Where(id => !state.freeAgents.Contains(id)));
+                foreach (var id in released) Economy.MarkFree(state, state.gladiators[id]);
                 // 우리 나라에서 풀린 쓸 만한 검투사를 알려 준다 (FM 계약 만료 선수 목록처럼)
                 var notable = released.Select(id => state.gladiators[id]).Where(g => g.alive && g.nation == state.nation && !state.ludi[state.playerLudusId].gladiators.Contains(g.id))
                     .OrderByDescending(g => GladiatorRules.ComputeCA(g)).Take(5).ToList();
@@ -549,6 +557,7 @@ namespace Colosseum.Core
                         "\n\n이적료 없이 주급 협상만으로 데려올 수 있습니다.");
             }
             ReplenishAi(state, rng);
+            Patrons.SeasonStart(state, rng);
         }
     }
 }

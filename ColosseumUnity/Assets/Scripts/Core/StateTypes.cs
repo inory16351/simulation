@@ -53,6 +53,17 @@ namespace Colosseum.Core
         public bool isPlayer;
         /// <summary>aggressive | stable | grudge | merchant | developer</summary>
         public string aiPersonality;
+        /// <summary>Unity판: 루두스 문장(팀 아이콘) id = Resources/Art/crest/team/&lt;id&gt;.png (예: aurelia_017). 없으면 나라 문장</summary>
+        public string crest;
+        /// <summary>Unity판 FM 세계: 이 루두스의 창고 (장비 소유권). 웹판 규칙은 GameState.armory 하나</summary>
+        public List<string> armory;
+        /// <summary>Unity판 FM 세계: AI 원정 중이면 (Logic/AiBrain.cs)</summary>
+        public AiExpedition aiExpedition;
+        /// <summary>Unity판 FM 세계: 후원자 시즌 목표·스폰서·고를 스폰서 후보·연속 목표 미달 수 (Logic/Patrons.cs)</summary>
+        public BoardGoal boardGoal;
+        public SponsorDeal sponsor;
+        public List<SponsorDeal> sponsorOffers;
+        public int? patronFails;
         public WinLoss record = new();
         public double matchesThisSeason, refusalsUsed;
         public Facilities facilities = new();
@@ -208,7 +219,7 @@ namespace Colosseum.Core
         public bool? forfeit;
     }
 
-    /// <summary>국내 컵 (Unity판, Logic/NatCupLogic.cs). stage: r40 | r20 | r10 | league5</summary>
+    /// <summary>국내 컵 (Unity판, Logic/NatCupLogic.cs). stage: r80 | r40 | r20 | r10 | league5</summary>
     public class NatCup
     {
         public int season;
@@ -244,9 +255,25 @@ namespace Colosseum.Core
         public string champion;
     }
 
-    public class GearListing { public string id, item, nation, seller; public double price; }
+    public class GearListing
+    {
+        public string id, item, nation, seller;
+        public double price;
+        /// <summary>FM 세계: 이 매물을 내놓은 AI 루두스 (null이면 상인). 팔리면 돈이 그 루두스로, 시장 갱신에도 사라지지 않는다</summary>
+        public string sellerLudus;
+    }
+
+    /// <summary>FM 세계: AI 루두스의 던전 원정 (요약 판정, Logic/AiBrain.cs)</summary>
+    public class AiExpedition { public string dungeon; public List<string> party = new(); public double until; }
     /// <summary>위탁 판매: viaAgent면 중개인이 팔고 수수료를 뗀다</summary>
-    public class Consignment { public string id, item; public double price, listedAt; public bool viaAgent; }
+    public class Consignment
+    {
+        public string id, item;
+        public double price, listedAt;
+        public bool viaAgent;
+        /// <summary>FM 세계: 내놓은 루두스 (null이면 우리)</summary>
+        public string seller;
+    }
 
     public class Expedition
     {
@@ -300,6 +327,8 @@ namespace Colosseum.Core
         public string powPending;
         public List<string> staffMarket = new();
         public List<string> freeAgents = new();
+        /// <summary>Unity판 FM 세계: 이번 이적 기간에 "그 리그에선 안 뛴다"고 거절한 (선수:구매 루두스:기간) 열쇠 (Logic/SelfValue.cs)</summary>
+        public List<string> leagueRefusals;
         public ScoutingState scouting;
         public TransferState transfer;
         public List<string> shortlist;

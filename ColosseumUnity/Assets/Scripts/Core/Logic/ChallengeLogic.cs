@@ -60,8 +60,7 @@ namespace Colosseum.Core
             if (from.nation != to.nation) return "다른 나라";
             if (FmRules.Enabled && (state.day < 15 || state.day > FmRules.ChallengeClose)) return $"도전장은 {Calendar.DateLabel(15)}부터 {Calendar.DateLabel(FmRules.ChallengeClose)}까지만 보낼 수 있습니다 (정규 리그 기간)";
             if (!InRegularPeriod(state)) return "정규 기간(서리달 15일 ~ 그림자달 14일)이 아닙니다";
-            double range = L("challengeRange");
-            if (from.tier != to.tier && Math.Abs(from.rp - to.rp) > range) return $"다른 리그는 RP ±{N(range)} 안에서만";
+            if (LeagueBlock(state, from, to) is string block) return block;
             int week = Now(state) - 6;
             int sent = state.challenges.Count(c => c.from == from.id && c.createdAt >= week);
             double perWeek = L("challengesPerWeek");
@@ -69,6 +68,33 @@ namespace Colosseum.Core
             if (state.challenges.Any(c => c.from == from.id && c.to == to.id && (c.status == "pending" || c.status == "scheduled"))) return "이미 도전 중";
             if (FmRules.Enabled) return CanReceive(state, to, 1);
             return null;
+        }
+
+        public const string OtherTierMessage = "같은 리그 팀에게만 공식 경기를 신청할 수 있습니다";
+
+        /// <summary>리그 도전장(정규 기간 공식 경기) 상대 제한. FM식: 같은 부끼리만, 시즌당 같은 상대에게 FmRules.SameOpponentPerSeason번까지.
+        /// 웹판 규칙: 다른 부는 RP ±challengeRange 안에서만. null이면 가능</summary>
+        public static string LeagueBlock(GameState state, Ludus from, Ludus to)
+        {
+            if (!FmRules.Enabled)
+            {
+                double range = L("challengeRange");
+                return from.tier != to.tier && Math.Abs(from.rp - to.rp) > range ? $"다른 리그는 RP ±{N(range)} 안에서만" : null;
+            }
+            if (from.tier != to.tier) return OtherTierMessage;
+            int cap = FmRules.SameOpponentPerSeason;
+            if (LeagueChallengesThisSeason(state, from, to) >= cap) return $"이번 시즌 이 상대에게는 리그 도전장을 {cap}번까지만 보낼 수 있습니다";
+            return null;
+        }
+
+        /// <summary>이번 시즌 from이 to에게 보낸 리그 도전장 수 (거절된 것·연습전은 빼고)</summary>
+        public static int LeagueChallengesThisSeason(GameState state, Ludus from, Ludus to)
+        {
+            int start = Calendar.AbsDay(state.season, 1);
+            int n = 0;
+            foreach (var c in state.challenges)
+                if (c.from == from.id && c.to == to.id && c.friendly != true && c.createdAt >= start && c.status != "declined") n++;
+            return n;
         }
 
         /// <summary>FM식: 받는 쪽이 이 도전을 받을 수 있는가 (부상·경기 예정·휴식·원정으로 내보낼 사람이 없으면 보낼 수 없다).
@@ -160,8 +186,7 @@ namespace Colosseum.Core
             if (from.nation != to.nation) return "다른 나라";
             if (IsLeagueDay(day))
             {
-                double range = L("challengeRange");
-                if (from.tier != to.tier && Math.Abs(from.rp - to.rp) > range) return $"다른 리그는 RP ±{N(range)} 안에서만";
+                if (LeagueBlock(state, from, to) is string block) return block;
             }
             else
             {

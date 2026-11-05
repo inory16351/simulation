@@ -12,7 +12,7 @@ namespace Colosseum.UI
     public class NatCupScreen : ScreenBase
     {
         static readonly Color Neg = new Color32(0xd9, 0xa2, 0x9b, 0xff);
-        static readonly string[] Stages = { "r40", "r20", "r10", "league5" };
+        static readonly string[] Stages = { "r80", "r40", "r20", "r10", "league5" };
 
         [SerializeField] MatchScreen match;
         [SerializeField] Image trophy;
@@ -49,6 +49,14 @@ namespace Colosseum.UI
             ours = new TemplateList<RectTransform>(ourTemplate);
             league = new TemplateList<RectTransform>(leagueTemplate);
             for (int i = 0; i < speedButtons.Count; i++) { string s = MatchScreen.Speeds[i].id; speedButtons[i].onClick.AddListener(() => { speed = s; Refresh(); }); }
+            // 80강이 생겨 씬의 탭(4개)보다 단계가 많으면 마지막 탭을 복제해 채운다 (씬 다시 조립 없이)
+            while (stageTabs.Count > 0 && stageTabs.Count < Stages.Length)
+            {
+                var last = stageTabs[stageTabs.Count - 1];
+                var copy = Instantiate(last, last.transform.parent);
+                copy.onClick.RemoveAllListeners();
+                stageTabs.Add(copy);
+            }
             for (int i = 0; i < stageTabs.Count; i++) { int k = i; stageTabs[i].onClick.AddListener(() => { stageIdx = k; Refresh(); }); }
             nation.onValueChanged.AddListener(i => { nationId = Data.Nations[i].id; stageIdx = -1; Refresh(); });
             enter.onClick.AddListener(Play);
@@ -137,9 +145,9 @@ namespace Colosseum.UI
         string StatusLine(NatCup c, bool current)
         {
             string name = Tips.NatCup(nationId);
-            if (c == null) return $"{name}: 정규 리그가 끝나는 {Calendar.DateLabel(NatCupLogic.DrawDay)}에 대진을 뽑습니다. 40강 {Calendar.DateLabel(NatCupLogic.KoDays[0])}, 5강 리그는 {Calendar.DateLabel(NatCupLogic.LeagueDays[0])}부터입니다.";
+            if (c == null) return $"{name}: 정규 리그가 끝나는 {Calendar.DateLabel(NatCupLogic.DrawDay)}에 대진을 뽑습니다. 80강 {Calendar.DateLabel(NatCupLogic.KoDays[0])}, 5강 리그는 {Calendar.DateLabel(NatCupLogic.LeagueDays[0])}부터입니다.";
             if (!string.IsNullOrEmpty(c.champion)) return $"시즌 {c.season} {name} 우승: <color={Theme.Hex(Theme.Torch)}>★</color> {Tips.Ludus(S.ludi[c.champion])} · 준우승 {Tips.Ludus(S.ludi[c.runnerUp])}";
-            return $"시즌 {c.season} {name} 진행 중 · 40강 {Calendar.DateLabel(NatCupLogic.KoDays[0])} → 20강 {Calendar.DateLabel(NatCupLogic.KoDays[1])} → 10강 {Calendar.DateLabel(NatCupLogic.KoDays[2])} → 5강 리그 {Calendar.DateLabel(NatCupLogic.LeagueDays[0])}~{Calendar.DateLabel(NatCupLogic.LeagueDays[4])}";
+            return $"시즌 {c.season} {name} 진행 중 · 80강 {Calendar.DateLabel(NatCupLogic.KoDays[0])} → 40강 {Calendar.DateLabel(NatCupLogic.KoDays[1])} → 20강 {Calendar.DateLabel(NatCupLogic.KoDays[2])} → 10강 {Calendar.DateLabel(NatCupLogic.KoDays[3])} → 5강 리그 {Calendar.DateLabel(NatCupLogic.LeagueDays[0])}~{Calendar.DateLabel(NatCupLogic.LeagueDays[4])}";
         }
 
         void DrawToday()
@@ -194,7 +202,7 @@ namespace Colosseum.UI
         {
             var name = holder.Find("Name").GetComponent<TMP_Text>();
             if (!S.ludi.TryGetValue(id ?? "", out var l)) { name.text = "?"; return; }
-            holder.Find("Crest").GetComponent<Image>().sprite = Resources.Load<Sprite>("Art/crest/" + l.nation);
+            holder.Find("Crest").GetComponent<Image>().sprite = Widgets.LudusCrest(l);
             name.text = $"{Tips.Ludus(l)} <size=80%><color={Theme.Hex(Theme.TextFaint)}>{l.tier}부</color></size>{suffix}";
             name.color = l.isPlayer ? Theme.Torch : Theme.Parchment;
             name.fontStyle = l.isPlayer ? FontStyles.Bold : FontStyles.Normal;

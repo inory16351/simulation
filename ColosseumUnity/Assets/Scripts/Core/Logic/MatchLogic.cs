@@ -130,7 +130,7 @@ namespace Colosseum.Core
                 Career.LogCareer(state, w, $"{ruleName}에서 {dead.name}의 목숨을 거뒀습니다", "milestone");
                 Career.LogCareer(state, dead, $"{ruleName}에서 {w.name}에게 패해 모래 위에서 죽었습니다", "death");
                 // 사투에서 우리 검투사가 적을 죽이면 그 장비를 거둔다
-                if (opt.rule == "sudden" && wl?.isPlayer == true && !(ll?.isPlayer == true)) GearLogic.LootFallen(state, w, dead);
+                if (opt.rule == "sudden" && (FmRules.Enabled ? wl != null : wl?.isPlayer == true && !(ll?.isPlayer == true))) GearLogic.LootFallen(state, w, dead);
                 var home = Career.LudusOf(state, dead.id);
                 if (home?.isPlayer == true) state.fallen.Add(dead.id);
                 if (home != null)
@@ -233,7 +233,7 @@ namespace Colosseum.Core
                 Career.SeasonRecord(state, w).kills++;
                 Career.LogCareer(state, w, $"{ruleName} 단체전에서 {dead.name}의 목숨을 거뒀습니다", "milestone");
                 Career.LogCareer(state, dead, $"{ruleName} 단체전에서 {w.name}에게 쓰러져 모래 위에서 죽었습니다", "death");
-                if (ruleId == "sudden" && wl?.isPlayer == true && !(ll?.isPlayer == true)) GearLogic.LootFallen(state, w, dead);
+                if (ruleId == "sudden" && (FmRules.Enabled ? wl != null : wl?.isPlayer == true && !(ll?.isPlayer == true))) GearLogic.LootFallen(state, w, dead);
                 if (ll?.isPlayer == true) state.fallen.Add(dead.id);
                 if (ll != null)
                 {
@@ -275,7 +275,9 @@ namespace Colosseum.Core
             string homeId = o.homeLudusId ?? ll.id;
             // 홈 경기장이 클수록 관중 수입이 늘어난다
             int arena = state.ludi.TryGetValue(homeId, out var homeLudus) ? homeLudus.facilities.arena : 1;
-            double tickets = JsMath.Round(baseTickets * FacilitiesLogic.ArenaTicketMult(arena));
+            // FM 세계 입장 수입: 경기장 × 인기(crowdFactor) × 부(표) × 상대 명성 × 경기 중요도 — 관중 수입 한 곳에서만 (이중 지급 없음)
+            double gate = FmRules.Enabled && homeLudus != null ? Patrons.GateMult(state, homeLudus, homeLudus == wl ? ll : wl) : 1;
+            double tickets = JsMath.Round(baseTickets * FacilitiesLogic.ArenaTicketMult(arena) * gate);
             double homeShare = (double)E["homeShare"];
             double loserShare = (double)E["loserPurseShare"];
             string ruleName = (string)rule["name"];

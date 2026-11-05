@@ -161,4 +161,43 @@ namespace Colosseum.Core
             return b;
         }
     }
+
+    /// <summary>FM 세계 단계 2: 별 평가는 '우리 팀 수준' 기준의 상대 평가다.
+    /// 기준값 = 플레이어 루두스 상위 5명의 평균 CA = ★3.5, CA 20마다 ±★1, 0.5 단위, 0.5~5.
+    /// 다른 팀 선수도 우리 팀 기준이라, 4부 팀에서 보면 1부 선수는 ★5이고 승격하면 같은 선수 별이 낮아진다.
+    /// 절대 별(GladiatorRules.Stars = CA/40)은 웹판 비교 테스트가 쓰므로 그대로 둔다</summary>
+    public static class StarScale
+    {
+        public const double RefStars = 3.5, CaPerStar = 20;
+
+        static GameState cacheState;
+        static int cacheDay = -1, cacheCount = -1;
+        static double cacheRef;
+
+        /// <summary>기준값: 우리 루두스 살아 있는 검투사 중 상위 5명의 평균 CA (하루·인원마다 다시 잰다)</summary>
+        public static double Reference(GameState s)
+        {
+            if (s == null || string.IsNullOrEmpty(s.playerLudusId) || !s.ludi.TryGetValue(s.playerLudusId, out var me)) return 70;
+            int day = Calendar.AbsDay(s.season, s.day);
+            if (cacheState == s && cacheDay == day && cacheCount == me.gladiators.Count) return cacheRef;
+            var cas = new List<double>();
+            foreach (var id in me.gladiators)
+                if (s.gladiators.TryGetValue(id, out var g) && g.alive) cas.Add(GladiatorRules.ComputeCA(g));
+            cas.Sort((a, b) => b.CompareTo(a));
+            double sum = 0;
+            int n = Math.Min(5, cas.Count);
+            for (int i = 0; i < n; i++) sum += cas[i];
+            cacheState = s; cacheDay = day; cacheCount = me.gladiators.Count;
+            cacheRef = n == 0 ? 70 : sum / n;
+            return cacheRef;
+        }
+
+        /// <summary>절대 CA(또는 PA) → 우리 팀 기준 별 (0.5 단위). FM식이 아니거나 상태가 없으면 절대 별</summary>
+        public static double ForTeam(GameState s, double ca)
+        {
+            if (!FmRules.Enabled || s == null) return GladiatorRules.Stars(ca);
+            double v = RefStars + (ca - Reference(s)) / CaPerStar;
+            return Math.Max(0.5, Math.Min(5, JsMath.Round(v * 2) / 2));
+        }
+    }
 }

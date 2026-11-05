@@ -128,7 +128,7 @@ namespace Colosseum.UI
             var nation = Data.Nation(s.nation);
             var tierLudi = s.ludi.Values.Where(l => l.tier == p.tier && l.nation == s.nation).OrderByDescending(l => l.rp).ToList();
             int rank = tierLudi.FindIndex(l => l.id == p.id) + 1;
-            crest.sprite = Resources.Load<Sprite>($"Art/crest/{s.nation}");
+            crest.sprite = Widgets.LudusCrest(p);
             clubName.text = Tips.Ludus(p);
             clubSub.text = $"{Tips.League(s.nation, p.tier)} · {rank}위 · RP {p.rp}";
             dateText.text = $"시즌 {s.season} · {Calendar.DateLabel(s.day)}";

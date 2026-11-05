@@ -51,7 +51,8 @@ namespace Colosseum.UI
             runway.color = weeks < 8 ? new Color32(0xe0, 0x8b, 0x80, 0xff) : Theme.Text;
 
             rank.text = $"{player.tier}부 {r + 1}위";
-            rpGap.text = $"RP {player.rp} · 1위와 {tier[0].rp - player.rp}점 차이";
+            rpGap.text = $"RP {player.rp} · 1위와 {tier[0].rp - player.rp}점 차이" +
+                (player.boardGoal != null && player.boardGoal.season == S.season ? $"\n<color={Theme.Hex(Theme.BronzeHi)}>후원자 목표</color> {Patrons.GoalText(player.boardGoal, player.tier)}" : "");
 
             Widgets.SetBar(moraleBar, avgMorale);
             morale.text = avgMorale.ToString();

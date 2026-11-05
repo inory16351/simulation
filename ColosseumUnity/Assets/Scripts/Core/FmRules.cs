@@ -32,8 +32,27 @@ namespace Colosseum.Core
             return Math.Round(two * Math.Pow(0.6, tier - 2));
         }
 
-        /// <summary>AI 검투사 생성 목표 능력 (능력치 평균)</summary>
-        public static double RosterTarget(int tier) => tier switch { 1 => 10.5, 2 => 7.5, 3 => 6.3, _ => 5.2 };
+        /// <summary>AI 검투사 생성 목표 능력 (능력치 평균). 부의 주전·벤치 CA 대역 가운데쯤</summary>
+        public static double RosterTarget(int tier) => TargetForCa((StarterCa(tier).lo + BenchCa(tier).hi) / 2);
+
+        // ── FM 세계 (2026-11-05): 부당 20팀, 승강 3팀. balance.json의 teamsPerTier·promote·relegate는 웹판 비교용이라 그대로 둔다 ──
+
+        /// <summary>부마다 루두스 수</summary>
+        public static int TeamsPerTier => Enabled ? 20 : (int)L["teamsPerTier"];
+        /// <summary>시즌 끝에 한 부 올라가는 수</summary>
+        public static int Promote => Enabled ? 3 : (int)L["promote"];
+        /// <summary>시즌 끝에 한 부 내려가는 수</summary>
+        public static int Relegate => Enabled ? 3 : (int)L["relegate"];
+
+        /// <summary>부별 주전(상위 5) CA 대역 — 리그 수준 차가 곧 난이도</summary>
+        public static (double lo, double hi) StarterCa(int tier) => tier switch { 1 => (140, 180), 2 => (100, 140), 3 => (70, 110), _ => (40, 80) };
+        /// <summary>부별 벤치 CA 대역</summary>
+        public static (double lo, double hi) BenchCa(int tier) => tier switch { 1 => (115, 140), 2 => (80, 105), 3 => (55, 75), _ => (30, 50) };
+
+        /// <summary>CA를 생성기 목표 능력치 평균으로 (ComputeCA = (평균-1)/19×200, 스타일 가중·숙련으로 생성 CA가 조금 높게 나오는 만큼 뺀다)</summary>
+        public static double TargetForCa(double ca) => 1 + ca * 19 / 200 - CaBias;
+        /// <summary>생성기 목표 대비 실제 CA 쏠림 (능력치 평균으로, 측정값)</summary>
+        public const double CaBias = 0.6;
 
         /// <summary>루두스 명성의 바탕 (리그 단계)</summary>
         public static double ReputationBase(int tier) => tier switch { 1 => 45, 2 => 18, 3 => 9, _ => 3 };
@@ -50,7 +69,12 @@ namespace Colosseum.Core
         public static string TierName(int tier) => $"{tier}부";
 
         /// <summary>AI 루두스 기본 인원 (웹판 aiRoster 8). 등록 로스터 15명 중 여유를 두고, 나머지는 AI가 무소속 영입으로 판단해 채운다</summary>
-        public static int AiRoster => Enabled ? 11 : (int)Bal.Economy["aiRoster"];
+        public static int AiRoster(int tier) => !Enabled ? (int)Bal.Economy["aiRoster"] : tier switch { 1 => 14, 2 => 13, 3 => 12, _ => 11 };
+
+        /// <summary>시즌당 같은 상대에게 보낼 수 있는 리그 도전장 수 (부 안에서 일정이 고르게 잡히게)</summary>
+        public const int SameOpponentPerSeason = 2;
+        /// <summary>정규 리그 최소 경기 수 (미달이면 시즌 말 RP 벌점)</summary>
+        public const int MinLeagueMatches = 10;
 
         // ── 시즌 흐름: 정규 리그 15~105일 → 국내 컵 106~129일 → 판테온 컵 131~157일 ──
 

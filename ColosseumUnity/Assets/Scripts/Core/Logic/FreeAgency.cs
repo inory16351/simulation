@@ -12,7 +12,7 @@ namespace Colosseum.Core
     {
         public static bool Enabled => FmRules.Enabled;
 
-        static double Roster => FmRules.AiRoster;
+
 
         /// <summary>우리가 답해야 하는 역제안이 걸린 무소속 (다음 날로 못 넘어가는 일이 사라지면 안 된다)</summary>
         static bool Busy(GameState s, string id) => s.decisions?.Any(d => d.gladiatorId == id) ?? false;
@@ -22,27 +22,31 @@ namespace Colosseum.Core
         {
             Gladiator best = null;
             double bestScore = double.MinValue;
+            // 주급 예산 여유는 루두스마다 한 번만 잰다 (무소속마다 다시 재면 480팀 × 무소속 수만큼 반복)
+            double room = Economy.WageBudget(s, l) - Economy.WeeklyWages(s, l);
             foreach (var id in s.freeAgents)
             {
                 if (!s.gladiators.TryGetValue(id, out var g) || !g.alive || g.status == "slave" || Busy(s, id)) continue;
                 if (GladiatorRules.AgeStage(g) == "youth" || Transfers.MovedThisWindow(s, g)) continue;
                 double ca = GladiatorRules.ComputeCA(g);
                 if (ca < minCa) continue;
-                var d = DemandOf(g, l, rep);
+                // FM 세계: 아래 리그면 올 마음부터 (유저와 같은 판정)
+                if (!SelfValue.Interested(s, g, l)) continue;
+                var d = DemandOf(s, g, l, rep);
                 // 여유: 새 주급까지 합친 주급으로 반 시즌(12주)을 버틸 금고, 그리고 주급 예산 안 (감당 못 하면 영입을 포기한다)
-                if (d.refuse || (weeklyWages + d.wage) * 12 > l.treasury || !Economy.Affords(s, l, d.wage)) continue;
+                if (d.refuse || (weeklyWages + d.wage) * 12 > l.treasury || (FmRules.Enabled && d.wage > room)) continue;
                 double score = ca + (g.nation == l.nation ? 5 : 0);
                 if (score > bestScore) { bestScore = score; best = g; }
             }
             return best;
         }
 
-        static Demand DemandOf(Gladiator g, Ludus l, double rep) =>
-            Reputation.DemandFor(Reputation.GladiatorStanding(g), Economy.FreeAgentBaseWage(g, l.tier), rep);
+        static Demand DemandOf(GameState s, Gladiator g, Ludus l, double rep) =>
+            SelfValue.Apply(s, g, l, Reputation.DemandFor(Reputation.GladiatorStanding(g), Economy.FreeAgentBaseWage(g, l.tier), rep));
 
         static void Sign(GameState s, Ludus l, Gladiator g, double rep)
         {
-            var d = DemandOf(g, l, rep);
+            var d = DemandOf(s, g, l, rep);
             s.freeAgents.Remove(g.id);
             s.suitors?.Remove(g.id);
             l.gladiators.Add(g.id);
@@ -53,7 +57,7 @@ namespace Colosseum.Core
         }
 
         /// <summary>한 주에 AI 전체가 데려가는 최대 인원</summary>
-        const int PerWeek = 3;
+        static int PerWeek => 3 * FmRules.TeamsPerTier / 10;
         /// <summary>무소속 명단이 이만큼 남으면 멈춘다 (우리가 고를 몫)</summary>
         const int Floor = 12;
 
@@ -68,7 +72,7 @@ namespace Colosseum.Core
             {
                 if (signed >= PerWeek || s.freeAgents.Count <= Floor) break;
                 int n = alive[l.id].Count;
-                bool short_ = n < Roster;
+                bool short_ = n < FmRules.AiRoster(l.tier);
                 // 등록 자리가 꽉 찼으면 데려와도 못 쓴다
                 if (!short_ && Registration.Enabled && Registration.Count(l) >= Registration.Max) continue;
                 if (!rng.Chance(short_ ? 0.6 : 0.15)) continue;

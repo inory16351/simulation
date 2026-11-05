@@ -123,8 +123,9 @@ namespace Colosseum.UI
         }
 
         /// <summary>칸 한 줄 요약: 루두스 · 나라 리그 · 날짜 · 금고 · 인원</summary>
-        static string Summary(GameState s)
+        static string Summary(GameState s, bool old = false)
         {
+            if (s == null && old) return $"<color=#d9a29b>호환되지 않는 옛 저장입니다</color> <color={Theme.Hex(Theme.TextFaint)}>· 세계가 바뀌어 불러올 수 없습니다. 새 게임을 시작해야 합니다</color>";
             if (s == null) return $"<color={Theme.Hex(Theme.TextFaint)}>비어 있습니다</color>";
             var p = s.ludi[s.playerLudusId];
             var nation = Data.Nation(s.nation);
@@ -152,13 +153,14 @@ namespace Colosseum.UI
                 int n = i + 1;
                 var s = games[i];
                 var card = slotCards[i];
-                card.Find("Info").GetComponent<TMP_Text>().text = $"<color={Theme.Hex(Theme.BronzeHi)}>{n}번 칸</color>{(n == last ? $"  <color={Theme.Hex(Theme.TextFaint)}>(마지막)</color>" : "")}\n{Summary(s)}";
+                bool old = s == null && GameController.Incompatible(n);
+                card.Find("Info").GetComponent<TMP_Text>().text = $"<color={Theme.Hex(Theme.BronzeHi)}>{n}번 칸</color>{(n == last ? $"  <color={Theme.Hex(Theme.TextFaint)}>(마지막)</color>" : "")}\n{Summary(s, old)}";
                 var action = card.Find("Buttons/Action").GetComponent<Button>();
                 // 불러오기 모드에서 빈 칸은 버튼을 숨긴다
                 action.gameObject.SetActive(mode == "new" || s != null);
                 action.GetComponentInChildren<TMP_Text>().text = mode == "load" ? "불러오기" : s == null ? "여기에 세우기" : confirmOverwrite == n ? "정말 덮어쓰기" : "덮어쓰기";
                 var del = card.Find("Buttons/Delete").GetComponent<Button>();
-                del.gameObject.SetActive(s != null);
+                del.gameObject.SetActive(s != null || old);
                 del.GetComponentInChildren<TMP_Text>().text = confirmDelete == n ? "정말 지우기" : "지우기";
             }
 

@@ -207,8 +207,9 @@ namespace Colosseum.Core
             {
                 if (RivalsOf(s, g.id).Any(r => r.ludusId == buyer.id)) continue;
                 double fee = Transfers.AskingPrice(s, g, owner);
-                double wage = BaseWage(s, g, false, buyer.tier);
+                double wage = BaseWage(s, g, false, buyer.tier) * SelfValue.WageMult(s, g, buyer).mult;
                 if (buyer.treasury <= fee * 1.1 || !Economy.Affords(s, buyer, wage)) continue;
+                if (!SelfValue.Interested(s, g, buyer)) continue;
                 if (Reputation.DemandFor(Reputation.GladiatorStanding(g), wage, rep).refuse) continue;
                 picks.Add((g, owner, fee, wage));
                 if (picks.Count == 3) break;

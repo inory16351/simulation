@@ -10,13 +10,53 @@ namespace Colosseum.UI
 {
     public static class Widgets
     {
+        static readonly Dictionary<string, Sprite> crestCache = new();
+
+        /// <summary>문장 그림 (team/문장 id 또는 나라 id). 한 번 읽은 그림은 캐시</summary>
+        public static Sprite CrestSprite(string path)
+        {
+            if (string.IsNullOrEmpty(path)) return null;
+            if (!crestCache.TryGetValue(path, out var sp)) crestCache[path] = sp = Resources.Load<Sprite>("Art/crest/" + path);
+            return sp;
+        }
+
+        /// <summary>글 칸 왼쪽에 루두스 문장을 붙인다 (씬 다시 조립 없이: 없으면 자식 Image를 만들고 글을 그만큼 민다)</summary>
+        public static void SetInlineCrest(TMPro.TMP_Text label, Ludus l, float size = 22)
+        {
+            var t = label.transform.Find("Crest");
+            Image img;
+            if (t == null)
+            {
+                var go = new GameObject("Crest", typeof(RectTransform));
+                go.transform.SetParent(label.transform, false);
+                var r = (RectTransform)go.transform;
+                r.anchorMin = r.anchorMax = new Vector2(0, 0.5f);
+                r.pivot = new Vector2(0, 0.5f);
+                r.sizeDelta = new Vector2(size, size);
+                r.anchoredPosition = Vector2.zero;
+                img = go.AddComponent<Image>();
+                img.preserveAspect = true;
+                img.raycastTarget = false;
+            }
+            else img = t.GetComponent<Image>();
+            img.sprite = LudusCrest(l);
+            img.enabled = img.sprite != null;
+            var m = label.margin;
+            label.margin = new Vector4(img.enabled ? size + 6 : 0, m.y, m.z, m.w);
+        }
+
+        /// <summary>루두스 문장. 고른 문장이 없으면(웹판 규칙·옛 저장) 나라 문장</summary>
+        public static Sprite LudusCrest(Ludus l) => l == null ? null : (l.crest != null ? CrestSprite("team/" + l.crest) : null) ?? CrestSprite(l.nation);
         /// <summary>★ 별점 글자 (반 개는 ☆)</summary>
         public static string Stars(double value)
         {
-            double s = GladiatorRules.Stars(value);
+            double s = StarScale.ForTeam(GameController.I?.State, value);
             int full = (int)Math.Floor(s);
-            return new string('★', full) + (s - full >= 0.5 ? "☆" : "");
+            return TeamLink(new string('★', full) + (s - full >= 0.5 ? "☆" : ""));
         }
+
+        /// <summary>FM식 별은 '우리 팀 수준 기준'이라 올리면 그 뜻을 알려 준다 (info:stars)</summary>
+        static string TeamLink(string stars) => FmRules.Enabled && GameController.I?.State != null ? $"<link=\"info:stars\">{stars}</link>" : stars;
 
         /// <summary>FM식 교관 평가 별점: 우리 검투사는 독토레가 보는 대로, 남의 검투사는 정찰 범위로. CA 숫자는 보여 주지 않는다</summary>
         public static string CaStars(GameState s, Gladiator g)
@@ -28,10 +68,12 @@ namespace Colosseum.UI
         /// <summary>범위 별점 (웹판 RangeStars): 추정이 넓으면 "★★~★★★"</summary>
         public static string RangeStars(double lo, double hi)
         {
-            double St(double v) => Math.Max(0.5, Math.Min(5, JsMath.Round(v / 40 * 2) / 2));
+            // 정찰 오차는 절대 CA 구간을 먼저 구한 뒤(호출하는 쪽) 우리 팀 기준으로 바꾼다
+            var st = GameController.I?.State;
+            double St(double v) => StarScale.ForTeam(st, v);
             string Draw(double v) => new string('★', (int)Math.Floor(v)) + (v % 1 != 0 ? "☆" : "");
             double a = St(lo), b = St(hi);
-            return b > a ? $"{Draw(a)}<color={Theme.Hex(Theme.TextFaint)}>~{Draw(b)}</color>" : Draw(a);
+            return TeamLink(b > a ? $"{Draw(a)}<color={Theme.Hex(Theme.TextFaint)}>~{Draw(b)}</color>" : Draw(a));
         }
 
         /// <summary>등급 색: 보통(양피지) · 정교한(초록) · 명품(파랑) · 전설(주황)</summary>

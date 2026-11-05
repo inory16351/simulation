@@ -1,5 +1,6 @@
 // 검투사 일대기: 시즌별 기록과 주요 사건 (src/core/career.ts)
 using Colosseum.Core.Combat;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace Colosseum.Core
@@ -8,9 +9,46 @@ namespace Colosseum.Core
     {
         public static Ludus LudusOf(GameState state, string gid)
         {
+            // FM 세계(480팀): 색인으로 찾고, 맞는지 확인해 틀리면 다시 만든다 (소속 명단은 곳곳에서 바뀌므로)
+            if (FmRules.Enabled)
+            {
+                if (idxState != state || idx == null) Rebuild(state);
+                if (idx.TryGetValue(gid, out var c) && c.gladiators.Contains(gid) && state.ludi.TryGetValue(c.id, out var same) && same == c) return c;
+                // 색인에 없으면: 명단이 그대로면(인원·끝 사람이 같다) 정말 없는 것, 바뀌었으면 다시 만든다
+                if (c == null && Stamp(state) == idxStamp) return null;
+                Rebuild(state);
+                return idx.TryGetValue(gid, out c) ? c : null;
+            }
             foreach (var l in state.ludi.Values)
                 if (l.gladiators.Contains(gid)) return l;
             return null;
+        }
+
+        static GameState idxState;
+        static Dictionary<string, Ludus> idx;
+        static long idxStamp;
+
+        /// <summary>모든 소속 명단의 대략적인 지문 (인원과 끝 사람). 명단에 더하면 끝이 바뀌고 빼면 인원이 바뀐다</summary>
+        static long Stamp(GameState state)
+        {
+            long h = state.ludi.Count;
+            foreach (var l in state.ludi.Values)
+            {
+                int n = l.gladiators.Count;
+                h = h * 31 + n;
+                if (n > 0) h = h * 17 + l.gladiators[n - 1].GetHashCode();
+            }
+            return h;
+        }
+
+        static void Rebuild(GameState state)
+        {
+            idxState = state;
+            idxStamp = Stamp(state);
+            idx ??= new Dictionary<string, Ludus>();
+            idx.Clear();
+            foreach (var l in state.ludi.Values)
+                foreach (var id in l.gladiators) idx.TryAdd(id, l);
         }
 
         /// <summary>경력에 적을 소속: 1군 또는 학당</summary>

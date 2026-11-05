@@ -86,6 +86,43 @@ namespace Colosseum.UI
         public static string Person(Staff s) => s == null ? "" : $"<link=\"person:{s.id}\">{s.name}</link>";
 
         /// <summary>식솔 능력치 이름 (올리면 하는 일)</summary>
+        /// <summary>검투사 능력치 이름 (올리면 대략적인 쓰임새)</summary>
+        public static string Attr(string key) => Attrs.Names.TryGetValue(key, out var n) ? $"<link=\"attr:{key}\">{n}</link>" : key;
+
+        /// <summary>무기 숙련 이름 (올리면 설명)</summary>
+        public static string Prof(string key) => Attrs.WeaponClassNames.TryGetValue(key, out var n) ? $"<link=\"prof:{key}\">{n}</link>" : key;
+
+        /// <summary>능력치마다 대략적인 쓰임새 (전투·훈련·운영에서 무엇을 올리는지)</summary>
+        public static readonly Dictionary<string, string> AttrDesc = new()
+        {
+            ["str"] = "체력이 늘고 무기 피해가 커집니다. 무거운 무기는 요구 근력이 모자라면 명중과 피해가 떨어집니다.",
+            ["agi"] = "몸놀림이 빨라 피하기와 선공에 유리합니다. 가벼운 무기와 잘 어울립니다.",
+            ["end"] = "기력의 크기와 회복 속도를 정합니다. 오래 싸워도 지치지 않습니다.",
+            ["tou"] = "맞았을 때 덜 다치고 피해를 버팁니다. 부상 위험도 줄어듭니다.",
+            ["rea"] = "상대 공격에 반응해 피하고 흘리는 힘입니다. 빠른 무기를 상대할 때 특히 중요합니다.",
+            ["rec"] = "경기와 훈련 뒤 피로·부상에서 회복하는 빠르기입니다.",
+            ["acc"] = "공격이 맞을 확률과 치명타 확률을 올립니다. 상대의 회피와 맞섭니다.",
+            ["eva"] = "공격을 피할 확률을 올립니다. 상대의 정확도와 맞섭니다.",
+            ["blk"] = "막기 확률을 올립니다. 방패를 들면 효과가 더 큽니다.",
+            ["grp"] = "붙잡기·넘어뜨리기 같은 몸싸움에서 이기는 힘입니다. 맨손·그물 스타일에 중요합니다.",
+            ["mag"] = "주술 기술의 위력과 마력의 양을 정합니다. 마법 스타일이 아니면 거의 쓰지 않습니다.",
+            ["grit"] = "몰려도 쉽게 무너지거나 항복하지 않는 버팀입니다. 낮으면 위기에 물러서기 쉽습니다.",
+            ["comp"] = "압박 속에서도 흔들리지 않는 침착함입니다. 무모한 공격을 줄이고 상대의 위압에 버팁니다.",
+            ["dec"] = "상황에 맞는 수를 고르는 판단입니다. 상대의 의도를 읽고 맞대응하는 데 쓰입니다.",
+            ["show"] = "관중을 휘어잡는 재주입니다. 인기와 경기 수입, 관중 호응에 영향을 줍니다.",
+            ["agg"] = "몰아붙이는 성향입니다. 높으면 압박이 세지만 침착하지 못하면 무리하게 들어갑니다.",
+            ["disc"] = "훈련과 지시를 따르는 규율입니다. 훈련 효율과 교범을 지키는 정도에 영향을 줍니다.",
+            ["lead"] = "동료를 이끄는 힘입니다. 단체전에서 편의 사기와 결속을 받쳐 줍니다.",
+            ["read"] = "상대의 다음 수를 미리 읽는 예측력입니다. 막기·피하기 판단을 돕습니다.",
+            ["feint"] = "속임수로 상대의 예측을 흐트러뜨리는 기만입니다.",
+            ["genius"] = "틀에 없는 변칙 수를 꺼내는 천재성입니다. 막히는 상대를 뚫는 데 쓰입니다.",
+            ["adapt"] = "경기 중 상대에 맞춰 싸움법을 바꾸는 적응력입니다. 같은 수에 두 번 당하지 않습니다.",
+            ["team"] = "단체전에서 동료와 맞춰 움직이는 감각입니다.",
+            ["timing"] = "공격·반격을 넣는 때를 잡는 감각입니다. 흘린 뒤 되받아치기에도 쓰입니다.",
+            ["kill"] = "빈사인 상대를 끝내는 마무리 본능입니다. 치명타와 결정타에 힘을 실어 줍니다.",
+            ["aura"] = "상대를 주눅 들게 하는 위압감입니다. 상대의 침착이 낮을수록 잘 통합니다.",
+        };
+
         public static string StaffAttr(string key) => $"<link=\"sattr:{key}\">{StaffLogic.AttrNames[key]}</link>";
 
         /// <summary>역할에 중요한 능력치 한 줄: "신체 지도 14 · 기술 지도 12 · 정신 지도 9 · 전술 지도 11"</summary>
@@ -154,6 +191,8 @@ namespace Colosseum.UI
                 "role" => Tactics.RoleDesc.TryGetValue(id, out var rd) ? $"<b>{Tactics.RoleNames[id]}</b>\n{rd}" : null,
                 "staff" => StaffLogic.RoleDesc.TryGetValue(id, out var sd) ? $"<b>{StaffLogic.RoleNames[id]}</b>\n{sd}" : null,
                 "person" => PersonTip(id),
+                "attr" => AttrDesc.TryGetValue(id, out var atd) ? $"<b>{Attrs.Names[id]}</b>\n{atd}\n<color={Theme.Hex(Theme.TextFaint)}>1~20. 훈련·나이·경기로 오르내립니다</color>" : null,
+                "prof" => Attrs.WeaponClassNames.TryGetValue(id, out var pn) ? $"<b>{pn} 숙련</b>\n이 계열 무기를 쓸 때 명중·피해·기술이 나아집니다. 스타일의 주 무기 계열 숙련은 현재 능력(CA)에도 들어갑니다.\n<color={Theme.Hex(Theme.TextFaint)}>{Colosseum.Core.Combat.Exchange.ZoneHint(id, false)}</color>" : null,
                 "sattr" => StaffLogic.AttrDesc.TryGetValue(id, out var ad) ? $"<b>{StaffLogic.AttrNames[id]}</b>\n{ad}" : null,
                 "awards" => AwardsTip(id),
                 "fight" => "<b>전투 보기</b>\n이 층에서 벌어진 난전을 모래 마당 중계로 봅니다",
@@ -207,6 +246,9 @@ namespace Colosseum.UI
                     (b.grant > 0 ? $"\n하부 리그 지원금 <color={Theme.Hex(Theme.Good)}>+{b.grant:N0} D</color> <color={faint}>(급료일에 먼저 들어옴, 세금 뺀 값)</color>" : "") +
                     $"{tail}\n<color={faint}>용병으로 나간 검투사의 주급은 고용국이 냅니다</color>";
             }
+            if (id == "stars")
+                return $"<b>별 평가 · 우리 팀 수준 기준</b>\n우리 주전 5명의 평균 능력이 ★3.5입니다. 그보다 능력이 20 높을 때마다 ★ 하나가 늘고, 낮으면 줄어듭니다.\n" +
+                    $"<color={faint}>다른 루두스 검투사도 우리 팀과 견준 별이라, 승격해 팀이 강해지면 같은 검투사의 별이 낮아집니다</color>";
             if (id == "window")
                 return $"<b>{Transfers.WindowLine(s)}</b>\n<color={dim}>이적 시장 기간: {Transfers.WindowLabel}</color>\n" +
                     $"<color={faint}>다른 루두스 검투사에게는 이 기간에만 이적료를 제안할 수 있습니다. 무소속 검투사는 언제든 영입할 수 있습니다.\n제안을 보내면 하루~사흘 뒤 서판으로 답이 옵니다</color>";

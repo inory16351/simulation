@@ -57,6 +57,43 @@ namespace Colosseum.Core
             });
         }
 
+        // ── FM 세계 단계 4: 유소년 잠재력은 상한 없이 뽑는다. 학당이 낮아도 높은 PA가 나올 수 있지만 드물다 ──
+
+        /// <summary>학당 레벨별 PA 160 이상·180 이상이 나올 확률 (레벨 1~5)</summary>
+        public static readonly double[] Pa160 = { 0, 0.015, 0.04, 0.08, 0.14, 0.22 };
+        public static readonly double[] Pa180 = { 0, 0.002, 0.006, 0.015, 0.03, 0.06 };
+
+        /// <summary>그 레벨 학당에서 PA 160 이상·180 이상이 나올 확률 (레벨이 표 밖이면 끝값, 소수 레벨은 보간). bonus = 유소년 책임자 등 (0.3 = ×1.3)</summary>
+        public static (double p160, double p180) PaOdds(double lvl, double bonus = 0)
+        {
+            double L = Math.Max(1, Math.Min(Pa160.Length - 1, lvl));
+            int a = (int)Math.Floor(L), b = Math.Min(Pa160.Length - 1, a + 1);
+            double f = L - a;
+            double p160 = Pa160[a] + (Pa160[b] - Pa160[a]) * f, p180 = Pa180[a] + (Pa180[b] - Pa180[a]) * f;
+            double m = 1 + Math.Max(0, bonus);
+            return (Math.Min(0.6, p160 * m), Math.Min(0.3, p180 * m));
+        }
+
+        /// <summary>유소년 잠재력 뽑기 (우리 모래 시험·AI 입학 공용). 대부분 60~159, 확률표대로 160~179 / 180~200</summary>
+        public static int RollPa(Rng rng, double lvl, int ca, double bonus = 0)
+        {
+            var (p160, p180) = PaOdds(lvl, bonus);
+            double u = rng.Next();
+            int pa;
+            if (u < p180) pa = (int)JsMath.Round(rng.Range(180, 200));
+            else if (u < p160) pa = (int)JsMath.Round(rng.Range(160, 179.4));
+            else
+            {
+                // 그 밖: 학당이 좋을수록 위쪽으로 쏠린다 (레벨 1 평균 약 95, 레벨 5 약 115)
+                double k = Math.Max(0.6, 1.6 - 0.18 * lvl);
+                pa = (int)JsMath.Round(60 + 99 * Math.Pow(rng.Next(), k));
+            }
+            return Math.Max(ca + 10, Math.Min(200, pa));
+        }
+
+        /// <summary>유소년 책임자 몫의 확률 가산: 평점 20이면 ×1.5</summary>
+        public static double YouthHeadBonus(GameState state, Ludus ludus) => FmRules.Enabled ? StaffLogic.RatingOf(state, ludus, "youthHead") * 0.025 : 0;
+
         /// <summary>FM식 (우리 루두스): 모래 시험 날(TrialDay)에 후보를 뽑는다. 후보는 학당 서약을 협상해 맺어야 학당에 들어온다</summary>
         public static List<Gladiator> Trial(GameState state, Rng rng, Ludus ludus)
         {
@@ -67,7 +104,7 @@ namespace Colosseum.Core
             int outlook = ludus.youthOutlook ?? RollOutlook(rng);
             ludus.youthOutlook = null;
             bool golden = outlook == 3;
-            var used = new HashSet<string>(state.gladiators.Values.Select(x => x.name));
+            var used = StateUtil.UsedNames(state);
             var output = new List<Gladiator>();
             for (int i = 0; i < TrialCount(lvl); i++)
             {
@@ -76,8 +113,9 @@ namespace Colosseum.Core
                 var g = GladiatorGen.Generate(rng, new GenOptions
                 {
                     id = $"G{state.nextId++}", nation = ludus.nation, race = race, status = "free",
-                    target = rng.Range(2.5, 4.5), age = r.debut - rng.Int(1, 4), paCap = (int)FacilitiesLogic.AcademyPaCap(lvl), usedNames = used,
+                    target = rng.Range(2.5, 4.5), age = r.debut - rng.Int(1, 4), paCap = FmRules.Enabled ? null : (int)FacilitiesLogic.AcademyPaCap(lvl), usedNames = used,
                 });
+                if (FmRules.Enabled) g.hidden.pa = RollPa(rng, lvl, GladiatorRules.ComputeCA(g), YouthHeadBonus(state, ludus));
                 // 수준: 괜찮음 +8, 뛰어남 +15, 전설의 씨앗 +20~40 (잠재력)
                 g.hidden.pa = Math.Min(200, g.hidden.pa + outlook switch { 1 => 8, 2 => 15, 3 => rng.Int(20, 40), _ => 0 });
                 g.wage = rng.Int(2, 5);
@@ -216,7 +254,7 @@ namespace Colosseum.Core
             if (count <= 0) return new List<Gladiator>();
             // 전설의 씨앗: 드물게 그해 입학생 전원의 그릇이 크다
             bool golden = rng.Chance(0.05);
-            var used = new HashSet<string>(state.gladiators.Values.Select(x => x.name));
+            var used = StateUtil.UsedNames(state);
             var output = new List<Gladiator>();
             for (int i = 0; i < count; i++)
             {
@@ -226,9 +264,10 @@ namespace Colosseum.Core
                 var opt = new GenOptions
                 {
                     id = $"G{state.nextId++}", nation = ludus.nation, race = race, status = "free",
-                    target = rng.Range(2.5, 4.5), age = r.debut - rng.Int(1, 4), paCap = (int)FacilitiesLogic.AcademyPaCap(lvl), usedNames = used,
+                    target = rng.Range(2.5, 4.5), age = r.debut - rng.Int(1, 4), paCap = FmRules.Enabled ? null : (int)FacilitiesLogic.AcademyPaCap(lvl), usedNames = used,
                 };
                 var g = GladiatorGen.Generate(rng, opt);
+                if (FmRules.Enabled) g.hidden.pa = RollPa(rng, lvl, GladiatorRules.ComputeCA(g), YouthHeadBonus(state, ludus));
                 if (golden) g.hidden.pa = Math.Min(200, g.hidden.pa + rng.Int(20, 40));
                 g.wage = rng.Int(2, 5);
                 g.training = new TrainingPlan { focus = "physical", intensity = "normal" };

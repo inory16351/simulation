@@ -327,6 +327,7 @@ namespace Colosseum.UI
                 sub = $"{Tips.Nation(l.nation)} · {Tips.League(l.nation, l.tier)} {rank}위 · RP {l.rp} · 명성 {rep} ({Reputation.ReputationNames(rep)})",
                 body = body,
                 actionLabel = "연혁 보기", action = () => GameController.I.OpenHall(id),
+                iconSprite = Widgets.LudusCrest(l),
             };
         }
 

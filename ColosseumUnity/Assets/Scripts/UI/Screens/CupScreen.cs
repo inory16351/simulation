@@ -236,7 +236,7 @@ namespace Colosseum.UI
         {
             var name = holder.Find("Name").GetComponent<TMP_Text>();
             if (!S.ludi.TryGetValue(id ?? "", out var l)) { name.text = prefix + "?"; return; }
-            holder.Find("Crest").GetComponent<Image>().sprite = Resources.Load<Sprite>("Art/crest/" + l.nation);
+            holder.Find("Crest").GetComponent<Image>().sprite = Widgets.LudusCrest(l);
             name.text = prefix + Tips.Ludus(l) + suffix;
             name.color = l.isPlayer ? Theme.Torch : Theme.Parchment;
             name.fontStyle = l.isPlayer ? FontStyles.Bold : FontStyles.Normal;

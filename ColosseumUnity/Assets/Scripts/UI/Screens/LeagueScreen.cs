@@ -65,7 +65,7 @@ namespace Colosseum.UI
             }
 
             var ludi = S.ludi.Values.Where(l => l.tier == showTier && l.nation == nationId).OrderByDescending(l => l.rp).ToList();
-            int promote = (int)(double)Data.Balance["league"]["promote"], relegate = (int)(double)Data.Balance["league"]["relegate"];
+            int promote = FmRules.Promote, relegate = FmRules.Relegate;
             rows.Sync(ludi.Count, (row, i) =>
             {
                 var l = ludi[i];
@@ -79,6 +79,7 @@ namespace Colosseum.UI
                 T(row, "Rank").text = (i + 1).ToString();
                 var name = T(row, "Name");
                 name.text = Tips.Ludus(l);
+                Widgets.SetInlineCrest(name, l);
                 name.fontStyle = l.isPlayer ? FontStyles.Bold : FontStyles.Normal;
                 T(row, "Personality").text = l.isPlayer ? "—" : PersonalityNames.TryGetValue(l.aiPersonality ?? "", out var p) ? p : l.aiPersonality;
                 T(row, "Count").text = alive.Count.ToString();

@@ -23,14 +23,326 @@ namespace Colosseum.Tests
             var s = World.NewGame(77, "aurelia", "시험", 4);
             Assert.AreEqual(4, s.ludi[s.playerLudusId].tier);
             foreach (var n in Data.Nations)
-                for (int t = 1; t <= 4; t++) Assert.AreEqual(10, s.ludi.Values.Count(l => l.nation == n.id && l.tier == t), $"{n.id} {t}부");
+                for (int t = 1; t <= 4; t++) Assert.AreEqual(FmRules.TeamsPerTier, s.ludi.Values.Count(l => l.nation == n.id && l.tier == t), $"{n.id} {t}부");
             Assert.AreEqual(s.ludi.Count, s.ludi.Values.Select(l => l.name).Distinct().Count(), "루두스 이름이 겹치지 않는다");
-            // 시즌을 끝내면 부마다 10개가 그대로 (2 올라가고 2 내려온다)
+            // 시즌을 끝내면 부마다 20개가 그대로 (3 올라가고 3 내려온다)
+            var before = s.ludi.Values.ToDictionary(l => l.id, l => l.tier);
             s.day = Calendar.DaysPerSeason;
             Day.EndSeason(s, new Rng(5));
             foreach (var n in Data.Nations)
-                for (int t = 1; t <= 4; t++) Assert.AreEqual(10, s.ludi.Values.Count(l => l.nation == n.id && l.tier == t));
+                for (int t = 1; t <= 4; t++) Assert.AreEqual(FmRules.TeamsPerTier, s.ludi.Values.Count(l => l.nation == n.id && l.tier == t));
+            foreach (var n in Data.Nations)
+                for (int t = 1; t < 4; t++)
+                {
+                    Assert.AreEqual(3, s.ludi.Values.Count(l => l.nation == n.id && before[l.id] == t + 1 && l.tier == t), $"{n.id} {t + 1}부에서 3팀 승격");
+                    Assert.AreEqual(3, s.ludi.Values.Count(l => l.nation == n.id && before[l.id] == t && l.tier == t + 1), $"{n.id} {t}부에서 3팀 강등");
+                }
             Assert.IsTrue(s.ludi.Values.All(l => l.seasons != null && l.seasons.Count == 1), "모든 루두스에 시즌 연혁");
+        }
+
+        /// <summary>FM 세계 단계 1: 부별 수준 차(1 > 2 > 3 > 4, 1부 최약 > 2부 평균), 부별 로스터, 정규 기간 같은 부끼리만 도전·같은 상대 제한, 휴식기 연습전은 다른 부도</summary>
+        [Test]
+        public void TwentyTeamWorldTierStrengthAndSameTierChallenges()
+        {
+            var s = World.NewGame(4242, "aurelia", "시험", 3);
+            double Top5(Ludus l) => l.gladiators.Select(id => (double)GladiatorRules.ComputeCA(s.gladiators[id])).OrderByDescending(x => x).Take(5).Average();
+            foreach (var n in Data.Nations)
+            {
+                var avg = new double[5];
+                for (int t = 1; t <= 4; t++)
+                {
+                    var ls = s.ludi.Values.Where(l => l.nation == n.id && l.tier == t && !l.isPlayer).ToList();
+                    Assert.IsTrue(ls.All(l => l.gladiators.Count == FmRules.AiRoster(t)), $"{n.id} {t}부 로스터 {FmRules.AiRoster(t)}");
+                    avg[t] = ls.Average(Top5);
+                }
+                for (int t = 1; t < 4; t++) Assert.Greater(avg[t], avg[t + 1], $"{n.id} {t}부 주전이 {t + 1}부보다 강하다");
+                double weakest1 = s.ludi.Values.Where(l => l.nation == n.id && l.tier == 1).Min(Top5);
+                Assert.Greater(weakest1, avg[2], $"{n.id} 1부 최약 팀 > 2부 평균");
+            }
+            Assert.IsTrue(s.ludi.Values.All(l => l.crest == null || l.crest.StartsWith(l.nation + "_")), "문장은 자기 나라 것");
+
+            var me = s.ludi[s.playerLudusId];
+            s.day = 20;
+            var same = s.ludi.Values.First(l => l.nation == me.nation && l.tier == me.tier && !l.isPlayer);
+            var upper = s.ludi.Values.First(l => l.nation == me.nation && l.tier == me.tier - 1);
+            Assert.AreEqual(ChallengeLogic.OtherTierMessage, ChallengeLogic.CanChallenge(s, me, upper));
+            Assert.AreEqual(ChallengeLogic.OtherTierMessage, ChallengeLogic.CanChallengeOn(s, me, upper, 30));
+            Assert.AreNotEqual(ChallengeLogic.OtherTierMessage, ChallengeLogic.CanChallengeOn(s, me, same, 30) ?? "");
+            // 같은 상대에게는 시즌당 2번까지
+            for (int i = 0; i < FmRules.SameOpponentPerSeason; i++)
+                s.challenges.Add(new Challenge { id = $"CX{i}", from = me.id, to = same.id, status = "done", createdAt = Calendar.AbsDay(s.season, 15 + i) });
+            StringAssert.Contains("2번까지", ChallengeLogic.CanChallenge(s, me, same));
+            // 휴식기(정규 리그 뒤) 연습전은 부 제한 없음
+            s.day = 160;
+            Assert.AreNotEqual(ChallengeLogic.OtherTierMessage, ChallengeLogic.CanChallengeOn(s, me, upper, 165) ?? "");
+        }
+
+        /// <summary>FM 세계 단계 2: 같은 선수의 별이 우리 팀 수준에 따라 달라진다 (기준 = 우리 상위 5명 평균 CA = ★3.5, CA 20마다 ★1)</summary>
+        [Test]
+        public void StarsAreRelativeToOurTeam()
+        {
+            var low = World.NewGame(5151, "aurelia", "시험", 4);
+            var high = World.NewGame(5151, "aurelia", "시험", 1);
+            double refLow = StarScale.Reference(low), refHigh = StarScale.Reference(high);
+            Assert.Greater(refHigh, refLow + 40, "1부 우리 팀이 4부 우리 팀보다 훨씬 강하다");
+            Assert.AreEqual(3.5, StarScale.ForTeam(low, refLow), 0.5);
+            Assert.AreEqual(4.5, StarScale.ForTeam(low, refLow + 20), 0.5);
+            // 1부 주전급 선수(CA 165): 4부 팀에서는 ★5, 1부 팀에서는 그보다 낮다
+            Assert.AreEqual(5, StarScale.ForTeam(low, 165));
+            Assert.Less(StarScale.ForTeam(high, 165), 5);
+            Assert.AreEqual(0.5, StarScale.ForTeam(high, 20), "범위 아래 끝");
+            // 절대 별은 그대로 (웹판 비교)
+            Assert.AreEqual(4, GladiatorRules.Stars(160));
+            FmRules.Enabled = false;
+            try { Assert.AreEqual(GladiatorRules.Stars(165), StarScale.ForTeam(low, 165)); }
+            finally { FmRules.Enabled = true; }
+        }
+
+        /// <summary>FM 세계 단계 4: 학당 1단계에서도 큰 표본에 PA 180 이상이 나오고, 레벨이 오를수록 잦아진다</summary>
+        [Test]
+        public void YouthPotentialHasNoCapButBetterAcademiesHelp()
+        {
+            var rng = new Rng(31337);
+            var n160 = new int[6]; var n180 = new int[6];
+            const int N = 20000;
+            for (int lvl = 1; lvl <= 5; lvl++)
+                for (int i = 0; i < N; i++)
+                {
+                    int pa = Youth.RollPa(rng, lvl, 25);
+                    Assert.LessOrEqual(pa, 200);
+                    Assert.GreaterOrEqual(pa, 35);
+                    if (pa >= 160) n160[lvl]++;
+                    if (pa >= 180) n180[lvl]++;
+                }
+            Assert.Greater(n180[1], 0, "레벨 1에서도 PA 180 이상이 나온다");
+            for (int lvl = 1; lvl < 5; lvl++)
+            {
+                Assert.Greater(n160[lvl + 1], n160[lvl], $"레벨 {lvl + 1}이 {lvl}보다 PA 160+가 잦다");
+                Assert.Greater(n180[lvl + 1], n180[lvl], $"레벨 {lvl + 1}이 {lvl}보다 PA 180+가 잦다");
+            }
+            System.Console.WriteLine($"MEASURE youth PA160+ {string.Join(" / ", Enumerable.Range(1, 5).Select(l => $"{100.0 * n160[l] / N:0.0}%"))} · PA180+ {string.Join(" / ", Enumerable.Range(1, 5).Select(l => $"{100.0 * n180[l] / N:0.00}%"))}");
+            // 실제 모래 시험 후보도 상한 없이 (학당 1단계라도 160 이상이 나올 수 있다)
+            var s = World.NewGame(6060, "aurelia", "시험", 3);
+            var me = s.ludi[s.playerLudusId];
+            int best = 0;
+            for (int i = 0; i < 300; i++) best = System.Math.Max(best, Youth.Trial(s, rng, me).Max(g => g.hidden.pa));
+            Assert.Greater(best, FacilitiesLogic.AcademyPaCap(1), "옛 상한(120)을 넘는 후보가 나온다");
+        }
+
+        /// <summary>FM 세계 단계 3: 리그 수준을 한참 넘는 영입은 드물게만, 복합 상황이면 올라가고, 같은 CA라도 상황에 따라 요구 주급이 다르다</summary>
+        [Test]
+        public void SituationDrivesDemandsAndLowLeagueInterest()
+        {
+            var s = World.NewGame(7070, "aurelia", "시험", 4);
+            var me = s.ludi[s.playerLudusId];
+            // 상황 없음 기준: 다른 나라 1부 주전급, 쇠퇴기·불만 아님
+            var stars = s.ludi.Values.Where(l => l.tier == 1 && l.nation == "dolgar").SelectMany(l => l.gladiators).Select(id => s.gladiators[id])
+                .Where(g => SelfValue.ProperTier(g) == 1 && GladiatorRules.AgeStage(g) != "decline" && g.grievance == null).ToList();
+            Assert.Greater(stars.Count, 50, "1부 주전급 표본");
+            // 1,000회 표본: 선수·이적 기간을 바꿔 가며 굴린다 (판정은 열쇠마다 고정이라 같은 열쇠를 다시 굴리지 않는다)
+            int ok = 0, okHard = 0, n = 0;
+            for (int w = 0; n < 1000; w++)
+                foreach (var g in stars)
+                {
+                    if (n >= 1000) break;
+                    s.season = 1 + w;
+                    s.leagueRefusals = null;
+                    if (SelfValue.Interested(s, g, me)) ok++;
+                    n++;
+                }
+            double plain = ok / 1000.0;
+            Assert.Less(plain, 0.03, $"4부 팀의 1부 주전 영입 관심 {plain:P1} (상황 없음 기준 3% 미만)");
+            // 복합 상황: 쇠퇴기 + 무소속 석 달 넘게
+            var old = stars[0];
+            old.age = Data.Race(old.race).age.primeEnd + 2;
+            var owner = Career.LudusOf(s, old.id);
+            owner.gladiators.Remove(old.id);
+            s.freeAgents.Add(old.id);
+            old.freeSince = Calendar.AbsDay(s.season, s.day) - 100;
+            Assert.Greater(SelfValue.InterestChance(s, old, me), 0.05, "쇠퇴기 + 무소속 장기면 확률이 뚜렷이 오른다");
+            for (int i = 0; i < 1000; i++) { s.season = 100 + i; s.leagueRefusals = null; if (SelfValue.Interested(s, old, me)) okHard++; }
+            Assert.Greater(okHard / 1000.0, plain + 0.03, $"복합 상황 {okHard / 1000.0:P1} > 기준 {plain:P1}");
+            // 같은 판정은 다시 굴려도 같고, 거절하면 그 기간엔 다시 못 묻는다
+            s.season = 1; s.leagueRefusals = null;
+            var x = stars[1];
+            bool first = SelfValue.Interested(s, x, me);
+            Assert.AreEqual(first, SelfValue.Interested(s, x, me));
+            if (!first) Assert.IsFalse(SelfValue.Interested(s, x, me, 3), "거절 뒤엔 값을 올려도 그 기간엔 안 된다");
+            // 같은 선수라도 상황에 따라 요구 주급이 다르다 (승률·불만·무소속)
+            var y = stars[2];
+            var buyer = s.ludi.Values.First(l => l.tier == 1 && l.nation == "aurelia" && !l.gladiators.Contains(y.id));
+            y.record.wins = 2; y.record.losses = 2; y.grievance = null;
+            double baseM = SelfValue.WageMult(s, y, buyer).mult;
+            y.record.wins = 20; y.record.losses = 2;
+            Assert.Greater(SelfValue.WageMult(s, y, buyer).mult, baseM, "승률이 높으면 더 바란다");
+            y.record.wins = 2; y.record.losses = 20;
+            Assert.Less(SelfValue.WageMult(s, y, buyer).mult, baseM, "승률이 낮으면 덜 바란다");
+            y.record.wins = 2; y.record.losses = 2; y.grievance = "x";
+            Assert.Less(SelfValue.WageMult(s, y, buyer).mult, baseM, "불만이면 이적 때 덜 바란다");
+            double renewAngry = SelfValue.WageMult(s, y, Career.LudusOf(s, y.id), renew: true).mult;
+            y.grievance = null;
+            Assert.Greater(renewAngry, SelfValue.WageMult(s, y, Career.LudusOf(s, y.id), renew: true).mult, "불만이면 재계약 때 더 바란다");
+            var m = SelfValue.WageMult(s, old, me).mult;
+            Assert.LessOrEqual(m, SelfValue.MaxMult);
+            Assert.GreaterOrEqual(m, SelfValue.MinMult);
+        }
+
+        /// <summary>FM 세계 단계 5: 같은 역할 여러 명 (상한까지), 효과는 1·½·¼로 합치고, 해고하면 돌아온다. 코치가 모자라면 효율이 떨어진다</summary>
+        [Test]
+        public void StaffStackByRoleAndFiringRestores()
+        {
+            var s = World.NewGame(8080, "aurelia", "시험", 1);
+            var me = s.ludi[s.playerLudusId];
+            var rng = new Rng(3);
+            me.treasury = 1_000_000;
+            Assert.GreaterOrEqual(StaffLogic.RoleCap(me, "weaponCoach"), 2, "1부는 코치를 여럿 둘 수 있다");
+            var a = StaffLogic.MakeStaff(s, rng, "weaponCoach", 14, 1);
+            var b = StaffLogic.MakeStaff(s, rng, "weaponCoach", 10, 1);
+            s.staffMarket.Add(a.id); s.staffMarket.Add(b.id);
+            double before = StaffLogic.CoachMultFor(s, me, "weapon");
+            Assert.IsNull(StaffLogic.HireStaff(s, a.id, 10000, 0), "첫째 고용");
+            double one = StaffLogic.CoachMultFor(s, me, "weapon");
+            Assert.IsNull(StaffLogic.HireStaff(s, b.id, 10000, 0), "같은 역할 둘째 고용");
+            double two = StaffLogic.CoachMultFor(s, me, "weapon");
+            Assert.Greater(one, before);
+            Assert.Greater(two, one, "둘째도 효과가 있다");
+            Assert.Less(two - one, one - before + 1e-9, "둘째는 반만큼 (첫째보다 덜)");
+            Assert.AreEqual(a.rating + b.rating * 0.5, StaffLogic.RatingOf(s, me, "weaponCoach"), 1e-9, "평점 합산 1·½");
+            Assert.AreEqual(StaffLogic.CoachMultFor(s, me, "physical"), StaffLogic.CoachMultFor(s, me, "physical"), "다른 분야 그대로");
+            StaffLogic.FireStaff(s, b.id);
+            Assert.AreEqual(one, StaffLogic.CoachMultFor(s, me, "weapon"), 1e-9, "해고하면 효과가 돌아온다");
+            // 상한
+            int cap = StaffLogic.RoleCap(me, "youthHead");
+            Assert.AreEqual(1, cap);
+            var y1 = StaffLogic.MakeStaff(s, rng, "youthHead", 12, 1); var y2 = StaffLogic.MakeStaff(s, rng, "youthHead", 12, 1);
+            s.staffMarket.Add(y1.id); s.staffMarket.Add(y2.id);
+            Assert.IsNull(StaffLogic.HireStaff(s, y1.id, 10000, 0));
+            Assert.IsNotNull(StaffLogic.HireStaff(s, y2.id, 10000, 0), "유소년 책임자는 한 명");
+            Assert.Greater(Youth.YouthHeadBonus(s, me), 0);
+            // 선수가 코치 수보다 너무 많으면 효율이 떨어진다
+            double full = StaffLogic.CoachMultFor(s, me, "weapon");
+            for (int i = 0; i < 40; i++) me.gladiators.Add(me.gladiators[0]);
+            Assert.Less(StaffLogic.CoachMultFor(s, me, "weapon"), full);
+        }
+
+        /// <summary>FM 세계 단계 6: 위탁품은 실제 루두스가 사야 팔린다. 팔리면 늘 어느 루두스 창고나 장착 칸에 있고, 너무 비싸면 안 팔리고, 중개인이 있으면 더 빨리 팔린다</summary>
+        [Test]
+        public void ConsignedGearGoesToARealBuyer()
+        {
+            int Count(GameState st, string item) =>
+                st.ludi.Values.Sum(l => (l.armory?.Count(x => x == item) ?? 0) + l.gladiators.Count(id => st.gladiators.TryGetValue(id, out var g) && g.alive && Equipment.Slots.Any(sl => g.equipment.Get(sl) == item)))
+                + (st.consignments?.Count(c => c.item == item) ?? 0);
+            // 시장 최고급 투구 하나를 직접 위탁: 적당한 값이면 몇 주 안에 누군가 산다
+            var s = World.NewGame(9090, "aurelia", "시험", 2);
+            var me = s.ludi[s.playerLudusId];
+            string item = "crested_helm+2";
+            GearLogic.ArmoryOf(s).Add(item);
+            int before = Count(s, item);
+            Assert.IsNull(GearLogic.Consign(s, item, GearLogic.ItemPrice(item) * 0.6, false));
+            Assert.AreEqual(before, Count(s, item), "내놓아도 사라지지 않는다");
+            double money = me.treasury;
+            int days = 0;
+            for (; days < 28 && s.consignments.Count > 0; days++) { s.day = 20 + days; GearLogic.DailyConsignments(s, new Rng(1)); }
+            Assert.AreEqual(0, s.consignments.Count, "적당한 값이면 4주 안에 팔린다");
+            Assert.AreEqual(before, Count(s, item), "판 장비는 산 루두스 창고나 장착 칸에 있다");
+            Assert.IsTrue(s.ludi.Values.Any(l => !l.isPlayer && ((l.armory?.Contains(item) ?? false) || l.gladiators.Any(id => s.gladiators[id].equipment.helmet == item))), "AI 루두스가 가졌다");
+            Assert.Greater(me.treasury, money, "돈은 우리에게");
+            Assert.IsNotNull(GearLogic.SellItem(s, item), "시스템 즉시 판매는 없다");
+            // 너무 비싸면 아무도 안 산다
+            GearLogic.ArmoryOf(s).Add(item);
+            GearLogic.Consign(s, item, GearLogic.ItemPrice(item) * 5, false);
+            for (int d = 0; d < 28; d++) { s.day = 60 + d; GearLogic.DailyConsignments(s, new Rng(1)); }
+            Assert.AreEqual(1, s.consignments.Count, "사려는 곳이 없는 값이면 안 팔린다");
+            // 중개인: 직접보다 빨리 팔린다 (같은 값)
+            int DaysToSell(bool agent)
+            {
+                var t = World.NewGame(9191, "aurelia", "시험", 2);
+                var m = t.ludi[t.playerLudusId];
+                if (agent)
+                {
+                    var a = StaffLogic.MakeStaff(t, new Rng(2), "agent", 16, 2);
+                    m.staff.Add(a.id);
+                }
+                GearLogic.ArmoryOf(t).Add(item);
+                GearLogic.Consign(t, item, GearLogic.ItemPrice(item) * 0.7, agent);
+                for (int d = 0; d < 56; d++) { t.day = 20 + d; GearLogic.DailyConsignments(t, new Rng(1)); if (t.consignments.Count == 0) return d + 1; }
+                return 99;
+            }
+            int direct = DaysToSell(false), viaAgent = DaysToSell(true);
+            System.Console.WriteLine($"MEASURE gear sale days direct {direct} agent {viaAgent}");
+            Assert.LessOrEqual(viaAgent, direct, "중개인이 있으면 더 빨리 (또는 같이) 팔린다");
+        }
+
+        /// <summary>FM 세계 단계 7: AI 차례에 식솔 고용·장비 착용(불법 장비 없음)·던전 요약 원정(귀환하면 장비 창고로, 원정 중엔 출전 불가)</summary>
+        [Test]
+        public void AiTurnHiresEquipsAndRunsDungeons()
+        {
+            var s = World.NewGame(1212, "aurelia", "시험", 2);
+            var rng = new Rng(4);
+            var l = s.ludi.Values.First(x => !x.isPlayer && x.tier == 1);
+            l.treasury = 500000;
+            int staffBefore = l.staff.Count;
+            AiBrain.Turn(s, rng, l);
+            Assert.Greater(l.staff.Count, staffBefore, "돈이 넉넉하면 식솔을 들인다");
+            // 창고의 좋은 장비는 주전에게
+            GearLogic.ArmoryOf(s, l).Add("crested_helm+2");
+            AiBrain.Turn(s, rng, l);
+            Assert.IsTrue(l.gladiators.Any(id => s.gladiators[id].equipment.helmet == "crested_helm+2"), "주전이 입는다");
+            foreach (var id in l.gladiators)
+            {
+                var g = s.gladiators[id];
+                foreach (var sl in Equipment.Slots)
+                {
+                    var it = g.equipment.Get(sl);
+                    // 쌍검 스타일의 기본 보조 무기는 스타일 규칙 (생성기가 준 것)
+                    if (sl == "off" && it == Data.Style(g.style).loadout.off) continue;
+                    if (!string.IsNullOrEmpty(it) && it != "cestus" && it != "loincloth") Assert.IsNull(GearLogic.CannotEquip(g, sl, it), $"{g.name} {sl} {it}");
+                }
+            }
+            // 던전: 정규 리그가 끝나고 컵 일정이 없을 때만 떠나고, 정해진 날 돌아온다
+            s.day = 50;
+            AiBrain.Turn(s, rng, l);
+            Assert.IsNull(l.aiExpedition, "정규 리그 중엔 원정 안 감");
+            var low = s.ludi.Values.First(x => !x.isPlayer && x.tier == 4 && x.nation == "aurelia");
+            low.treasury = 500000;
+            s.day = 140;
+            AiBrain.Turn(s, rng, low);
+            Assert.IsNotNull(low.aiExpedition, "휴식기엔 원정");
+            var party = low.aiExpedition.party.ToList();
+            Assert.IsTrue(party.All(id => s.gladiators[id].deployment != null), "원정 중엔 출전 불가");
+            s.day = 140 + DungeonLogic.GetDungeon(low.aiExpedition.dungeon).days;
+            AiBrain.Daily(s, rng);
+            Assert.IsNull(low.aiExpedition, "돌아왔다");
+            Assert.IsTrue(party.All(id => s.gladiators[id].deployment == null), "돌아오면 다시 뛸 수 있다");
+            // 훈련 계획은 늘 아는 분야
+            foreach (var id in low.gladiators) { AiBrain.TrainingPlan(s.gladiators[id]); Assert.IsTrue(Training.FocusNames.ContainsKey(s.gladiators[id].training.focus)); }
+        }
+
+        /// <summary>FM 세계 단계 8: 시즌 시작에 모든 루두스 목표·스폰서, 우리는 기한까지 안 고르면 첫 제안, 시즌 끝 판정(달성 보너스·미달 누적)</summary>
+        [Test]
+        public void PatronGoalsAndSponsors()
+        {
+            var s = World.NewGame(1313, "aurelia", "시험", 3);
+            var me = s.ludi[s.playerLudusId];
+            Assert.IsTrue(s.ludi.Values.All(l => l.boardGoal != null && l.boardGoal.season == 1), "모두 목표");
+            Assert.IsTrue(s.ludi.Values.Where(l => !l.isPlayer).All(l => l.sponsor != null), "AI는 스폰서를 바로 맺는다");
+            Assert.IsNull(me.sponsor);
+            Assert.AreEqual(3, me.sponsorOffers.Count);
+            s.day = Patrons.SponsorPickUntil + 1;
+            Patrons.Daily(s);
+            Assert.IsNotNull(me.sponsor, "기한이 지나면 첫 제안");
+            double before = me.treasury;
+            Economy.Payday(s, me);
+            Assert.IsTrue(s.ledger.Any(e => e.desc.Contains("스폰서")), "급료일에 스폰서 돈");
+            // 판정: 목표 순위 안이면 달성, 아니면 미달 누적
+            var ranks = s.ludi.Values.ToDictionary(l => l.id, l => l == me ? 1 : 20);
+            Patrons.SeasonEnd(s, ranks);
+            Assert.AreEqual(true, me.boardGoal.met);
+            Assert.AreEqual(0, me.patronFails ?? 0);
+            var ai = s.ludi.Values.First(l => !l.isPlayer && l.boardGoal.kind != "survive");
+            Assert.AreEqual(false, ai.boardGoal.met);
+            Assert.AreEqual(1, ai.patronFails);
+            Assert.Less(Patrons.SupportMult(ai), 1, "미달이면 다음 시즌 지원이 준다");
         }
 
         [Test]
@@ -573,8 +885,8 @@ namespace Colosseum.Tests
         [Test]
         public void DividendFollowsRank()
         {
-            Assert.AreEqual(1.6, FmRules.DividendCoef(1, 10), 1e-9);
-            Assert.AreEqual(0.6, FmRules.DividendCoef(10, 10), 1e-9);
+            Assert.AreEqual(1.6, FmRules.DividendCoef(1, 20), 1e-9);
+            Assert.AreEqual(0.6, FmRules.DividendCoef(20, 20), 1e-9);
             var s = World.NewGame(90, "aurelia", "시험", 2);
             var top = Economy.TierRanking(s, 1).First();
             var last = Economy.TierRanking(s, 1).Last();
@@ -592,11 +904,12 @@ namespace Colosseum.Tests
             s.day = FmRules.RegularEnd;
             RunTo(s, rng, 1, NatCupLogic.DrawDay);
             var c = NatCupLogic.Of(s, s.nation);
-            Assert.AreEqual(40, c.teams.Count, "나라 전 루두스 참가");
-            Assert.AreEqual(20, c.ties.Count(t => t.stage == "r40"));
+            Assert.AreEqual(80, c.teams.Count, "나라 전 루두스 참가");
+            Assert.AreEqual(40, c.ties.Count(t => t.stage == "r80"));
             var frozen = s.ludi.Values.ToDictionary(l => l.id, l => l.rp);
             RunTo(s, rng, 1, CupLogic.FmDrawDay);
             c = NatCupLogic.Of(s, s.nation);
+            Assert.AreEqual(20, c.ties.Count(t => t.stage == "r40"));
             Assert.AreEqual(10, c.ties.Count(t => t.stage == "r20"));
             Assert.AreEqual(5, c.ties.Count(t => t.stage == "r10"));
             Assert.AreEqual(5, c.final5.Count);

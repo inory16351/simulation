@@ -375,7 +375,7 @@ namespace Colosseum.Core
                 var g = Glad(s, id);
                 if (g?.deployment?.contractId == ex.id) g.deployment = null;
             }
-            (s.armory ??= new List<string>()).AddRange(ex.loot);
+            GearLogic.ArmoryOf(s).AddRange(ex.loot);
             if (ex.coins != 0) Economy.AddMoney(s, me, ex.coins, $"{d.name} 원정 동전");
             var q = !string.IsNullOrEmpty(ex.questId) ? QuestsOf(s).FirstOrDefault(x => x.id == ex.questId) : null;
             var lines = new List<string>

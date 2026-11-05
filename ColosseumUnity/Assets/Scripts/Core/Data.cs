@@ -105,6 +105,8 @@ namespace Colosseum.Core
     {
         public static List<RaceDef> Races;
         public static List<NationDef> Nations;
+        /// <summary>나라별 루두스 문장 id 목록 (Resources/Data/crests.json, Tools/team-crests.mjs list가 만든다). 파일이 없으면 비어 있다</summary>
+        public static Dictionary<string, List<string>> Crests = new();
         public static List<StyleDef> Styles;
         public static List<WeaponDef> Weapons;
         public static List<ArmorDef> Armors;
@@ -154,6 +156,8 @@ namespace Colosseum.Core
             Events = Read<List<EventDef>>("events");
             Balance = JObject.Parse(read("balance"));
             Uniques.Load(Read<UniquesFile>("uniques").uniques);
+            try { Crests = Read<Dictionary<string, List<string>>>("crests") ?? new(); }
+            catch (Exception) { Crests = new(); }
             raceIdx = Index(Races, x => x.id);
             nationIdx = Index(Nations, x => x.id);
             styleIdx = Index(Styles, x => x.id);

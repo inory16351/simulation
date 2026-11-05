@@ -41,6 +41,9 @@ namespace Colosseum.UI
         /// <summary>칸에 든 게임 (로비 카드용). 없으면 null</summary>
         public static GameState Peek(int n) => SaveSystem.Load(SlotDir(n));
 
+        /// <summary>칸에 판이 달라 못 읽는 옛 저장이 있다 (새 게임 필수)</summary>
+        public static bool Incompatible(int n) => SaveSystem.IsIncompatible(SlotDir(n));
+
         /// <summary>칸이 하나뿐이던 시절의 저장을 1번 칸으로 옮긴다</summary>
         static void MigrateOldSave()
         {
@@ -99,11 +102,11 @@ namespace Colosseum.UI
             NeedLobby?.Invoke();
         }
 
-        public void NewGame(string nation, string ludusName, int startTier = 2)
+        public void NewGame(string nation, string ludusName, int startTier = 2, string crest = null)
         {
             PlayerPrefs.SetInt(LastSlotKey, Slot);
             SaveSystem.Clear(SaveDir);
-            State = World.NewGame((double)(DateTime.Now.Ticks % 2147483648L), nation, ludusName, startTier);
+            State = World.NewGame((double)(DateTime.Now.Ticks % 2147483648L), nation, ludusName, startTier, crest);
             Screen = "inbox";
             Commit();
         }

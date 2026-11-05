@@ -36,7 +36,7 @@ namespace Colosseum.Core
         public static double PayDividend(GameState state, Ludus ludus, double? coef = null, int? playedTier = null)
         {
             int rank = TierRanking(state, ludus.tier, ludus.nation).FindIndex(l => l.id == ludus.id) + 1;
-            double teams = (double)Data.Balance["league"]["teamsPerTier"];
+            double teams = FmRules.TeamsPerTier;
             double c = coef ?? (FmRules.Enabled ? FmRules.DividendCoef(rank, (int)teams) : 1.5 - rank / teams);
             double amount = JsMath.Round((FmRules.Enabled ? FmRules.TierMoney("dividendBaseFm", playedTier ?? ludus.tier) : (double)E["dividendBase"][ludus.tier.ToString()]) * c);
             ludus.treasury += amount;
@@ -97,7 +97,7 @@ namespace Colosseum.Core
                 food = JsMath.Round(WeeklyFood(state, ludus) * Modifiers.ModifierMult(state, "food")),
                 upkeep = FacilitiesLogic.WeeklyUpkeep(ludus),
                 staff = StaffLogic.StaffWages(state, ludus),
-                grant = ludus.isPlayer ? JsMath.Round(FmRules.LowerLeagueGrant(ludus.tier) * (1 - NationRules.RulesOfNation(ludus.nation).taxRate)) : 0,
+                grant = ludus.isPlayer ? JsMath.Round((FmRules.LowerLeagueGrant(ludus.tier) + Patrons.WeeklyOf(ludus)) * (1 - NationRules.RulesOfNation(ludus.nation).taxRate)) : 0,
             };
             if (double.IsNaN(b.upkeep)) b.upkeep = 0;
             if (double.IsNaN(b.staff)) b.staff = 0;
@@ -120,7 +120,8 @@ namespace Colosseum.Core
             double match = (FmRules.TierMoney("purseFm", t) * 0.65 + FmRules.TierMoney("ticketIncomeFm", t) * 0.33) * (1 - NationRules.RulesOfNation(l.nation).taxRate);
             double weeks = Calendar.DaysPerSeason / 7.0;
             // 주 2경기 몫 (BalanceSim aifin으로 잰 AI 실제 수입에 맞춤, 컵 상금·수상은 뺀 보수적인 값)
-            double side = l.isPlayer ? FmRules.LowerLeagueGrant(t) * (1 - NationRules.RulesOfNation(l.nation).taxRate) : AiSideIncome(t);
+            double sponsor = l.sponsor != null ? l.sponsor.weekly : AiSideIncome(t) * (l.isPlayer ? 0 : 1);
+            double side = l.isPlayer ? (FmRules.LowerLeagueGrant(t) + Patrons.WeeklyOf(l)) * (1 - NationRules.RulesOfNation(l.nation).taxRate) : sponsor;
             return side + match * 2 + FmRules.TierMoney("dividendBaseFm", t) * 1.05 / weeks;
         }
 
@@ -129,7 +130,8 @@ namespace Colosseum.Core
         public static double WageBudget(GameState s, Ludus l)
         {
             double income = ExpectedWeeklyIncome(s, l);
-            double fixedCost = WeeklyFood(s, l) + (l.isPlayer ? FacilitiesLogic.WeeklyUpkeep(l) + StaffLogic.StaffWages(s, l) : 0);
+            // FM 세계: AI도 시설 유지비·식솔 급료를 낸다
+            double fixedCost = WeeklyFood(s, l) + (l.isPlayer || FmRules.Enabled ? FacilitiesLogic.WeeklyUpkeep(l) + StaffLogic.StaffWages(s, l) : 0);
             double reserve = income * 12;
             double extra = l.treasury > reserve ? (l.treasury - reserve) / 48 : l.treasury < 0 ? l.treasury / 24 : 0;
             return Math.Max(0, JsMath.Round(income * 0.85 - fixedCost + extra));
@@ -146,13 +148,18 @@ namespace Colosseum.Core
             if (!ludus.isPlayer)
             {
                 // AI 루두스는 추상적으로 처리: 급료와 식비를 내고, 상금 외 부수입을 조금 번다
-                ludus.treasury += FmRules.Enabled ? AiSideIncome(ludus.tier) : ludus.tier == 1 ? 400 : 150;
+                // FM 세계: 정액 부수입 대신 스폰서 (Patrons, 유저와 같은 규칙)
+                ludus.treasury += FmRules.Enabled ? (ludus.sponsor != null ? ludus.sponsor.weekly : AiSideIncome(ludus.tier) * 0.5) : ludus.tier == 1 ? 400 : 150;
                 ludus.treasury -= WeeklyWages(state, ludus) + WeeklyFood(state, ludus);
+                // FM 세계: AI도 유저와 같은 고정비 (시설 유지비·식솔 급료)
+                if (FmRules.Enabled) ludus.treasury -= FacilitiesLogic.WeeklyUpkeep(ludus) + StaffLogic.StaffWages(state, ludus);
                 return;
             }
             // 하부 리그 지원금을 먼저 받고 나서 낸다
             double grant = FmRules.LowerLeagueGrant(ludus.tier);
             if (grant > 0) AddMoney(state, ludus, grant, $"{FmRules.TierName(ludus.tier)} 하부 리그 지원금");
+            double sponsorPay = Patrons.WeeklyOf(ludus);
+            if (sponsorPay > 0) AddMoney(state, ludus, sponsorPay, $"{ludus.sponsor.name} 스폰서");
             double food = JsMath.Round(WeeklyFood(state, ludus) * Modifiers.ModifierMult(state, "food"));
             AddMoney(state, ludus, -food, "식비");
             double upkeep = FacilitiesLogic.WeeklyUpkeep(ludus);
@@ -229,17 +236,19 @@ namespace Colosseum.Core
             }
             state.gladiators[g.id] = g;
             state.freeAgents.Add(g.id);
+            MarkFree(state, g);
+        }
+
+        /// <summary>FM 세계: 무소속이 된 날을 적는다 (SelfValue가 무소속 기간을 잰다)</summary>
+        public static void MarkFree(GameState state, Gladiator g)
+        {
+            if (FmRules.Enabled && g != null) g.freeSince = Calendar.AbsDay(state.season, state.day);
         }
 
         public static bool IsOwned(GameState state, string id) =>
             state.ludi.Values.Any(l => l.gladiators.Contains(id) || (l.youth != null && l.youth.Contains(id)));
 
-        static HashSet<string> UsedNames(GameState state)
-        {
-            var used = new HashSet<string>();
-            foreach (var x in state.gladiators.Values) used.Add(x.name);
-            return used;
-        }
+        static HashSet<string> UsedNames(GameState state) => StateUtil.UsedNames(state);
 
         /// <summary>무소속 명단의 실력 기준 (우리 리그 단계에 맞춘다)</summary>
         static double FreeAgentTarget(GameState state)
@@ -290,6 +299,7 @@ namespace Colosseum.Core
             player.gladiators = player.gladiators.Where(x => x != id).ToList();
             g.contract = null;
             state.freeAgents.Add(id);
+            MarkFree(state, g);
             Career.LogCareer(state, g, $"{player.name}에서 방출됐습니다", "other");
         }
 
@@ -300,7 +310,7 @@ namespace Colosseum.Core
         public static Demand FreeAgentDemand(GameState state, Gladiator g)
         {
             var me = state.ludi[state.playerLudusId];
-            return Reputation.DemandFor(Reputation.GladiatorStanding(g), FreeAgentBaseWage(g, me.tier), Reputation.LudusReputation(state, me));
+            return SelfValue.Apply(state, g, me, Reputation.DemandFor(Reputation.GladiatorStanding(g), FreeAgentBaseWage(g, me.tier), Reputation.LudusReputation(state, me)));
         }
 
         /// <summary>계약금 = 제안 주급 4주치 (웹판)</summary>
@@ -347,6 +357,8 @@ namespace Colosseum.Core
             if (player.gladiators.Count >= RosterCapacity(player)) return Err("막사에 빈자리가 없습니다");
             var d = FreeAgentDemand(state, g);
             if (d.refuse) return Err($"{g.name}: {d.reason}");
+            // FM 세계: 리그 수준이 한참 아래면 협상 전에 올 마음부터 (이번 기간 고정)
+            if (!SelfValue.Interested(state, g, player, offer / Math.Max(1, d.wage))) return Err(SelfValue.RefusalLine(g, player));
             if (player.treasury < SigningFeeOf(t)) return Err("계약금이 모자랍니다");
             string key = WageKey(id);
             if (Haggling.IsLocked(state, key)) return new HaggleResult { status = "locked", line = Haggling.LockedLine(state, key) };

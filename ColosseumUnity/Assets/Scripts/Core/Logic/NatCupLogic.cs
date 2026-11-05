@@ -1,6 +1,6 @@
-// 국내 컵 (Unity판 전용, FM식): 정규 리그가 끝나면 나라의 1~4부 40개 루두스가 모두 나오는 5:5 미시오 컵.
-// 40강 → 20강 → 10강 단판 뒤 5강 리그(한 번씩). 승수 → 쓰러뜨린 상대 수 → 승자승 → RP 순. 우승하면 몇 부든 판테온 컵 플레이오프에 나간다.
-// 다른 나라의 40강·20강은 하루에 100판이 넘어 전력 공식으로 정한다 (우리 나라는 전부 실제 전투).
+// 국내 컵 (Unity판 전용, FM식): 정규 리그가 끝나면 나라의 1~4부 80개 루두스(부당 20)가 모두 나오는 5:5 미시오 컵.
+// 80강 → 40강 → 20강 → 10강 단판 뒤 5강 리그(한 번씩). 승수 → 쓰러뜨린 상대 수 → 승자승 → RP 순. 우승하면 몇 부든 판테온 컵 플레이오프에 나간다.
+// 다른 나라의 80강·40강·20강은 하루에 100판이 넘어 전력 공식으로 정한다 (우리 나라는 전부 실제 전투).
 using Colosseum.Core.Combat;
 using System;
 using System.Collections.Generic;
@@ -73,16 +73,16 @@ namespace Colosseum.Core
     public static class NatCupLogic
     {
         public const int DrawDay = 106;
-        public static readonly int[] KoDays = { 108, 111, 114 };
+        public static readonly int[] KoDays = { 108, 110, 112, 114 };
         public static readonly int[] LeagueDays = { 117, 120, 123, 126, 129 };
         public const int Lineup = 5;
         public const double PrizeR10 = 800, PrizeLeague = 2500, PrizeRunnerUp = 5000, PrizeWinner = 12000;
 
-        public static readonly string[] KoStages = { "r40", "r20", "r10" };
+        public static readonly string[] KoStages = { "r80", "r40", "r20", "r10" };
 
         public static readonly Dictionary<string, string> StageNames = new()
         {
-            ["r40"] = "40강", ["r20"] = "20강", ["r10"] = "10강", ["league5"] = "5강 리그",
+            ["r80"] = "80강", ["r40"] = "40강", ["r20"] = "20강", ["r10"] = "10강", ["league5"] = "5강 리그",
         };
 
         public static string Name(string nation) => $"{Data.Nation(nation).@short} 컵";
@@ -110,7 +110,7 @@ namespace Colosseum.Core
         {
             var teams = rng.Shuffle(s.ludi.Values.Where(l => l.nation == nation).ToList());
             var cup = new NatCup { season = s.season, nation = nation, teams = teams.Select(l => l.id).ToList() };
-            AddKnockout(s, cup, "r40", KoDays[0], cup.teams);
+            AddKnockout(s, cup, KoStages[0], KoDays[0], cup.teams);
             return cup;
         }
 
@@ -132,10 +132,11 @@ namespace Colosseum.Core
             bool Has(string st) => c.ties.Any(t => t.stage == st);
             bool All(string st) => Has(st) && c.ties.Where(t => t.stage == st).All(Done);
             List<string> Winners(string st) => c.ties.Where(t => t.stage == st).Select(t => t.winner).ToList();
-            if (All("r40") && !Has("r20")) AddKnockout(s, c, "r20", KoDays[1], Winners("r40"));
-            else if (All("r20") && !Has("r10"))
+            for (int i = 0; i + 2 < KoStages.Length; i++)
+                if (All(KoStages[i]) && !Has(KoStages[i + 1])) { AddKnockout(s, c, KoStages[i + 1], KoDays[i + 1], Winners(KoStages[i])); return; }
+            if (All("r20") && !Has("r10"))
             {
-                AddKnockout(s, c, "r10", KoDays[2], Winners("r20"));
+                AddKnockout(s, c, "r10", KoDays[KoStages.Length - 1], Winners("r20"));
                 foreach (var id in Winners("r20")) Economy.AddMoney(s, s.ludi[id], PrizeR10, $"{Name(c.nation)} 10강 진출 상금");
             }
             else if (All("r10") && !Has("league5"))
@@ -263,9 +264,9 @@ namespace Colosseum.Core
                 var first = mine.ties.FirstOrDefault(t => t.home == s.playerLudusId || t.away == s.playerLudusId);
                 string opp = first == null ? "" : s.ludi[first.home == s.playerLudusId ? first.away : first.home].name;
                 StateUtil.PushMessage(s, "info", $"{Name(s.nation)} 대진 추첨",
-                    $"정규 리그가 끝나 나라의 1~4부 40개 루두스가 모두 나오는 {Name(s.nation)}가 열립니다.\n" +
-                    $"40강 → 20강 → 10강은 5:5 미시오 단판이고, 5강은 한 번씩 맞붙어 승수로 우승을 가립니다. 승수가 같으면 쓰러뜨린 상대 수, 그다음 승자승입니다.\n" +
-                    $"우승하면 몇 부든 판테온 컵 플레이오프에 나갑니다.\n\n우리 40강 상대: {opp} ({Calendar.DateLabel(KoDays[0])})\n" +
+                    $"정규 리그가 끝나 나라의 1~4부 {mine.teams.Count}개 루두스가 모두 나오는 {Name(s.nation)}가 열립니다.\n" +
+                    $"80강 → 40강 → 20강 → 10강은 5:5 미시오 단판이고, 5강은 한 번씩 맞붙어 승수로 우승을 가립니다. 승수가 같으면 쓰러뜨린 상대 수, 그다음 승자승입니다.\n" +
+                    $"우승하면 몇 부든 판테온 컵 플레이오프에 나갑니다.\n\n우리 80강 상대: {opp} ({Calendar.DateLabel(KoDays[0])})\n" +
                     "국내 컵 화면에서 경기에 나가지 않기로 정할 수도 있습니다 (기권패). 그 시간은 던전 원정이나 훈련에 쓸 수 있습니다.");
             }
             if (s.natCups == null) return;
@@ -277,7 +278,7 @@ namespace Colosseum.Core
                 foreach (var t in c.ties.ToList())
                 {
                     if (t.day != s.day || Done(t) || t.home == me || t.away == me) continue;
-                    if (c.nation != s.nation && (t.stage == "r40" || t.stage == "r20")) QuickTie(s, c, t, rng);
+                    if (c.nation != s.nation && t.stage != "r10" && t.stage != "league5") QuickTie(s, c, t, rng);
                     else PlayTie(s, c.nation, t.id, rng);
                 }
             }

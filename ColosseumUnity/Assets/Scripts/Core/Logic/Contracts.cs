@@ -316,7 +316,7 @@ namespace Colosseum.Core
             double gap = Reputation.GladiatorStanding(g) - Reputation.LudusReputation(s, me);
             double mult = FmRules.Enabled ? 1 + Math.Min(30, Math.Max(0, gap - 12)) / 100 : 1 + Math.Min(40, Math.Max(0, gap)) / 100;
             string reason = gap > 25 ? "\"이 정도 루두스에 남으려면 그만한 값은 받아야겠어.\"" : gap > 0 ? "\"조금만 더 쳐 주면 남지.\"" : "\"여기가 마음에 들어. 남겠어.\"";
-            return new Demand { wage = JsMath.Round(baseWage * loyal * mult), reason = reason };
+            return SelfValue.Apply(s, g, me, new Demand { wage = JsMath.Round(baseWage * loyal * mult), reason = reason }, renew: true);
         }
     }
 }
