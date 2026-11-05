@@ -192,7 +192,7 @@ namespace Colosseum.UI
                 "staff" => StaffLogic.RoleDesc.TryGetValue(id, out var sd) ? $"<b>{StaffLogic.RoleNames[id]}</b>\n{sd}" : null,
                 "person" => PersonTip(id),
                 "attr" => AttrDesc.TryGetValue(id, out var atd) ? $"<b>{Attrs.Names[id]}</b>\n{atd}\n<color={Theme.Hex(Theme.TextFaint)}>1~20. 훈련·나이·경기로 오르내립니다</color>" : null,
-                "prof" => Attrs.WeaponClassNames.TryGetValue(id, out var pn) ? $"<b>{pn} 숙련</b>\n이 계열 무기를 쓸 때 명중·피해·기술이 나아집니다. 스타일의 주 무기 계열 숙련은 현재 능력(CA)에도 들어갑니다.\n<color={Theme.Hex(Theme.TextFaint)}>{Colosseum.Core.Combat.Exchange.ZoneHint(id, false)}</color>" : null,
+                "prof" => Attrs.WeaponClassNames.TryGetValue(id, out var pn) ? $"<b>{pn} 숙련</b>\n이 계열 무기를 쓸 때 명중·피해·기술이 나아집니다. 스타일의 주 무기 계열 숙련은 현재 능력에도 들어갑니다.\n<color={Theme.Hex(Theme.TextFaint)}>{Colosseum.Core.Combat.Exchange.ZoneHint(id, false)}</color>" : null,
                 "sattr" => StaffLogic.AttrDesc.TryGetValue(id, out var ad) ? $"<b>{StaffLogic.AttrNames[id]}</b>\n{ad}" : null,
                 "awards" => AwardsTip(id),
                 "fight" => "<b>전투 보기</b>\n이 층에서 벌어진 난전을 모래 마당 중계로 봅니다",

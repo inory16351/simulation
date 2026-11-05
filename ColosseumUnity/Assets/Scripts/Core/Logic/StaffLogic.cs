@@ -11,7 +11,7 @@ namespace Colosseum.Core
         public static readonly Dictionary<string, string> RoleNames = new()
         {
             ["doctore"] = "독토레", ["medicus"] = "메디쿠스", ["scout"] = "정찰꾼", ["agent"] = "중개인",
-            ["weaponCoach"] = "무기 코치", ["fitnessCoach"] = "체력 코치", ["skillCoach"] = "기술 코치", ["youthHead"] = "유소년 책임자",
+            ["weaponCoach"] = "무기 교관", ["fitnessCoach"] = "체력 교관", ["skillCoach"] = "기술 교관", ["youthHead"] = "유소년 책임자",
         };
         public static readonly Dictionary<string, string> RoleDesc = new()
         {
@@ -19,9 +19,9 @@ namespace Colosseum.Core
             ["medicus"] = "의원. 부상을 빨리 낫게 하고, 사투에서 목숨을 건질 확률을 높입니다",
             ["scout"] = "정찰꾼. 검투사의 숨은 그릇(잠재력)을 더 정확히 봅니다",
             ["agent"] = "중개인. 이적료를 깎아 사고, 팔 때는 더 받아 냅니다",
-            ["weaponCoach"] = "무기 코치. 무기술·방어·주술 훈련 효율을 올립니다 (독토레와 함께 셈)",
-            ["fitnessCoach"] = "체력 코치. 체력 단련·격투 훈련 효율을 올리고 훈련 부상을 줄입니다",
-            ["skillCoach"] = "기술 코치. 정신 수양·실전 감각·교범 훈련 효율을 올립니다",
+            ["weaponCoach"] = "무기 교관. 무기술·방어·주술 훈련 효율을 올립니다 (독토레와 함께 셈)",
+            ["fitnessCoach"] = "체력 교관. 체력 단련·격투 훈련 효율을 올리고 훈련 부상을 줄입니다",
+            ["skillCoach"] = "기술 교관. 정신 수양·실전 감각·교범 훈련 효율을 올립니다",
             ["youthHead"] = "유소년 책임자. 모래 시험에 높은 잠재력의 아이가 찾아올 확률을 올립니다",
         };
 
@@ -31,7 +31,7 @@ namespace Colosseum.Core
         /// <summary>식솔 역할. 웹판 규칙은 넷(역할마다 한 명), FM 세계는 여덟(역할마다 여러 명, RoleCap)</summary>
         public static string[] Roles => FmRules.Enabled ? FmRoles : BaseRoles;
 
-        /// <summary>훈련을 맡는 역할 (코치 1명당 선수 CoachLoad명까지 효율 그대로)</summary>
+        /// <summary>훈련을 맡는 역할 (교관 1명당 선수 CoachLoad명까지 효율 그대로)</summary>
         public static readonly string[] CoachRoles = { "doctore", "weaponCoach", "fitnessCoach", "skillCoach" };
         public const int CoachLoad = 6;
 
@@ -148,7 +148,7 @@ namespace Colosseum.Core
         {
             var d = StaffOf(state, ludus, "doctore");
             if (!FmRules.Enabled) return CoachMult(RatingOf(state, ludus, "doctore"));
-            // FM 세계: 독토레 + 그 분야 코치들의 지도 능력을 합친다 (1·½·¼)
+            // FM 세계: 독토레 + 그 분야 교관들의 지도 능력을 합친다 (1·½·¼)
             string key = CoachKeyFor(focus);
             string coach = focus switch
             {
@@ -163,7 +163,7 @@ namespace Colosseum.Core
             if (people.Count == 0) return CoachMult(0);
             double v = Combine(people.Select(p => key != null ? (double)Attr(p, key) : p.rating));
             double bonus = v * 0.015 + (d != null ? (Attr(d, "motiv") - 10) * 0.002 : 0);
-            // 코치 1명당 선수 6명까지는 그대로, 그보다 많으면 효율이 떨어진다
+            // 교관 1명당 선수 6명까지는 그대로, 그보다 많으면 효율이 떨어진다
             int coaches = CoachRoles.Sum(r => StaffsOf(state, ludus, r).Count);
             int roster = ludus.gladiators.Count + (ludus.youth?.Count ?? 0);
             double load = roster <= 0 ? 1 : Math.Min(1, CoachLoad * Math.Max(1, coaches) / (double)roster);

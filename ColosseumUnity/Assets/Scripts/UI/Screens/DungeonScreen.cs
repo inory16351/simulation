@@ -87,14 +87,21 @@ namespace Colosseum.UI
             var img = art.GetComponent<Image>();
             img.raycastTarget = false;
             img.preserveAspect = false;
-            // 그림 위 띠: 위험도 (왼쪽 위) · 차지한 루두스 (가운데)
-            var badge = Instantiate(name.gameObject, art.transform);
+            // 그림 위 띠: 위험도 (왼쪽 위, 어두운 바탕 위에) · 차지한 루두스 (가운데)
+            var badgeBg = new GameObject("Badge", typeof(RectTransform), typeof(Image));
+            badgeBg.transform.SetParent(art.transform, false);
+            var bb = (RectTransform)badgeBg.transform;
+            bb.anchorMin = bb.anchorMax = new Vector2(0, 1); bb.pivot = new Vector2(0, 1);
+            bb.anchoredPosition = new Vector2(6, -6); bb.sizeDelta = new Vector2(92, 26);
+            badgeBg.GetComponent<Image>().color = new Color(0.06f, 0.04f, 0.03f, 0.85f);
+            badgeBg.GetComponent<Image>().raycastTarget = false;
+            var badge = Instantiate(name.gameObject, badgeBg.transform);
             badge.name = "Grade";
             var bt = badge.GetComponent<TMP_Text>();
-            bt.fontSize = 13; bt.alignment = TextAlignmentOptions.TopLeft; bt.raycastTarget = false;
+            bt.fontSize = 14; bt.fontStyle = FontStyles.Bold; bt.alignment = TextAlignmentOptions.Center; bt.raycastTarget = false;
             var ble = badge.GetComponent<LayoutElement>(); if (ble != null) ble.ignoreLayout = true;
             var br = (RectTransform)badge.transform;
-            br.anchorMin = Vector2.zero; br.anchorMax = Vector2.one; br.offsetMin = new Vector2(6, 4); br.offsetMax = new Vector2(-6, -4);
+            br.anchorMin = Vector2.zero; br.anchorMax = Vector2.one; br.offsetMin = br.offsetMax = Vector2.zero;
             var veil = new GameObject("Veil", typeof(RectTransform), typeof(Image));
             veil.transform.SetParent(art.transform, false);
             var vr = (RectTransform)veil.transform; vr.anchorMin = Vector2.zero; vr.anchorMax = Vector2.one; vr.offsetMin = vr.offsetMax = Vector2.zero;
@@ -106,7 +113,7 @@ namespace Colosseum.UI
             ct.fontSize = 14; ct.alignment = TextAlignmentOptions.Center; ct.raycastTarget = true; ct.color = Theme.Parchment;
             var cle = claim.GetComponent<LayoutElement>(); if (cle != null) cle.ignoreLayout = true;
             var cr = (RectTransform)claim.transform; cr.anchorMin = Vector2.zero; cr.anchorMax = Vector2.one; cr.offsetMin = new Vector2(8, 4); cr.offsetMax = new Vector2(-8, -4);
-            badge.transform.SetAsLastSibling();
+            badgeBg.transform.SetAsLastSibling();
             // 어림 줄 (Meta 다음)
             var meta = T(card, "Meta");
             var odds = Instantiate(meta.gameObject, card);
@@ -132,7 +139,7 @@ namespace Colosseum.UI
             g.startAxis = GridLayoutGroup.Axis.Horizontal;
             g.childAlignment = TextAnchor.UpperLeft;
             var ag = grid.gameObject.AddComponent<AutoGrid>();
-            ag.minCell = 250; ag.cellHeight = 318; ag.maxColumns = 6;
+            ag.minCell = 250; ag.cellHeight = 266; ag.maxColumns = 6;
 
             // 카드 위: 거르기 단추와 어림 기준 안내 (FM 세계만)
             var row = new GameObject("DungeonFilter", typeof(RectTransform));
@@ -353,9 +360,9 @@ namespace Colosseum.UI
             if (owner != null)
                 T(b.transform, "Art/Veil/Claim").text = ours ? $"<color={Theme.Hex(Theme.Torch)}>우리 원정대가 탐험 중</color>"
                     : $"{Tips.Ludus(owner)}\n<size=85%><color={Theme.Hex(Theme.TextDim)}>{Tips.Nation(owner.nation, true)} {owner.tier}부 · 원정 중</color></size>";
-            T(b.transform, "Art/Grade").text = x.grade > 0
-                ? $"<mark=#000000aa padding=\"6,6,2,2\"><color={Theme.Hex(GradeColor(x.grade))}>위험도 {x.grade}</color></mark>"
-                : $"<mark=#000000aa padding=\"6,6,2,2\">{x.tier}등급</mark>";
+            T(b.transform, "Art/Badge/Grade").text = x.grade > 0
+                ? $"<color={Theme.Hex(GradeColor(x.grade))}>위험도 {x.grade}</color>"
+                : $"{x.tier}등급";
             T(b.transform, "Name").text = x.name;
             T(b.transform, "Desc").text = x.desc;
             T(b.transform, "Meta").text = $"{x.floors}층 · {x.days}일 · 적 <color={Theme.Hex(Theme.Torch)}>{Widgets.Stars(DungeonLogic.FoeCa(x))}</color>";

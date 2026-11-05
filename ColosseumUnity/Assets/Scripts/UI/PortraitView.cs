@@ -54,23 +54,36 @@ namespace Colosseum.UI
                 var sprite = Load(l.src);
                 if (sprite == null) continue;
                 Transform parent = transform;
-                float clipY = 0;
+                float offY = 0;
                 if (l.clipBottom != null || l.clipTop != null)
                 {
-                    // 얼굴 다시 그리기는 턱 줄 위만, 닫힌 투구 아래 머리는 투구 아래쪽 밑만 보이게 잘라 그린다
-                    clipY = l.clipTop ?? 0;
-                    float clipH = (l.clipBottom ?? Portrait2.Cell) - clipY;
+                    // 얼굴 다시 그리기·흉터는 턱 줄 위만, 닫힌 투구 아래 머리는 투구 아래쪽 밑만 보이게 잘라 그린다
+                    offY = l.clipTop ?? 0;
+                    float clipH = (l.clipBottom ?? Portrait2.Cell) - offY;
                     var clip = new GameObject("Clip", typeof(RectTransform), typeof(RectMask2D)).GetComponent<RectTransform>();
                     clip.SetParent(transform, false);
-                    Place(clip, 0, clipY, Portrait2.Cell, clipH, scale);
+                    Place(clip, 0, offY, Portrait2.Cell, clipH, scale);
                     spawned.Add(clip.gameObject);
                     parent = clip;
+                }
+                if (l.maskSrc != null && Load(l.maskSrc) is Sprite maskSprite)
+                {
+                    // 흉터·문신: 머리 실루엣(그림의 알파)을 가리개로 써서 얼굴 윤곽 밖은 그리지 않는다
+                    var maskImg = new GameObject("MarkMask", typeof(RectTransform), typeof(Image), typeof(Mask)).GetComponent<Image>();
+                    maskImg.transform.SetParent(parent, false);
+                    maskImg.sprite = maskSprite;
+                    maskImg.raycastTarget = false;
+                    maskImg.GetComponent<Mask>().showMaskGraphic = false;
+                    Place((RectTransform)maskImg.transform, 0, -offY, Portrait2.Cell, Portrait2.Cell, scale);
+                    if (parent == transform) spawned.Add(maskImg.gameObject);
+                    parent = maskImg.transform;
+                    offY = 0;
                 }
                 var img = Instantiate(layerTemplate, parent);
                 img.gameObject.SetActive(true);
                 img.sprite = sprite;
                 img.material = l.tint != null ? TintMaterial(l.tint) : null;
-                Place((RectTransform)img.transform, l.x, l.y - clipY, l.w, l.h, scale);
+                Place((RectTransform)img.transform, l.x, l.y - offY, l.w, l.h, scale);
                 if (parent == transform) spawned.Add(img.gameObject);
             }
         }

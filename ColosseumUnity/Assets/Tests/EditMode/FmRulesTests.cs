@@ -187,7 +187,7 @@ namespace Colosseum.Tests
             Assert.GreaterOrEqual(m, SelfValue.MinMult);
         }
 
-        /// <summary>FM 세계 단계 5: 같은 역할 여러 명 (상한까지), 효과는 1·½·¼로 합치고, 해고하면 돌아온다. 코치가 모자라면 효율이 떨어진다</summary>
+        /// <summary>FM 세계 단계 5: 같은 역할 여러 명 (상한까지), 효과는 1·½·¼로 합치고, 해고하면 돌아온다. 교관이 모자라면 효율이 떨어진다</summary>
         [Test]
         public void StaffStackByRoleAndFiringRestores()
         {
@@ -195,7 +195,7 @@ namespace Colosseum.Tests
             var me = s.ludi[s.playerLudusId];
             var rng = new Rng(3);
             me.treasury = 1_000_000;
-            Assert.GreaterOrEqual(StaffLogic.RoleCap(me, "weaponCoach"), 2, "1부는 코치를 여럿 둘 수 있다");
+            Assert.GreaterOrEqual(StaffLogic.RoleCap(me, "weaponCoach"), 2, "1부는 교관을 여럿 둘 수 있다");
             var a = StaffLogic.MakeStaff(s, rng, "weaponCoach", 14, 1);
             var b = StaffLogic.MakeStaff(s, rng, "weaponCoach", 10, 1);
             s.staffMarket.Add(a.id); s.staffMarket.Add(b.id);
@@ -219,7 +219,7 @@ namespace Colosseum.Tests
             Assert.IsNull(StaffLogic.HireStaff(s, y1.id, 10000, 0));
             Assert.IsNotNull(StaffLogic.HireStaff(s, y2.id, 10000, 0), "유소년 책임자는 한 명");
             Assert.Greater(Youth.YouthHeadBonus(s, me), 0);
-            // 선수가 코치 수보다 너무 많으면 효율이 떨어진다
+            // 선수가 교관 수보다 너무 많으면 효율이 떨어진다
             double full = StaffLogic.CoachMultFor(s, me, "weapon");
             for (int i = 0; i < 40; i++) me.gladiators.Add(me.gladiators[0]);
             Assert.Less(StaffLogic.CoachMultFor(s, me, "weapon"), full);

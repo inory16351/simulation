@@ -30,6 +30,8 @@ namespace Colosseum.Core
         /// <summary>닫힌 투구 아래 머리: 이 y(셀 좌표) 위는 자른다</summary>
         public float? clipTop;
         public string tint;
+        /// <summary>이 그림(머리)의 실루엣 안에만 그린다: 흉터·문신이 얼굴 윤곽 밖 배경으로 넘치지 않게</summary>
+        public string maskSrc;
     }
 
     public static class Portrait2
@@ -118,12 +120,12 @@ namespace Colosseum.Core
             var visor = view == "front" && (spec.helmet?.StartsWith("helmet_visor") ?? false) && VisorHidesHead.Contains(spec.race) ? vd["parts"]?[spec.helmet]?[spec.head] : null;
             if (visor != null && visor.Type == JTokenType.Null) visor = null;
             var o = new List<PortraitLayer> { new() { src = $"{dir}/head_{spec.head + 1}", x = 0, y = 0, w = c, h = c, clipTop = visor != null ? (float?)((float)visor[1] + (float)visor[3] * 0.7f) : null } };
-            void Part(string name, string tint = null)
+            void Part(string name, string tint = null, string mask = null, float? clipBottom = null)
             {
                 if (name == null) return;
                 var rect = vd["parts"]?[name]?[spec.head];
                 if (rect == null || rect.Type == JTokenType.Null) return;
-                o.Add(new PortraitLayer { src = $"{dir}/{name}", x = (float)rect[0], y = (float)rect[1], w = (float)rect[2], h = (float)rect[3], tint = tint });
+                o.Add(new PortraitLayer { src = $"{dir}/{name}", x = (float)rect[0], y = (float)rect[1], w = (float)rect[2], h = (float)rect[3], tint = tint, maskSrc = mask, clipBottom = clipBottom });
             }
             if (view == "front")
             {
@@ -131,7 +133,8 @@ namespace Colosseum.Core
                 // 갑옷이 턱을 덮지 않게 얼굴(턱 줄 위)을 다시 그린다 (머리를 감싸는 투구면 필요 없다)
                 if (spec.armor != null && visor == null) o.Add(new PortraitLayer { src = $"{dir}/head_{spec.head + 1}", x = 0, y = 0, w = c, h = c, clipBottom = (float?)vd["heads"][spec.head]["chin"] });
             }
-            if (visor == null) foreach (var m in spec.marks ?? new List<string>()) Part(m);
+            // 흉터·문신은 머리 실루엣 안, 턱 줄 위에만 (목·배경으로 넘치지 않게)
+            if (visor == null) foreach (var m in spec.marks ?? new List<string>()) Part(m, null, $"{dir}/head_{spec.head + 1}", (float?)vd["heads"][spec.head]["chin"]);
             Part(spec.beard, spec.tint);
             // 위아래로 나눠 맞춘 수염의 아래(턱수염) 조각
             if (spec.beard != null) Part(spec.beard + "_lo", spec.tint);

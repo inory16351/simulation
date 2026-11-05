@@ -1,4 +1,5 @@
 // 식솔 (웹판 StaffScreen.tsx): 자리 넷(독토레·메디쿠스·정찰꾼·중개인)과 식솔 찾기. 후보 줄은 하이어라키의 비활성 원본을 복제한다.
+// Unity판: '우리 식솔'과 '식솔 찾기'를 탭으로 나눈다 (FM 세계는 역할이 여덟이라 한 화면에 두면 찾기 표가 한 줄로 눌린다). 탭·스크롤은 코드로 붙인다.
 // Unity판에만 있는 것: 고용은 주급 흥정(StaffLogic.HaggleStaff). 역제안이 오면 입력칸을 그 값으로 채운다.
 using System.Collections.Generic;
 using System.Linq;
@@ -32,11 +33,16 @@ namespace Colosseum.UI
         string msg, confirmFire;
         bool msgGood, onlyWilling;
         readonly Dictionary<string, double> offers = new();
+        /// <summary>list 우리 식솔 · find 식솔 찾기</summary>
+        string tab = "list";
+        Button tabList, tabFind;
+        GameObject rolesView, searchPanel;
 
         void Awake()
         {
             rows = new TemplateList<RectTransform>(rowTemplate);
             GrowRolePads();
+            BuildTabs();
             Fill(roleFilter, new[] { "전부" }.Concat(StaffLogic.Roles.Select(r => StaffLogic.RoleNames[r])), 0);
             Fill(ratingFilter, RatingSteps.Select(v => v == 0 ? "제한 없음" : v.ToString()), 0);
             roleFilter.onValueChanged.AddListener(_ => Refresh());
@@ -46,13 +52,76 @@ namespace Colosseum.UI
 
         Ludus Player => S.ludi[S.playerLudusId];
 
+        /// <summary>자리 패널 묶음(Roles)을 스크롤 안에 넣고, 그 위에 탭 단추 둘을 붙인다</summary>
+        void BuildTabs()
+        {
+            if (rolePads.Count == 0) return;
+            var roles = (RectTransform)rolePads[0].parent.parent.parent;
+            var root = roles.parent;
+            searchPanel = root.Find("Search")?.gameObject;
+            // 스크롤: Roles를 내용으로
+            var view = new GameObject("RolesView", typeof(RectTransform), typeof(Image), typeof(ScrollRect), typeof(LayoutElement));
+            view.transform.SetParent(root, false);
+            view.transform.SetSiblingIndex(roles.GetSiblingIndex());
+            view.GetComponent<Image>().color = new Color(0, 0, 0, 0);
+            var vle = view.GetComponent<LayoutElement>(); vle.flexibleHeight = 1; vle.minHeight = 120;
+            var port = new GameObject("Viewport", typeof(RectTransform), typeof(RectMask2D));
+            port.transform.SetParent(view.transform, false);
+            var pr = (RectTransform)port.transform; pr.anchorMin = Vector2.zero; pr.anchorMax = Vector2.one; pr.offsetMin = Vector2.zero; pr.offsetMax = new Vector2(-10, 0);
+            roles.SetParent(port.transform, false);
+            roles.anchorMin = new Vector2(0, 1); roles.anchorMax = new Vector2(1, 1); roles.pivot = new Vector2(0.5f, 1);
+            roles.offsetMin = roles.offsetMax = Vector2.zero;
+            var fit = roles.gameObject.GetComponent<ContentSizeFitter>() ?? roles.gameObject.AddComponent<ContentSizeFitter>();
+            fit.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+            var sr = view.GetComponent<ScrollRect>();
+            sr.content = roles; sr.viewport = pr; sr.horizontal = false; sr.vertical = true;
+            sr.movementType = ScrollRect.MovementType.Clamped; sr.scrollSensitivity = 30;
+            rolesView = view;
+            // 줄 높이는 내용에 맞춘다 (고정 116이면 카드 글줄이 겹친다)
+            foreach (Transform line in roles)
+            {
+                var le = line.GetComponent<LayoutElement>();
+                if (le != null) { le.minHeight = 0; le.preferredHeight = -1; }
+            }
+            // 탭 단추: '올 마음이 있는 사람만' 단추를 복제해 같은 모양으로
+            var row = new GameObject("Tabs", typeof(RectTransform), typeof(LayoutElement));
+            row.transform.SetParent(root, false);
+            row.transform.SetSiblingIndex(view.transform.GetSiblingIndex());
+            var h = row.AddComponent<HorizontalLayoutGroup>();
+            h.spacing = 8; h.childControlWidth = h.childControlHeight = true; h.childForceExpandWidth = h.childForceExpandHeight = false; h.childAlignment = TextAnchor.MiddleLeft;
+            var rle = row.GetComponent<LayoutElement>(); rle.minHeight = rle.preferredHeight = 34; rle.flexibleHeight = 0;
+            Button MakeTab(string id)
+            {
+                var b = Instantiate(willingToggle.gameObject, row.transform).GetComponent<Button>();
+                b.name = "Tab_" + id;
+                var le = b.GetComponent<LayoutElement>() ?? b.gameObject.AddComponent<LayoutElement>();
+                le.minWidth = le.preferredWidth = 200; le.minHeight = le.preferredHeight = 34; le.flexibleWidth = 0;
+                b.onClick.RemoveAllListeners();
+                b.onClick.AddListener(() => { tab = id; msg = null; Refresh(); });
+                return b;
+            }
+            tabList = MakeTab("list");
+            tabFind = MakeTab("find");
+        }
+
         public override void Refresh()
         {
             var me = Player;
+            if (tabList != null)
+            {
+                int mine = me.staff.Count;
+                tabList.GetComponentInChildren<TMP_Text>().text = $"우리 식솔 ({mine}명)";
+                tabFind.GetComponentInChildren<TMP_Text>().text = $"식솔 찾기 (후보 {S.staffMarket.Count}명)";
+                Seg(tabList, tab == "list");
+                Seg(tabFind, tab == "find");
+                rolesView.SetActive(tab == "list");
+                if (searchPanel != null) searchPanel.SetActive(tab == "find");
+            }
             sub.text = (FmRules.Enabled ? "역할마다 여러 명을 둘 수 있습니다 (부·시설에 따라 늘어남). 같은 역할은 가장 잘하는 사람 효과에 둘째는 절반, 셋째는 4분의 1이 더해집니다. " : "자리마다 한 명씩 둡니다. ") + $"식솔 급료도 급료일에 함께 나가며, 지금은 매주 {StateUtil.Num(StaffLogic.StaffWages(S, me))} D가 나갑니다. 후보는 이적 시장이 열릴 때마다 바뀝니다.";
-            for (int i = 0; i < rolePads.Count && i < StaffLogic.Roles.Length; i++)
-                BindRolePeople(rolePads[i], StaffLogic.Roles[i], StaffLogic.StaffsOf(S, me, StaffLogic.Roles[i]));
-            DrawMarket();
+            if (tab == "list" || tabList == null)
+                for (int i = 0; i < rolePads.Count && i < StaffLogic.Roles.Length; i++)
+                    BindRolePeople(rolePads[i], StaffLogic.Roles[i], StaffLogic.StaffsOf(S, me, StaffLogic.Roles[i]));
+            if (tab == "find" || tabList == null) DrawMarket();
         }
 
         // ── 자리 ──
@@ -110,26 +179,16 @@ namespace Colosseum.UI
                     if (i < people.Count) BindCard(cards[i], people[i]);
                 }
             }
-            // 줄 높이: 사람이 많은 칸에 맞춘다
-            var line = pad.parent.parent;
-            int most = 1;
-            foreach (Transform frame in line)
-            {
-                var p = frame.Find("Pad");
-                if (p == null || !frame.gameObject.activeSelf) continue;
-                int n = 0;
-                foreach (Transform c in p) if (c.name.StartsWith("Card") && c.gameObject.activeSelf) n++;
-                most = Mathf.Max(most, n);
-            }
-            var le = line.GetComponent<LayoutElement>();
-            if (le != null) le.minHeight = le.preferredHeight = 116 + (most - 1) * 58;
+            // 줄 높이는 내용(카드 수)에 맞춰 레이아웃이 정한다 (BuildTabs에서 고정 높이를 풀었다)
         }
 
         void BindRole(RectTransform pad, Staff st)
         {
             var card = pad.Find("Card");
             card.gameObject.SetActive(st != null);
-            pad.Find("Empty").gameObject.SetActive(st == null);
+            var empty = pad.Find("Empty");
+            empty.gameObject.SetActive(st == null);
+            if (FmRules.Enabled) empty.GetComponent<TMP_Text>().text = "비어 있습니다. '식솔 찾기' 탭에서 구할 수 있습니다.";
             if (st == null) return;
             BindCard(card, st);
         }

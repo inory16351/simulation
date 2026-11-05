@@ -1,0 +1,835 @@
+{
+ "presets": {
+  "dots": ""
+ },
+ "style": "",
+ "styleRefPresets": [
+  "dots"
+ ],
+ "items": [
+  {
+   "id": "heads_human_1",
+   "preset": "dots",
+   "out": "art/source/portrait_fit/dots/heads_human_1.png",
+   "styleRef": "art/source/portrait_fit/heads_human_1.png",
+   "prompt": "Copy the attached sheet EXACTLY: same 3x3 grid, same flat magenta background, every drawing in exactly the same position, size and shape (do not move, resize, crop, redraw differently or restyle anything). The ONLY change: add small solid round marker dots (about 1.5% of the cell width, perfectly flat color, no outline, no glow, no shading) on top of the drawings as listed. Use exactly these colors and nothing else in those colors. No text, no labels. Left/right below mean the VIEWER's left/right. In EVERY cell (a head-and-shoulders bust) mark the shoulder line: one pure RED (#FF0000) dot ON THE OUTLINE where the left side of the neck meets the top of the left shoulder (the inner corner of the shoulder); one pure YELLOW (#FFFF00) dot at the same place on the right; one pure BLUE (#0000FF) dot ON THE TOP OUTLINE of the left shoulder at its outer end (the shoulder tip, where the shoulder top turns down into the arm; if the shoulder runs off the cell before turning down, put it on the shoulder's top outline exactly at the cell's left edge); one pure GREEN (#00FF00) dot at the same place on the right shoulder. Empty cells get no dots.",
+   "kind": "heads",
+   "cells": [
+    {
+     "race": "human",
+     "name": "head_1"
+    },
+    {
+     "race": "human",
+     "name": "head_2"
+    },
+    {
+     "race": "human",
+     "name": "head_3"
+    },
+    {
+     "race": "human",
+     "name": "head_4"
+    },
+    {
+     "race": "human",
+     "name": "head_5"
+    },
+    {
+     "race": "human",
+     "name": "head_6"
+    },
+    {
+     "race": "human",
+     "name": "head_7"
+    },
+    {
+     "race": "human",
+     "name": "head_8"
+    },
+    {
+     "race": "human",
+     "name": "head_9"
+    }
+   ]
+  },
+  {
+   "id": "heads_human_2",
+   "preset": "dots",
+   "out": "art/source/portrait_fit/dots/heads_human_2.png",
+   "styleRef": "art/source/portrait_fit/heads_human_2.png",
+   "prompt": "Copy the attached sheet EXACTLY: same 3x3 grid, same flat magenta background, every drawing in exactly the same position, size and shape (do not move, resize, crop, redraw differently or restyle anything). The ONLY change: add small solid round marker dots (about 1.5% of the cell width, perfectly flat color, no outline, no glow, no shading) on top of the drawings as listed. Use exactly these colors and nothing else in those colors. No text, no labels. Left/right below mean the VIEWER's left/right. In EVERY cell (a head-and-shoulders bust) mark the shoulder line: one pure RED (#FF0000) dot ON THE OUTLINE where the left side of the neck meets the top of the left shoulder (the inner corner of the shoulder); one pure YELLOW (#FFFF00) dot at the same place on the right; one pure BLUE (#0000FF) dot ON THE TOP OUTLINE of the left shoulder at its outer end (the shoulder tip, where the shoulder top turns down into the arm; if the shoulder runs off the cell before turning down, put it on the shoulder's top outline exactly at the cell's left edge); one pure GREEN (#00FF00) dot at the same place on the right shoulder. Empty cells get no dots.",
+   "kind": "heads",
+   "cells": [
+    {
+     "race": "human",
+     "name": "head_10"
+    },
+    {
+     "race": "human",
+     "name": "head_11"
+    },
+    {
+     "race": "human",
+     "name": "head_12"
+    },
+    {
+     "race": "human",
+     "name": "head_13"
+    },
+    {
+     "race": "human",
+     "name": "head_14"
+    },
+    {
+     "race": "human",
+     "name": "head_15"
+    },
+    {
+     "race": "human",
+     "name": "head_16"
+    },
+    {
+     "race": "human",
+     "name": "head_17"
+    },
+    {
+     "race": "human",
+     "name": "head_18"
+    }
+   ]
+  },
+  {
+   "id": "heads_human_3",
+   "preset": "dots",
+   "out": "art/source/portrait_fit/dots/heads_human_3.png",
+   "styleRef": "art/source/portrait_fit/heads_human_3.png",
+   "prompt": "Copy the attached sheet EXACTLY: same 3x3 grid, same flat magenta background, every drawing in exactly the same position, size and shape (do not move, resize, crop, redraw differently or restyle anything). The ONLY change: add small solid round marker dots (about 1.5% of the cell width, perfectly flat color, no outline, no glow, no shading) on top of the drawings as listed. Use exactly these colors and nothing else in those colors. No text, no labels. Left/right below mean the VIEWER's left/right. In EVERY cell (a head-and-shoulders bust) mark the shoulder line: one pure RED (#FF0000) dot ON THE OUTLINE where the left side of the neck meets the top of the left shoulder (the inner corner of the shoulder); one pure YELLOW (#FFFF00) dot at the same place on the right; one pure BLUE (#0000FF) dot ON THE TOP OUTLINE of the left shoulder at its outer end (the shoulder tip, where the shoulder top turns down into the arm; if the shoulder runs off the cell before turning down, put it on the shoulder's top outline exactly at the cell's left edge); one pure GREEN (#00FF00) dot at the same place on the right shoulder. Empty cells get no dots.",
+   "kind": "heads",
+   "cells": [
+    {
+     "race": "human",
+     "name": "head_19"
+    },
+    {
+     "race": "human",
+     "name": "head_20"
+    },
+    {
+     "race": "human",
+     "name": "head_21"
+    },
+    {
+     "race": "human",
+     "name": "head_22"
+    },
+    {
+     "race": "human",
+     "name": "head_23"
+    },
+    {
+     "race": "human",
+     "name": "head_24"
+    },
+    {
+     "race": "human",
+     "name": "head_25"
+    },
+    {
+     "race": "human",
+     "name": "head_26"
+    },
+    {
+     "race": "human",
+     "name": "head_27"
+    }
+   ]
+  },
+  {
+   "id": "heads_beastkin_1",
+   "preset": "dots",
+   "out": "art/source/portrait_fit/dots/heads_beastkin_1.png",
+   "styleRef": "art/source/portrait_fit/heads_beastkin_1.png",
+   "prompt": "Copy the attached sheet EXACTLY: same 3x3 grid, same flat magenta background, every drawing in exactly the same position, size and shape (do not move, resize, crop, redraw differently or restyle anything). The ONLY change: add small solid round marker dots (about 1.5% of the cell width, perfectly flat color, no outline, no glow, no shading) on top of the drawings as listed. Use exactly these colors and nothing else in those colors. No text, no labels. Left/right below mean the VIEWER's left/right. In EVERY cell (a head-and-shoulders bust) mark the shoulder line: one pure RED (#FF0000) dot ON THE OUTLINE where the left side of the neck meets the top of the left shoulder (the inner corner of the shoulder); one pure YELLOW (#FFFF00) dot at the same place on the right; one pure BLUE (#0000FF) dot ON THE TOP OUTLINE of the left shoulder at its outer end (the shoulder tip, where the shoulder top turns down into the arm; if the shoulder runs off the cell before turning down, put it on the shoulder's top outline exactly at the cell's left edge); one pure GREEN (#00FF00) dot at the same place on the right shoulder. Empty cells get no dots.",
+   "kind": "heads",
+   "cells": [
+    {
+     "race": "beastkin",
+     "name": "head_1"
+    },
+    {
+     "race": "beastkin",
+     "name": "head_2"
+    },
+    {
+     "race": "beastkin",
+     "name": "head_3"
+    },
+    {
+     "race": "beastkin",
+     "name": "head_4"
+    },
+    {
+     "race": "beastkin",
+     "name": "head_5"
+    },
+    {
+     "race": "beastkin",
+     "name": "head_6"
+    },
+    {
+     "race": "beastkin",
+     "name": "head_7"
+    },
+    {
+     "race": "beastkin",
+     "name": "head_8"
+    },
+    {
+     "race": "beastkin",
+     "name": "head_9"
+    }
+   ]
+  },
+  {
+   "id": "heads_beastkin_2",
+   "preset": "dots",
+   "out": "art/source/portrait_fit/dots/heads_beastkin_2.png",
+   "styleRef": "art/source/portrait_fit/heads_beastkin_2.png",
+   "prompt": "Copy the attached sheet EXACTLY: same 3x3 grid, same flat magenta background, every drawing in exactly the same position, size and shape (do not move, resize, crop, redraw differently or restyle anything). The ONLY change: add small solid round marker dots (about 1.5% of the cell width, perfectly flat color, no outline, no glow, no shading) on top of the drawings as listed. Use exactly these colors and nothing else in those colors. No text, no labels. Left/right below mean the VIEWER's left/right. In EVERY cell (a head-and-shoulders bust) mark the shoulder line: one pure RED (#FF0000) dot ON THE OUTLINE where the left side of the neck meets the top of the left shoulder (the inner corner of the shoulder); one pure YELLOW (#FFFF00) dot at the same place on the right; one pure BLUE (#0000FF) dot ON THE TOP OUTLINE of the left shoulder at its outer end (the shoulder tip, where the shoulder top turns down into the arm; if the shoulder runs off the cell before turning down, put it on the shoulder's top outline exactly at the cell's left edge); one pure GREEN (#00FF00) dot at the same place on the right shoulder. Empty cells get no dots.",
+   "kind": "heads",
+   "cells": [
+    {
+     "race": "beastkin",
+     "name": "head_10"
+    },
+    {
+     "race": "beastkin",
+     "name": "head_11"
+    },
+    {
+     "race": "beastkin",
+     "name": "head_12"
+    },
+    {
+     "race": "beastkin",
+     "name": "head_13"
+    },
+    {
+     "race": "beastkin",
+     "name": "head_14"
+    },
+    {
+     "race": "beastkin",
+     "name": "head_15"
+    },
+    {
+     "race": "beastkin",
+     "name": "head_16"
+    },
+    {
+     "race": "beastkin",
+     "name": "head_17"
+    },
+    {
+     "race": "beastkin",
+     "name": "head_18"
+    }
+   ]
+  },
+  {
+   "id": "heads_dwarf_1",
+   "preset": "dots",
+   "out": "art/source/portrait_fit/dots/heads_dwarf_1.png",
+   "styleRef": "art/source/portrait_fit/heads_dwarf_1.png",
+   "prompt": "Copy the attached sheet EXACTLY: same 3x3 grid, same flat magenta background, every drawing in exactly the same position, size and shape (do not move, resize, crop, redraw differently or restyle anything). The ONLY change: add small solid round marker dots (about 1.5% of the cell width, perfectly flat color, no outline, no glow, no shading) on top of the drawings as listed. Use exactly these colors and nothing else in those colors. No text, no labels. Left/right below mean the VIEWER's left/right. In EVERY cell (a head-and-shoulders bust) mark the shoulder line: one pure RED (#FF0000) dot ON THE OUTLINE where the left side of the neck meets the top of the left shoulder (the inner corner of the shoulder); one pure YELLOW (#FFFF00) dot at the same place on the right; one pure BLUE (#0000FF) dot ON THE TOP OUTLINE of the left shoulder at its outer end (the shoulder tip, where the shoulder top turns down into the arm; if the shoulder runs off the cell before turning down, put it on the shoulder's top outline exactly at the cell's left edge); one pure GREEN (#00FF00) dot at the same place on the right shoulder. Empty cells get no dots.",
+   "kind": "heads",
+   "cells": [
+    {
+     "race": "dwarf",
+     "name": "head_1"
+    },
+    {
+     "race": "dwarf",
+     "name": "head_2"
+    },
+    {
+     "race": "dwarf",
+     "name": "head_3"
+    },
+    {
+     "race": "dwarf",
+     "name": "head_4"
+    },
+    {
+     "race": "dwarf",
+     "name": "head_5"
+    },
+    {
+     "race": "dwarf",
+     "name": "head_6"
+    },
+    {
+     "race": "dwarf",
+     "name": "head_7"
+    },
+    {
+     "race": "dwarf",
+     "name": "head_8"
+    },
+    {
+     "race": "dwarf",
+     "name": "head_9"
+    }
+   ]
+  },
+  {
+   "id": "heads_dwarf_2",
+   "preset": "dots",
+   "out": "art/source/portrait_fit/dots/heads_dwarf_2.png",
+   "styleRef": "art/source/portrait_fit/heads_dwarf_2.png",
+   "prompt": "Copy the attached sheet EXACTLY: same 3x3 grid, same flat magenta background, every drawing in exactly the same position, size and shape (do not move, resize, crop, redraw differently or restyle anything). The ONLY change: add small solid round marker dots (about 1.5% of the cell width, perfectly flat color, no outline, no glow, no shading) on top of the drawings as listed. Use exactly these colors and nothing else in those colors. No text, no labels. Left/right below mean the VIEWER's left/right. In EVERY cell (a head-and-shoulders bust) mark the shoulder line: one pure RED (#FF0000) dot ON THE OUTLINE where the left side of the neck meets the top of the left shoulder (the inner corner of the shoulder); one pure YELLOW (#FFFF00) dot at the same place on the right; one pure BLUE (#0000FF) dot ON THE TOP OUTLINE of the left shoulder at its outer end (the shoulder tip, where the shoulder top turns down into the arm; if the shoulder runs off the cell before turning down, put it on the shoulder's top outline exactly at the cell's left edge); one pure GREEN (#00FF00) dot at the same place on the right shoulder. Empty cells get no dots.",
+   "kind": "heads",
+   "cells": [
+    {
+     "race": "dwarf",
+     "name": "head_10"
+    },
+    {
+     "race": "dwarf",
+     "name": "head_11"
+    },
+    {
+     "race": "dwarf",
+     "name": "head_12"
+    },
+    {
+     "race": "dwarf",
+     "name": "head_13"
+    },
+    {
+     "race": "dwarf",
+     "name": "head_14"
+    },
+    {
+     "race": "dwarf",
+     "name": "head_15"
+    },
+    {
+     "race": "dwarf",
+     "name": "head_16"
+    },
+    {
+     "race": "dwarf",
+     "name": "head_17"
+    },
+    {
+     "race": "dwarf",
+     "name": "head_18"
+    }
+   ]
+  },
+  {
+   "id": "heads_elf_1",
+   "preset": "dots",
+   "out": "art/source/portrait_fit/dots/heads_elf_1.png",
+   "styleRef": "art/source/portrait_fit/heads_elf_1.png",
+   "prompt": "Copy the attached sheet EXACTLY: same 3x3 grid, same flat magenta background, every drawing in exactly the same position, size and shape (do not move, resize, crop, redraw differently or restyle anything). The ONLY change: add small solid round marker dots (about 1.5% of the cell width, perfectly flat color, no outline, no glow, no shading) on top of the drawings as listed. Use exactly these colors and nothing else in those colors. No text, no labels. Left/right below mean the VIEWER's left/right. In EVERY cell (a head-and-shoulders bust) mark the shoulder line: one pure RED (#FF0000) dot ON THE OUTLINE where the left side of the neck meets the top of the left shoulder (the inner corner of the shoulder); one pure YELLOW (#FFFF00) dot at the same place on the right; one pure BLUE (#0000FF) dot ON THE TOP OUTLINE of the left shoulder at its outer end (the shoulder tip, where the shoulder top turns down into the arm; if the shoulder runs off the cell before turning down, put it on the shoulder's top outline exactly at the cell's left edge); one pure GREEN (#00FF00) dot at the same place on the right shoulder. Empty cells get no dots.",
+   "kind": "heads",
+   "cells": [
+    {
+     "race": "elf",
+     "name": "head_1"
+    },
+    {
+     "race": "elf",
+     "name": "head_2"
+    },
+    {
+     "race": "elf",
+     "name": "head_3"
+    },
+    {
+     "race": "elf",
+     "name": "head_4"
+    },
+    {
+     "race": "elf",
+     "name": "head_5"
+    },
+    {
+     "race": "elf",
+     "name": "head_6"
+    },
+    {
+     "race": "elf",
+     "name": "head_7"
+    },
+    {
+     "race": "elf",
+     "name": "head_8"
+    },
+    {
+     "race": "elf",
+     "name": "head_9"
+    }
+   ]
+  },
+  {
+   "id": "heads_elf_2",
+   "preset": "dots",
+   "out": "art/source/portrait_fit/dots/heads_elf_2.png",
+   "styleRef": "art/source/portrait_fit/heads_elf_2.png",
+   "prompt": "Copy the attached sheet EXACTLY: same 3x3 grid, same flat magenta background, every drawing in exactly the same position, size and shape (do not move, resize, crop, redraw differently or restyle anything). The ONLY change: add small solid round marker dots (about 1.5% of the cell width, perfectly flat color, no outline, no glow, no shading) on top of the drawings as listed. Use exactly these colors and nothing else in those colors. No text, no labels. Left/right below mean the VIEWER's left/right. In EVERY cell (a head-and-shoulders bust) mark the shoulder line: one pure RED (#FF0000) dot ON THE OUTLINE where the left side of the neck meets the top of the left shoulder (the inner corner of the shoulder); one pure YELLOW (#FFFF00) dot at the same place on the right; one pure BLUE (#0000FF) dot ON THE TOP OUTLINE of the left shoulder at its outer end (the shoulder tip, where the shoulder top turns down into the arm; if the shoulder runs off the cell before turning down, put it on the shoulder's top outline exactly at the cell's left edge); one pure GREEN (#00FF00) dot at the same place on the right shoulder. Empty cells get no dots.",
+   "kind": "heads",
+   "cells": [
+    {
+     "race": "elf",
+     "name": "head_10"
+    },
+    {
+     "race": "elf",
+     "name": "head_11"
+    },
+    {
+     "race": "elf",
+     "name": "head_12"
+    },
+    {
+     "race": "elf",
+     "name": "head_13"
+    },
+    {
+     "race": "elf",
+     "name": "head_14"
+    },
+    {
+     "race": "elf",
+     "name": "head_15"
+    },
+    {
+     "race": "elf",
+     "name": "head_16"
+    },
+    {
+     "race": "elf",
+     "name": "head_17"
+    },
+    {
+     "race": "elf",
+     "name": "head_18"
+    }
+   ]
+  },
+  {
+   "id": "heads_lizardfolk_1",
+   "preset": "dots",
+   "out": "art/source/portrait_fit/dots/heads_lizardfolk_1.png",
+   "styleRef": "art/source/portrait_fit/heads_lizardfolk_1.png",
+   "prompt": "Copy the attached sheet EXACTLY: same 3x3 grid, same flat magenta background, every drawing in exactly the same position, size and shape (do not move, resize, crop, redraw differently or restyle anything). The ONLY change: add small solid round marker dots (about 1.5% of the cell width, perfectly flat color, no outline, no glow, no shading) on top of the drawings as listed. Use exactly these colors and nothing else in those colors. No text, no labels. Left/right below mean the VIEWER's left/right. In EVERY cell (a head-and-shoulders bust) mark the shoulder line: one pure RED (#FF0000) dot ON THE OUTLINE where the left side of the neck meets the top of the left shoulder (the inner corner of the shoulder); one pure YELLOW (#FFFF00) dot at the same place on the right; one pure BLUE (#0000FF) dot ON THE TOP OUTLINE of the left shoulder at its outer end (the shoulder tip, where the shoulder top turns down into the arm; if the shoulder runs off the cell before turning down, put it on the shoulder's top outline exactly at the cell's left edge); one pure GREEN (#00FF00) dot at the same place on the right shoulder. Empty cells get no dots.",
+   "kind": "heads",
+   "cells": [
+    {
+     "race": "lizardfolk",
+     "name": "head_1"
+    },
+    {
+     "race": "lizardfolk",
+     "name": "head_2"
+    },
+    {
+     "race": "lizardfolk",
+     "name": "head_3"
+    },
+    {
+     "race": "lizardfolk",
+     "name": "head_4"
+    },
+    {
+     "race": "lizardfolk",
+     "name": "head_5"
+    },
+    {
+     "race": "lizardfolk",
+     "name": "head_6"
+    },
+    {
+     "race": "lizardfolk",
+     "name": "head_7"
+    },
+    {
+     "race": "lizardfolk",
+     "name": "head_8"
+    },
+    {
+     "race": "lizardfolk",
+     "name": "head_9"
+    }
+   ]
+  },
+  {
+   "id": "heads_lizardfolk_2",
+   "preset": "dots",
+   "out": "art/source/portrait_fit/dots/heads_lizardfolk_2.png",
+   "styleRef": "art/source/portrait_fit/heads_lizardfolk_2.png",
+   "prompt": "Copy the attached sheet EXACTLY: same 3x3 grid, same flat magenta background, every drawing in exactly the same position, size and shape (do not move, resize, crop, redraw differently or restyle anything). The ONLY change: add small solid round marker dots (about 1.5% of the cell width, perfectly flat color, no outline, no glow, no shading) on top of the drawings as listed. Use exactly these colors and nothing else in those colors. No text, no labels. Left/right below mean the VIEWER's left/right. In EVERY cell (a head-and-shoulders bust) mark the shoulder line: one pure RED (#FF0000) dot ON THE OUTLINE where the left side of the neck meets the top of the left shoulder (the inner corner of the shoulder); one pure YELLOW (#FFFF00) dot at the same place on the right; one pure BLUE (#0000FF) dot ON THE TOP OUTLINE of the left shoulder at its outer end (the shoulder tip, where the shoulder top turns down into the arm; if the shoulder runs off the cell before turning down, put it on the shoulder's top outline exactly at the cell's left edge); one pure GREEN (#00FF00) dot at the same place on the right shoulder. Empty cells get no dots.",
+   "kind": "heads",
+   "cells": [
+    {
+     "race": "lizardfolk",
+     "name": "head_10"
+    },
+    {
+     "race": "lizardfolk",
+     "name": "head_11"
+    },
+    {
+     "race": "lizardfolk",
+     "name": "head_12"
+    },
+    {
+     "race": "lizardfolk",
+     "name": "head_13"
+    },
+    {
+     "race": "lizardfolk",
+     "name": "head_14"
+    },
+    {
+     "race": "lizardfolk",
+     "name": "head_15"
+    },
+    {
+     "race": "lizardfolk",
+     "name": "head_16"
+    },
+    {
+     "race": "lizardfolk",
+     "name": "head_17"
+    },
+    {
+     "race": "lizardfolk",
+     "name": "head_18"
+    }
+   ]
+  },
+  {
+   "id": "heads_minotaur_1",
+   "preset": "dots",
+   "out": "art/source/portrait_fit/dots/heads_minotaur_1.png",
+   "styleRef": "art/source/portrait_fit/heads_minotaur_1.png",
+   "prompt": "Copy the attached sheet EXACTLY: same 3x3 grid, same flat magenta background, every drawing in exactly the same position, size and shape (do not move, resize, crop, redraw differently or restyle anything). The ONLY change: add small solid round marker dots (about 1.5% of the cell width, perfectly flat color, no outline, no glow, no shading) on top of the drawings as listed. Use exactly these colors and nothing else in those colors. No text, no labels. Left/right below mean the VIEWER's left/right. In EVERY cell (a head-and-shoulders bust) mark the shoulder line: one pure RED (#FF0000) dot ON THE OUTLINE where the left side of the neck meets the top of the left shoulder (the inner corner of the shoulder); one pure YELLOW (#FFFF00) dot at the same place on the right; one pure BLUE (#0000FF) dot ON THE TOP OUTLINE of the left shoulder at its outer end (the shoulder tip, where the shoulder top turns down into the arm; if the shoulder runs off the cell before turning down, put it on the shoulder's top outline exactly at the cell's left edge); one pure GREEN (#00FF00) dot at the same place on the right shoulder. Empty cells get no dots.",
+   "kind": "heads",
+   "cells": [
+    {
+     "race": "minotaur",
+     "name": "head_1"
+    },
+    {
+     "race": "minotaur",
+     "name": "head_2"
+    },
+    {
+     "race": "minotaur",
+     "name": "head_3"
+    },
+    {
+     "race": "minotaur",
+     "name": "head_4"
+    },
+    {
+     "race": "minotaur",
+     "name": "head_5"
+    },
+    {
+     "race": "minotaur",
+     "name": "head_6"
+    },
+    {
+     "race": "minotaur",
+     "name": "head_7"
+    },
+    {
+     "race": "minotaur",
+     "name": "head_8"
+    },
+    {
+     "race": "minotaur",
+     "name": "head_9"
+    }
+   ]
+  },
+  {
+   "id": "heads_minotaur_2",
+   "preset": "dots",
+   "out": "art/source/portrait_fit/dots/heads_minotaur_2.png",
+   "styleRef": "art/source/portrait_fit/heads_minotaur_2.png",
+   "prompt": "Copy the attached sheet EXACTLY: same 3x3 grid, same flat magenta background, every drawing in exactly the same position, size and shape (do not move, resize, crop, redraw differently or restyle anything). The ONLY change: add small solid round marker dots (about 1.5% of the cell width, perfectly flat color, no outline, no glow, no shading) on top of the drawings as listed. Use exactly these colors and nothing else in those colors. No text, no labels. Left/right below mean the VIEWER's left/right. In EVERY cell (a head-and-shoulders bust) mark the shoulder line: one pure RED (#FF0000) dot ON THE OUTLINE where the left side of the neck meets the top of the left shoulder (the inner corner of the shoulder); one pure YELLOW (#FFFF00) dot at the same place on the right; one pure BLUE (#0000FF) dot ON THE TOP OUTLINE of the left shoulder at its outer end (the shoulder tip, where the shoulder top turns down into the arm; if the shoulder runs off the cell before turning down, put it on the shoulder's top outline exactly at the cell's left edge); one pure GREEN (#00FF00) dot at the same place on the right shoulder. Empty cells get no dots.",
+   "kind": "heads",
+   "cells": [
+    {
+     "race": "minotaur",
+     "name": "head_10"
+    },
+    {
+     "race": "minotaur",
+     "name": "head_11"
+    },
+    {
+     "race": "minotaur",
+     "name": "head_12"
+    },
+    {
+     "race": "minotaur",
+     "name": "head_13"
+    },
+    {
+     "race": "minotaur",
+     "name": "head_14"
+    },
+    {
+     "race": "minotaur",
+     "name": "head_15"
+    },
+    {
+     "race": "minotaur",
+     "name": "head_16"
+    },
+    {
+     "race": "minotaur",
+     "name": "head_17"
+    },
+    {
+     "race": "minotaur",
+     "name": "head_18"
+    }
+   ]
+  },
+  {
+   "id": "heads_orc_1",
+   "preset": "dots",
+   "out": "art/source/portrait_fit/dots/heads_orc_1.png",
+   "styleRef": "art/source/portrait_fit/heads_orc_1.png",
+   "prompt": "Copy the attached sheet EXACTLY: same 3x3 grid, same flat magenta background, every drawing in exactly the same position, size and shape (do not move, resize, crop, redraw differently or restyle anything). The ONLY change: add small solid round marker dots (about 1.5% of the cell width, perfectly flat color, no outline, no glow, no shading) on top of the drawings as listed. Use exactly these colors and nothing else in those colors. No text, no labels. Left/right below mean the VIEWER's left/right. In EVERY cell (a head-and-shoulders bust) mark the shoulder line: one pure RED (#FF0000) dot ON THE OUTLINE where the left side of the neck meets the top of the left shoulder (the inner corner of the shoulder); one pure YELLOW (#FFFF00) dot at the same place on the right; one pure BLUE (#0000FF) dot ON THE TOP OUTLINE of the left shoulder at its outer end (the shoulder tip, where the shoulder top turns down into the arm; if the shoulder runs off the cell before turning down, put it on the shoulder's top outline exactly at the cell's left edge); one pure GREEN (#00FF00) dot at the same place on the right shoulder. Empty cells get no dots.",
+   "kind": "heads",
+   "cells": [
+    {
+     "race": "orc",
+     "name": "head_1"
+    },
+    {
+     "race": "orc",
+     "name": "head_2"
+    },
+    {
+     "race": "orc",
+     "name": "head_3"
+    },
+    {
+     "race": "orc",
+     "name": "head_4"
+    },
+    {
+     "race": "orc",
+     "name": "head_5"
+    },
+    {
+     "race": "orc",
+     "name": "head_6"
+    },
+    {
+     "race": "orc",
+     "name": "head_7"
+    },
+    {
+     "race": "orc",
+     "name": "head_8"
+    },
+    {
+     "race": "orc",
+     "name": "head_9"
+    }
+   ]
+  },
+  {
+   "id": "heads_orc_2",
+   "preset": "dots",
+   "out": "art/source/portrait_fit/dots/heads_orc_2.png",
+   "styleRef": "art/source/portrait_fit/heads_orc_2.png",
+   "prompt": "Copy the attached sheet EXACTLY: same 3x3 grid, same flat magenta background, every drawing in exactly the same position, size and shape (do not move, resize, crop, redraw differently or restyle anything). The ONLY change: add small solid round marker dots (about 1.5% of the cell width, perfectly flat color, no outline, no glow, no shading) on top of the drawings as listed. Use exactly these colors and nothing else in those colors. No text, no labels. Left/right below mean the VIEWER's left/right. In EVERY cell (a head-and-shoulders bust) mark the shoulder line: one pure RED (#FF0000) dot ON THE OUTLINE where the left side of the neck meets the top of the left shoulder (the inner corner of the shoulder); one pure YELLOW (#FFFF00) dot at the same place on the right; one pure BLUE (#0000FF) dot ON THE TOP OUTLINE of the left shoulder at its outer end (the shoulder tip, where the shoulder top turns down into the arm; if the shoulder runs off the cell before turning down, put it on the shoulder's top outline exactly at the cell's left edge); one pure GREEN (#00FF00) dot at the same place on the right shoulder. Empty cells get no dots.",
+   "kind": "heads",
+   "cells": [
+    {
+     "race": "orc",
+     "name": "head_10"
+    },
+    {
+     "race": "orc",
+     "name": "head_11"
+    },
+    {
+     "race": "orc",
+     "name": "head_12"
+    },
+    {
+     "race": "orc",
+     "name": "head_13"
+    },
+    {
+     "race": "orc",
+     "name": "head_14"
+    },
+    {
+     "race": "orc",
+     "name": "head_15"
+    },
+    {
+     "race": "orc",
+     "name": "head_16"
+    },
+    {
+     "race": "orc",
+     "name": "head_17"
+    },
+    {
+     "race": "orc",
+     "name": "head_18"
+    }
+   ]
+  },
+  {
+   "id": "armor_1",
+   "preset": "dots",
+   "out": "art/source/portrait_fit/dots/armor_1.png",
+   "styleRef": "art/source/portrait_fit/armor_1.png",
+   "prompt": "Copy the attached sheet EXACTLY: same 3x3 grid, same flat magenta background, every drawing in exactly the same position, size and shape (do not move, resize, crop, redraw differently or restyle anything). The ONLY change: add small solid round marker dots (about 1.5% of the cell width, perfectly flat color, no outline, no glow, no shading) on top of the drawings as listed. Use exactly these colors and nothing else in those colors. No text, no labels. Left/right below mean the VIEWER's left/right. Every cell shows one upper-body garment or armor piece (worn on the shoulders, no person inside). Mark where it sits on the wearer: one pure RED (#FF0000) dot at the left end of the neck opening on the garment's top edge (where the wearer's neck side meets the shoulder); one pure YELLOW (#FFFF00) dot at the right end of the neck opening; one pure BLUE (#0000FF) dot at the outer end of the garment's LEFT shoulder top outline (where the wearer's shoulder tip would be, the outermost top corner of the left shoulder piece); one pure GREEN (#00FF00) dot at the same place on the right. All four dots on the garment's top outline. Empty cells get no dots.",
+   "kind": "armor",
+   "cells": [
+    {
+     "race": "human",
+     "name": "armor_harness"
+    },
+    {
+     "race": "human",
+     "name": "armor_plate"
+    },
+    {
+     "race": "beastkin",
+     "name": "armor_harness"
+    },
+    {
+     "race": "beastkin",
+     "name": "armor_plate"
+    },
+    {
+     "race": "beastkin",
+     "name": "armor_plate_2"
+    },
+    {
+     "race": "beastkin",
+     "name": "armor_harness_2"
+    },
+    {
+     "race": "beastkin",
+     "name": "armor_harness_3"
+    },
+    {
+     "race": "beastkin",
+     "name": "armor_plate_3"
+    },
+    {
+     "race": "beastkin",
+     "name": "armor_harness_4"
+    }
+   ]
+  },
+  {
+   "id": "armor_2",
+   "preset": "dots",
+   "out": "art/source/portrait_fit/dots/armor_2.png",
+   "styleRef": "art/source/portrait_fit/armor_2.png",
+   "prompt": "Copy the attached sheet EXACTLY: same 3x3 grid, same flat magenta background, every drawing in exactly the same position, size and shape (do not move, resize, crop, redraw differently or restyle anything). The ONLY change: add small solid round marker dots (about 1.5% of the cell width, perfectly flat color, no outline, no glow, no shading) on top of the drawings as listed. Use exactly these colors and nothing else in those colors. No text, no labels. Left/right below mean the VIEWER's left/right. Every cell shows one upper-body garment or armor piece (worn on the shoulders, no person inside). Mark where it sits on the wearer: one pure RED (#FF0000) dot at the left end of the neck opening on the garment's top edge (where the wearer's neck side meets the shoulder); one pure YELLOW (#FFFF00) dot at the right end of the neck opening; one pure BLUE (#0000FF) dot at the outer end of the garment's LEFT shoulder top outline (where the wearer's shoulder tip would be, the outermost top corner of the left shoulder piece); one pure GREEN (#00FF00) dot at the same place on the right. All four dots on the garment's top outline. Empty cells get no dots.",
+   "kind": "armor",
+   "cells": [
+    {
+     "race": "dwarf",
+     "name": "armor_harness"
+    },
+    {
+     "race": "dwarf",
+     "name": "armor_plate"
+    },
+    {
+     "race": "elf",
+     "name": "armor_harness"
+    },
+    {
+     "race": "elf",
+     "name": "armor_plate"
+    },
+    {
+     "race": "lizardfolk",
+     "name": "armor_harness"
+    },
+    {
+     "race": "lizardfolk",
+     "name": "armor_plate"
+    },
+    {
+     "race": "lizardfolk",
+     "name": "armor_harness_2"
+    },
+    {
+     "race": "lizardfolk",
+     "name": "armor_harness_3"
+    },
+    {
+     "race": "lizardfolk",
+     "name": "armor_plate_2"
+    }
+   ]
+  },
+  {
+   "id": "armor_3",
+   "preset": "dots",
+   "out": "art/source/portrait_fit/dots/armor_3.png",
+   "styleRef": "art/source/portrait_fit/armor_3.png",
+   "prompt": "Copy the attached sheet EXACTLY: same 3x3 grid, same flat magenta background, every drawing in exactly the same position, size and shape (do not move, resize, crop, redraw differently or restyle anything). The ONLY change: add small solid round marker dots (about 1.5% of the cell width, perfectly flat color, no outline, no glow, no shading) on top of the drawings as listed. Use exactly these colors and nothing else in those colors. No text, no labels. Left/right below mean the VIEWER's left/right. Every cell shows one upper-body garment or armor piece (worn on the shoulders, no person inside). Mark where it sits on the wearer: one pure RED (#FF0000) dot at the left end of the neck opening on the garment's top edge (where the wearer's neck side meets the shoulder); one pure YELLOW (#FFFF00) dot at the right end of the neck opening; one pure BLUE (#0000FF) dot at the outer end of the garment's LEFT shoulder top outline (where the wearer's shoulder tip would be, the outermost top corner of the left shoulder piece); one pure GREEN (#00FF00) dot at the same place on the right. All four dots on the garment's top outline. Empty cells get no dots.",
+   "kind": "armor",
+   "cells": [
+    {
+     "race": "lizardfolk",
+     "name": "armor_harness_4"
+    },
+    {
+     "race": "lizardfolk",
+     "name": "armor_plate_3"
+    },
+    {
+     "race": "minotaur",
+     "name": "armor_harness"
+    },
+    {
+     "race": "minotaur",
+     "name": "armor_plate"
+    },
+    {
+     "race": "minotaur",
+     "name": "armor_harness_2"
+    },
+    {
+     "race": "minotaur",
+     "name": "armor_plate_2"
+    },
+    {
+     "race": "orc",
+     "name": "armor_harness"
+    },
+    {
+     "race": "orc",
+     "name": "armor_plate"
+    }
+   ]
+  }
+ ]
+}

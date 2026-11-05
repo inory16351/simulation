@@ -479,3 +479,12 @@
 - 화면은 Unity에서 직접 보지 않았다(에디터 안 켬). 새 그림의 .meta는 Unity가 처음 열 때 만든다(ArtImporter가 스프라이트로, 계약서는 9-slice 테두리).
 - 측정(`run.sh ai 2`, 시드 4004): 주 평균 자리 24.7~25곳 중 주말까지 AI가 14.4~14.9곳 차지(우리 몫 약 10곳). 한 시즌에 한 번이라도 원정 간 AI 루두스 11~13%(전엔 자리 제한이 없어 97%) — 차례가 이른 루두스가 자리를 먼저 가져가는 편. 장비 교체 85~92%(전 99%), 하루 70 ms(전 120~135 ms, AI 원정·전리품 처리가 줄어서). 금고 음수 0~1곳.
 - 테스트: `DungeonSitesOpenWeeklyAndClaimsBlockOthers`, `DungeonOddsMatchRealRuns` 추가. `AiTurnHiresEquipsAndRunsDungeons`(시즌 중엔 벤치만), `DungeonRotatesOnPaydayAndFightsCanBeReplayed`(자리 교체)를 새 규칙에 맞춤.
+
+### 식솔 탭·스폰서 카드 겹침·문구, 초상화 옷·흉터 맞추기 (2026-11-05, 사용자 요청)
+- 식솔 화면: '우리 식솔 (n명)' / '식솔 찾기 (후보 n명)' 탭(코드로 붙임, '올 마음' 단추를 복제한 모양). 역할 패널 묶음은 스크롤 안에 넣고, 줄 높이 고정(116)을 풀어 카드 글줄이 겹치지 않게. 빈 자리에는 '식솔 찾기 탭에서 구할 수 있습니다'.
+- '코치' → '교관' (무기·체력·기술 교관. 독토레는 '수석 교관'). 숙련 툴팁의 '현재 능력(CA)' → '현재 능력'. 결투 데모 줄의 CA도.
+- 스폰서 계약서: 카드 높이를 250 고정에서 내용 맞춤(최소 280)으로 — 고정 높이에 글줄이 눌려 겹쳤다. 카드마다 같던 어림 기준 문장은 패널 머리 한 줄로 옮김.
+- 던전 카드: 위험도 띠에 어두운 바탕 상자, 격자 너비에서 스크롤바 몫(14px)을 빼 오른쪽 열이 잘리지 않게, 카드 높이 266.
+- 초상화 흉터·문신(mark_*): 머리 그림을 가리개(Mask)로 써서 얼굴 윤곽 안에만, 그리고 턱 줄 위에만 그린다(`PortraitLayer.maskSrc`, `clipBottom`). 전엔 할퀸 자국이 볼 밖 배경·목까지 넘쳤다.
+- 초상화 갑옷(armor_*): `Tools/portrait-fit.mjs` — 머리·갑옷을 3×3 마젠타 시트로 모아 Codex가 점 넷(목-어깨 만나는 곳 양쪽, 어깨 바깥 끝 양쪽)을 찍게 하고, 점을 실제 그림 윤곽에 붙인(snap) 뒤 가로는 어깨 끝 간격·가운데, 세로는 목 줄→어깨 줄 높이(가로 배율의 0.75~1.35배)로 맞춘다. `Resources/Data/portrait2.json` 갑옷 자리 486개 중 475개 다시 계산(전엔 측정 실패로 크기 0이라 갑옷이 안 보이던 머리 포함), 11개는 점이 엉뚱해 그대로. 점은 `Tools/portrait-fit.json`, 시트는 `art/source/portrait_fit`(커밋 안 함). 확인 도구 `Tools/portrait-view.mjs <종족> <파츠>`.
+- 주의: 웹판 `tools/portrait-parts.mjs`로 data/portrait2.json을 다시 만들어 Unity로 내보내면 이 갑옷 자리가 덮인다 → 그 뒤 `node ColosseumUnity/Tools/portrait-fit.mjs apply`를 다시 돌릴 것.

@@ -19,7 +19,8 @@ namespace Colosseum.UI
         public void Fit()
         {
             var g = GetComponent<GridLayoutGroup>();
-            float w = ((RectTransform)transform).rect.width - g.padding.left - g.padding.right;
+            // 스크롤바(오른쪽)에 걸리지 않게 조금 남긴다
+            float w = ((RectTransform)transform).rect.width - g.padding.left - g.padding.right - 14;
             if (w <= 0) w = 1200;
             if (Mathf.Approximately(w, lastWidth) && Mathf.Approximately(g.cellSize.y, cellHeight)) return;
             lastWidth = w;

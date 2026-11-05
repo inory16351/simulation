@@ -37,7 +37,7 @@ namespace Colosseum.UI
         // ── FM 세계: 스폰서·후원자 목표 (씬 다시 조립 없이 요약 패널 아래에 코드로 붙인다) ──
         // 스폰서 제안은 계약서 카드 셋(문장·종류 표식·이번 시즌 받을 돈 어림·계약 단추). 계약한 뒤에는 그 계약서 한 장에 도장을 찍어 둔다.
         static readonly Color Ink = new Color32(0x2b, 0x1d, 0x12, 0xff);
-        static readonly Color InkDim = new Color32(0x5a, 0x41, 0x28, 0xff);
+        static readonly Color InkDim = new Color32(0x45, 0x30, 0x1c, 0xff);
         static readonly Color InkRed = new Color32(0x7a, 0x1e, 0x1a, 0xff);
         static readonly System.Collections.Generic.Dictionary<string, Sprite> sprites = new();
         static Sprite Spr(string path)
@@ -109,7 +109,7 @@ namespace Colosseum.UI
             go.transform.SetParent(cardRow, false);
             var img = go.GetComponent<Image>();
             img.sprite = Spr("sponsor/card"); img.type = Image.Type.Sliced; img.pixelsPerUnitMultiplier = 2f; img.raycastTarget = true;
-            var le = go.GetComponent<LayoutElement>(); le.minWidth = le.preferredWidth = 300; le.minHeight = le.preferredHeight = 250;
+            var le = go.GetComponent<LayoutElement>(); le.minWidth = le.preferredWidth = 300; le.minHeight = 280; le.flexibleWidth = 1; // 높이는 내용에 맞춘다 (고정하면 글줄이 겹친다)
             Layout<VerticalLayoutGroup>(go, 4, new RectOffset(30, 30, 46, 40), TextAnchor.UpperLeft).childForceExpandWidth = true;
             // 머리: 문장 + 이름·종류
             var head = new GameObject("Head", typeof(RectTransform));
@@ -127,8 +127,8 @@ namespace Colosseum.UI
             NewImage(styleRow.transform, "Icon", null, 22, 22);
             NewText(styleRow.transform, "Text", 13, InkRed, FontStyles.Bold);
             // 조건과 어림
-            NewText(go.transform, "Terms", 13, Ink);
-            NewText(go.transform, "Hint", 11, InkDim);
+            NewText(go.transform, "Terms", 14, Ink).lineSpacing = 8;
+            NewText(go.transform, "Hint", 12, InkDim);
             // 단추 또는 도장
             var foot = new GameObject("Foot", typeof(RectTransform), typeof(LayoutElement));
             foot.transform.SetParent(go.transform, false);
@@ -166,6 +166,7 @@ namespace Colosseum.UI
                 ? $"<color={Theme.Hex(Theme.BronzeHi)}>후원자 목표</color>  {Patrons.GoalText(goal, me.tier)} · 시즌 시작 전력 {goal.expectedRank}위" +
                   $"  <color={Theme.Hex(Theme.TextDim)}>달성하면 보너스와 명성, 못 하면 다음 시즌 스폰서 지원이 줄어듭니다</color>"
                 : "";
+            if (picking) patronGoal.text += $"\n<color={Theme.Hex(Theme.TextDim)}>카드의 '이번 시즌 받을 돈'은 남은 급료일 {Patrons.PaydaysLeft(S)}번과 예상 순위 {goal?.expectedRank ?? FmRules.TeamsPerTier / 2}위로 어림한 값입니다</color>";
             double best = deals.Count > 1 ? deals.Max(d => Patrons.SeasonValue(S, me, d)) : -1;
             while (cardRow.childCount < deals.Count) NewContract();
             for (int i = 0; i < cardRow.childCount; i++)
@@ -183,7 +184,7 @@ namespace Colosseum.UI
                 c.Find("Terms").GetComponent<TMP_Text>().text =
                     $"급료일마다  <b>{d.weekly:N0} D</b>\n시즌 끝 순위 보너스  최대 <b>{d.rankBonus:N0} D</b>\n" +
                     $"이번 시즌 받을 돈  ≈ <b>{season:N0} D</b>";
-                c.Find("Hint").GetComponent<TMP_Text>().text = $"{Patrons.StyleDesc[style]}. 어림은 남은 급료일 {Patrons.PaydaysLeft(S)}번과 예상 순위 {goal?.expectedRank ?? FmRules.TeamsPerTier / 2}위 기준입니다.";
+                c.Find("Hint").GetComponent<TMP_Text>().text = Patrons.StyleDesc[style];
                 var sign = c.Find("Foot/Sign");
                 sign.gameObject.SetActive(picking);
                 c.Find("Foot/Stamp").gameObject.SetActive(!picking);

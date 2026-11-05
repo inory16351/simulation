@@ -68,7 +68,7 @@ namespace Colosseum.UI
         static string Describe(Gladiator g)
         {
             var style = Data.Style(g.style);
-            return $"{g.name}\n{Data.Race(g.race).name} · {style.name} · CA {GladiatorRules.ComputeCA(g)}\n" +
+            return $"{g.name}\n{Data.Race(g.race).name} · {style.name} · 현재 능력 {GladiatorRules.ComputeCA(g)}\n" +
                    $"예측 {g.attrs["read"]}  기만 {g.attrs["feint"]}  천재 {g.attrs["genius"]}  적응 {g.attrs["adapt"]}";
         }
 
