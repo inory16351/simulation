@@ -216,20 +216,31 @@ namespace Colosseum.Core
         /// <summary>식솔 시장은 우리 몫으로 역할마다 이만큼은 남긴다</summary>
         public const int StaffLeftForPlayer = 4;
 
+        /// <summary>시즌 중에는 이만큼(주전·교체)을 남기고 나머지만 던전에 보낸다</summary>
+        const int KeepHome = 7;
+
         static void Dungeon(GameState s, Rng rng, Ludus l)
         {
             if (l.aiExpedition != null || Crisis(s, l)) return;
-            // 정규 리그가 끝나고 컵 일정이 없는 팀만 (공식 경기와 겹치지 않게)
-            if (!FmRules.Frozen(s) || ChallengeLogic.InCup(s, l.id)) return;
+            bool frozen = FmRules.Frozen(s);
+            // 컵 일정이 남은 팀은 리그가 끝나도 안 간다
+            if (frozen && ChallengeLogic.InCup(s, l.id)) return;
             if (s.day > Calendar.DaysPerSeason - 8) return;
-            var party = Alive(s, l).Where(g => g.deployment == null && g.injury == null && GladiatorRules.AgeStage(g) != "youth")
-                .OrderByDescending(GladiatorRules.ComputeCA).Skip(l.aiPersonality == "aggressive" ? 0 : 2).Take(AiParty).ToList();
+            // 이번 주 던전 자리를 AI가 너무 빨리 다 차지하지 않게 (우리 몫이 주 내내 남는다)
+            if (!DungeonLogic.AiMayClaim(s, s.playerLudusId)) return;
+            var pool = Alive(s, l).Where(g => g.deployment == null && g.injury == null && GladiatorRules.AgeStage(g) != "youth")
+                .OrderByDescending(GladiatorRules.ComputeCA).ToList();
+            // 시즌 중: 공식 경기에 나갈 상위 7명은 남기고 벤치만, 잡힌 경기가 있으면 뺀다. 리그가 끝나면 주전도 간다
+            var cand = frozen ? pool.Skip(l.aiPersonality == "aggressive" ? 0 : 2)
+                : pool.Skip(KeepHome).Where(g => !s.challenges.Any(c => c.status == "scheduled" && (c.fromGladiator == g.id || c.toGladiator == g.id)));
+            var party = cand.Take(AiParty).ToList();
             if (party.Count < 3) return;
-            double avg = party.Average(GladiatorRules.ComputeCA);
-            // 적정 난이도: 적보다 30쯤 강한 곳 중 가장 어려운 곳 (성격이 공격적이면 한 단계 더)
-            var fit = DungeonLogic.Dungeons.Where(d => DungeonLogic.FoeCa(d) + 30 <= avg + (l.aiPersonality == "aggressive" ? 12 : 0) && d.days <= Calendar.DaysPerSeason - s.day)
+            // 적정 난이도: 이번 주에 빈 자리 중 우리 화면과 같은 어림으로 살아 돌아올 만한 곳 가운데 가장 어려운 곳 (공격적이면 더 무리한다)
+            double safe = l.aiPersonality == "aggressive" ? 0.88 : 0.93;
+            var fit = DungeonLogic.OpenSites(s).Select(x => DungeonLogic.GetDungeon(x.id))
+                .Where(d => d.days <= Calendar.DaysPerSeason - s.day && DungeonLogic.Estimate(d, party).survive >= safe)
                 .OrderByDescending(DungeonLogic.FoeCa).FirstOrDefault();
-            if (fit == null) return;
+            if (fit == null || DungeonLogic.ClaimSite(s, fit.id, l.id) != null) return;
             double until = Calendar.AbsDay(s.season, s.day) + fit.days;
             l.aiExpedition = new AiExpedition { dungeon = fit.id, party = party.Select(g => g.id).ToList(), until = until };
             foreach (var g in party) g.deployment = new Deployment { contractId = "ai:" + l.id, until = until, kind = "dungeon" };
@@ -245,16 +256,17 @@ namespace Colosseum.Core
             var d = DungeonLogic.GetDungeon(ex.dungeon);
             var party = ex.party.Select(id => s.gladiators.TryGetValue(id, out var g) ? g : null).Where(g => g != null && g.alive).ToList();
             foreach (var g in party) if (g.deployment?.contractId == "ai:" + l.id) g.deployment = null;
-            double foe = DungeonLogic.FoeCa(d);
             var loot = new List<string>();
             for (int floor = 1; floor <= d.floors && party.Count > 0; floor++)
             {
-                double avg = party.Average(GladiatorRules.ComputeCA);
-                double win = 1 / (1 + Math.Exp(-(avg - foe - 15 - floor * 2) / 12));
+                // 층마다 우리 화면과 같은 어림으로 이길 확률 (적 종족·소모·우두머리 포함)
+                double avg = party.Average(GladiatorRules.ComputeCA) - (AiParty - Math.Min(AiParty, party.Count)) * DungeonLogic.MissingMember;
+                double foe = DungeonLogic.FloorFoeCa(d, floor - 1);
+                double win = DungeonLogic.FloorWin(d, floor - 1, avg);
                 // 층마다 몇 명은 쓰러지고, 쓰러지면 유저와 같은 사망 확률
                 foreach (var g in party.ToList())
                 {
-                    if (!rng.Chance(0.25 + (1 - win) * 0.35)) continue;
+                    if (!rng.Chance(Math.Min(0.9, DungeonLogic.DownBase + (1 - win) * DungeonLogic.DownLoss))) continue;
                     if (!rng.Chance(DungeonLogic.DeathChance(GladiatorRules.ComputeCA(g), foe, false))) continue;
                     g.alive = false;
                     g.injury = null;

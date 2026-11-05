@@ -196,6 +196,7 @@ namespace Colosseum.UI
                 "sattr" => StaffLogic.AttrDesc.TryGetValue(id, out var ad) ? $"<b>{StaffLogic.AttrNames[id]}</b>\n{ad}" : null,
                 "awards" => AwardsTip(id),
                 "fight" => "<b>전투 보기</b>\n이 층에서 벌어진 난전을 모래 마당 중계로 봅니다",
+                "sponsor" => "<b>스폰서 제안</b>\n이번 시즌 스폰서 후보가 계약서를 보냈습니다. 눌러서 금고 화면에서 고르세요" + More,
                 _ => null,
             };
         }
@@ -274,8 +275,8 @@ namespace Colosseum.UI
 
         public static string DungeonTip(string id)
         {
-            var d = DungeonLogic.Dungeons.FirstOrDefault(x => x.id == id);
-            return d == null ? null : $"<b>{d.name}</b>  <color={Theme.Hex(Theme.TextDim)}>{d.tier}등급 · {d.floors}층 · {d.days}일</color>\n{d.desc}{More}";
+            var d = DungeonLogic.Find(id);
+            return d == null ? null : $"<b>{d.name}</b>  <color={Theme.Hex(Theme.TextDim)}>{(d.grade > 0 ? $"위험도 {d.grade}" : $"{d.tier}등급")} · {d.floors}층 · {d.days}일</color>\n{d.desc}{More}";
         }
 
         /// <summary>상태 이상 링크 (표의 Status 키, 예: Bleed)</summary>

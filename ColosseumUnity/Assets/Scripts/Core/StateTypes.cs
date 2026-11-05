@@ -366,6 +366,8 @@ namespace Colosseum.Core
         public List<DungeonQuest> dungeonQuests;
         /// <summary>Unity판: 이번 주에 열린 던전 (급료일마다 등급별로 하나씩 새로 뽑는다)</summary>
         public List<string> dungeonRotation;
+        /// <summary>FM 세계: 이번 주에 열린 던전 자리 (급료일마다 새로)</summary>
+        public List<DungeonSite> dungeonSites;
         public List<LedgerEntry> ledger = new();
         public List<PendingEvent> pendingEvents = new();
         public double lastDisasterAt;

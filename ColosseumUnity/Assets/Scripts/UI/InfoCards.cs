@@ -52,8 +52,20 @@ namespace Colosseum.UI
                 "person" => s.staff.TryGetValue(id, out var person) ? Person(s, person) : null,
                 "awards" => AwardsCard(s, id),
                 "youth" => YouthTrialCard(s),
+                "sponsor" => SponsorCard(s),
                 _ => null,
             };
+        }
+
+        // ── 스폰서 제안 (개요의 알림 링크) ──
+
+        static InfoCard SponsorCard(GameState s)
+        {
+            var me = s.ludi[s.playerLudusId];
+            var offers = me.sponsor == null ? me.sponsorOffers : null;
+            if (offers == null || offers.Count == 0) return null;
+            var body = string.Join("\n", offers.Select(o => $"{o.name}  <color={Dim}>{Patrons.StyleNames[System.Math.Clamp(o.style, 0, 2)]} · 급료일 {o.weekly:N0} D · 보너스 최대 {o.rankBonus:N0} D · 이번 시즌 ≈ {Patrons.SeasonValue(s, me, o):N0} D</color>"));
+            return new InfoCard { title = "스폰서 제안", sub = $"{Calendar.DateLabel(Patrons.SponsorPickUntil)}까지 고르세요", body = body + $"\n\n<color={Faint}>고르지 않으면 첫 제안(안정형)을 맺습니다.</color>", actionLabel = "금고에서 고르기", action = () => GameController.I.Go("finance") };
         }
 
         // ── 모래 시험 (시즌 중반 학당 선발) ──
@@ -210,14 +222,14 @@ namespace Colosseum.UI
 
         static InfoCard Dungeon(GameState s, string id)
         {
-            var d = DungeonLogic.Dungeons.FirstOrDefault(x => x.id == id);
+            var d = DungeonLogic.Find(id);
             if (d == null) return null;
             string dim = Theme.Hex(Theme.TextDim);
             var foes = string.Join(", ", d.foes.Select(f => $"{f.name} ({Tips.Race(f.race)})"));
             string body = $"{d.desc}\n\n<color={dim}>층</color> {d.floors}층 · <color={dim}>원정</color> {d.days}일 · <color={dim}>적 수준</color> {Widgets.Stars(DungeonLogic.FoeCa(d))}" +
                           $"\n<color={dim}>적</color> {foes}\n<color={dim}>우두머리</color> {d.boss.name} ({Tips.Race(d.boss.race)})" +
                           $"\n<color={dim}>전리품</color> 보통 {d.loot[0]}% · 정교 {d.loot[1]}% · 명품 {d.loot[2]}% · 전설 {d.loot[3]}%";
-            return new InfoCard { title = d.name, sub = $"던전 · {d.tier}등급", body = body, actionLabel = "던전으로", action = () => GameController.I.Go("dungeon") };
+            return new InfoCard { title = d.name, sub = d.grade > 0 ? $"던전 · 위험도 {d.grade}" : $"던전 · {d.tier}등급", body = body, actionLabel = "던전으로", action = () => GameController.I.Go("dungeon") };
         }
 
         // ── 기술 (기술 테이블) ──

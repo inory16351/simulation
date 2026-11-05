@@ -327,12 +327,22 @@ class Program
         int start = s.season, days = 0;
         var sw = Stopwatch.StartNew();
         int ai = s.ludi.Values.Count(l => !l.isPlayer);
+        int weeks = 0; double siteSum = 0, aiSum = 0;
         while (s.season < start + seasons && s.gameOver == null)
         {
             Autoplay(s, rng);
             days++;
+            // 급료일 전날: 이번 주 던전 자리가 얼마나 찼나 (AI는 주에 60%까지)
+            if (Calendar.DaysUntilPayday(s.day) == 1)
+            {
+                var sites = DungeonLogic.Sites(s);
+                int byAi = sites.Count(x => x.claimedBy != null && x.claimedBy != s.playerLudusId);
+                weeks++; siteSum += sites.Count; aiSum += byAi;
+            }
             if (s.day == 1)
             {
+                Console.WriteLine($"  던전 자리: 주 평균 {siteSum / Math.Max(1, weeks):0.0}곳 중 AI가 {aiSum / Math.Max(1, weeks):0.0}곳 차지 (주말 기준)");
+                weeks = 0; siteSum = 0; aiSum = 0;
                 var neg = s.ludi.Values.Where(l => !l.isPlayer).Count(l => l.treasury < 0);
                 int illegal = 0;
                 foreach (var l in s.ludi.Values)

@@ -31,6 +31,10 @@ namespace Colosseum.Core
         public double weekly;
         /// <summary>시즌 끝 순위 보너스의 최대치 (1위 전부, 꼴찌 0)</summary>
         public double rankBonus;
+        /// <summary>문장 그림 (Resources/Art/sponsor): salt, wine, ... (Patrons.SponsorIcons)</summary>
+        public string icon;
+        /// <summary>0 안정형(정액 많음) · 1 균형형 · 2 성과형(보너스 큼)</summary>
+        public int style;
     }
 
     public static class Patrons
@@ -41,6 +45,30 @@ namespace Colosseum.Core
         public const int SponsorPickUntil = 14;
 
         static readonly string[] SponsorNames = { "소금 상인 조합", "포도주 상단", "곡물 창고", "청동 공방", "해운 조합", "향료 상회", "말 사육장", "대리석 채석장", "은행가 가문", "올리브유 상회", "노예 상인 길드", "무기 대장간" };
+        /// <summary>SponsorNames와 같은 순서의 문장 그림 이름</summary>
+        public static readonly string[] SponsorIcons = { "salt", "wine", "grain", "bronze", "ship", "spice", "horse", "marble", "bank", "olive", "slaver", "arms" };
+        public static readonly string[] StyleNames = { "안정형", "균형형", "성과형" };
+        public static readonly string[] StyleIcons = { "steady", "balanced", "bonus" };
+        public static readonly string[] StyleDesc = { "급료일마다 받는 돈이 많고 순위 보너스는 적습니다", "정액과 순위 보너스가 고릅니다", "정액은 적지만 높은 순위로 끝내면 큰 보너스를 받습니다" };
+
+        /// <summary>문장 그림 이름 (옛 저장의 계약은 이름으로 찾는다)</summary>
+        public static string IconOf(SponsorDeal d)
+        {
+            if (!string.IsNullOrEmpty(d.icon)) return d.icon;
+            for (int i = 0; i < SponsorNames.Length; i++) if (d.name != null && d.name.EndsWith(SponsorNames[i])) return SponsorIcons[i];
+            return "seal";
+        }
+
+        /// <summary>이번 시즌 남은 급료일 수 (오늘 뒤로)</summary>
+        public static int PaydaysLeft(GameState s) => Calendar.DaysPerSeason / Calendar.PaydayInterval - s.day / Calendar.PaydayInterval;
+
+        /// <summary>이 계약으로 이번 시즌 남은 기간에 받을 돈 어림 (순위 보너스는 시즌 시작 전력 순위로)</summary>
+        public static double SeasonValue(GameState s, Ludus l, SponsorDeal d)
+        {
+            int teams = FmRules.TeamsPerTier;
+            int rank = l.boardGoal?.expectedRank ?? (teams + 1) / 2;
+            return d.weekly * PaydaysLeft(s) + JsMath.Round(d.rankBonus * (teams - rank) / (double)(teams - 1));
+        }
 
         /// <summary>주전 전력 (상위 5명 평균 CA)</summary>
         public static double Strength(GameState s, Ludus l)
@@ -98,11 +126,12 @@ namespace Colosseum.Core
             // 셋: 안정형(정액 많고 보너스 적음) · 균형 · 성과형(정액 적고 보너스 큼)
             double[] split = { 1.15, 1.0, 0.75 };
             double[] bonus = { 2, 6, 14 };
-            var names = rng.Shuffle(SponsorNames.ToList());
+            var names = rng.Shuffle(Enumerable.Range(0, SponsorNames.Length).ToList());
             for (int i = 0; i < 3; i++)
                 o.Add(new SponsorDeal
                 {
-                    id = $"SP{s.nextId++}", name = $"{Data.Nation(l.nation).@short} {names[i]}", season = s.season,
+                    id = $"SP{s.nextId++}", name = $"{Data.Nation(l.nation).@short} {SponsorNames[names[i]]}", season = s.season,
+                    icon = SponsorIcons[names[i]], style = i,
                     weekly = JsMath.Round(weekly * split[i] * rng.Range(0.95, 1.05)),
                     rankBonus = JsMath.Round(weekly * bonus[i] * rng.Range(0.95, 1.05) / 10) * 10,
                 });

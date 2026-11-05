@@ -1,0 +1,122 @@
+{
+  "presets": {
+    "scene": "ONE landscape image (1536x1024), a 3x3 grid of 9 equal LANDSCAPE panels. The panels are separated by solid flat MAGENTA (#FF00FF) gutters about 24px wide, and there is also a 24px solid magenta border around the whole image. Gutters must be pure magenta, perfectly straight, no shadows or gradients. Each panel is a separate painting that fills its panel edge to edge: a wide establishing view of a dangerous dungeon location, seen from its entrance looking in. Each panel must look clearly different from its neighbours (different place, shapes and accent colour).",
+    "icons": "ONE square image (1024x1024), a 4x4 grid of 16 equal square cells, flat solid MAGENTA background (#FF00FF) everywhere (no gradient, no frames, no grid lines, no shadows on the background). No text, no letters, no numbers. Each cell: one emblem, front view, centered, filling about 75% of the cell, with a clear magenta gap between neighbours. Keep each emblem fully inside its own cell.",
+    "card": ""
+  },
+  "style": "",
+  "styleRefPresets": [
+    "scene",
+    "icons",
+    "card"
+  ],
+  "items": [
+    {
+      "id": "dungeon_1",
+      "preset": "scene",
+      "out": "art/source/dungeon_sheets/dungeons_1.png",
+      "styleRef": "art/source/style/dark_ref.png",
+      "prompt": "Panels left-to-right, top-to-bottom (3 per row):\n1. a vaulted city sewer tunnel with murky green water, rat nests of rags and bones on the ledges, a rusty grate; accent sickly green\n2. an abandoned silver mine shaft with broken timber supports, a toppled mine cart, faint pale silver veins in the rock, ghostly blue lantern; accent pale silver\n3. underground catacombs with walls of stacked skulls, burial niches, old gladiator helmets on graves, candles; accent bone white and cold violet\n4. a volcanic cave with rivers of glowing lava, black basalt pillars, a horned skull totem; accent glowing orange\n5. the gate of a sunken temple at the edge of a bottomless pit, colossal broken columns, faint purple light rising from below; accent deep violet\n6. a hillside bandit cave with a palisade of sharpened stakes, campfire, stolen crates, crude tents; accent campfire orange\n7. a huge underground wine cellar, rows of giant barrels, spilled red wine on the floor, broken stairs; accent wine red\n8. a half-sunken sea fortress at low tide, barnacled walls, seaweed, tide pools in a flooded courtyard; accent sea green\n9. a cold dwarven mountain forge hall, a giant anvil, dead furnaces, hanging chains and racks of old weapons; accent dull copper\n\nArt style (identical on every panel and every sheet): the SAME dark-fantasy graphic novel look as the attached reference — bold black ink outlines, large flat colour shapes with loose dry gouache brush strokes, blocky near-black shadows, warm torchlight from the left, greyed dirty colours (old bronze, ochre, brick red, ash grey, dark leather) with ONE accent colour per scene that defines its mood. Low detail, strong silhouettes, NOT photo-real, NOT 3D render, NOT anime, no glossy effects. Every scene is DARK overall (mostly mid-to-dark values) so light text could sit below it. No people in the foreground, at most small dark silhouettes of monsters far inside. No text, no letters, no numbers, no signs with writing, no UI, no frames inside panels.",
+      "cells": [
+        "sewer",
+        "mine",
+        "catacomb",
+        "magma",
+        "abyss",
+        "bandit",
+        "cellar",
+        "drowned",
+        "forge"
+      ]
+    },
+    {
+      "id": "dungeon_2",
+      "preset": "scene",
+      "out": "art/source/dungeon_sheets/dungeons_2.png",
+      "styleRef": "art/source/style/dark_ref.png",
+      "prompt": "Panels left-to-right, top-to-bottom (3 per row):\n1. a ruined ancient colosseum overgrown with weeds, blood-stained sand, broken statues of champions, a rusted portcullis; accent dried blood red\n2. a forest sanctuary of giant twisted thorn vines forming arches, an elven altar stone, glowing moths; accent dark emerald\n3. a frozen royal treasure vault, ice-covered gold piles, frozen guards' armour in the ice walls, icicles; accent icy blue\n4. the shattered base of a collapsed wizard tower, floating rock fragments, broken glass jars, a strange green-blue glow; accent arcane teal\n5. a desert valley of royal tombs carved into cliffs, giant seated king statues, gold glinting in dark doorways; accent tomb gold\n6. a sea cave smugglers' den with a hidden jetty, small boats, barrels and nets, lanterns on ropes; accent lantern yellow\n7. an abandoned fighting-dog kennel and pit, iron cages, chains, a sand pit with claw marks; accent rusty brown\n8. a collapsed marble quarry with huge cut blocks, rope cranes, a dusty pit with a cave mouth; accent dusty marble white\n9. a burnt-down noble villa, charred columns, a scorched mosaic floor, a dry fountain, smoke; accent ember orange\n\nArt style (identical on every panel and every sheet): the SAME dark-fantasy graphic novel look as the attached reference — bold black ink outlines, large flat colour shapes with loose dry gouache brush strokes, blocky near-black shadows, warm torchlight from the left, greyed dirty colours (old bronze, ochre, brick red, ash grey, dark leather) with ONE accent colour per scene that defines its mood. Low detail, strong silhouettes, NOT photo-real, NOT 3D render, NOT anime, no glossy effects. Every scene is DARK overall (mostly mid-to-dark values) so light text could sit below it. No people in the foreground, at most small dark silhouettes of monsters far inside. No text, no letters, no numbers, no signs with writing, no UI, no frames inside panels.",
+      "cells": [
+        "oldarena",
+        "thorn",
+        "frost",
+        "spire",
+        "kings",
+        "smuggler",
+        "kennel",
+        "quarry",
+        "ruinvilla"
+      ]
+    },
+    {
+      "id": "dungeon_3",
+      "preset": "scene",
+      "out": "art/source/dungeon_sheets/dungeons_3.png",
+      "styleRef": "art/source/style/dark_ref.png",
+      "prompt": "Panels left-to-right, top-to-bottom (3 per row):\n1. a poisonous swamp shrine on stilts, twisted mangrove roots, hanging charms, glowing toxic water; accent toxic yellow-green\n2. a grassy burial mound with a stone doorway, standing stones, a dark passage lined with old shields; accent mossy green\n3. an abandoned prison block, rows of rusted cell doors, hanging cages, manacles on the walls; accent cold iron grey\n4. a ship graveyard of rotting wrecks on black rocks under a stormy sky, broken masts, a gaping hull entrance; accent storm blue\n5. an underground black market tunnel with tattered awnings, hanging cages and lamps, shadowy stalls; accent smoky purple\n6. a beast warren of tunnels dug in red earth, bones and fur nests, claw-scratched walls, a glowing den; accent earthy red\n7. a fallen frontier fortress gatehouse, broken walls, burning banners, siege debris, war drums; accent banner crimson\n8. the dark underground channels below a collapsed aqueduct, arches over rushing water, a huge iron sluice gate; accent dark teal\n9. the entrance of a bull-headed labyrinth, high stone walls, bull horns carved over the gate, scattered bones; accent bronze\n\nArt style (identical on every panel and every sheet): the SAME dark-fantasy graphic novel look as the attached reference — bold black ink outlines, large flat colour shapes with loose dry gouache brush strokes, blocky near-black shadows, warm torchlight from the left, greyed dirty colours (old bronze, ochre, brick red, ash grey, dark leather) with ONE accent colour per scene that defines its mood. Low detail, strong silhouettes, NOT photo-real, NOT 3D render, NOT anime, no glossy effects. Every scene is DARK overall (mostly mid-to-dark values) so light text could sit below it. No people in the foreground, at most small dark silhouettes of monsters far inside. No text, no letters, no numbers, no signs with writing, no UI, no frames inside panels.",
+      "cells": [
+        "swamp",
+        "barrow",
+        "prison",
+        "wreck",
+        "bazaar",
+        "hive",
+        "garrison",
+        "aqueduct",
+        "labyrinth"
+      ]
+    },
+    {
+      "id": "dungeon_4",
+      "preset": "scene",
+      "out": "art/source/dungeon_sheets/dungeons_4.png",
+      "styleRef": "art/source/style/dark_ref.png",
+      "prompt": "Panels left-to-right, top-to-bottom (3 per row):\n1. a silent mountain monastery cloister in snow, empty prayer halls, hanging bells, robed shadows; accent pale ash\n2. a giant pit filled with bones, crude bone totems, chains hanging over the edge, vultures; accent bone yellow\n3. a mountain peak shrine struck by lightning, broken bronze rods, swirling dark clouds, rain; accent electric pale blue\n4. a black obsidian fortress on a cliff, jagged glassy walls, red cracks of heat, iron spikes; accent smouldering red\n5. a dragon's nest in a ruined mountain hall, enormous scales and claw marks, piles of gold and eggs; accent dragon green and gold\n6. a necropolis city of the dead, rows of mausoleums, ghostly green lights in windows, a black gate; accent spectral green\n7. the tomb of a fallen titan, a colossal stone hand and broken helmet half-buried, a doorway in its chest; accent weathered bronze\n8. a hellish crimson arena deep underground, red sand, blood fountains, chains and burning braziers around; accent deep crimson\n9. a meteor crater with a fallen glowing star stone, crystals, twisted cultist totems, starry night sky; accent cosmic blue-violet\n\nArt style (identical on every panel and every sheet): the SAME dark-fantasy graphic novel look as the attached reference — bold black ink outlines, large flat colour shapes with loose dry gouache brush strokes, blocky near-black shadows, warm torchlight from the left, greyed dirty colours (old bronze, ochre, brick red, ash grey, dark leather) with ONE accent colour per scene that defines its mood. Low detail, strong silhouettes, NOT photo-real, NOT 3D render, NOT anime, no glossy effects. Every scene is DARK overall (mostly mid-to-dark values) so light text could sit below it. No people in the foreground, at most small dark silhouettes of monsters far inside. No text, no letters, no numbers, no signs with writing, no UI, no frames inside panels.",
+      "cells": [
+        "monastery",
+        "bonepit",
+        "storm",
+        "obsidian",
+        "dragon",
+        "necropolis",
+        "titan",
+        "crimson",
+        "void"
+      ]
+    },
+    {
+      "id": "sponsor_icons",
+      "preset": "icons",
+      "out": "art/source/dungeon_sheets/sponsor_icons.png",
+      "styleRef": "art/source/style/flat_ref.png",
+      "prompt": "Every emblem is a round bronze-rimmed trade-guild medallion or badge (roman merchant style). Cells left-to-right, top-to-bottom (4 per row):\n1. a merchant guild emblem: a sack of salt with a balance scale\n2. a merchant emblem: an amphora with grape vines\n3. a granary emblem: a bundle of wheat sheaves over a sack\n4. a bronze workshop emblem: a cast bronze helmet with a hammer\n5. a shipping guild emblem: a merchant galley with a full sail\n6. a spice house emblem: a spice jar with peppers and cinnamon sticks\n7. a horse breeder emblem: a rearing horse head in a horseshoe\n8. a marble quarry emblem: a cut marble block with a chisel\n9. a banker family emblem: a stack of gold coins with a key\n10. an olive oil house emblem: an oil jar with an olive branch\n11. a slave trader guild emblem: broken iron shackles with a coin\n12. an armourer emblem: a crossed sword and spear over a round shield\n13. a red wax seal stamp pressed on a ribbon, with a laurel pattern (no letters)\n14. a heavy iron-bound strongbox full of coins\n15. a bronze balance scale with coins in both pans\n16. a golden laurel wreath around a victory palm\n\nArt style (identical on every cell): the SAME dark-fantasy graphic novel look as the attached reference — bold uniform black ink outline, a few large flat colour shapes, at most 3 flat tones per area laid with loose dry gouache brush strokes, warm torchlight from the left. Colours greyed and dark (old bronze, dull ochre, brick red, ash grey, dark leather) — no bright saturated colours, no clean white, no gradients, no glossy shine, NOT vector art, NOT a sticker. Each emblem must read clearly at 48px.",
+      "cells": [
+        "salt",
+        "wine",
+        "grain",
+        "bronze",
+        "ship",
+        "spice",
+        "horse",
+        "marble",
+        "bank",
+        "olive",
+        "slaver",
+        "arms",
+        "seal",
+        "steady",
+        "balanced",
+        "bonus"
+      ]
+    },
+    {
+      "id": "sponsor_card",
+      "preset": "card",
+      "out": "art/source/dungeon_sheets/sponsor_card.png",
+      "styleRef": "art/source/style/flat_ref.png",
+      "prompt": "ONE portrait image (1024x1536) on a flat solid MAGENTA (#FF00FF) background. In the middle, filling about 90% of the height: one tall roman sponsorship CONTRACT — a sheet of dark aged parchment (dull tan, stained, darker toward the edges) held by two dark wooden scroll rods at top and bottom with bronze end caps. The parchment centre is plain and EMPTY (no writing, no lines, no symbols), with only a faint thin bronze-ink border drawn near its edge. Front view, perfectly upright, symmetric. Keep the parchment fairly dark (mid tan, not white).\n\nArt style (identical on every cell): the SAME dark-fantasy graphic novel look as the attached reference — bold uniform black ink outline, a few large flat colour shapes, at most 3 flat tones per area laid with loose dry gouache brush strokes, warm torchlight from the left. Colours greyed and dark (old bronze, dull ochre, brick red, ash grey, dark leather) — no bright saturated colours, no clean white, no gradients, no glossy shine, NOT vector art, NOT a sticker. Each emblem must read clearly at 48px.",
+      "cells": [
+        "card"
+      ]
+    }
+  ]
+}

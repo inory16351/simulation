@@ -31,6 +31,20 @@ namespace Colosseum.Core
         public double[] loot;
         public List<DungeonFoe> foes;
         public DungeonFoe boss;
+        /// <summary>FM 세계 던전 자리: 바탕 던전 종류 id (그림·설명)와 위험도 1~10. 표의 원래 던전은 null·0</summary>
+        public string type;
+        public int grade;
+        /// <summary>그림 이름 (Resources/Art/dungeon)</summary>
+        public string Art => type ?? id;
+    }
+
+    /// <summary>FM 세계: 급료일마다 열리는 던전 자리 하나. 누가 먼저 원정을 보내면 그 주에는 다른 루두스가 못 들어간다</summary>
+    public class DungeonSite
+    {
+        /// <summary>종류@위험도#일련 (예: magma@7#3.15.4)</summary>
+        public string id;
+        public string claimedBy;
+        public int claimedSeason, claimedDay;
     }
 
     /// <summary>원정대 전술 이름과 설명 (단체전 방침과 같다)</summary>
@@ -57,6 +71,11 @@ namespace Colosseum.Core
         static uint Seed31(Rng rng) => (uint)Math.Floor(rng.Next() * 2147483648.0);
 
         static Gladiator Glad(GameState s, string id) => id != null && s.gladiators.TryGetValue(id, out var g) ? g : null;
+
+        static readonly double[][] LootRows =
+        {
+            new double[] { 60, 32, 8, 0 }, new double[] { 45, 38, 15, 2 }, new double[] { 30, 40, 24, 6 }, new double[] { 20, 38, 32, 10 }, new double[] { 10, 32, 40, 18 },
+        };
 
         public static readonly List<DungeonDef> Dungeons = new()
         {
@@ -89,11 +108,149 @@ namespace Colosseum.Core
                 foes = new() { new("elf", "미친 마법사"), new("lizardfolk", "탑의 실험체") }, boss = new("elf", "탑의 주인") },
             new DungeonDef { id = "kings", name = "왕들의 골짜기", desc = "대륙 첫 왕조의 무덤. 황금과 저주가 함께 묻혀 있습니다", tier = 5, floors = 5, days = 21, level = 13.5, death = 0.18, loot = new double[] { 8, 32, 42, 18 },
                 foes = new() { new("human", "왕의 근위 망령"), new("minotaur", "황금 황소") }, boss = new("human", "첫 번째 왕") },
+            // FM 세계 던전 종류 (위험도는 자리마다 따로 정한다: GradeRange. 아래 수치는 표 기준값일 뿐)
+            Kind("smuggler", "밀수꾼 동굴", "바닷가 동굴에 숨은 밀수꾼 소굴. 배를 대는 비밀 부두가 있습니다", 1, new("human", "밀수꾼"), new("lizardfolk", "해안 약탈자"), new("human", "밀수 선장")),
+            Kind("kennel", "버려진 투견장", "주인이 버리고 떠난 투견장. 풀려난 것들이 우리를 차지했습니다", 1, new("beastkin", "투견 수인"), new("human", "투견꾼"), new("beastkin", "우리의 주인")),
+            Kind("quarry", "무너진 채석장", "대리석을 캐다 무너진 채석장. 갱도 안에 도굴꾼이 눌러앉았습니다", 2, new("dwarf", "채석장 도굴꾼"), new("orc", "바위 깨는 자"), new("dwarf", "채석장 감독관")),
+            Kind("ruinvilla", "불탄 장원", "반란으로 불탄 귀족 장원. 약탈자들이 아직 지하 금고를 노립니다", 2, new("human", "장원 약탈자"), new("beastkin", "들개 수인"), new("human", "몰락한 영주")),
+            Kind("swamp", "독늪 사당", "독안개가 낀 늪 위 사당. 늪 주술사들이 침입자를 제물로 바칩니다", 2, new("lizardfolk", "늪 주술사"), new("beastkin", "늪 사냥꾼"), new("lizardfolk", "늪의 어머니")),
+            Kind("barrow", "고분 언덕", "옛 족장들이 묻힌 고분. 무덤을 지키는 망령이 깨어났습니다", 3, new("human", "고분 망령"), new("dwarf", "무덤 도굴꾼"), new("human", "고분의 군주")),
+            Kind("prison", "버려진 감옥", "폭동으로 버려진 감옥. 탈옥수들이 감방을 요새로 바꿨습니다", 3, new("human", "탈옥수"), new("orc", "옥졸 망령"), new("orc", "감옥장")),
+            Kind("wreck", "난파선 묘지", "폭풍에 부서진 배들이 쌓인 바위섬. 선창 깊은 곳에 보물이 있습니다", 3, new("human", "익사한 선원"), new("lizardfolk", "산호 약탈자"), new("human", "유령 선장")),
+            Kind("bazaar", "지하 암시장", "도시 밑 암시장. 훔친 명품 무기가 오가고 칼잡이가 지킵니다", 3, new("human", "암시장 칼잡이"), new("elf", "독살자"), new("elf", "암시장 주인")),
+            Kind("hive", "수인 굴", "붉은 흙 속에 판 수인들의 굴. 굴마다 사냥꾼이 숨어 있습니다", 3, new("beastkin", "굴 수인"), new("beastkin", "굴 사냥꾼"), new("beastkin", "굴의 우두머리")),
+            Kind("garrison", "함락된 국경 성채", "오크 군벌에게 넘어간 국경 성채. 배신한 수비대가 함께 지킵니다", 4, new("orc", "점령군"), new("human", "배신한 수비대"), new("orc", "성채의 군벌")),
+            Kind("aqueduct", "수도교 지하 수로", "무너진 수도교 밑 수로. 거센 물살 속에 무언가 삽니다", 4, new("dwarf", "수로 망령"), new("lizardfolk", "수로 괴물"), new("lizardfolk", "수문장")),
+            Kind("labyrinth", "황소의 미궁", "황소 머리 문이 달린 미궁. 들어간 투사들은 길을 잃고 미궁의 일부가 됐습니다", 4, new("minotaur", "미궁 황소"), new("human", "길 잃은 투사"), new("minotaur", "미궁의 왕")),
+            Kind("monastery", "침묵의 수도원", "눈 덮인 산속 수도원. 말 대신 칼로 기도하는 수도사들이 삽니다", 4, new("elf", "침묵의 수도사"), new("human", "고행자"), new("elf", "대수도원장")),
+            Kind("bonepit", "뼈 구덩이", "전쟁터의 시체를 버린 구덩이. 뼈를 모으는 자들이 토템을 세웠습니다", 4, new("orc", "뼈 수집가"), new("beastkin", "시체 먹는 자"), new("orc", "구덩이의 군주")),
+            Kind("storm", "폭풍 봉우리", "번개가 그치지 않는 산꼭대기 제단. 폭풍 사제들이 천둥을 부릅니다", 5, new("human", "폭풍 사제"), new("minotaur", "천둥 황소"), new("human", "번개 부르는 자")),
+            Kind("obsidian", "흑요석 요새", "벼랑 위 검은 유리 요새. 흑철 장인이 만든 갑옷이 잠들어 있습니다", 5, new("orc", "흑요석 기사"), new("dwarf", "흑철 장인"), new("orc", "흑요석 군주")),
+            Kind("dragon", "용의 둥지", "무너진 산속 궁전에 자리 잡은 용의 둥지. 비늘 전사들이 알을 지킵니다", 5, new("lizardfolk", "용족 전사"), new("lizardfolk", "용 숭배자"), new("lizardfolk", "비늘 군주")),
+            Kind("necropolis", "망자의 도시", "끝없이 늘어선 영묘의 도시. 창마다 푸른 불이 켜져 있습니다", 5, new("human", "망자 군단"), new("elf", "사령 대마법사"), new("human", "망자의 왕")),
+            Kind("titan", "거인의 무덤", "쓰러진 거인의 돌 몸뚱이 속 무덤. 가슴의 문이 열렸습니다", 5, new("minotaur", "거인의 수호자"), new("dwarf", "거인 숭배자"), new("minotaur", "청동 거상")),
+            Kind("crimson", "진홍의 투기장", "땅속 깊은 곳 붉은 모래의 투기장. 영원히 싸우는 저주받은 투사들이 있습니다", 5, new("human", "진홍 투사"), new("minotaur", "진홍 황소"), new("human", "영원한 챔피언")),
+            Kind("void", "별이 떨어진 구덩이", "하늘에서 떨어진 별의 구덩이. 별빛에 미친 자들이 수정을 지킵니다", 5, new("elf", "별의 광신도"), new("orc", "운석에 미친 자"), new("elf", "별에서 온 자")),
         };
+
+        /// <summary>FM 세계 던전 종류 (표 기준값은 등급에서 대충 정한다. 실제 수치는 자리의 위험도로 Synth가 만든다)</summary>
+        static DungeonDef Kind(string id, string name, string desc, int tier, DungeonFoe a, DungeonFoe b, DungeonFoe boss) => new()
+        {
+            id = id, name = name, desc = desc, tier = tier, floors = 3 + tier / 2, days = 6 + tier * 3, level = 4.5 + tier * 2, death = 0.03 + tier * 0.03,
+            loot = LootRows[tier - 1], foes = new() { a, b }, boss = boss,
+        };
+
+
+        // ── FM 세계: 던전 자리 (급료일마다 22~28곳, 위험도 1~10) ──
+
+        public const int MaxGrade = 10;
+
+        /// <summary>종류마다 나올 수 있는 위험도 (분위기에 맞게: 하수도는 얕고 심연은 깊다)</summary>
+        static readonly Dictionary<string, (int lo, int hi)> GradeRange = new()
+        {
+            ["sewer"] = (1, 3), ["cellar"] = (1, 3), ["bandit"] = (1, 4), ["smuggler"] = (1, 3), ["kennel"] = (1, 3),
+            ["mine"] = (2, 5), ["quarry"] = (2, 4), ["ruinvilla"] = (2, 4), ["swamp"] = (2, 5),
+            ["drowned"] = (3, 5), ["forge"] = (3, 6), ["barrow"] = (3, 5), ["prison"] = (3, 6), ["wreck"] = (3, 6), ["bazaar"] = (3, 6),
+            ["catacomb"] = (4, 7), ["oldarena"] = (4, 7), ["thorn"] = (4, 7), ["hive"] = (4, 7), ["garrison"] = (4, 7), ["aqueduct"] = (4, 7),
+            ["labyrinth"] = (5, 8), ["monastery"] = (5, 8), ["bonepit"] = (5, 8),
+            ["magma"] = (6, 9), ["frost"] = (6, 9), ["spire"] = (6, 9), ["storm"] = (6, 9),
+            ["obsidian"] = (7, 10), ["titan"] = (7, 10),
+            ["abyss"] = (8, 10), ["kings"] = (8, 10), ["dragon"] = (8, 10), ["necropolis"] = (8, 10), ["crimson"] = (9, 10), ["void"] = (9, 10),
+        };
+
+        public static (int lo, int hi) GradesOf(DungeonDef d) => GradeRange.TryGetValue(d.type ?? d.id, out var r) ? r : (1, MaxGrade);
+
+        /// <summary>위험도의 첫 층 적 평균 능력 (CA): 1 → 10, 10 → 145. 세계의 1~4부 전력(CA 30~180)을 고루 덮는다</summary>
+        public static double GradeFoeCa(int g) => 10 + 15 * (g - 1);
+
+        /// <summary>이 전력(CA)에 적정한(적보다 30쯤 강한) 가장 높은 위험도</summary>
+        public static int FairGrade(double ca) => Math.Clamp((int)Math.Floor((ca - 30 - 10) / 15) + 1, 1, MaxGrade);
+
+        static readonly Dictionary<string, DungeonDef> synth = new();
+
+        /// <summary>종류@위험도[#일련] → 그 위험도의 던전. 층·일수·적 수준·전리품을 위험도로 정한다</summary>
+        static DungeonDef Synth(string id)
+        {
+            if (synth.TryGetValue(id, out var c)) return c;
+            int at = id.IndexOf('@');
+            var t = Dungeons.FirstOrDefault(d => d.id == id.Substring(0, at));
+            int hash = id.IndexOf('#', at);
+            if (t == null || !int.TryParse(hash < 0 ? id.Substring(at + 1) : id.Substring(at + 1, hash - at - 1), out int g)) return null;
+            g = Math.Clamp(g, 1, MaxGrade);
+            double tf = 1 + (g - 1) * 4 / 9.0;
+            int lo = Math.Min(4, (int)Math.Floor(tf) - 1);
+            double k = tf - 1 - lo;
+            var loot = new double[4];
+            for (int i = 0; i < 4; i++) loot[i] = JsMath.Round(LootRows[lo][i] + (LootRows[Math.Min(4, lo + 1)][i] - LootRows[lo][i]) * k);
+            int floors = 3 + (g - 1) / 3;
+            c = new DungeonDef
+            {
+                id = id, type = t.id, grade = g, name = t.name, desc = t.desc, tier = (int)Math.Round(tf), floors = floors, days = floors * 2 + g,
+                level = (GradeFoeCa(g) / 200 * 19 + 1) / FoeLevelMult, death = 0.03 + g * 0.015, loot = loot, foes = t.foes, boss = t.boss,
+            };
+            if (synth.Count > 4000) synth.Clear();
+            synth[id] = c;
+            return c;
+        }
+
+        /// <summary>이번 주에 열린 던전 자리. 없으면(새 게임·옛 저장) 날짜로 정한다 (게임 난수를 건드리지 않게)</summary>
+        public static List<DungeonSite> Sites(GameState s) => s.dungeonSites ??= RollSites(s, new Rng((uint)(s.season * 1000 + s.day + 77)));
+
+        /// <summary>위험도 1~10을 고루 섞어 22~28곳. 한 주에 같은 종류는 되도록 한 번만</summary>
+        static List<DungeonSite> RollSites(GameState s, Rng rng)
+        {
+            int n = rng.Int(22, 28);
+            var used = new HashSet<string>();
+            var o = new List<(int g, DungeonSite site)>();
+            for (int i = 0; i < n; i++)
+            {
+                int g = 1 + i % MaxGrade;
+                var fit = Dungeons.Where(d => { var r = GradesOf(d); return r.lo <= g && g <= r.hi; }).ToList();
+                var fresh = fit.Where(d => !used.Contains(d.id)).ToList();
+                var t = rng.Pick(fresh.Count > 0 ? fresh : fit);
+                used.Add(t.id);
+                o.Add((g, new DungeonSite { id = $"{t.id}@{g}#{s.season}.{s.day}.{i}" }));
+            }
+            return o.OrderBy(x => x.g).Select(x => x.site).ToList();
+        }
+
+        public static DungeonSite SiteOf(GameState s, string id) => Sites(s).FirstOrDefault(x => x.id == id);
+
+        /// <summary>아무도 들어가지 않은 자리</summary>
+        public static IEnumerable<DungeonSite> OpenSites(GameState s) => Sites(s).Where(x => x.claimedBy == null);
+
+        /// <summary>자리를 차지한다. 되면 null</summary>
+        public static string ClaimSite(GameState s, string id, string ludusId)
+        {
+            var x = SiteOf(s, id);
+            if (x == null) return "이번 주에 열린 던전이 아닙니다";
+            if (x.claimedBy != null) return x.claimedBy == ludusId ? "이미 우리 원정대가 들어가 있습니다" : "다른 루두스 원정대가 먼저 들어갔습니다";
+            x.claimedBy = ludusId;
+            x.claimedSeason = s.season;
+            x.claimedDay = s.day;
+            return null;
+        }
+
+        /// <summary>AI가 자리를 더 차지해도 되는가: 한 주에 자리의 60%까지, 하루에 그 6분의 1씩 (우리 몫이 주 내내 남게)</summary>
+        public static bool AiMayClaim(GameState s, string playerId)
+        {
+            var sites = Sites(s);
+            int ai = 0, today = 0;
+            foreach (var x in sites)
+            {
+                if (x.claimedBy == null || x.claimedBy == playerId) continue;
+                ai++;
+                if (x.claimedSeason == s.season && x.claimedDay == s.day) today++;
+            }
+            return ai < sites.Count * 0.6 && today < Math.Ceiling(sites.Count * 0.6 / 6);
+        }
+
+        /// <summary>표의 원래 던전 수 (웹판 5 + Unity판 9). 그 뒤는 FM 세계 종류</summary>
+        const int LegacyCount = 14;
 
         /// <summary>급료일마다 등급별로 하나씩 열 던전을 새로 뽑는다</summary>
         static List<string> RollRotation(Rng rng) =>
-            Dungeons.GroupBy(d => d.tier).OrderBy(g => g.Key).Select(g => rng.Pick(g.ToList()).id).ToList();
+            Dungeons.Take(LegacyCount).GroupBy(d => d.tier).OrderBy(g => g.Key).Select(g => rng.Pick(g.ToList()).id).ToList();
 
         /// <summary>이번 주에 열린 던전. 옛 저장·새 게임에서 아직 없으면 날짜로 정한다 (게임 난수를 건드리지 않게)</summary>
         public static List<string> Rotation(GameState s) => s.dungeonRotation ??= RollRotation(new Rng((uint)(s.season * 1000 + s.day)));
@@ -101,10 +258,13 @@ namespace Colosseum.Core
         /// <summary>급료일: 던전 입구가 바뀐다</summary>
         public static void WeeklyRotation(GameState s, Rng rng)
         {
-            if (FmRules.Enabled) s.dungeonRotation = RollRotation(rng);
+            if (FmRules.Enabled) s.dungeonSites = RollSites(s, rng);
         }
 
-        public static DungeonDef GetDungeon(string id) => Dungeons.First(d => d.id == id);
+        public static DungeonDef GetDungeon(string id) => Find(id) ?? throw new InvalidOperationException($"던전 없음: {id}");
+
+        /// <summary>표의 던전 또는 FM 세계 던전 자리 (종류@위험도). 없으면 null</summary>
+        public static DungeonDef Find(string id) => id == null ? null : id.IndexOf('@') >= 0 ? Synth(id) : Dungeons.FirstOrDefault(d => d.id == id);
         public const int MaxParty = 5;
 
         /// <summary>원정대 전술: 단체전 방침 넷 (전략 화면과 같다)</summary>
@@ -161,8 +321,15 @@ namespace Colosseum.Core
             }
             var q = !string.IsNullOrEmpty(questId) ? QuestsOf(s).FirstOrDefault(x => x.id == questId) : null;
             if (!string.IsNullOrEmpty(questId) && (q == null || q.status != "open")) return "의뢰가 마감됐습니다";
-            if (FmRules.Enabled && q == null && !Rotation(s).Contains(dungeon)) return "이 던전은 이번 주에 열려 있지 않습니다";
+            // FM 세계: 이번 주 자리 중 아무도 들어가지 않은 곳만. 들어가면 그 주에는 다른 루두스가 못 온다
+            if (FmRules.Enabled && q == null)
+            {
+                var site = SiteOf(s, dungeon);
+                if (site == null) return "이 던전은 이번 주에 열려 있지 않습니다";
+                if (site.claimedBy != null) return site.claimedBy == me.id ? "이미 우리 원정대가 들어가 있습니다" : "다른 루두스 원정대가 먼저 들어갔습니다";
+            }
             var d = GetDungeon(q?.dungeon ?? dungeon);
+            if (FmRules.Enabled && q == null) ClaimSite(s, dungeon, me.id);
             double t = Now(s);
             var hp = new Dictionary<string, double>();
             foreach (var id in ids) hp[id] = 1;
@@ -307,6 +474,77 @@ namespace Colosseum.Core
         /// <summary>첫 층 적의 대략의 능력 (화면 난이도 별). 목표 평균 능력치 → CA 환산은 GladiatorGen과 같다</summary>
         public static double FoeCa(DungeonDef d) => (d.level * FoeLevelMult - 1) / 19 * 200;
 
+        // ── 우리 기준 어림 (화면): 원정대로 가면 살아 돌아올 확률과 끝까지 깰 확률 ──
+        // 층마다 적 다섯의 평균 능력(SpawnFoes와 같은 계산)과 원정대 평균의 차이로 이길 확률을 어림하고,
+        // 쓰러질 확률 × 실제와 같은 사망 확률(DeathChance)로 사람마다 생존을 곱해 간다. 수치는 실제 전투로 맞췄다 (FmRulesTests.DungeonOddsMatchRealRuns)
+
+        public class Odds
+        {
+            /// <summary>원정대 한 사람이 살아 돌아올 확률 (평균)</summary>
+            public double survive;
+            /// <summary>마지막 층까지 깰 확률</summary>
+            public double clear;
+            /// <summary>첫 층 적보다 원정대 평균이 얼마나 강한가 (CA)</summary>
+            public double gap;
+            public string label;
+            /// <summary>0 쉬움 · 1 적정 · 2 어려움 · 3 위험 · 4 무모함</summary>
+            public int level;
+        }
+
+        /// <summary>층 승리 어림: σ((격차 − 종족 보정 − 소모 × 층 − 우두머리 − C) / S). 종족 하나짜리 던전으로 층별 승률을 재서 맞췄다 (2026-11-05)</summary>
+        public static double OddsC = 13, OddsS = 6.9, WearPerFloor = 2, BossFloor = 8, DownBase = 0.15, DownLoss = 0.75, MissingMember = 15;
+
+        /// <summary>같은 CA라도 종족마다 난전에서 다르다 (사람 기준 CA만큼 더 세다)</summary>
+        static readonly Dictionary<string, double> RaceEdge = new()
+        {
+            ["human"] = 0, ["elf"] = 2, ["beastkin"] = 3, ["lizardfolk"] = 5, ["dwarf"] = 8, ["orc"] = 12, ["minotaur"] = 22,
+        };
+
+        static double Edge(string race) => RaceEdge.TryGetValue(race ?? "", out var e) ? e : 0;
+
+        static double TargetCa(double lvl) => (lvl - 1) / 19 * 200;
+
+        /// <summary>n번째 층(0부터) 적 다섯의 평균 능력 (SpawnFoes와 같은 수준 계산)</summary>
+        public static double FloorFoeCa(DungeonDef d, int floor, double hard = 1)
+        {
+            bool boss = floor + 1 == d.floors;
+            double Lvl(double extra) => Math.Min(20, JsMath.Round((d.level + floor * 0.6 + extra) * hard * FoeLevelMult));
+            return (TargetCa(Lvl(0)) * 4 + TargetCa(Lvl(boss ? 2 : 0))) / 5;
+        }
+
+        /// <summary>원정대 평균 능력(avg)으로 n번째 층(0부터)을 이길 확률 어림 (우리 화면·AI 원정 요약이 같이 쓴다)</summary>
+        public static double FloorWin(DungeonDef d, int floor, double avg, double hard = 1)
+        {
+            bool boss = floor + 1 == d.floors;
+            double common = d.foes.Average(f => Edge(f.race));
+            double edge = boss ? (common * 4 + Edge(d.boss.race)) / 5 : common;
+            double gap = avg - FloorFoeCa(d, floor, hard) - edge - WearPerFloor * floor - (boss ? BossFloor : 0);
+            return 1 / (1 + Math.Exp(-(gap - OddsC) / OddsS));
+        }
+
+        public static Odds Estimate(DungeonDef d, IList<Gladiator> party, double hard = 1, bool quest = false)
+        {
+            if (party == null || party.Count == 0) return null;
+            var cas = party.Select(GladiatorRules.ComputeCA).ToList();
+            double avg = cas.Average() - (MaxParty - Math.Min(MaxParty, party.Count)) * MissingMember;
+            double reach = 1;
+            var alive = cas.Select(_ => 1.0).ToArray();
+            for (int f = 0; f < d.floors; f++)
+            {
+                double foe = FloorFoeCa(d, f, hard);
+                double win = FloorWin(d, f, avg, hard);
+                double down = Math.Min(0.9, DownBase + (1 - win) * DownLoss);
+                for (int i = 0; i < alive.Length; i++) alive[i] *= 1 - reach * down * DeathChance(cas[i], foe, quest);
+                reach *= win;
+            }
+            var o = new Odds { survive = alive.Average(), clear = reach, gap = avg - FloorFoeCa(d, 0, hard) };
+            o.level = o.survive >= 0.97 && o.clear >= 0.7 ? 0 : o.survive >= 0.92 ? 1 : o.survive >= 0.85 ? 2 : o.survive >= 0.75 ? 3 : 4;
+            o.label = OddsLabels[o.level];
+            return o;
+        }
+
+        public static readonly string[] OddsLabels = { "쉬움", "적정", "어려움", "위험", "무모함" };
+
         static List<Gladiator> SpawnFoes(Rng rng, DungeonDef d, bool boss, double hard, double floor)
         {
             // 난전이니 적은 늘 다섯. 같은 이름은 번호로 구분한다
@@ -408,12 +646,20 @@ namespace Colosseum.Core
             Msg(s, "info", $"원정 귀환: {d.name}", string.Join("\n", lines) + "\n\n장비는 막사 → 검투사 화면에서 착용할 수 있습니다.");
         }
 
+        /// <summary>FM 세계 토벌 의뢰 던전: 우리 주전 전력의 적정 위험도 (hard 배율로 훨씬 강해진다)</summary>
+        static DungeonDef QuestDungeon(GameState s, Rng rng)
+        {
+            int g = FairGrade(Patrons.Strength(s, s.ludi[s.playerLudusId]));
+            var t = rng.Pick(Dungeons.Where(x => { var r = GradesOf(x); return r.lo <= g && g <= r.hi; }).ToList());
+            return GetDungeon($"{t.id}@{g}");
+        }
+
         /// <summary>급료일마다: 가끔 나라가 던전 토벌 의뢰를 낸다 (어렵다)</summary>
         public static void WeeklyQuests(GameState s, Rng rng)
         {
             if (QuestsOf(s).Any(q => q.status == "open") || !rng.Chance(0.18)) return;
             // 웹판과 같은 결과가 필요할 때(FM 규칙 끔)는 앞 다섯 안에서만 고른다
-            var d = FmRules.Enabled ? rng.Pick(Dungeons.Where(x => x.tier >= 3).ToList()) : Dungeons[rng.Int(2, 4)];
+            var d = FmRules.Enabled ? QuestDungeon(s, rng) : Dungeons[rng.Int(2, 4)];
             string nation = rng.Chance(0.6) ? s.nation : rng.Pick(Data.Nations).id;
             double t = Now(s);
             var quest = new DungeonQuest

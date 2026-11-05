@@ -19,6 +19,8 @@ namespace Colosseum.EditorTools
             // 붓 UI 그림(Tools/ui-frames.mjs가 Codex 그림에서 만든다)은 9-slice
             // 부드러운 그림자(Tools/ui-fx.mjs)는 가장자리 번짐 24px를 9-slice로
             if (assetPath == "Assets/Resources/Art/ui/soft_shadow.png") ti.spriteBorder = new UnityEngine.Vector4(24, 24, 24, 24);
+            // 스폰서 계약서 바탕 (Tools/dungeon-art.mjs): 위아래 두루마리 막대와 좌우 찢긴 가장자리는 늘이지 않는다
+            if (assetPath == "Assets/Resources/Art/sponsor/card.png") ti.spriteBorder = new UnityEngine.Vector4(60, 84, 60, 84);
             if (assetPath.StartsWith("Assets/Resources/Art/ui/brush_"))
             {
                 float b = assetPath.EndsWith("brush_frame.png") ? 18 : assetPath.EndsWith("brush_fill.png") ? 8 : assetPath.EndsWith("brush_button.png") ? 16 : 12;

@@ -299,10 +299,15 @@ namespace Colosseum.Tests
                     if (!string.IsNullOrEmpty(it) && it != "cestus" && it != "loincloth") Assert.IsNull(GearLogic.CannotEquip(g, sl, it), $"{g.name} {sl} {it}");
                 }
             }
-            // 던전: 정규 리그가 끝나고 컵 일정이 없을 때만 떠나고, 정해진 날 돌아온다
+            // 던전: 시즌 중엔 상위 7명을 남기고 벤치만 보낸다. 리그가 끝나면 주전도 간다. 정해진 날 돌아온다
             s.day = 50;
             AiBrain.Turn(s, rng, l);
-            Assert.IsNull(l.aiExpedition, "정규 리그 중엔 원정 안 감");
+            if (l.aiExpedition != null)
+            {
+                var top = l.gladiators.Select(id => s.gladiators[id]).Where(g => g.alive && GladiatorRules.AgeStage(g) != "youth").OrderByDescending(GladiatorRules.ComputeCA).Take(7).Select(g => g.id).ToList();
+                Assert.IsFalse(l.aiExpedition.party.Any(top.Contains), "정규 리그 중엔 주전·교체는 남긴다");
+                Assert.AreEqual(l.id, DungeonLogic.Sites(s).First(x => x.id == l.aiExpedition.dungeon).claimedBy, "AI도 자리를 차지한다");
+            }
             var low = s.ludi.Values.First(x => !x.isPlayer && x.tier == 4 && x.nation == "aurelia");
             low.treasury = 500000;
             s.day = 140;
@@ -681,7 +686,9 @@ namespace Colosseum.Tests
         }
 
         /// <summary>던전 수준에 target만큼 더한 원정대 다섯을 보내 (원정마다 죽은 비율, 완주 비율)</summary>
-        static (double death, double clear) RunParties(string did, double plus, int runs)
+        static (double death, double clear) RunParties(string did, double plus, int runs) => RunParties(did, plus, runs, null);
+
+        static (double death, double clear) RunParties(string did, double plus, int runs, System.Collections.Generic.List<double> predicted)
         {
             int died = 0, sent = 0, cleared = 0;
             var d = DungeonLogic.GetDungeon(did);
@@ -690,6 +697,7 @@ namespace Colosseum.Tests
                 var s = World.NewGame(300 + i, "aurelia", "시험", 2);
                 var me = s.ludi[s.playerLudusId];
                 s.dungeonRotation = DungeonLogic.Dungeons.Select(x => x.id).ToList();
+                s.dungeonSites = new System.Collections.Generic.List<DungeonSite> { new DungeonSite { id = did } };
                 var rng = new Rng((uint)(11 + i));
                 var party = new System.Collections.Generic.List<string>();
                 for (int k = 0; k < 5; k++)
@@ -700,6 +708,11 @@ namespace Colosseum.Tests
                     party.Add(g.id);
                 }
                 sent += party.Count;
+                if (predicted != null)
+                {
+                    var o = DungeonLogic.Estimate(d, party.Select(id => s.gladiators[id]).ToList());
+                    predicted[0] += 1 - o.survive; predicted[1] += o.clear;
+                }
                 Assert.IsNull(DungeonLogic.StartExpedition(s, did, party.ToList(), "focus"));
                 s.day += d.days;
                 DungeonLogic.DailyDungeons(s, rng);
@@ -707,6 +720,68 @@ namespace Colosseum.Tests
                 died += party.Count(id => !s.gladiators[id].alive);
             }
             return ((double)died / sent, (double)cleared / runs);
+        }
+
+        /// <summary>던전 자리(위험도)마다 실제 전투 결과와 화면 어림(Estimate)을 견준다</summary>
+        [Test]
+        public void DungeonOddsMatchRealRuns()
+        {
+            double errDeath = 0, errClear = 0;
+            int n = 0;
+            foreach (var site in new[] { "sewer@2", "catacomb@5", "labyrinth@7", "abyss@9" })
+            {
+                var d = DungeonLogic.GetDungeon(site);
+                double foeTarget = DungeonLogic.FloorFoeCa(d, 0) / 200 * 19 + 1;
+                foreach (double plus in new[] { 1.0, 3, 5, 7 })
+                {
+                    var pred = new System.Collections.Generic.List<double> { 0, 0 };
+                    int runs = 30;
+                    var r = RunParties(site, foeTarget - d.level * DungeonLogic.FoeLevelMult + plus, runs, pred);
+                    double pd = pred[0] / runs, pc = pred[1] / runs;
+                    System.Console.WriteLine($"MEASURE {site} gap+{plus * 10.5:0}: death real {r.death:P0} est {pd:P0} | clear real {r.clear:P0} est {pc:P0}");
+                    errDeath += System.Math.Abs(r.death - pd); errClear += System.Math.Abs(r.clear - pc); n++;
+                }
+            }
+            System.Console.WriteLine($"MEASURE odds error: death {errDeath / n:P1} clear {errClear / n:P1}");
+            Assert.Less(errDeath / n, 0.05, "죽을 확률 어림이 실제와 크게 다르지 않다");
+            Assert.Less(errClear / n, 0.12, "완주 어림이 실제와 크게 다르지 않다");
+        }
+
+        [Test]
+        public void DungeonSitesOpenWeeklyAndClaimsBlockOthers()
+        {
+            var s = World.NewGame(87, "aurelia", "시험", 2);
+            var me = s.ludi[s.playerLudusId];
+            var rng = new Rng(5);
+            s.day += Calendar.PaydayInterval;
+            DungeonLogic.WeeklyRotation(s, rng);
+            var sites = DungeonLogic.Sites(s);
+            Assert.That(sites.Count, Is.InRange(22, 28), "급료일마다 22~28곳");
+            var grades = sites.Select(x => DungeonLogic.GetDungeon(x.id).grade).Distinct().Count();
+            Assert.AreEqual(DungeonLogic.MaxGrade, grades, "위험도 1~10이 모두 열린다");
+            Assert.Greater(sites.Select(x => DungeonLogic.GetDungeon(x.id).type).Distinct().Count(), 20, "종류가 고루 섞인다");
+            // 우리가 들어간 자리는 막힌다
+            var party = me.gladiators.Take(3).ToList();
+            var site = sites[3].id;
+            Assert.IsNull(DungeonLogic.StartExpedition(s, site, party.ToList(), "focus"));
+            Assert.AreEqual(me.id, DungeonLogic.SiteOf(s, site).claimedBy);
+            Assert.IsNotNull(DungeonLogic.StartExpedition(s, site, me.gladiators.Skip(3).Take(2).ToList(), "focus"), "같은 자리에 두 번 못 간다");
+            // AI는 하루에 조금씩, 한 주에 60%까지만
+            var ai = s.ludi.Values.First(l => !l.isPlayer);
+            int claimed = 0;
+            for (int day = 0; day < 7; day++)
+            {
+                while (DungeonLogic.AiMayClaim(s, me.id) && DungeonLogic.OpenSites(s).Any())
+                { Assert.IsNull(DungeonLogic.ClaimSite(s, DungeonLogic.OpenSites(s).First().id, ai.id)); claimed++; }
+                s.day++;
+            }
+            Assert.That(claimed, Is.InRange((int)(sites.Count * 0.5), (int)System.Math.Ceiling(sites.Count * 0.6)), "AI 몫은 주에 60%까지");
+            Assert.Greater(DungeonLogic.OpenSites(s).Count(), 0, "주말에도 우리 몫이 남는다");
+            // 다른 루두스가 들어간 자리는 못 간다
+            var taken = DungeonLogic.Sites(s).First(x => x.claimedBy == ai.id).id;
+            Assert.AreEqual("다른 루두스 원정대가 먼저 들어갔습니다", DungeonLogic.StartExpedition(s, taken, me.gladiators.Skip(3).Take(2).ToList(), "focus"));
+            // 저장해도 남는다
+            Assert.AreEqual(DungeonLogic.Sites(s).Count, SaveSystem.FromJson(SaveSystem.ToJson(s)).dungeonSites.Count);
         }
 
         [Test]
@@ -785,17 +860,17 @@ namespace Colosseum.Tests
         {
             var s = World.NewGame(88, "aurelia", "시험", 4);
             var me = s.ludi[s.playerLudusId];
-            var rot = DungeonLogic.Rotation(s);
-            Assert.AreEqual(DungeonLogic.Dungeons.Select(d => d.tier).Distinct().Count(), rot.Count, "등급마다 하나");
-            var seen = new System.Collections.Generic.HashSet<string>(rot);
+            var first = DungeonLogic.Sites(s).Select(x => x.id).ToList();
             var rng = new Rng(5);
-            for (int i = 0; i < 12; i++) { DungeonLogic.WeeklyRotation(s, rng); seen.UnionWith(DungeonLogic.Rotation(s)); }
-            Assert.Greater(seen.Count, rot.Count, "급료일마다 다른 던전이 열린다");
-            string closed = DungeonLogic.Dungeons.First(d => !DungeonLogic.Rotation(s).Contains(d.id)).id;
+            s.day += Calendar.PaydayInterval;
+            DungeonLogic.WeeklyRotation(s, rng);
+            var now = DungeonLogic.Sites(s).Select(x => x.id).ToList();
+            Assert.IsFalse(now.Intersect(first).Any(), "급료일마다 새 자리가 열린다");
             var party = me.gladiators.Take(3).ToList();
-            Assert.IsNotNull(DungeonLogic.StartExpedition(s, closed, party.ToList(), "shieldwall"), "닫힌 던전은 못 간다");
+            Assert.IsNotNull(DungeonLogic.StartExpedition(s, first[0], party.ToList(), "shieldwall"), "지난주 자리는 못 간다");
+            Assert.IsNotNull(DungeonLogic.StartExpedition(s, "sewer", party.ToList(), "shieldwall"), "열리지 않은 던전은 못 간다");
 
-            string open = DungeonLogic.Rotation(s)[0];
+            string open = now[0];
             Assert.IsNull(DungeonLogic.StartExpedition(s, open, party.ToList(), "shieldwall"));
             var ex = DungeonLogic.ExpeditionsOf(s)[0];
             s.day += DungeonLogic.GetDungeon(open).days;
