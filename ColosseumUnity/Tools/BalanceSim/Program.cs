@@ -308,6 +308,14 @@ class Program
             M("Autoplay(하루 전체)", () => Autoplay(s, arng));
         }
         foreach (var (k, v) in t.OrderByDescending(x => x.Value)) Console.WriteLine($"{k,-28} {v / days,8:0.0} ms/일");
+        Console.WriteLine($"장비 시장 {s.gearMarket?.Count} (AI 매물 {s.gearMarket?.Count(x => x.sellerLudus != null)}) · 위탁 {s.consignments?.Count} · AI 창고 합 {s.ludi.Values.Sum(l => l.armory?.Count ?? 0)} · 식솔 {s.staff.Count} · 식솔 시장 {s.staffMarket.Count} · 검투사 {s.gladiators.Count} · 무소속 {s.freeAgents.Count} · 받은 소식 {s.inbox.Count} · 장부 {s.ledger.Count}");
+        // AiBrain 단계별
+        var t2 = new Dictionary<string, double>();
+        foreach (var l in s.ludi.Values.Where(x => !x.isPlayer).Take(70))
+        {
+            var w = Stopwatch.StartNew(); AiBrain.Turn(s, new Rng(1), l); t2["turn"] = (t2.TryGetValue("turn", out var v0) ? v0 : 0) + w.Elapsed.TotalMilliseconds;
+        }
+        Console.WriteLine($"AiBrain.Turn 70곳 {t2["turn"]:0} ms");
     }
 
     /// <summary>FM 세계 단계 7: AI 운영 판단 측정 (몇 곳이 던전·장비·식솔·시설을 했나, 금고 음수 비율, 불법 장비, 하루 처리 시간)</summary>

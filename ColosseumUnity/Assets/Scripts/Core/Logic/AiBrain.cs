@@ -90,10 +90,14 @@ namespace Colosseum.Core
             double rep = Reputation.LudusReputation(s, l);
             // 주급 예산(고정비·식솔 급료를 뺀 값, 금고가 넉넉하면 더)에서 지금 주급을 뺀 여유
             double fixedRoom = Economy.WageBudget(s, l) - Economy.WeeklyWages(s, l);
+            // 금고가 넉넉하면(넉 달 수입 넘게) 그 여유를 두 시즌에 나눠 식솔 급료로 쓸 수 있다
+            fixedRoom = Math.Max(fixedRoom, (l.treasury - Economy.ExpectedWeeklyIncome(s, l) * 16) / 48);
             foreach (var role in StaffPriority(l))
             {
                 int have = StaffLogic.StaffsOf(s, l, role).Count;
                 if (have >= StaffLogic.RoleCap(l, role)) continue;
+                // 우리가 고를 후보는 남긴다
+                if (s.staffMarket.Count(id => s.staff.TryGetValue(id, out var st) && st.role == role) <= StaffLeftForPlayer) continue;
                 // 둘째부터는 금고가 넉넉할 때만
                 if (have > 0 && l.treasury < Economy.ExpectedWeeklyIncome(s, l) * 16) continue;
                 Staff best = null;
@@ -151,25 +155,33 @@ namespace Colosseum.Core
                 var (who, gain) = GearLogic.BestUse(s, l, item);
                 if (who != null && gain > 0.05 && GearLogic.EquipItem(s, who.id, GearLogic.SlotFor(item), item) == null) Mark("gear", l);
             }
-            // 아무에게도 안 쓰이는 것은 정가의 80%로 내놓는다 (위탁 시장에서 다른 루두스가 산다)
+            // 아무에게도 안 쓰이는 것은 정가의 80%로 내놓는다 (다른 루두스가 산다). 내 매물은 4개까지, 넘치면 싼 것부터 상인에게
+            int listed = GearLogic.GearMarketOf(s).Count(x => x.sellerLudus == l.id);
+            var startersNow = GearLogic.StartersOf(s, l);
             foreach (var item in armory.ToList())
             {
-                if (GearLogic.BestUse(s, l, item).who != null) continue;
+                if (GearLogic.BestUse(s, l, item, startersNow).who != null) continue;
                 armory.Remove(item);
+                if (listed >= MaxListings || GearLogic.ItemPrice(item) < 60)
+                {
+                    Economy.AddMoney(s, l, JsMath.Round(GearLogic.ItemPrice(item) * 0.35), $"{GearLogic.ItemName(item)} 상인에게 넘김");
+                    continue;
+                }
+                listed++;
                 GearLogic.ListForSale(s, l, item, JsMath.Round(GearLogic.ItemPrice(item) * 0.8 / 10) * 10);
                 Mark("sell", l);
             }
-            // 안 팔린 내 매물은 차례마다 10%씩 내리고, 정가 35% 아래로 가면 상인에게 넘긴다 (트레이드인 값, 매물이 쌓이지 않게)
+            // 안 팔린 내 매물은 차례마다 15%씩 내리고, 정가 35% 아래로 가면 상인에게 넘긴다 (트레이드인 값, 매물이 쌓이지 않게)
             var mine = GearLogic.GearMarketOf(s).Where(x => x.sellerLudus == l.id).ToList();
             foreach (var x in mine)
             {
                 double floor = GearLogic.ItemPrice(x.item) * 0.35;
-                if (x.price * 0.9 < floor)
+                if (x.price * 0.85 < floor)
                 {
                     GearLogic.GearMarketOf(s).Remove(x);
                     Economy.AddMoney(s, l, JsMath.Round(floor), $"{GearLogic.ItemName(x.item)} 상인에게 넘김");
                 }
-                else x.price = JsMath.Round(x.price * 0.9 / 10) * 10;
+                else x.price = JsMath.Round(x.price * 0.85 / 10) * 10;
             }
             // 같은 나라 장비 시장(상인·다른 루두스 매물): 지불 의사가 값 이상인 것 중 가장 이득인 하나 (상인 구매는 금고에서 돈이 빠져나가는 통로)
             var market = GearLogic.GearMarketOf(s);
@@ -199,6 +211,10 @@ namespace Colosseum.Core
         // ── 7. 던전: 요약 판정 (Sim을 돌리지 않는다). 정규 리그·컵 일정과 겹치면 가지 않는다 ──
 
         public const int AiParty = 5;
+        /// <summary>한 루두스가 장비 시장에 동시에 내놓는 매물 수</summary>
+        public const int MaxListings = 4;
+        /// <summary>식솔 시장은 우리 몫으로 역할마다 이만큼은 남긴다</summary>
+        public const int StaffLeftForPlayer = 4;
 
         static void Dungeon(GameState s, Rng rng, Ludus l)
         {

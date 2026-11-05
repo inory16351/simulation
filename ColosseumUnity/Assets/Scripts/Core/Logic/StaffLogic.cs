@@ -300,7 +300,7 @@ namespace Colosseum.Core
             // 후보는 우리 루두스가 쓸 사람들이라 우리 부 기준 주급
             int tier = state.playerLudusId != null && state.ludi.TryGetValue(state.playerLudusId, out var me) ? me.tier : 2;
             // FM 세계는 AI 루두스도 같은 시장에서 고용하므로 팀 수에 비례해 늘린다
-            int perRole = FmRules.Enabled ? 6 * FmRules.TeamsPerTier / 10 : 9;
+            int perRole = FmRules.Enabled ? 3 * FmRules.TeamsPerTier / 2 : 9;
             foreach (var role in Roles)
             {
                 for (int i = 0; i < perRole; i++)

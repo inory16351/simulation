@@ -53,7 +53,7 @@ namespace Colosseum.Core
         }
 
         /// <summary>리그 단계별 주급 수준. 몸값(TierValueMult)보다 아래 부를 더 낮춘다 — 3·4부 수입으로 감당할 수 있게</summary>
-        static double WageTierMult(int tier) => tier switch { 1 => 1.35, 2 => 1.0, 3 => 0.72, _ => 0.52 };
+        static double WageTierMult(int tier) => tier switch { 1 => 0.95, 2 => 0.88, 3 => 0.68, _ => 0.52 };
 
         /// <summary>이만한 검투사가 받을 만한 주급 (자유민 기준), 지금 뛰는 리그 기준 (무소속은 2부와 3부 사이). 노예는 웹판 셈 그대로</summary>
         public static double FairWage(GameState s, Gladiator g)
